@@ -1,0 +1,248 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"_owner","type":"address"},
+				{"name":"_withdrawUserDataCode","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "initVault",
+			"inputs": [
+				{"name":"_stTokenRoot","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getWithdrawUserDataAddress",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"user","type":"address"}
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "receiveTokenWalletAddress",
+			"inputs": [
+				{"name":"wallet","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getDetails",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"stEverRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"everBalance","type":"uint128"},{"name":"owner","type":"address"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "addStrategy",
+			"inputs": [
+				{"name":"_strategy","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "deposit",
+			"inputs": [
+				{"name":"_amount","type":"uint128"},
+				{"name":"_nonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onRunBalancer",
+			"inputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"deposit","type":"uint128"},{"name":"withdraw","type":"uint128"}],"name":"balancerConfig","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "withdraw",
+			"inputs": [
+				{"name":"_amount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"}],"name":"withdrawConfig","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "strategyReport",
+			"inputs": [
+				{"name":"gain","type":"uint128"},
+				{"name":"loss","type":"uint128"},
+				{"name":"totalAssets","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onAcceptTokensBurn",
+			"inputs": [
+				{"name":"amount","type":"uint128"},
+				{"name":"walletOwner","type":"address"},
+				{"name":"wallet","type":"address"},
+				{"name":"remainingGasTo","type":"address"},
+				{"name":"payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processSendToUser",
+			"inputs": [
+				{"components":[{"name":"user","type":"address"},{"name":"nonces","type":"uint64[]"}],"name":"sendConfig","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "requestWithdrawValue",
+			"inputs": [
+				{"name":"amount","type":"uint128"},
+				{"name":"_satisfiedWithdrawRequests","type":"uint64[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onPendingWithdrawAccepted",
+			"inputs": [
+				{"name":"_nonce","type":"uint64"},
+				{"name":"user","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "encodeDepositPayload",
+			"inputs": [
+				{"name":"deposit_owner","type":"address"},
+				{"name":"_nonce","type":"uint64"}
+			],
+			"outputs": [
+				{"name":"deposit_payload","type":"cell"}
+			]
+		},
+		{
+			"name": "decodeDepositPayload",
+			"inputs": [
+				{"name":"payload","type":"cell"}
+			],
+			"outputs": [
+				{"name":"deposit_owner","type":"address"},
+				{"name":"nonce","type":"uint64"},
+				{"name":"correct","type":"bool"}
+			]
+		},
+		{
+			"name": "onAcceptTokensTransfer",
+			"inputs": [
+				{"name":"_tokenRoot","type":"address"},
+				{"name":"_amount","type":"uint128"},
+				{"name":"_sender","type":"address"},
+				{"name":"_senderWallet","type":"address"},
+				{"name":"_remainingGasTo","type":"address"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "nonce",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"nonce","type":"uint128"}
+			]
+		},
+		{
+			"name": "withdrawUserDataCode",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"withdrawUserDataCode","type":"cell"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"nonce","type":"uint128"},
+		{"key":2,"name":"governance","type":"address"}
+	],
+	"events": [
+		{
+			"name": "StrategyAdded",
+			"inputs": [
+				{"name":"strategy","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "StrategyReported",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"components":[{"name":"gain","type":"uint128"},{"name":"loss","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"report","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "Deposit",
+			"inputs": [
+				{"name":"user","type":"address"},
+				{"name":"depositAmount","type":"uint128"},
+				{"name":"receivedStEvers","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "WithdrawRequest",
+			"inputs": [
+				{"name":"user","type":"address"},
+				{"name":"amount","type":"uint128"},
+				{"name":"nonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"nonce","type":"uint128"},
+		{"name":"governance","type":"address"},
+		{"name":"stEverSupply","type":"uint128"},
+		{"name":"everBalance","type":"uint128"},
+		{"name":"stEverWallet","type":"address"},
+		{"name":"stTokenRoot","type":"address"},
+		{"name":"owner","type":"address"},
+		{"name":"withdrawUserDataCode","type":"cell"},
+		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
+		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawMap","type":"map(uint64,tuple)"}
+	]
+}
