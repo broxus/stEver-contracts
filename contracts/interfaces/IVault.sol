@@ -23,7 +23,6 @@ interface IVault {
     function getDetails() external responsible view returns(Details);
     function addStrategy(address strategy) external;
     function deposit(uint128 _amount,uint64 _nonce) external;
-    function withdraw(uint128 amount) external;
     function onRunBalancer(BalancingConfig[] balancerConfig) external;
     function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) external;
     function processSendToUser(SendToUserConfig[] sendConfig) external;

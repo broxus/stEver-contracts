@@ -13,9 +13,38 @@
 			]
 		},
 		{
+			"name": "encodeDepositPayload",
+			"inputs": [
+				{"name":"deposit_owner","type":"address"},
+				{"name":"_nonce","type":"uint64"}
+			],
+			"outputs": [
+				{"name":"deposit_payload","type":"cell"}
+			]
+		},
+		{
+			"name": "decodeDepositPayload",
+			"inputs": [
+				{"name":"payload","type":"cell"}
+			],
+			"outputs": [
+				{"name":"deposit_owner","type":"address"},
+				{"name":"nonce","type":"uint64"},
+				{"name":"correct","type":"bool"}
+			]
+		},
+		{
 			"name": "initVault",
 			"inputs": [
 				{"name":"_stTokenRoot","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveTokenWalletAddress",
+			"inputs": [
+				{"name":"wallet","type":"address"}
 			],
 			"outputs": [
 			]
@@ -28,14 +57,6 @@
 			],
 			"outputs": [
 				{"name":"value0","type":"address"}
-			]
-		},
-		{
-			"name": "receiveTokenWalletAddress",
-			"inputs": [
-				{"name":"wallet","type":"address"}
-			],
-			"outputs": [
 			]
 		},
 		{
@@ -56,39 +77,6 @@
 			]
 		},
 		{
-			"name": "deposit",
-			"inputs": [
-				{"name":"_amount","type":"uint128"},
-				{"name":"_nonce","type":"uint64"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onRunBalancer",
-			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"deposit","type":"uint128"},{"name":"withdraw","type":"uint128"}],"name":"balancerConfig","type":"tuple[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "withdraw",
-			"inputs": [
-				{"name":"_amount","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "processWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"}],"name":"withdrawConfig","type":"tuple[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "strategyReport",
 			"inputs": [
 				{"name":"gain","type":"uint128"},
@@ -99,13 +87,32 @@
 			]
 		},
 		{
-			"name": "onAcceptTokensBurn",
+			"name": "deposit",
 			"inputs": [
-				{"name":"amount","type":"uint128"},
-				{"name":"walletOwner","type":"address"},
-				{"name":"wallet","type":"address"},
-				{"name":"remainingGasTo","type":"address"},
-				{"name":"payload","type":"cell"}
+				{"name":"_amount","type":"uint128"},
+				{"name":"_nonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onAcceptTokensTransfer",
+			"inputs": [
+				{"name":"_tokenRoot","type":"address"},
+				{"name":"_amount","type":"uint128"},
+				{"name":"_sender","type":"address"},
+				{"name":"_senderWallet","type":"address"},
+				{"name":"_remainingGasTo","type":"address"},
+				{"name":"_payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onPendingWithdrawAccepted",
+			"inputs": [
+				{"name":"_nonce","type":"uint64"},
+				{"name":"user","type":"address"}
 			],
 			"outputs": [
 			]
@@ -129,44 +136,29 @@
 			]
 		},
 		{
-			"name": "onPendingWithdrawAccepted",
+			"name": "onAcceptTokensBurn",
 			"inputs": [
-				{"name":"_nonce","type":"uint64"},
-				{"name":"user","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "encodeDepositPayload",
-			"inputs": [
-				{"name":"deposit_owner","type":"address"},
-				{"name":"_nonce","type":"uint64"}
-			],
-			"outputs": [
-				{"name":"deposit_payload","type":"cell"}
-			]
-		},
-		{
-			"name": "decodeDepositPayload",
-			"inputs": [
+				{"name":"amount","type":"uint128"},
+				{"name":"walletOwner","type":"address"},
+				{"name":"wallet","type":"address"},
+				{"name":"remainingGasTo","type":"address"},
 				{"name":"payload","type":"cell"}
 			],
 			"outputs": [
-				{"name":"deposit_owner","type":"address"},
-				{"name":"nonce","type":"uint64"},
-				{"name":"correct","type":"bool"}
 			]
 		},
 		{
-			"name": "onAcceptTokensTransfer",
+			"name": "onRunBalancer",
 			"inputs": [
-				{"name":"_tokenRoot","type":"address"},
-				{"name":"_amount","type":"uint128"},
-				{"name":"_sender","type":"address"},
-				{"name":"_senderWallet","type":"address"},
-				{"name":"_remainingGasTo","type":"address"},
-				{"name":"_payload","type":"cell"}
+				{"components":[{"name":"strategy","type":"address"},{"name":"deposit","type":"uint128"},{"name":"withdraw","type":"uint128"}],"name":"balancerConfig","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"}],"name":"withdrawConfig","type":"tuple[]"}
 			],
 			"outputs": [
 			]

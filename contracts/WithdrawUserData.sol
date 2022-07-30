@@ -24,6 +24,7 @@ contract WithdrawUserData is IWithdrawUserData {
     uint8 constant ONLY_VAULT = 101;
     uint8 constant RECEIVED_BAD_VALUE = 102;
     uint8 constant REQUEST_NOT_EXISTS = 103;
+    uint128 constant CONTRACT_MIN_BALANCE = 0.1 ton;
     // mappings
     mapping(uint64 => WithdrawRequest) withdrawRequests;
 
@@ -32,6 +33,11 @@ contract WithdrawUserData is IWithdrawUserData {
         require(msg.sender == vault,ONLY_VAULT);
         _;
     }
+
+    function _reserve() internal pure returns (uint128) {
+		return
+			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+	}
 
     function getDetails()
 		external
@@ -71,7 +77,7 @@ contract WithdrawUserData is IWithdrawUserData {
     }
     
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
-        tvm.accept();
+        tvm.rawReserve(_reserve(), 0);
         uint128 amount;
         DumpWithdraw[] withdrawDump;
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
@@ -82,19 +88,9 @@ contract WithdrawUserData is IWithdrawUserData {
             delete withdrawRequests[withdrawRequestKey];
             amount+=withdrawRequest.amount;
         }
-        IVault(vault).withdrawToUser{value:0,flag:MsgFlag.REMAINING_GAS}(amount,user,withdrawDump);
+        IVault(vault).withdrawToUser{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount,user,withdrawDump);
     }
 
-    function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {
-        tvm.accept();
-
-        for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
-            uint64 withdrawRequestKey = _satisfiedWithdrawRequests[i];
-            delete withdrawRequests[withdrawRequestKey];
-        }
-        console.log(format("msg.value = {}",msg.value));
-        user.transfer({value: everAmount});
-        send_gas_to.transfer({value:msg.value - everAmount});
-        
+    function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {   
     }
 }
