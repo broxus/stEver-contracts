@@ -6,6 +6,7 @@ interface IVault {
     event StrategyReported(address strategy, StrategyReport report);
     event Deposit(address user,uint128 depositAmount,uint128 receivedStEvers);
     event WithdrawRequest(address user,uint128 amount,uint64 nonce);
+    event WithdrawSuccess(address user,uint128 amount);
     struct Details {
        address stEverRoot;
        address stEverWallet;
@@ -29,6 +30,6 @@ interface IVault {
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) external;
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
-    function requestWithdrawValue(uint128 amount,uint64[] satisfiedWithdrawRequests) external;
+    function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
 }
 

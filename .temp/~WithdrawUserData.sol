@@ -3,6 +3,7 @@ pragma AbiHeader expire;
 
 import "./interfaces/~IWithdrawUserData.sol";
 import "./interfaces/~IVault.sol";
+// import "./~stLib.sol";
 import "o:/projects/broxus/st-ever/node_modules/@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "o:/projects/broxus/st-ever/node_modules/locklift/src/console.sol";
 
@@ -72,13 +73,16 @@ contract WithdrawUserData is IWithdrawUserData {
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
         tvm.accept();
         uint128 amount;
+        DumpWithdraw[] withdrawDump;
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
             uint64 withdrawRequestKey = _satisfiedWithdrawRequests[i];
             require(withdrawRequests.exists(withdrawRequestKey),REQUEST_NOT_EXISTS);
             WithdrawRequest withdrawRequest = withdrawRequests[withdrawRequestKey];
+            withdrawDump.push(DumpWithdraw(withdrawRequest.amount,withdrawRequestKey));
+            delete withdrawRequests[withdrawRequestKey];
             amount+=withdrawRequest.amount;
         }
-        IVault(vault).requestWithdrawValue{value:0,flag:MsgFlag.REMAINING_GAS}(amount,_satisfiedWithdrawRequests);
+        IVault(vault).withdrawToUser{value:0,flag:MsgFlag.REMAINING_GAS}(amount,user,withdrawDump);
     }
 
     function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {

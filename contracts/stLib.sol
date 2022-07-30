@@ -27,3 +27,10 @@ struct SendToUserConfig {
     address user;
     uint64[] nonces;
 }
+
+
+
+struct DumpWithdraw {
+    uint128 amount;
+    uint64 nonce;
+}

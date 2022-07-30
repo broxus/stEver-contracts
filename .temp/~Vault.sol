@@ -8,13 +8,14 @@ import "o:/projects/broxus/st-ever/node_modules/broxus-ton-tokens-contracts/cont
 import "o:/projects/broxus/st-ever/node_modules/broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.sol";
 import "o:/projects/broxus/st-ever/node_modules/broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensBurnCallback.sol";
 import "o:/projects/broxus/st-ever/node_modules/broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.sol";
+import "o:/projects/broxus/st-ever/node_modules/broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.sol";
 import "o:/projects/broxus/st-ever/node_modules/locklift/src/console.sol";
 
 contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ton;
     uint128 constant ST_EVER_WALLET_DEPLOY_GRAMS_VALUE = 0.1 ton;
-    uint128 constant EXPEREMENTAL_FEE = 0.5 ton;
+    uint128 constant EXPEREMENTAL_FEE = 0.1 ton;
 	uint128 constant ST_EVER_WALLET_DEPLOY_VALUE = 0.5 ton;
     uint128 constant USER_DATA_DEPLOY_VALUE = 0.2 ton;
     // static
@@ -39,6 +40,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     uint8 constant NOT_ENOUGH_VALUE = 103;
     uint8 constant ONLY_ONE_VALUE_MOVE_PER_STEP = 104;
     uint8 constant NOT_ROOT_WALLET = 105;
+    uint8 constant NOT_ENOUGH_ST_EVER = 106;
 
 
     constructor(
@@ -250,9 +252,33 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         }
     }
 
-    function requestWithdrawValue(uint128 amount,uint64[] _satisfiedWithdrawRequests) override external onlyWithdrawUserData {
-       uint128 everAmount = getWithdrawEverAmount(amount);
-       IWithdrawUserData(msg.sender).finishWithdraw{value:everAmount,flag:MsgFlag.REMAINING_GAS}(_satisfiedWithdrawRequests,everAmount,governance);
+    function withdrawToUser(
+        uint128 amount,
+        address user,
+        DumpWithdraw[] withdrawDump
+    ) override external onlyWithdrawUserData {
+        // if not enough balance, reset pending to the UserData;
+        uint128 everAmount = getWithdrawEverAmount(amount);
+        if(everAmount < amount) {
+            for (uint256 i = 0; i < withdrawDump.length; i++) {
+                DumpWithdraw dump = withdrawDump[i];
+                IWithdrawUserData(msg.sender).addPendingValue(dump.nonce,dump.amount);
+            }
+            return;
+        }
+       require(stEverSupply >= amount,NOT_ENOUGH_ST_EVER);
+       everBalance -= everAmount;
+       stEverSupply -= amount;
+       
+        TvmBuilder builder;
+        TokenWalletBurnableBase(stEverWallet).burn{value:0.05 ton}(
+            amount,
+            address(this),
+            address(this),
+            builder.toCell()
+        );
+       emit WithdrawSuccess(user,everAmount);
+       user.transfer({value:everAmount});
     }
 
 

@@ -119,10 +119,11 @@
 			]
 		},
 		{
-			"name": "requestWithdrawValue",
+			"name": "withdrawToUser",
 			"inputs": [
 				{"name":"amount","type":"uint128"},
-				{"name":"_satisfiedWithdrawRequests","type":"uint64[]"}
+				{"name":"user","type":"address"},
+				{"components":[{"name":"amount","type":"uint128"},{"name":"nonce","type":"uint64"}],"name":"withdrawDump","type":"tuple[]"}
 			],
 			"outputs": [
 			]
@@ -225,6 +226,15 @@
 				{"name":"user","type":"address"},
 				{"name":"amount","type":"uint128"},
 				{"name":"nonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "WithdrawSuccess",
+			"inputs": [
+				{"name":"user","type":"address"},
+				{"name":"amount","type":"uint128"}
 			],
 			"outputs": [
 			]

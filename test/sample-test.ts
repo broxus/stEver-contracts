@@ -120,6 +120,7 @@ describe("Test Sample contract", async function () {
       ),
     );
     const details = await vaultContract.methods.getDetails({ answerId: 0 }).call({});
+    vaultTokenWallet = await TokenWallet.getWallet(locklift.provider, vaultContract.address, tokenRoot);
     expect(details.value0.stEverRoot.equals(tokenRoot.address)).to.be.true;
   });
   it("user should successfully deposited", async () => {
@@ -152,7 +153,7 @@ describe("Test Sample contract", async function () {
     expect(balance).to.be.equals(locklift.utils.toNano(DEPOSIT_AMOUNT));
   });
   it("user should successfully withdraw", async () => {
-    const WITHDRAW_AMOUNT = 10;
+    const WITHDRAW_AMOUNT = 15;
     const nonceToPayload = locklift.utils.getRandomNonce();
     console.log(`nonceToPayload: ${nonceToPayload}`);
     const depositPayload = await vaultContract.methods
@@ -178,11 +179,16 @@ describe("Test Sample contract", async function () {
       ),
       { allowedCodes: { compute: [null] } },
     );
-    const { events } = await vaultContract.getPastEvents({ filter: event => event.event === "WithdrawRequest" });
-    assertEvent(events, "WithdrawRequest");
-    expect(events[0].data.user.equals(user1.account.address)).to.be.true;
-    expect(events[0].data.amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
-    expect(events[0].data.nonce).to.be.equals(nonceToPayload.toString());
+    expect(await vaultTokenWallet.getBalance().then(res => res.toString())).to.be.equals(
+      locklift.utils.toNano(WITHDRAW_AMOUNT),
+    );
+    const { events: withdrawRequestEvents } = await vaultContract.getPastEvents({
+      filter: event => event.event === "WithdrawRequest",
+    });
+    assertEvent(withdrawRequestEvents, "WithdrawRequest");
+    expect(withdrawRequestEvents[0].data.user.equals(user1.account.address)).to.be.true;
+    expect(withdrawRequestEvents[0].data.amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
+    expect(withdrawRequestEvents[0].data.nonce).to.be.equals(nonceToPayload.toString());
 
     await locklift.tracing.trace(
       admin.account.runTarget(
@@ -194,5 +200,13 @@ describe("Test Sample contract", async function () {
           vault.methods.processSendToUser({ sendConfig: [{ user: user1.account.address, nonces: [nonceToPayload] }] }),
       ),
     );
+
+    const { events: withdrawSuccessEvents } = await vaultContract.getPastEvents({
+      filter: event => event.event === "WithdrawSuccess",
+    });
+    assertEvent(withdrawSuccessEvents, "WithdrawSuccess");
+    expect(withdrawSuccessEvents[0].data.user.equals(user1.account.address)).to.be.true;
+    expect(withdrawSuccessEvents[0].data.amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
+    expect(await vaultTokenWallet.getBalance().then(res => res.toString())).to.be.equals("0");
   });
 });
