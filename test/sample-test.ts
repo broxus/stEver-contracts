@@ -58,7 +58,7 @@ describe("Test Sample contract", async function () {
     await user1.depositToVault(DEPOSIT_AMOUNT);
   });
   it("user should successfully withdraw", async () => {
-    const WITHDRAW_AMOUNT = 15;
+    const WITHDRAW_AMOUNT = 20;
     const { nonce } = await user1.makeWithdrawRequest(WITHDRAW_AMOUNT);
     console.log(`governance balance before ${await getAddressBalance(governance.account.address)}`);
     console.log(`vault balance before ${await getAddressBalance(vaultContract.address)}`);

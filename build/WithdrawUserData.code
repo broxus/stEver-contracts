@@ -167,6 +167,12 @@ GETGLOB 10
 SDEQ
 THROWIFNOT 101
 .loc ../contracts/WithdrawUserData.sol, 58
+CALLREF {
+	CALL $_reserve_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/WithdrawUserData.sol, 59
 SINGLE
 OVER
 GETGLOB 15
@@ -180,7 +186,7 @@ ROTREV
 PUSHINT 64
 DICTUSETB
 SETGLOB 15
-.loc ../contracts/WithdrawUserData.sol, 59
+.loc ../contracts/WithdrawUserData.sol, 60
 GETGLOB 11
 SWAP
 GETGLOB 10
@@ -209,7 +215,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/WithdrawUserData.sol, 62
+.loc ../contracts/WithdrawUserData.sol, 63
 LDU 128
 ENDS
 .loc ../contracts/WithdrawUserData.sol, 0
@@ -228,7 +234,13 @@ GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/WithdrawUserData.sol, 63
+.loc ../contracts/WithdrawUserData.sol, 64
+CALLREF {
+	CALL $_reserve_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/WithdrawUserData.sol, 65
 DUP
 GETGLOB 14
 GEQ
@@ -239,7 +251,7 @@ PUSH S2
 GEQ
 AND
 THROWIFNOT 102
-.loc ../contracts/WithdrawUserData.sol, 65
+.loc ../contracts/WithdrawUserData.sol, 67
 GETGLOB 11
 NEWC
 STSLICECONST x42_
@@ -251,7 +263,7 @@ STZEROES
 ENDC
 PUSHINT 1
 SENDRAWMSG
-.loc ../contracts/WithdrawUserData.sol, 71
+.loc ../contracts/WithdrawUserData.sol, 73
 GETGLOB 10
 NEWC
 STSLICECONST x42_
@@ -272,7 +284,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/WithdrawUserData.sol, 79
+.loc ../contracts/WithdrawUserData.sol, 81
 LDU 32
 LDDICT
 ROTREV
@@ -295,19 +307,19 @@ GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/WithdrawUserData.sol, 80
+.loc ../contracts/WithdrawUserData.sol, 82
 CALLREF {
 	CALL $_reserve_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/WithdrawUserData.sol, 81
+.loc ../contracts/WithdrawUserData.sol, 83
 PUSHINT 0
 DUP
-.loc ../contracts/WithdrawUserData.sol, 82
+.loc ../contracts/WithdrawUserData.sol, 84
 NEWDICT
 PAIR
-.loc ../contracts/WithdrawUserData.sol, 83
+.loc ../contracts/WithdrawUserData.sol, 85
 PUSHINT 0
 PUSHCONT {
 	PUSH2 S0, S3
@@ -315,14 +327,14 @@ PUSHCONT {
 	LESS
 }
 PUSHCONT {
-	.loc ../contracts/WithdrawUserData.sol, 84
+	.loc ../contracts/WithdrawUserData.sol, 86
 	PUSH2 S0, S3
 	SECOND
 	PUSHINT 32
 	DICTUGET
 	THROWIFNOT 50
 	PLDU 64
-	.loc ../contracts/WithdrawUserData.sol, 85
+	.loc ../contracts/WithdrawUserData.sol, 87
 	DUP
 	GETGLOB 15
 	PUSHINT 64
@@ -330,7 +342,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	THROWIFNOT 103
-	.loc ../contracts/WithdrawUserData.sol, 86
+	.loc ../contracts/WithdrawUserData.sol, 88
 	DUP
 	GETGLOB 15
 	PUSHINT 64
@@ -345,7 +357,7 @@ IFREFELSEREF
 		PUSHINT 0
 		SINGLE
 }
-	.loc ../contracts/WithdrawUserData.sol, 87
+	.loc ../contracts/WithdrawUserData.sol, 89
 	PUSH2 S3, S0
 	FIRST
 	PUSH S3
@@ -366,26 +378,26 @@ IFREFELSEREF
 	DICTUSETB
 	PAIR
 	POP S4
-	.loc ../contracts/WithdrawUserData.sol, 88
+	.loc ../contracts/WithdrawUserData.sol, 90
 	SWAP
 	GETGLOB 15
 	PUSHINT 64
 	DICTUDEL
 	DROP
 	SETGLOB 15
-	.loc ../contracts/WithdrawUserData.sol, 89
+	.loc ../contracts/WithdrawUserData.sol, 91
 	FIRST
 	PUSH S3
 	ADD
 	UFITS 128
 	POP S3
-	.loc ../contracts/WithdrawUserData.sol, 83
+	.loc ../contracts/WithdrawUserData.sol, 85
 	INC
 	.loc ../contracts/WithdrawUserData.sol, 0
 }
 WHILE
 DROP
-.loc ../contracts/WithdrawUserData.sol, 91
+.loc ../contracts/WithdrawUserData.sol, 93
 GETGLOB 11
 ROT
 GETGLOB 10
@@ -420,7 +432,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/WithdrawUserData.sol, 94
+.loc ../contracts/WithdrawUserData.sol, 96
 OVER
 PUSHCONT {
 	LDU 32

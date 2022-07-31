@@ -18,6 +18,8 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     uint128 constant EXPEREMENTAL_FEE = 0.2 ton;
 	uint128 constant ST_EVER_WALLET_DEPLOY_VALUE = 0.5 ton;
     uint128 constant USER_DATA_DEPLOY_VALUE = 0.2 ton;
+    uint128 constant DEPOSIT_FEE = 1 ton;
+    
     // static
     uint128 public static nonce;
     address static governance;
@@ -72,6 +74,10 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
 
+    function _reserveWithValue(uint128 _value) internal pure returns (uint128) {
+		return math.max(address(this).balance - msg.value - _value, CONTRACT_MIN_BALANCE);
+	}
+
     function encodeDepositPayload(address deposit_owner, uint64 _nonce) external override pure returns (TvmCell deposit_payload) {
         TvmBuilder builder;
         builder.store(deposit_owner);
@@ -101,7 +107,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
         // when the user withdraw we should calculate the amount of ever to send
     function getWithdrawEverAmount(uint128 _amount) internal returns(uint128) {
-        if(stEverSupply == 0 || everBalance== 0) {
+        if(stEverSupply == 0 || everBalance == 0) {
             return _amount;
         }
         return _amount *  everBalance / stEverSupply;
@@ -196,8 +202,8 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     // deposit
     function deposit(uint128 _amount,uint64 _nonce) override external {
 
-        require(msg.value >= _amount,NOT_ENOUGH_VALUE);
-        tvm.accept();
+        require(msg.value >= _amount+DEPOSIT_FEE,NOT_ENOUGH_VALUE);
+        tvm.rawReserve(address(this).balance - (msg.value - _amount),0);
         uint128 amountToSend = getDepositStEverAmount(_amount);
         everBalance += _amount;
         stEverSupply += amountToSend;
@@ -205,10 +211,11 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         TvmBuilder builder;
 		builder.store(_nonce);
 
+        emit Deposit(msg.sender,_amount,amountToSend);
         ITokenRoot(stTokenRoot).mint{
                 value: 0,
                 bounce: false,
-                flag: MsgFlag.REMAINING_GAS
+                flag:MsgFlag.ALL_NOT_RESERVED
             }(
                 uint128(amountToSend),
                 msg.sender,
@@ -218,7 +225,6 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
                 builder.toCell()
             );
 
-        emit Deposit(msg.sender,_amount,amountToSend);
     }
 
 
@@ -236,7 +242,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
 
     function requestWithdraw(address _user,uint128 _amount,TvmCell _payload) internal {
-        tvm.accept();
+        tvm.rawReserve(_reserve(), 0);
         address userDataAddr = getWithdrawUserDataAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
@@ -244,7 +250,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
 
     function handleAddPendingValueError(TvmSlice slice) internal {
-        tvm.accept();
+        tvm.rawReserve(_reserve(), 0);
         uint64 _withdraw_nonce = slice.decode(uint64);
         PendingWithdraw pendingWithdraw = pendingWithdrawMap[_withdraw_nonce];
         deployWithdrawUserData(pendingWithdraw.user);
@@ -260,8 +266,10 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
 
     function onPendingWithdrawAccepted(uint64 _nonce,address user) override external {
+       tvm.rawReserve(_reserve(), 0);
        PendingWithdraw pendingWithdraw = pendingWithdrawMap[_nonce];
        emit WithdrawRequest(pendingWithdraw.user,pendingWithdraw.amount,_nonce);
+       pendingWithdraw.user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
        delete pendingWithdrawMap[_nonce];
     }
 
@@ -272,6 +280,8 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
             address withdrawUserData = getWithdrawUserDataAddress(config.user);
             IWithdrawUserData(withdrawUserData).processWithdraw{value:EXPEREMENTAL_FEE}(config.nonces);
         }
+        // TODO
+        msg.sender.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
     }
 
     function withdrawToUser(
@@ -285,6 +295,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         if(everAmount < amount) {
             for (uint256 i = 0; i < withdrawDump.length; i++) {
                 DumpWithdraw dump = withdrawDump[i];
+                // TODO add value
                 IWithdrawUserData(msg.sender).addPendingValue(dump.nonce,dump.amount);
             }
             return;
@@ -311,11 +322,11 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         address remainingGasTo,
         TvmCell payload
     ) override external {
-        tvm.rawReserve(_reserve(), 0);
-
+       
         TvmSlice slice = payload.toSlice();
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
+        tvm.rawReserve(_reserveWithValue(everAmount), 0);
         emit WithdrawSuccess(user,everAmount);
         user.transfer({value:everAmount});
         governance.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});

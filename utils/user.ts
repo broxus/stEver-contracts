@@ -26,6 +26,7 @@ export class User {
         this.account.runTarget(
           {
             contract: this.wallet.walletContract,
+            value: locklift.utils.toNano(2),
           },
           walletContract =>
             walletContract.methods.transfer({
@@ -58,7 +59,7 @@ export class User {
       this.account.runTarget(
         {
           contract: this.vault.contract,
-          value: locklift.utils.toNano(amount + 1),
+          value: locklift.utils.toNano(amount + 2),
         },
         vaultContract =>
           vaultContract.methods.deposit({

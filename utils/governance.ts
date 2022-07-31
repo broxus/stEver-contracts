@@ -9,7 +9,7 @@ export class Governance {
       this.account.runTarget(
         {
           contract: this.vaultContract,
-          value: locklift.utils.toNano(30),
+          value: locklift.utils.toNano(2),
         },
         vault => vault.methods.processSendToUser(...params),
       ),

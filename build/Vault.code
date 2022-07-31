@@ -19,12 +19,12 @@ IF
 LDMSGADDR
 LDREF
 ENDS
-.loc ../contracts/Vault.sol, 50
+.loc ../contracts/Vault.sol, 52
 ACCEPT
-.loc ../contracts/Vault.sol, 51
+.loc ../contracts/Vault.sol, 53
 SWAP
 SETGLOB 16
-.loc ../contracts/Vault.sol, 52
+.loc ../contracts/Vault.sol, 54
 SETGLOB 17
 .loc ../contracts/Vault.sol, 0
 CALLREF {
@@ -37,7 +37,7 @@ THROW 0
 CALL $_reserve_internal_macro$
 
 .macro _reserve_internal_macro
-.loc ../contracts/Vault.sol, 72
+.loc ../contracts/Vault.sol, 74
 GETPARAM 7
 FIRST
 DEPTH
@@ -49,11 +49,30 @@ PUSHINT 1000000000
 MAX
 .loc ../contracts/Vault.sol, 0
 
+.globl	_reserveWithValue_internal
+.type	_reserveWithValue_internal, @function
+CALL $_reserveWithValue_internal_macro$
+
+.macro _reserveWithValue_internal_macro
+.loc ../contracts/Vault.sol, 78
+GETPARAM 7
+FIRST
+DEPTH
+ADDCONST -2
+PICK
+SUB
+UFITS 128
+SUBR
+UFITS 128
+PUSHINT 1000000000
+MAX
+.loc ../contracts/Vault.sol, 0
+
 .macro encodeDepositPayload
 DROP
 GETGLOB 6
 THROWIFNOT 76
-.loc ../contracts/Vault.sol, 75
+.loc ../contracts/Vault.sol, 81
 OVER
 PUSHCONT {
 	LDREF
@@ -96,13 +115,13 @@ IFREF {
 THROW 0
 
 .macro encodeDepositPayload_internal_macro
-.loc ../contracts/Vault.sol, 77
+.loc ../contracts/Vault.sol, 83
 SWAP
 NEWC
 STSLICE
-.loc ../contracts/Vault.sol, 78
+.loc ../contracts/Vault.sol, 84
 STU 64
-.loc ../contracts/Vault.sol, 79
+.loc ../contracts/Vault.sol, 85
 ENDC
 .loc ../contracts/Vault.sol, 0
 
@@ -115,7 +134,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 82
+.loc ../contracts/Vault.sol, 88
 LDREF
 ENDS
 .loc ../contracts/Vault.sol, 0
@@ -160,15 +179,15 @@ THROW 0
 CALL $decodeDepositPayload_internal_macro$
 
 .macro decodeDepositPayload_internal_macro
-.loc ../contracts/Vault.sol, 84
+.loc ../contracts/Vault.sol, 90
 CTOS
-.loc ../contracts/Vault.sol, 86
+.loc ../contracts/Vault.sol, 92
 DUP
 PUSHINT 299
 PUSHINT 0
 SCHKBITREFSQ
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 87
+	.loc ../contracts/Vault.sol, 93
 	PUSHSLICE x2_
 	PUSHINT 0
 	DUP
@@ -176,11 +195,11 @@ PUSHCONT {
 	.loc ../contracts/Vault.sol, 0
 }
 IFNOTJMP
-.loc ../contracts/Vault.sol, 90
+.loc ../contracts/Vault.sol, 96
 LDMSGADDR
-.loc ../contracts/Vault.sol, 91
+.loc ../contracts/Vault.sol, 97
 PLDU 64
-.loc ../contracts/Vault.sol, 93
+.loc ../contracts/Vault.sol, 99
 TRUE
 .loc ../contracts/Vault.sol, 0
 
@@ -189,14 +208,14 @@ TRUE
 CALL $getDepositStEverAmount_internal_macro$
 
 .macro getDepositStEverAmount_internal_macro
-.loc ../contracts/Vault.sol, 97
+.loc ../contracts/Vault.sol, 103
 GETGLOB 12
 EQINT 0
 GETGLOB 13
 EQINT 0
 OR
 IFRET
-.loc ../contracts/Vault.sol, 100
+.loc ../contracts/Vault.sol, 106
 GETGLOB 12
 MUL
 UFITS 128
@@ -209,14 +228,14 @@ DIV
 CALL $getWithdrawEverAmount_internal_macro$
 
 .macro getWithdrawEverAmount_internal_macro
-.loc ../contracts/Vault.sol, 104
+.loc ../contracts/Vault.sol, 110
 GETGLOB 12
 EQINT 0
 GETGLOB 13
 EQINT 0
 OR
 IFRET
-.loc ../contracts/Vault.sol, 107
+.loc ../contracts/Vault.sol, 113
 GETGLOB 13
 MUL
 UFITS 128
@@ -233,7 +252,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 111
+.loc ../contracts/Vault.sol, 117
 OVER
 PUSHCONT {
 	LDREF
@@ -254,14 +273,14 @@ CALLREF {
 THROW 0
 
 .macro initVault_internal_macro
-.loc ../contracts/Vault.sol, 61
+.loc ../contracts/Vault.sol, 63
 GETGLOB 9
 GETGLOB 16
 SDEQ
 THROWIFNOT 100
-.loc ../contracts/Vault.sol, 112
+.loc ../contracts/Vault.sol, 118
 SETGLOB 15
-.loc ../contracts/Vault.sol, 113
+.loc ../contracts/Vault.sol, 119
 PUSHINT 100000000
 MYADDR
 GETGLOB 15
@@ -291,7 +310,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 119
+.loc ../contracts/Vault.sol, 125
 OVER
 PUSHCONT {
 	LDREF
@@ -312,9 +331,9 @@ CALLREF {
 THROW 0
 
 .macro receiveTokenWalletAddress_internal_macro
-.loc ../contracts/Vault.sol, 120
+.loc ../contracts/Vault.sol, 126
 ACCEPT
-.loc ../contracts/Vault.sol, 121
+.loc ../contracts/Vault.sol, 127
 SETGLOB 14
 .loc ../contracts/Vault.sol, 0
 
@@ -323,7 +342,7 @@ SETGLOB 14
 CALL $_buildInitWithdrawUserData_internal_macro$
 
 .macro _buildInitWithdrawUserData_internal_macro
-.loc ../contracts/Vault.sol, 133
+.loc ../contracts/Vault.sol, 139
 PUSHINT 0
 NEWC
 STU 256
@@ -363,7 +382,7 @@ ENDC
 CALL $deployWithdrawUserData_internal_macro$
 
 .macro deployWithdrawUserData_internal_macro
-.loc ../contracts/Vault.sol, 151
+.loc ../contracts/Vault.sol, 157
 CALLREF {
 	CALL $_buildInitWithdrawUserData_internal_macro$
 }
@@ -419,7 +438,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 157
+.loc ../contracts/Vault.sol, 163
 LDU 32
 GETGLOB 4
 ROT
@@ -501,7 +520,7 @@ THROW 0
 CALL $getWithdrawUserDataAddress_internal_macro$
 
 .macro getWithdrawUserDataAddress_internal_macro
-.loc ../contracts/Vault.sol, 165
+.loc ../contracts/Vault.sol, 171
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -530,7 +549,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 170
+.loc ../contracts/Vault.sol, 176
 LDU 32
 GETGLOB 4
 ROT
@@ -626,7 +645,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_internal_macro
-.loc ../contracts/Vault.sol, 171
+.loc ../contracts/Vault.sol, 177
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -652,7 +671,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 182
+.loc ../contracts/Vault.sol, 188
 OVER
 PUSHCONT {
 	LDREF
@@ -673,12 +692,12 @@ CALLREF {
 THROW 0
 
 .macro addStrategy_internal_macro
-.loc ../contracts/Vault.sol, 56
+.loc ../contracts/Vault.sol, 58
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/Vault.sol, 183
+.loc ../contracts/Vault.sol, 189
 NOW
 PUSHINT 0
 DUP
@@ -698,7 +717,7 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 18
-.loc ../contracts/Vault.sol, 188
+.loc ../contracts/Vault.sol, 194
 PUSHSLICE xc00000000000000000000000006b94cb2f
 NEWC
 STSLICE
@@ -717,7 +736,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 191
+.loc ../contracts/Vault.sol, 197
 OVER
 PUSHCONT {
 	LDU 128
@@ -744,7 +763,7 @@ CALLREF {
 THROW 0
 
 .macro strategyReport_internal_macro
-.loc ../contracts/Vault.sol, 191
+.loc ../contracts/Vault.sol, 197
 BLKDROP 3
 .loc ../contracts/Vault.sol, 0
 
@@ -757,7 +776,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 197
+.loc ../contracts/Vault.sol, 203
 LDU 128
 LDU 64
 ENDS
@@ -772,43 +791,70 @@ CALLREF {
 THROW 0
 
 .macro deposit_internal_macro
-.loc ../contracts/Vault.sol, 199
+.loc ../contracts/Vault.sol, 205
 DEPTH
 ADDCONST -2
 PICK
 PUSH S2
+PUSHINT 1000000000
+ADD
+UFITS 128
 GEQ
 THROWIFNOT 103
-.loc ../contracts/Vault.sol, 200
-ACCEPT
-.loc ../contracts/Vault.sol, 201
+.loc ../contracts/Vault.sol, 206
+GETPARAM 7
+FIRST
+DEPTH
+ADDCONST -2
+PICK
+PUSH S3
+SUB
+UFITS 128
+SUB
+UFITS 128
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/Vault.sol, 207
 OVER
 CALLREF {
 	CALL $getDepositStEverAmount_internal_macro$
 }
-.loc ../contracts/Vault.sol, 202
+.loc ../contracts/Vault.sol, 208
 GETGLOB 13
 PUSH S3
 ADD
 UFITS 128
 SETGLOB 13
-.loc ../contracts/Vault.sol, 203
+.loc ../contracts/Vault.sol, 209
 GETGLOB 12
 OVER
 ADD
 UFITS 128
 SETGLOB 12
-.loc ../contracts/Vault.sol, 206
+.loc ../contracts/Vault.sol, 212
 SWAP
 NEWC
 STU 64
-.loc ../contracts/Vault.sol, 208
+.loc ../contracts/Vault.sol, 214
+OVER
+ROLL 3
+GETGLOB 9
+PUSHSLICE xc00000000000000000000000001ed110d9
+NEWC
+STSLICE
+STSLICE
+STU 128
+STU 128
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/Vault.sol, 215
 ENDC
 FALSE
 GETGLOB 9
 PUSHINT 500000000
 GETGLOB 9
-PUSH S5
+ROLL 5
 GETGLOB 15
 FALSE
 NEWC
@@ -832,19 +878,7 @@ STREF
 STBREFR
 STBREFR
 ENDC
-PUSHINT 64
-SENDRAWMSG
-.loc ../contracts/Vault.sol, 221
-SWAP
-GETGLOB 9
-PUSHSLICE xc00000000000000000000000001ed110d9
-NEWC
-STSLICE
-STSLICE
-STU 128
-STU 128
-ENDC
-PUSHINT 0
+PUSHPOW2 7
 SENDRAWMSG
 .loc ../contracts/Vault.sol, 0
 
@@ -857,7 +891,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 226
+.loc ../contracts/Vault.sol, 232
 OVER
 PUSHCONT {
 	LDREF
@@ -892,12 +926,12 @@ CALLREF {
 THROW 0
 
 .macro onAcceptTokensTransfer_internal_macro
-.loc ../contracts/Vault.sol, 234
+.loc ../contracts/Vault.sol, 240
 GETGLOB 9
 GETGLOB 14
 SDEQ
 THROWIFNOT 105
-.loc ../contracts/Vault.sol, 235
+.loc ../contracts/Vault.sol, 241
 BLKSWAP 2, 3
 XCHG S2
 CALLREF {
@@ -911,21 +945,28 @@ BLKDROP 3
 CALL $requestWithdraw_internal_macro$
 
 .macro requestWithdraw_internal_macro
-.loc ../contracts/Vault.sol, 239
-ACCEPT
-.loc ../contracts/Vault.sol, 240
+.loc ../contracts/Vault.sol, 245
+CALLREF {
+	CALL $_reserve_internal_macro$
+}
+PUSHINT 1000000000
+SUB
+UFITS 128
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/Vault.sol, 246
 PUSH S2
 CALLREF {
 	CALL $getWithdrawUserDataAddress_internal_macro$
 }
-.loc ../contracts/Vault.sol, 241
+.loc ../contracts/Vault.sol, 247
 SWAP
 CALLREF {
 	CALL $decodeDepositPayload_internal_macro$
 }
 DROP
 NIP
-.loc ../contracts/Vault.sol, 242
+.loc ../contracts/Vault.sol, 248
 PUSH S2
 ROLL 4
 PAIR
@@ -943,7 +984,7 @@ ROTREV
 PUSHINT 64
 DICTUSETB
 SETGLOB 19
-.loc ../contracts/Vault.sol, 243
+.loc ../contracts/Vault.sol, 249
 ROTREV
 CALLREF {
 	CALL $addPendingValueToUserData_internal_macro$
@@ -955,11 +996,15 @@ CALLREF {
 CALL $handleAddPendingValueError_internal_macro$
 
 .macro handleAddPendingValueError_internal_macro
-.loc ../contracts/Vault.sol, 247
-ACCEPT
-.loc ../contracts/Vault.sol, 248
+.loc ../contracts/Vault.sol, 253
+CALLREF {
+	CALL $_reserve_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/Vault.sol, 254
 PLDU 64
-.loc ../contracts/Vault.sol, 249
+.loc ../contracts/Vault.sol, 255
 DUP
 GETGLOB 19
 PUSHINT 64
@@ -978,20 +1023,20 @@ IFREFELSEREF
 	}
 	PAIR
 }
-.loc ../contracts/Vault.sol, 250
+.loc ../contracts/Vault.sol, 256
 DUP
 SECOND
 CALLREF {
 	CALL $deployWithdrawUserData_internal_macro$
 }
 DROP
-.loc ../contracts/Vault.sol, 251
+.loc ../contracts/Vault.sol, 257
 DUP
 SECOND
 CALLREF {
 	CALL $getWithdrawUserDataAddress_internal_macro$
 }
-.loc ../contracts/Vault.sol, 252
+.loc ../contracts/Vault.sol, 258
 ROTREV
 FIRST
 ROT
@@ -1005,7 +1050,7 @@ CALLREF {
 CALL $addPendingValueToUserData_internal_macro$
 
 .macro addPendingValueToUserData_internal_macro
-.loc ../contracts/Vault.sol, 256
+.loc ../contracts/Vault.sol, 262
 XCHG S1, S2
 NEWC
 STSLICECONST x62_
@@ -1028,7 +1073,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 262
+.loc ../contracts/Vault.sol, 268
 OVER
 PUSHCONT {
 	LDU 64
@@ -1053,8 +1098,14 @@ CALLREF {
 THROW 0
 
 .macro onPendingWithdrawAccepted_internal_macro
-.loc ../contracts/Vault.sol, 263
+.loc ../contracts/Vault.sol, 269
 DROP
+CALLREF {
+	CALL $_reserve_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/Vault.sol, 270
 DUP
 GETGLOB 19
 PUSHINT 64
@@ -1073,10 +1124,10 @@ IFREFELSEREF
 	}
 	PAIR
 }
-.loc ../contracts/Vault.sol, 264
+.loc ../contracts/Vault.sol, 271
 DUP2
 FIRST
-ROT
+PUSH S2
 SECOND
 PUSHSLICE xc00000000000000000000000006420e445
 NEWC
@@ -1087,7 +1138,17 @@ STU 64
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/Vault.sol, 265
+.loc ../contracts/Vault.sol, 272
+SECOND
+NEWC
+STSLICECONST x62_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/Vault.sol, 273
 GETGLOB 19
 PUSHINT 64
 DICTUDEL
@@ -1104,7 +1165,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 268
+.loc ../contracts/Vault.sol, 276
 LDU 32
 LDDICT
 ROTREV
@@ -1122,18 +1183,18 @@ CALLREF {
 THROW 0
 
 .macro processSendToUser_internal_macro
-.loc ../contracts/Vault.sol, 56
+.loc ../contracts/Vault.sol, 58
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/Vault.sol, 269
+.loc ../contracts/Vault.sol, 277
 CALLREF {
 	CALL $_reserve_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/Vault.sol, 270
+.loc ../contracts/Vault.sol, 278
 PUSHINT 0
 PUSHCONT {
 	PUSH2 S0, S1
@@ -1141,7 +1202,7 @@ PUSHCONT {
 	LESS
 }
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 271
+	.loc ../contracts/Vault.sol, 279
 	PUSH2 S0, S1
 	SECOND
 	PUSHINT 32
@@ -1157,13 +1218,13 @@ PUSHCONT {
 		ENDS
 		PAIR
 	}
-	.loc ../contracts/Vault.sol, 272
+	.loc ../contracts/Vault.sol, 280
 	DUP
 	FIRST
 	CALLREF {
 		CALL $getWithdrawUserDataAddress_internal_macro$
 	}
-	.loc ../contracts/Vault.sol, 273
+	.loc ../contracts/Vault.sol, 281
 	SWAP
 	SECOND
 	SWAP
@@ -1180,13 +1241,23 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/Vault.sol, 270
+	.loc ../contracts/Vault.sol, 278
 	INC
 	UFITS 128
 	.loc ../contracts/Vault.sol, 0
 }
 WHILE
 DROP2
+.loc ../contracts/Vault.sol, 284
+GETGLOB 9
+NEWC
+STSLICECONST x62_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
 .loc ../contracts/Vault.sol, 0
 
 .macro withdrawToUser
@@ -1198,7 +1269,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 277
+.loc ../contracts/Vault.sol, 287
 OVER
 PUSHCONT {
 	LDU 128
@@ -1228,22 +1299,20 @@ CALLREF {
 THROW 0
 
 .macro withdrawToUser_internal_macro
-.loc ../contracts/Vault.sol, 282
-CALLREF {
-	CALL $_reserve_internal_macro$
-}
+.loc ../contracts/Vault.sol, 292
+PUSHINT 1000000000
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/Vault.sol, 284
+.loc ../contracts/Vault.sol, 294
 PUSH S2
 CALLREF {
 	CALL $getWithdrawEverAmount_internal_macro$
 }
-.loc ../contracts/Vault.sol, 285
+.loc ../contracts/Vault.sol, 295
 PUSH2 S0, S3
 LESS
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 286
+	.loc ../contracts/Vault.sol, 296
 	PUSHINT 0
 	PUSHCONT {
 		PUSH2 S0, S2
@@ -1251,7 +1320,7 @@ PUSHCONT {
 		LESS
 	}
 	PUSHCONT {
-		.loc ../contracts/Vault.sol, 287
+		.loc ../contracts/Vault.sol, 297
 		PUSH2 S0, S2
 		SECOND
 		PUSHINT 32
@@ -1263,7 +1332,7 @@ PUSHCONT {
 			ENDS
 			PAIR
 		}
-		.loc ../contracts/Vault.sol, 288
+		.loc ../contracts/Vault.sol, 299
 		DUP
 		FIRST
 		SWAP
@@ -1279,7 +1348,7 @@ PUSHCONT {
 		ENDC
 		PUSHINT 0
 		SENDRAWMSG
-		.loc ../contracts/Vault.sol, 286
+		.loc ../contracts/Vault.sol, 296
 		INC
 		.loc ../contracts/Vault.sol, 0
 	}
@@ -1288,30 +1357,30 @@ PUSHCONT {
 	.loc ../contracts/Vault.sol, 0
 }
 IFJMP
-.loc ../contracts/Vault.sol, 292
+.loc ../contracts/Vault.sol, 303
 GETGLOB 12
 PUSH S4
 GEQ
 THROWIFNOT 106
-.loc ../contracts/Vault.sol, 293
+.loc ../contracts/Vault.sol, 304
 GETGLOB 13
 OVER
 SUB
 UFITS 128
 SETGLOB 13
-.loc ../contracts/Vault.sol, 294
+.loc ../contracts/Vault.sol, 305
 GETGLOB 12
 PUSH S4
 SUB
 UFITS 128
 SETGLOB 12
-.loc ../contracts/Vault.sol, 297
+.loc ../contracts/Vault.sol, 308
 ROT
 NEWC
 STSLICE
-.loc ../contracts/Vault.sol, 298
+.loc ../contracts/Vault.sol, 309
 STU 128
-.loc ../contracts/Vault.sol, 299
+.loc ../contracts/Vault.sol, 310
 ENDC
 MYADDR
 DUP
@@ -1348,7 +1417,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 307
+.loc ../contracts/Vault.sol, 318
 OVER
 PUSHCONT {
 	LDU 128
@@ -1382,22 +1451,23 @@ CALLREF {
 THROW 0
 
 .macro onAcceptTokensBurn_internal_macro
-.loc ../contracts/Vault.sol, 314
-CALLREF {
-	CALL $_reserve_internal_macro$
-}
-PUSHINT 0
-RAWRESERVE
-.loc ../contracts/Vault.sol, 316
+.loc ../contracts/Vault.sol, 326
 CTOS
-.loc ../contracts/Vault.sol, 317
+.loc ../contracts/Vault.sol, 327
 DUP
 LDMSGADDR
 POP S2
-.loc ../contracts/Vault.sol, 318
+.loc ../contracts/Vault.sol, 328
 SWAP
 PLDU 128
-.loc ../contracts/Vault.sol, 319
+.loc ../contracts/Vault.sol, 329
+DUP
+CALLREF {
+	CALL $_reserveWithValue_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/Vault.sol, 330
 PUSH2 S0, S1
 PUSHSLICE xc000000000000000000000000038c6da4b
 NEWC
@@ -1407,7 +1477,7 @@ STU 128
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/Vault.sol, 320
+.loc ../contracts/Vault.sol, 331
 SWAP
 NEWC
 STSLICECONST x62_
@@ -1419,7 +1489,7 @@ STZEROES
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/Vault.sol, 321
+.loc ../contracts/Vault.sol, 332
 BLKDROP 4
 GETGLOB 11
 NEWC
@@ -1441,7 +1511,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 325
+.loc ../contracts/Vault.sol, 336
 LDU 32
 LDDICT
 ROTREV
@@ -1459,12 +1529,12 @@ CALLREF {
 THROW 0
 
 .macro onRunBalancer_internal_macro
-.loc ../contracts/Vault.sol, 56
+.loc ../contracts/Vault.sol, 58
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/Vault.sol, 326
+.loc ../contracts/Vault.sol, 337
 PUSHINT 0
 PUSHCONT {
 	PUSH2 S0, S1
@@ -1472,7 +1542,7 @@ PUSHCONT {
 	LESS
 }
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 328
+	.loc ../contracts/Vault.sol, 339
 	PUSH2 S0, S1
 	SECOND
 	PUSHINT 32
@@ -1485,7 +1555,7 @@ PUSHCONT {
 		ENDS
 		TRIPLE
 	}
-	.loc ../contracts/Vault.sol, 329
+	.loc ../contracts/Vault.sol, 340
 	DUP
 	SECOND
 	GTINT -1
@@ -1494,15 +1564,15 @@ PUSHCONT {
 	GTINT -1
 	AND
 	THROWIF 104
-	.loc ../contracts/Vault.sol, 330
+	.loc ../contracts/Vault.sol, 341
 	DUP
 	FIRST
-	.loc ../contracts/Vault.sol, 332
+	.loc ../contracts/Vault.sol, 343
 	OVER
 	SECOND
 	GTINT -1
 	PUSHCONT {
-		.loc ../contracts/Vault.sol, 333
+		.loc ../contracts/Vault.sol, 344
 		OVER
 		SECOND
 		UFITS 64
@@ -1519,12 +1589,12 @@ PUSHCONT {
 		.loc ../contracts/Vault.sol, 0
 	}
 	IF
-	.loc ../contracts/Vault.sol, 336
+	.loc ../contracts/Vault.sol, 347
 	OVER
 	THIRD
 	GTINT -1
 	PUSHCONT {
-		.loc ../contracts/Vault.sol, 337
+		.loc ../contracts/Vault.sol, 348
 		OVER
 		THIRD
 		UFITS 64
@@ -1543,7 +1613,7 @@ PUSHCONT {
 	IF
 	.loc ../contracts/Vault.sol, 0
 	DROP2
-	.loc ../contracts/Vault.sol, 326
+	.loc ../contracts/Vault.sol, 337
 	INC
 	.loc ../contracts/Vault.sol, 0
 }
@@ -1560,7 +1630,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 344
+.loc ../contracts/Vault.sol, 355
 LDU 32
 LDDICT
 ROTREV
@@ -1578,12 +1648,12 @@ CALLREF {
 THROW 0
 
 .macro processWithdrawFromStrategies_internal_macro
-.loc ../contracts/Vault.sol, 56
+.loc ../contracts/Vault.sol, 58
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/Vault.sol, 345
+.loc ../contracts/Vault.sol, 356
 PUSHINT 0
 PUSHCONT {
 	PUSH2 S0, S1
@@ -1591,7 +1661,7 @@ PUSHCONT {
 	LESS
 }
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 346
+	.loc ../contracts/Vault.sol, 357
 	PUSH2 S0, S1
 	SECOND
 	PUSHINT 32
@@ -1603,7 +1673,7 @@ PUSHCONT {
 		ENDS
 		PAIR
 	}
-	.loc ../contracts/Vault.sol, 347
+	.loc ../contracts/Vault.sol, 358
 	DUP
 	SECOND
 	UFITS 64
@@ -1618,7 +1688,7 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/Vault.sol, 345
+	.loc ../contracts/Vault.sol, 356
 	INC
 	UFITS 128
 	.loc ../contracts/Vault.sol, 0
@@ -1635,17 +1705,17 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Vault.sol, 352
+.loc ../contracts/Vault.sol, 363
 ACCEPT
-.loc ../contracts/Vault.sol, 353
+.loc ../contracts/Vault.sol, 364
 DUP
 LDU 32
 POP S2
-.loc ../contracts/Vault.sol, 354
+.loc ../contracts/Vault.sol, 365
 PUSHINT 1124753509
 EQUAL
 PUSHCONT {
-	.loc ../contracts/Vault.sol, 355
+	.loc ../contracts/Vault.sol, 366
 	DUP
 	CALLREF {
 		CALL $handleAddPendingValueError_internal_macro$

@@ -55,11 +55,13 @@ contract WithdrawUserData is IWithdrawUserData {
 	}
 
     function addPendingValue(uint64 _nonce,uint128 _amount) override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
         withdrawRequests[_nonce] = WithdrawRequest(_amount);
         IVault(vault).onPendingWithdrawAccepted{value:0,flag: MsgFlag.ALL_NOT_RESERVED}(_nonce,user);
     }
 
     function receiveFromVault(uint128 amount) override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
         require(amount >= pendingReceiveEver && msg.value >= amount,RECEIVED_BAD_VALUE);
 
         user.transfer({
