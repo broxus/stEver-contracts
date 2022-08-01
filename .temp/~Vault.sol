@@ -19,7 +19,8 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
 	uint128 constant ST_EVER_WALLET_DEPLOY_VALUE = 0.5 ton;
     uint128 constant USER_DATA_DEPLOY_VALUE = 0.2 ton;
     uint128 constant DEPOSIT_FEE = 1 ton;
-    uint128 constant DEPOSIT_FEE = 1 ton;
+    uint128 constant WITHDRAW_FEE = 1 ton;
+    
     // static
     uint128 public static nonce;
     address static governance;
@@ -43,6 +44,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     uint8 constant ONLY_ONE_VALUE_MOVE_PER_STEP = 104;
     uint8 constant NOT_ROOT_WALLET = 105;
     uint8 constant NOT_ENOUGH_ST_EVER = 106;
+    uint8 constant STRATEGY_NOT_EXISTS = 107;
 
 
     constructor(
@@ -192,6 +194,14 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
             0
         );
         emit StrategyAdded(_strategy);
+    }
+
+    function dpositToStrategyes(DepositConfig[] depositConfig) override external onlyGovernance {
+        for (uint256 i = 0; i < depositConfig.length; i++) {
+            DepositConfig depositConfig = depositConfig[i];
+            require(strategies.exists(depositConfig.strategy),STRATEGY_NOT_EXISTS);
+            strategies[depositConfig.strategy].totalAssets += depositConfig.amount;
+        }
     }
 
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external {

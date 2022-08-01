@@ -75,4 +75,43 @@ describe("Test Sample contract", async function () {
     expect(withdrawSuccessEvents[0].data.amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
     expect(await vaultTokenWallet.getBalance().then(res => res.toString())).to.be.equals("0");
   });
+  it("should strategy deployed", async () => {
+    const dePool = await locklift.tracing.trace(
+      locklift.factory.deployContract({
+        contract: "TestDepool",
+        value: locklift.utils.toNano(2),
+        constructorParams: {},
+        publicKey: signer.publicKey,
+        initParams: {},
+      }),
+    );
+    const strategy = await locklift.tracing.trace(
+      locklift.factory.deployContract({
+        contract: "StrategyBase",
+        publicKey: signer.publicKey,
+        initParams: {
+          nonce: locklift.utils.getRandomNonce(),
+        },
+        constructorParams: {
+          _vault: vaultContract.address,
+          _dePool: dePool.contract.address,
+        },
+        value: locklift.utils.toNano(2),
+      }),
+    );
+
+    await locklift.tracing.trace(
+      governance.account.runTarget(
+        {
+          contract: vaultContract,
+        },
+        vault => vault.methods.addStrategy({ _strategy: strategy.contract.address }),
+      ),
+    );
+    const { events: strategyAddedEvents } = await vaultContract.getPastEvents({
+      filter: ({ event }) => event === "StrategyAdded",
+    });
+    assertEvent(strategyAddedEvents, "StrategyAdded");
+    expect(strategyAddedEvents[0].data.strategy.equals(strategy.contract.address)).to.be.true;
+  });
 });

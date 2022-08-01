@@ -3,43 +3,66 @@ pragma AbiHeader expire;
 import "./interfaces/~IStrategy.sol";
 import "./interfaces/~IParticipant.sol";
 import "./interfaces/~IDePool.sol";
+import "o:/projects/broxus/st-ever/node_modules/@broxus/contracts/contracts/libraries/MsgFlag.sol";
 
-contract Strategy is IStrategy,IParticipant {
+
+contract StrategyBase is IStrategy,IParticipant {
+    uint128 constant CONTRACT_MIN_BALANCE = 1 ton;
     address vault;
     address dePool;
     uint8 constant NOT_VAULT = 101;
 
+    // static
+    uint128 public static nonce;
+
     constructor(address _vault,address _dePool) public {
+        tvm.accept();
         vault = _vault;
         dePool = _dePool;
     }
+
     modifier onlyVault() {
         require(msg.sender == vault,NOT_VAULT);
         _;
     }
+
     modifier onlyStrategy() {
         _;
     }
-    function getDetails() override external responsible view returns(Details){
 
+    function _reserve() internal pure returns (uint128) {
+		return
+			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+	}
+
+    function _reserveWithValue(uint128 _value) internal pure returns (uint128) {
+		return math.max(address(this).balance - msg.value - _value, CONTRACT_MIN_BALANCE);
+	}
+
+    function getDetails() override external responsible view returns(Details){
+        return {value:0,bounce:false,flag: MsgFlag.REMAINING_GAS} Details(vault,true,9999,9999);
     } 
+
     function deposit(uint64 amount) override external onlyVault{
-        depositToDepool(amount);
+        tvm.rawReserve(address(this).balance - (msg.value - amount),0);
+        depositToDepool(amount,vault);
     } 
+
     function withdraw(uint64 amount) override external onlyVault{
        withdrawFromDePool(amount);
     }
 
     function receiveFromStrategy(uint64 amount) override external onlyStrategy {
-        depositToDepool(amount);
+        depositToDepool(amount,msg.sender);
     } 
 
     function sendToStrategy(address strategy, uint64 amount) override external onlyVault {
 
     }
 
-    function depositToDepool(uint64 amount) internal {
-        IDePool(dePool).addOrdinaryStake{value:msg.value}(amount);
+    function depositToDepool(uint64 amount,address remaining_gas_to) internal {
+        IDePool(dePool).addOrdinaryStake{value:amount}(amount);
+        remaining_gas_to.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
     }
 
     function withdrawFromDePool(uint64 amount) internal {

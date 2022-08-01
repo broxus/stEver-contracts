@@ -23,6 +23,11 @@ struct WithdrawConfig {
     uint128 amount;
 }
 
+struct DepositConfig {
+    address strategy;
+    uint128 amount;
+}
+
 struct SendToUserConfig {
     address user;
     uint64[] nonces;
