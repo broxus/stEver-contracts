@@ -4,6 +4,7 @@ import "../stlib.sol";
 interface IVault {
     event StrategyAdded(address strategy);
     event StrategyReported(address strategy, StrategyReport report);
+    event StrategyHandledDeposit(address strategy,uint128 returnedFee);
     event Deposit(address user,uint128 depositAmount,uint128 receivedStEvers);
     event WithdrawRequest(address user,uint128 amount,uint64 nonce);
     event WithdrawSuccess(address user,uint128 amount);
@@ -30,5 +31,7 @@ interface IVault {
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
     function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
+    function depositToStrategies(DepositConfig[] depositConfig) external;
+    function onStrategyHandledDeposit() external;
 }
 

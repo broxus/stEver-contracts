@@ -1,5 +1,5 @@
 import { Account } from "locklift/build/factory";
-import { TokenRootAbi, VaultAbi, WalletAbi } from "../build/factorySource";
+import { TokenRootAbi, TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
 import { Contract } from "locklift";
 import { assertEvent } from "./index";
@@ -12,7 +12,7 @@ export class User {
     protected readonly vault: { contract: Contract<VaultAbi>; wallet: TokenWallet },
   ) {}
 
-  makeWithdrawRequest = async (amount: number) => {
+  makeWithdrawRequest = async (amount: string) => {
     const nonce = locklift.utils.getRandomNonce();
     console.log(`nonceToPayload: ${nonce}`);
     const depositPayload = await this.vault.contract.methods
@@ -32,7 +32,7 @@ export class User {
             walletContract.methods.transfer({
               remainingGasTo: this.account.address,
               deployWalletValue: 0,
-              amount: locklift.utils.toNano(amount),
+              amount,
               notify: true,
               recipient: this.vault.contract.address,
               payload: depositPayload.deposit_payload,
@@ -41,15 +41,13 @@ export class User {
         { allowedCodes: { compute: [null] } },
       )
       .then(res => ({ ...res, nonce }));
-    expect(await this.vault.wallet.getBalance().then(res => res.toString())).to.be.equals(
-      locklift.utils.toNano(amount),
-    );
+    expect(await this.vault.wallet.getBalance().then(res => res.toString())).to.be.equals(amount);
     const { events: withdrawRequestEvents } = await this.vault.contract.getPastEvents({
       filter: event => event.event === "WithdrawRequest",
     });
     assertEvent(withdrawRequestEvents, "WithdrawRequest");
     expect(withdrawRequestEvents[0].data.user.equals(this.account.address)).to.be.true;
-    expect(withdrawRequestEvents[0].data.amount).to.be.equals(locklift.utils.toNano(amount));
+    expect(withdrawRequestEvents[0].data.amount).to.be.equals(amount);
     expect(withdrawRequestEvents[0].data.nonce).to.be.equals(nonce.toString());
     return txWithNonce;
   };
@@ -85,7 +83,7 @@ export class User {
 
 export const createUserEntity = async (
   account: Account<WalletAbi>,
-  tokenRoot: Contract<TokenRootAbi>,
+  tokenRoot: Contract<TokenRootUpgradeableAbi>,
   vaultContract: Contract<VaultAbi>,
 ): Promise<User> => {
   const wallet = await TokenWallet.getWallet(locklift.provider, account.address, tokenRoot);

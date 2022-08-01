@@ -1,5 +1,5 @@
 import { ProviderRpcClient, Address } from "everscale-inpage-provider";
-import { factorySource, TokenRootAbi, TokenWalletAbi } from "../build/factorySource";
+import { factorySource, TokenRootUpgradeableAbi, TokenWalletAbi } from "../build/factorySource";
 import { Contract } from "locklift";
 
 export class TokenWallet {
@@ -7,7 +7,7 @@ export class TokenWallet {
   static getWallet = async (
     ever: ProviderRpcClient,
     accountAddress: Address,
-    tokenRootContract: Contract<TokenRootAbi>,
+    tokenRootContract: Contract<TokenRootUpgradeableAbi>,
   ): Promise<TokenWallet> => {
     const userTokenWallet = await tokenRootContract.methods
       .walletOf({ answerId: 1, walletOwner: accountAddress })

@@ -1,5 +1,6 @@
 pragma ton-solidity >=0.61.0;
 pragma AbiHeader expire;
+pragma AbiHeader pubkey;
 import "./interfaces/IVault.sol";
 import "./interfaces/IStrategy.sol";
 import "./WithdrawUserData.sol";
@@ -23,10 +24,11 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     
     // static
     uint128 public static nonce;
-    address static governance;
+    uint256 static governance;
     // balances
     uint128 stEverSupply;
     uint128 everBalance;
+    uint128 availableEverBalance;
     // tokens
     address stEverWallet;
     address stTokenRoot;
@@ -34,7 +36,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     address owner;
     TvmCell public withdrawUserDataCode;
     // mappings
-    mapping(address => StrategyParams) strategies;
+    mapping(address => StrategyParams) public strategies;
     mapping(uint64 => PendingWithdraw) pendingWithdrawMap;
 
     // errors
@@ -57,7 +59,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
     //modifiers 
     modifier onlyGovernance() {
-        require(msg.sender == governance,NOT_GOVERNANCE);
+        require(msg.pubkey() == governance,NOT_GOVERNANCE);
         _;
     }
 
@@ -67,6 +69,11 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
 
     modifier onlyWithdrawUserData() {
+        _;
+    }
+
+    modifier onlyStrategy(address strategy) {
+        require(strategies.exists(strategy),STRATEGY_NOT_EXISTS);
         _;
     }
 
@@ -101,18 +108,18 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         return (deposit_owner, nonce, true);
     }
         // when the user deposits we should calculate the amount of stEver to send
-    function getDepositStEverAmount(uint128 _amount) internal returns(uint128) {
+    function getDepositStEverAmount(uint128 _amount) public returns(uint128) {
         if(stEverSupply == 0 || everBalance == 0) {
             return _amount;
         }
         return _amount * stEverSupply / everBalance;
     }
         // when the user withdraw we should calculate the amount of ever to send
-    function getWithdrawEverAmount(uint128 _amount) internal returns(uint128) {
+    function getWithdrawEverAmount(uint128 _amount) public returns(uint128) {
         if(stEverSupply == 0 || everBalance == 0) {
             return _amount;
         }
-        return _amount *  everBalance / stEverSupply;
+        return math.muldiv(_amount,everBalance,stEverSupply);
     }
 
     // init
@@ -182,12 +189,13 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
                 stEverSupply,
                 everBalance,
                 owner
-        );
+            );
     }
 
 
     // strategy
     function addStrategy(address _strategy) override external onlyGovernance {
+        tvm.accept();
         strategies[_strategy] = StrategyParams(
             now,
             0,
@@ -196,28 +204,40 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         emit StrategyAdded(_strategy);
     }
 
-    function dpositToStrategyes(DepositConfig[] depositConfig) override external onlyGovernance {
+    function depositToStrategies(DepositConfig[] depositConfig) override external onlyGovernance {
+        tvm.accept();
         for (uint256 i = 0; i < depositConfig.length; i++) {
             DepositConfig depositConfig = depositConfig[i];
             require(strategies.exists(depositConfig.strategy),STRATEGY_NOT_EXISTS);
             strategies[depositConfig.strategy].totalAssets += depositConfig.amount;
+            availableEverBalance -= depositConfig.amount;
+            // TODO fix hardcode
+            IStrategy(depositConfig.strategy).deposit{value:depositConfig.amount + 0.6 ton}(uint64(depositConfig.amount));
         }
     }
 
-    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external {
+    function onStrategyHandledDeposit() override external onlyStrategy(msg.sender) {
+        tvm.accept();
+        emit StrategyHandledDeposit(msg.sender,msg.value);
+    }
 
+    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external {
+        strategies[msg.sender].lastReport = now;
+        strategies[msg.sender].totalGain += gain;   
+        strategies[msg.sender].totalAssets += totalAssets;
+        everBalance += gain;
+        emit StrategyReported(msg.sender,StrategyReport(gain,loss,totalAssets));
     }
 
 
     // deposit
     function deposit(uint128 _amount,uint64 _nonce) override external {
-
         require(msg.value >= _amount+DEPOSIT_FEE,NOT_ENOUGH_VALUE);
         tvm.rawReserve(address(this).balance - (msg.value - _amount),0);
         uint128 amountToSend = getDepositStEverAmount(_amount);
         everBalance += _amount;
+        availableEverBalance += _amount;
         stEverSupply += amountToSend;
-
         TvmBuilder builder;
 		builder.store(_nonce);
 
@@ -256,7 +276,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         address userDataAddr = getWithdrawUserDataAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
-        addPendingValueToUserData(_nonce,_amount,userDataAddr);
+        addPendingValueToUserData(_nonce,_amount,userDataAddr,0,MsgFlag.ALL_NOT_RESERVED);
     }
 
     function handleAddPendingValueError(TvmSlice slice) internal {
@@ -265,13 +285,13 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         PendingWithdraw pendingWithdraw = pendingWithdrawMap[_withdraw_nonce];
         deployWithdrawUserData(pendingWithdraw.user);
         address withdrawUserData = getWithdrawUserDataAddress(pendingWithdraw.user);
-        addPendingValueToUserData(_withdraw_nonce,pendingWithdraw.amount,withdrawUserData);
+        addPendingValueToUserData(_withdraw_nonce,pendingWithdraw.amount,withdrawUserData,0,MsgFlag.ALL_NOT_RESERVED);
     }
 
-    function addPendingValueToUserData(uint64 _withdraw_nonce,uint128 amount,address withdrawUserData) internal {
+    function addPendingValueToUserData(uint64 _withdraw_nonce, uint128 amount, address withdrawUserData, uint128 _value, uint8 _flag) internal {
         IWithdrawUserData(withdrawUserData).addPendingValue{
-            value:0,
-            flag: MsgFlag.ALL_NOT_RESERVED
+            value:_value,
+            flag: _flag
         }(_withdraw_nonce,amount);
     }
 
@@ -284,14 +304,13 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
     }
 
     function processSendToUser(SendToUserConfig[] sendConfig) override external onlyGovernance {
-        tvm.rawReserve(_reserve(), 0);
+        tvm.accept();
         for (uint128 i = 0; i < sendConfig.length; i++) {
             SendToUserConfig config = sendConfig[i];
             address withdrawUserData = getWithdrawUserDataAddress(config.user);
             IWithdrawUserData(withdrawUserData).processWithdraw{value:EXPEREMENTAL_FEE}(config.nonces);
         }
-        // TODO
-        msg.sender.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
+
     }
 
     function withdrawToUser(
@@ -302,16 +321,18 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         tvm.rawReserve(_reserve(), 0);
         // if not enough balance, reset pending to the UserData;
         uint128 everAmount = getWithdrawEverAmount(amount);
-        if(everAmount < amount) {
+        if(availableEverBalance < amount) {
             for (uint256 i = 0; i < withdrawDump.length; i++) {
                 DumpWithdraw dump = withdrawDump[i];
-                // TODO add value
-                IWithdrawUserData(msg.sender).addPendingValue(dump.nonce,dump.amount);
+                pendingWithdrawMap[dump.nonce] = PendingWithdraw(dump.amount,user);
+                // TODO fix hardcode value
+                addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0.1 ton,MsgFlag.ALL_NOT_RESERVED);
             }
             return;
         }
        require(stEverSupply >= amount,NOT_ENOUGH_ST_EVER);
        everBalance -= everAmount;
+       availableEverBalance -= everAmount;
        stEverSupply -= amount;
        
         TvmBuilder builder;
@@ -339,7 +360,6 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
         emit WithdrawSuccess(user,everAmount);
         user.transfer({value:everAmount});
-        governance.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
     }
 
 
@@ -366,6 +386,7 @@ contract Vault is IVault,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback
         for (uint128 i = 0; i < withdrawConfig.length; i++) {
             WithdrawConfig config  = withdrawConfig[i];
             IStrategy(config.strategy).withdraw(uint64(config.amount));
+            // TODO handle withdraw event
         }
     }
 
