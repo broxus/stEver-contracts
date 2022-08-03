@@ -17,7 +17,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let vaultTokenWallet: TokenWallet;
 
-describe.skip("Deposit withdraw test", function () {
+describe("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,

@@ -62,7 +62,7 @@ contract StrategyBase is IStrategy,IParticipant {
     } 
 
     function deposit(uint64 amount) override external onlyVault{
-        // TODO strategy needs value for reporting
+        // TODO strategy needs value for reporting. See onRoundComplete method
         tvm.rawReserve(_reserve(),0);
         if(msg.value < amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE) {
            return depositNotHandled();
@@ -76,7 +76,7 @@ contract StrategyBase is IStrategy,IParticipant {
     function withdraw(uint64 amount,uint128 fee) override external onlyVault{
 
        tvm.rawReserve(_reserve(),0);
-        // TODO resolve fee
+        // TODO resolve fee, it's need for calculating received amount withot fee. See receive method
         lastFee = fee;
        withdrawFromDePool(amount);
     }
@@ -99,21 +99,10 @@ contract StrategyBase is IStrategy,IParticipant {
         IDePool(dePool).withdrawFromPoolingRound{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
     }
 
-    function onRoundComplete(
-        uint64 roundId,
-        uint64 reward,
-        uint64 ordinaryStake,
-        uint64 vestingStake,
-        uint64 lockStake,
-        bool reinvest,
-        uint8 reason
-    ) override external onlyDepool {
-        // TODO fix hardcode value
-        IVault(vault).strategyReport{value:0.1 ton,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake);
-    }
+
 
     function receiveAnswer(uint32 errcode, uint64 comment) override external onlyDepool {
-        // TODO can't sync what of the deposits accepted
+        // TODO can't sync what of the deposits accepted,so we should reject parallel deposits
         tvm.rawReserve(_reserve(),0);
         if(errcode == 0) {
            return depositHandled();
@@ -138,6 +127,19 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepool {
         tvm.rawReserve(_reserve(),0);
         IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastFee);
+    }
+
+    function onRoundComplete(
+        uint64 roundId,
+        uint64 reward,
+        uint64 ordinaryStake,
+        uint64 vestingStake,
+        uint64 lockStake,
+        bool reinvest,
+        uint8 reason
+    ) override external onlyDepool {
+        // TODO fix hardcode value
+        IVault(vault).strategyReport{value:0.1 ton,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake);
     }
 
 }

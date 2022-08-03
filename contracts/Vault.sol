@@ -75,7 +75,6 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         tvm.accept();
         for (uint128 i = 0; i < withdrawConfig.length; i++) {
             WithdrawConfig config  = withdrawConfig[i];
-            // TODO fix hardcode value
             IStrategy(config.strategy).withdraw{value:config.fee}(uint64(config.amount),config.fee);
         }
     }
@@ -149,12 +148,11 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
             );
             return;
         }
-        tvm.rawReserve(address(this).balance - WITHDRAW_FEE_FOR_USER_DATA,0);
+        tvm.rawReserve(address(this).balance - (msg.value - WITHDRAW_FEE_FOR_GOVERNANCE),0);
         requestWithdraw(_sender,_amount,_payload);
     }
 
     function requestWithdraw(address _user,uint128 _amount,TvmCell _payload) internal {
-        // tvm.rawReserve(_reserve(), 0);
         address userDataAddr = getWithdrawUserDataAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
@@ -208,10 +206,8 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
                 DumpWithdraw dump = withdrawDump[i];
                 pendingWithdrawMap[dump.nonce] = PendingWithdraw(dump.amount,user);
                 emit WithdrawError(user,dump.nonce,amount);
-                // TODO fix hardcode value
-                addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0.1 ton,MsgFlag.ALL_NOT_RESERVED);
+                return addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0,MsgFlag.ALL_NOT_RESERVED);
             }
-            return;
         }
        everBalance -= everAmount;
        availableEverBalance -= everAmount;
