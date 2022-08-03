@@ -1,5 +1,11 @@
 import { Account } from "locklift/build/factory";
-import { TokenRootAbi, TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../build/factorySource";
+import {
+  TokenRootAbi,
+  TokenRootUpgradeableAbi,
+  VaultAbi,
+  WalletAbi,
+  WithdrawUserDataAbi,
+} from "../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
 import { Contract } from "locklift";
 import { assertEvent } from "./index";
@@ -10,12 +16,12 @@ export class User {
     public readonly account: Account<WalletAbi>,
     public readonly wallet: TokenWallet,
     protected readonly vault: { contract: Contract<VaultAbi>; wallet: TokenWallet },
+    public readonly withdrawUserData: Contract<WithdrawUserDataAbi>,
   ) {}
 
   makeWithdrawRequest = async (amount: string) => {
     const nonce = locklift.utils.getRandomNonce();
-    console.log(`nonceToPayload: ${nonce}`);
-    const depositPayload = await this.vault.contract.methods
+    const withdrawPayload = await this.vault.contract.methods
       .encodeDepositPayload({
         _nonce: nonce,
         deposit_owner: this.account.address,
@@ -26,7 +32,7 @@ export class User {
         this.account.runTarget(
           {
             contract: this.wallet.walletContract,
-            value: locklift.utils.toNano(2),
+            value: locklift.utils.toNano(3),
           },
           walletContract =>
             walletContract.methods.transfer({
@@ -35,7 +41,7 @@ export class User {
               amount,
               notify: true,
               recipient: this.vault.contract.address,
-              payload: depositPayload.deposit_payload,
+              payload: withdrawPayload.deposit_payload,
             }),
         ),
         { allowedCodes: { compute: [null] } },
@@ -75,9 +81,11 @@ export class User {
     expect(user.equals(this.account.address)).to.be.true;
     expect(depositAmount).to.be.equals(locklift.utils.toNano(amount));
     expect(receivedStEvers).to.be.equals(locklift.utils.toNano(amount));
+  };
 
-    const balance = await this.wallet.getBalance();
-    expect(balance).to.be.equals(locklift.utils.toNano(amount));
+  getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {
+    const { withdrawRequests } = await this.withdrawUserData.methods.withdrawRequests({}).call();
+    return withdrawRequests.map(([nonce, { amount }]) => ({ nonce, amount }));
   };
 }
 
@@ -88,5 +96,16 @@ export const createUserEntity = async (
 ): Promise<User> => {
   const wallet = await TokenWallet.getWallet(locklift.provider, account.address, tokenRoot);
   const vaultWallet = await TokenWallet.getWallet(locklift.provider, vaultContract.address, tokenRoot);
-  return new User(account, wallet, { contract: vaultContract, wallet: vaultWallet });
+  const withdrawUserData = await vaultContract.methods
+    .getWithdrawUserDataAddress({
+      user: account.address,
+      answerId: 0,
+    })
+    .call({});
+  return new User(
+    account,
+    wallet,
+    { contract: vaultContract, wallet: vaultWallet },
+    locklift.factory.getDeployedContract("WithdrawUserData", withdrawUserData.value0),
+  );
 };

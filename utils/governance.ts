@@ -15,11 +15,20 @@ export class Governance {
     await locklift.tracing.trace(
       this.vaultContract.methods.depositToStrategies(...params).sendExternal({ publicKey: this.keyPair.publicKey }),
     );
-    const { events } = await this.vaultContract.getPastEvents({
-      filter: ({ event }) => event === "StrategyHandledDeposit",
-    });
+  };
 
-    assertEvent(events, "StrategyHandledDeposit");
-    console.log(`Returned strategy fee is ${locklift.utils.fromNano(events[0].data.returnedFee)}`);
+  withdrawFromStrategies = async (
+    ...params: Parameters<Contract<VaultAbi>["methods"]["processWithdrawFromStrategies"]>
+  ) => {
+    await locklift.tracing.trace(
+      this.vaultContract.methods
+        .processWithdrawFromStrategies(...params)
+        .sendExternal({ publicKey: this.keyPair.publicKey }),
+    );
+    const { events } = await this.vaultContract.getPastEvents({
+      filter: ({ event }) => event === "StrategyWithdrawSuccess",
+    });
+    assertEvent(events, "StrategyWithdrawSuccess");
+    return events;
   };
 }

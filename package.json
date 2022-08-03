@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@broxus/contracts": "^1.1.0",
+    "bignumber.js": "^9.0.2",
     "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#d3c1cd920c0320ffaab03b54c878dd0e06fed3c7",
     "locklift": "^2.1.7",
     "rxjs": "^7.5.6"

@@ -13,8 +13,15 @@ contract StrategyBase is IStrategy,IParticipant {
     uint128 constant CONTRACT_MIN_BALANCE = 1 ton;
     uint64 constant DEPOSIT_STAKE_DEPOOL_FEE = 0.5 ton;
     uint64 constant DEPOSIT_STAKE_STRATEGY_FEE = 0.05 ton;
+    // dePoolAnserStatuses
+    uint8 constant STATUS_SUCCESS = 0;
+    uint8 constant STATUS_STAKE_TOO_SMALL = 1;
+    uint8 constant STATUS_DEPOOL_CLOSED = 3;
+    uint64 minStake = 1 ton;
+
     address vault;
     address dePool;
+    uint128 lastFee;
 
     // static
     uint128 public static nonce;
@@ -55,21 +62,33 @@ contract StrategyBase is IStrategy,IParticipant {
     } 
 
     function deposit(uint64 amount) override external onlyVault{
-        require(msg.value >= amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE,BAD_DEPOSIT_VALUE);
+        // TODO strategy needs value for reporting
         tvm.rawReserve(_reserve(),0);
+        if(msg.value < amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE) {
+           return depositNotHandled();
+        }
+        if(amount < minStake) {
+           return depositNotHandled();
+        }
         depositToDepool(amount,vault);
     } 
 
-    function withdraw(uint64 amount) override external onlyVault{
+    function withdraw(uint64 amount,uint128 fee) override external onlyVault{
+
+       tvm.rawReserve(_reserve(),0);
+        // TODO resolve fee
+        lastFee = fee;
        withdrawFromDePool(amount);
     }
 
     function receiveFromStrategy(uint64 amount) override external onlyStrategy {
+        tvm.rawReserve(_reserve(),0);
         depositToDepool(amount,msg.sender);
     } 
 
     function sendToStrategy(address strategy, uint64 amount) override external onlyVault {
-
+        tvm.rawReserve(_reserve(),0);
+        IStrategy(strategy).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
     }
 
     function depositToDepool(uint64 amount,address remaining_gas_to) internal {
@@ -77,7 +96,7 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function withdrawFromDePool(uint64 amount) internal {
-        IDePool(dePool).withdrawFromPoolingRound(amount);
+        IDePool(dePool).withdrawFromPoolingRound{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
     }
 
     function onRoundComplete(
@@ -94,12 +113,31 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function receiveAnswer(uint32 errcode, uint64 comment) override external onlyDepool {
+        // TODO can't sync what of the deposits accepted
         tvm.rawReserve(_reserve(),0);
+        if(errcode == 0) {
+           return depositHandled();
+        }
+        if(errcode > 0) {
+            return depositNotHandled();
+        }
+    }
+
+    function depositHandled() internal {
         IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED}();
+    }
+
+    function depositNotHandled() internal {
+        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED}();
     }
 
     function onTransfer(address source, uint128 amount) override external {
 
+    }
+
+    receive() external onlyDepool {
+        tvm.rawReserve(_reserve(),0);
+        IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastFee);
     }
 
 }

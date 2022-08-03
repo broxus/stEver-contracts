@@ -85,6 +85,7 @@ const config: LockliftConfig = {
   },
   mocha: {
     timeout: 2000000,
+    bail: true,
   },
 };
 

@@ -25,14 +25,16 @@ export const createStrategy = async ({
 }: {
   vaultContract: Contract<VaultAbi>;
   signer: Signer;
-}) => {
+}): Promise<DePoolStrategyWithPool> => {
   const dePool = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "TestDepool",
       value: locklift.utils.toNano(200),
       constructorParams: {},
       publicKey: signer.publicKey,
-      initParams: {},
+      initParams: {
+        nonce: locklift.utils.getRandomNonce(),
+      },
     }),
   );
   const strategy = await locklift.tracing.trace(

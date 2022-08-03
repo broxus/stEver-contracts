@@ -3,8 +3,10 @@ import { expect } from "chai";
 import { User } from "./user";
 import { concatMap, from, map, toArray } from "rxjs";
 import { Governance } from "./governance";
-import { Contract } from "locklift";
+import { Contract, Signer } from "locklift";
 import { VaultAbi } from "../build/factorySource";
+import { createStrategy, DePoolStrategyWithPool } from "./dePoolStrategy";
+import { Vault } from "./vault";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -31,10 +33,31 @@ export const makeWithdrawToUsers = async ({
   const { events: withdrawSuccessEvents } = await vaultContract.getPastEvents({
     filter: event => event.event === "WithdrawSuccess",
   });
-  assertEvent(withdrawSuccessEvents, "WithdrawSuccess");
-  // withdrawSetup.forEach(({ user, nonce }, index) => {
-  //   expect(withdrawSuccessEvents[index].data.user.equals(user.account.address)).to.be.true;
-  //   expect(withdrawSuccessEvents[index].data.amount).to.be.equals(locklift.utils.toNano(amount));
-  // });
-  return withdrawSuccessEvents;
+  const { events: withdrawErrorEvents } = await vaultContract.getPastEvents({
+    filter: event => event.event === "WithdrawError",
+  });
+
+  return {
+    successEvents: withdrawSuccessEvents,
+    errorEvents: withdrawErrorEvents,
+  };
+};
+
+export const createAndRegisterStrategy = async ({
+  governance,
+  vault,
+  signer,
+}: {
+  governance: Governance;
+  vault: Vault;
+  signer: Signer;
+}): Promise<DePoolStrategyWithPool> => {
+  const strategy = await createStrategy({ vaultContract: vault.vaultContract, signer });
+
+  await locklift.tracing.trace(
+    vault.vaultContract.methods
+      .addStrategy({ _strategy: strategy.strategy.address })
+      .sendExternal({ publicKey: governance.keyPair.publicKey }),
+  );
+  return strategy;
 };

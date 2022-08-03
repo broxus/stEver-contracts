@@ -5,10 +5,11 @@ import { Address, Contract, Signer } from "locklift";
 import { expect } from "chai";
 import { createUserEntity, User } from "../utils/user";
 import { Governance } from "../utils/governance";
+import { creteVault, Vault } from "../utils/vault";
 
 export const preparation = async (): Promise<{
   signer: Signer;
-  vault: Contract<VaultAbi>;
+  vault: Vault;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   users: Array<User>;
   governance: Governance;
@@ -19,7 +20,6 @@ export const preparation = async (): Promise<{
   const accounts = await deployUsers(3, accountFactory, signer);
   const [adminUser] = accounts;
   const tokenRoot = await deployTokenRoot({ signer, owner: adminUser.address });
-  console.log(`Signer public key: ${signer.publicKey.toString()}`);
   const vault = await deployVault({ owner: adminUser, signer, governance: governanceKeyPair, tokenRoot });
   const users = (await from(accounts)
     .pipe(
@@ -27,11 +27,17 @@ export const preparation = async (): Promise<{
       toArray(),
     )
     .toPromise())!;
+  const vaultInstance = await creteVault({
+    adminAccount: users[0],
+    vaultContract: vault,
+    tokenRootContract: tokenRoot,
+  });
+
   return {
     signer,
     users,
     tokenRoot,
-    vault,
+    vault: vaultInstance,
     governance: new Governance(governanceKeyPair, vault),
   };
 };
@@ -134,5 +140,14 @@ const deployVault = async ({
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
   console.log(`New owner: ${newOwner.value0.toString()}`);
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
+  const vaultSubscriber = new locklift.provider.Subscriber();
+  vaultSubscriber.transactions(vaultContract.address).on(transaction => {
+    transaction.transactions.forEach(async tx => {
+      const parsedEvent = await vaultContract.decodeTransactionEvents({ transaction: tx });
+      parsedEvent.forEach(event => {
+        console.log(`Event received: ${JSON.stringify(event)}`);
+      });
+    });
+  });
   return vaultContract;
 };
