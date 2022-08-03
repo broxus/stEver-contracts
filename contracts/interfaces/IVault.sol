@@ -51,6 +51,7 @@ interface IVault {
     struct DepositConfig {
         address strategy;
         uint128 amount;
+        uint128 fee;
     }
 
     struct SendToUserConfig {
@@ -64,6 +65,7 @@ interface IVault {
     }
     function initVault(address _stTtokenRoot) external;
     function getDetails() external responsible view returns(Details);
+    // strategy
     function addStrategy(address strategy) external;
     function deposit(uint128 _amount,uint64 _nonce) external;
     function onRunBalancer(BalancingConfig[] balancerConfig) external;
@@ -71,12 +73,15 @@ interface IVault {
     function processSendToUser(SendToUserConfig[] sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) external;
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
-    function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
-    function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
     function depositToStrategies(DepositConfig[] depositConfig) external;
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit() external;
     function receiveFromStrategy(uint128 fee) external;
     function strategyBalanceUpdated(uint128 update,bool isIncreased) external;
+    function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
+    // utils
+    function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
+    // setters
+    function setGainFee(uint128 _gainFee) external;
 }
 

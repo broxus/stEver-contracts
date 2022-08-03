@@ -19,7 +19,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
-describe("Strategy base", function () {
+describe.skip("Strategy base", function () {
   before(async () => {
     const {
       vault: v,

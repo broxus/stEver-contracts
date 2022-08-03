@@ -25,8 +25,8 @@ abstract contract VaultBase is VaultStorage {
         _;
     }
 
-    modifier onlyStrategy(address strategy) {
-        require(strategies.exists(strategy),STRATEGY_NOT_EXISTS);
+    modifier onlyStrategy() {
+        require(strategies.exists(msg.sender),STRATEGY_NOT_EXISTS);
         _;
     }
 
@@ -43,8 +43,10 @@ abstract contract VaultBase is VaultStorage {
 		tvm.accept();
 		stEverWallet = wallet;
 	}
-
-
+    // setters
+    function setGainFee(uint128 _gainFee) override external {
+        gainFee = _gainFee;
+    }
     // utils
     function _reserve() internal pure returns (uint128) {
 		return

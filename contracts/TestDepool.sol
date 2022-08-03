@@ -13,7 +13,7 @@ struct Depositor {
 }
 
 contract TestDepool is IDePool {
-    uint64 constant STAKE_FEE = 0.5 ton;
+    uint64 constant STAKE_FEE = 0.5 ever;
     uint8 constant DEPOSITOR_NOT_EXISTS = 101;
     uint8 constant BAD_DEPOSIT_VALUE = 102;
     uint8 constant STATUS_SUCCESS = 0;
@@ -22,17 +22,17 @@ contract TestDepool is IDePool {
     uint8 constant STATUS_FEE_TOO_SMALL = 21;
     uint64 round;
     bool closed = false;
-    uint64 m_minStake = 1 ton;
+    uint64 m_minStake = 1 ever;
 
     uint128 public static nonce;
 
     mapping(address => Depositor) depositors;
     function addOrdinaryStake(uint64 stake) override external {
-        
+
         if(closed) {
             return _sendError(STATUS_DEPOOL_CLOSED, 0);
         }
-   
+
         if(msg.value < stake + STAKE_FEE) {
             return _sendError(STATUS_FEE_TOO_SMALL, STAKE_FEE);
         }
@@ -42,7 +42,7 @@ contract TestDepool is IDePool {
 
             return _sendError(STATUS_STAKE_TOO_SMALL, m_minStake);
         }
-       
+
         uint128 fee = msg.value - stake;
         if (!depositors.exists(msg.sender)) {
             depositors[msg.sender] = Depositor(0);
@@ -50,7 +50,7 @@ contract TestDepool is IDePool {
         depositors[msg.sender].amount += stake;
         sendAcceptAndReturnChange128(uint64(fee));
     }
- 
+
     function withdrawFromPoolingRound(uint64 withdrawValue) override external {
         require(depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
         depositors[msg.sender].amount -= withdrawValue;
@@ -76,7 +76,7 @@ contract TestDepool is IDePool {
         for ((address key, ) : depositors) {
             depositors[key].amount += _reward;
             IParticipant(key).onRoundComplete(
-                round, 
+                round,
                 _reward,
                 uint64(depositors[key].amount),
                 0,

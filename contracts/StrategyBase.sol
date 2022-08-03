@@ -7,7 +7,7 @@ import "./interfaces/IVault.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 
-
+enum StrategyState {INIT,BALANCING}
 contract StrategyBase is IStrategy,IParticipant {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ton;
@@ -17,11 +17,12 @@ contract StrategyBase is IStrategy,IParticipant {
     uint8 constant STATUS_SUCCESS = 0;
     uint8 constant STATUS_STAKE_TOO_SMALL = 1;
     uint8 constant STATUS_DEPOOL_CLOSED = 3;
-    uint64 minStake = 1 ton;
+    uint64 minStake = 1 ever;
 
     address vault;
     address dePool;
     uint128 lastFee;
+    StrategyState strategyState = StrategyState.INIT;
 
     // static
     uint128 public static nonce;
@@ -59,7 +60,7 @@ contract StrategyBase is IStrategy,IParticipant {
 
     function getDetails() override external responsible view returns(Details){
         return {value:0,bounce:false,flag: MsgFlag.REMAINING_GAS} Details(vault,true,9999,9999);
-    } 
+    }
 
     function deposit(uint64 amount) override external onlyVault{
         // TODO strategy needs value for reporting. See onRoundComplete method
@@ -71,7 +72,7 @@ contract StrategyBase is IStrategy,IParticipant {
            return depositNotHandled();
         }
         depositToDepool(amount,vault);
-    } 
+    }
 
     function withdraw(uint64 amount,uint128 fee) override external onlyVault{
 
@@ -84,7 +85,7 @@ contract StrategyBase is IStrategy,IParticipant {
     function receiveFromStrategy(uint64 amount) override external onlyStrategy {
         tvm.rawReserve(_reserve(),0);
         depositToDepool(amount,msg.sender);
-    } 
+    }
 
     function sendToStrategy(address strategy, uint64 amount) override external onlyVault {
         tvm.rawReserve(_reserve(),0);
@@ -139,7 +140,7 @@ contract StrategyBase is IStrategy,IParticipant {
         uint8 reason
     ) override external onlyDepool {
         // TODO fix hardcode value
-        IVault(vault).strategyReport{value:0.1 ton,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake);
+        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake);
     }
 
 }

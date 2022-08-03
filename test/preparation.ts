@@ -6,6 +6,7 @@ import { expect } from "chai";
 import { createUserEntity, User } from "../utils/user";
 import { Governance } from "../utils/governance";
 import { creteVault, Vault } from "../utils/vault";
+import { GAIN_FEE } from "../utils/constants";
 
 export const preparation = async (): Promise<{
   signer: Signer;
@@ -114,6 +115,7 @@ const deployVault = async ({
       constructorParams: {
         _withdrawUserDataCode: locklift.factory.getContractArtifacts("WithdrawUserData").code,
         _owner: owner.address,
+        _gainFee: GAIN_FEE,
       },
       publicKey: signer.publicKey,
       initParams: {

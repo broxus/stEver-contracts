@@ -9,6 +9,7 @@ import { createStrategy, DePoolStrategyWithPool } from "../utils/dePoolStrategy"
 import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/vault";
 import BigNumber from "bignumber.js";
+import { GAIN_FEE } from "../utils/constants";
 
 const TOKEN_ROOT_NAME = "StEver";
 const TOKEN_ROOT_SYMBOL = "STE";
@@ -57,23 +58,26 @@ describe("Single flow", async function () {
         {
           strategy: strategiesWithPool[0].strategy.address,
           amount: locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT),
+          fee: locklift.utils.toNano(0.6),
         },
       ],
     });
     console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
   });
   it("round should completed", async () => {
+    const stateBefore = await vault.getDetails();
     const ROUND_REWARD = locklift.utils.toNano(2);
+    const EXPECTED_REWARD = new BigNumber(locklift.utils.toNano(2)).minus(GAIN_FEE);
     await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD);
     const { events } = await vault.vaultContract.getPastEvents({ filter: ({ event }) => event === "StrategyReported" });
     assertEvent(events, "StrategyReported");
 
     expect(events[0].data.strategy.equals(strategiesWithPool[0].strategy.address)).to.be.true;
-    expect(events[0].data.report.gain).to.be.equals(ROUND_REWARD);
+    expect(events[0].data.report.gain).to.be.equals(EXPECTED_REWARD.toString());
 
-    const details = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(details.value0.everBalance).equals(locklift.utils.toNano(22));
-    expect(details.value0.stEverSupply).equals(locklift.utils.toNano(20));
+    const stateAfter = await vault.getDetails();
+    expect(stateAfter.everBalance).equals(EXPECTED_REWARD.plus(stateBefore.everBalance).toString());
+    expect(stateAfter.stEverSupply).equals(stateBefore.stEverSupply);
   });
   it("user shouldn't receive because harvest from strategy have not evaluated yet, so reset pending withdraw request to the user", async () => {
     const WITHDRAW_AMOUNT = 10;
@@ -113,8 +117,8 @@ describe("Single flow", async function () {
     expect(Number(availableBalanceAfter)).to.be.gt(Number(availableBalanceBefore));
   });
   it("user should receive requested amount + reward", async () => {
-    const userBalanceBefore = await getAddressBalance(user1.account.address);
-    console.log(`user balance before ${userBalanceBefore}`);
+    console.log(`user balance before ${await getAddressBalance(user1.account.address)}`);
+    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
     const { value0: stateBeforeWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     const withdrawalRate = new BigNumber(stateBeforeWithdraw.everBalance).dividedBy(stateBeforeWithdraw.stEverSupply);
 
@@ -142,7 +146,7 @@ describe("Single flow", async function () {
       stateAfterWithdraw.stEverSupply,
     );
 
-    const userBalanceAfter = await getAddressBalance(user1.account.address);
-    console.log(`user balance after ${userBalanceAfter}`);
+    console.log(`user balance after ${await getAddressBalance(user1.account.address)}`);
+    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
   });
 });

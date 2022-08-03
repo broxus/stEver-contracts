@@ -17,7 +17,7 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-describe("Initialize testing", function () {
+describe.skip("Initialize testing", function () {
   before(async () => {
     const {
       vault: v,

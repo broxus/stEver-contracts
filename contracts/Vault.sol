@@ -15,11 +15,13 @@ import "locklift/src/console.sol";
 contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback {
     constructor(
         address _owner,
-        TvmCell _withdrawUserDataCode
+        TvmCell _withdrawUserDataCode,
+        uint128 _gainFee
     ) public {
         tvm.accept();
         owner = _owner;
         withdrawUserDataCode = _withdrawUserDataCode;
+        gainFee = _gainFee;
     }
 
     // strategy
@@ -44,31 +46,31 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
 
             strategies[depositConfig.strategy].depositingAmount = depositConfig.amount;
             availableEverBalance -= depositConfig.amount;
-            // TODO fix hardcode
-            IStrategy(depositConfig.strategy).deposit{value:depositConfig.amount + 0.6 ton}(uint64(depositConfig.amount));
+            IStrategy(depositConfig.strategy).deposit{value:depositConfig.amount + depositConfig.fee}(uint64(depositConfig.amount));
         }
     }
 
-    function onStrategyHandledDeposit() override external onlyStrategy(msg.sender) {
+    function onStrategyHandledDeposit() override external onlyStrategy {
         tvm.accept();
         strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         emit StrategyHandledDeposit(msg.sender,msg.value);
     }
 
-    function onStrategyDidntHandleDeposit() override external onlyStrategy(msg.sender) {
+    function onStrategyDidntHandleDeposit() override external onlyStrategy {
         tvm.accept();
         uint128 deposotingAmount = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         emit StrategyDidintHandleDeposit(msg.sender,deposotingAmount);
     }
 
-    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external {
+    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external onlyStrategy {
+        uint128 gainWithoutFee = gain - gainFee;
         strategies[msg.sender].lastReport = now;
-        strategies[msg.sender].totalGain += gain;   
+        strategies[msg.sender].totalGain += gainWithoutFee;
         strategies[msg.sender].totalAssets += totalAssets;
-        everBalance += gain;
-        emit StrategyReported(msg.sender,StrategyReport(gain,loss,totalAssets));
+        everBalance += gainWithoutFee;
+        emit StrategyReported(msg.sender,StrategyReport(gainWithoutFee,loss,totalAssets));
     }
 
     function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) override external onlyGovernance {
@@ -79,16 +81,14 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         }
     }
 
-    function receiveFromStrategy(uint128 fee) override external onlyStrategy(msg.sender) {
-        tvm.rawReserve(_reserve(),0);
+    function receiveFromStrategy(uint128 fee) override external onlyStrategy {
         uint128 amountReceived = msg.value - fee;
         strategies[msg.sender].totalAssets -= amountReceived;
         availableEverBalance += amountReceived;
         emit StrategyWithdrawSuccess(msg.sender,amountReceived);
     }
 
-    function strategyBalanceUpdated(uint128 update,bool isIncreased) override external onlyStrategy(msg.sender) {
-        tvm.rawReserve(_reserve(),0);
+    function strategyBalanceUpdated(uint128 update,bool isIncreased) override external onlyStrategy {
         if (isIncreased) {
             strategies[msg.sender].totalAssets += update;
             return;
@@ -148,11 +148,11 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
             );
             return;
         }
-        tvm.rawReserve(address(this).balance - (msg.value - WITHDRAW_FEE_FOR_GOVERNANCE),0);
         requestWithdraw(_sender,_amount,_payload);
     }
 
     function requestWithdraw(address _user,uint128 _amount,TvmCell _payload) internal {
+        tvm.rawReserve(address(this).balance - (msg.value - WITHDRAW_FEE_FOR_GOVERNANCE),0);
         address userDataAddr = getWithdrawUserDataAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
@@ -206,13 +206,14 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
                 DumpWithdraw dump = withdrawDump[i];
                 pendingWithdrawMap[dump.nonce] = PendingWithdraw(dump.amount,user);
                 emit WithdrawError(user,dump.nonce,amount);
-                return addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0,MsgFlag.ALL_NOT_RESERVED);
+                addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0,MsgFlag.ALL_NOT_RESERVED);
             }
+            return;
         }
        everBalance -= everAmount;
        availableEverBalance -= everAmount;
        stEverSupply -= amount;
-       
+
         TvmBuilder builder;
         builder.store(user);
         builder.store(everAmount);
@@ -231,6 +232,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         address remainingGasTo,
         TvmCell payload
     ) override external {
+        require(wallet == stEverWallet,NOT_ROOT_WALLET);
         TvmSlice slice = payload.toSlice();
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
@@ -239,9 +241,9 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         user.transfer({value:everAmount});
     }
 
-    // TODO 
+    // TODO
     function onRunBalancer(BalancingConfig[] balancerConfig) override external onlyGovernance {
-        
+
     }
 
 
