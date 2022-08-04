@@ -23,7 +23,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 
-describe("Single flow", async function () {
+describe.skip("Single flow", async function () {
   before(async () => {
     const {
       vault: v,

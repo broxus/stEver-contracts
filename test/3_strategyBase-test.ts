@@ -10,6 +10,8 @@ import { Vault } from "../utils/vault";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/dePoolStrategy";
 import { assertEvent, getAddressBalance } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { concatMap, from, lastValueFrom, mergeMap, range, toArray } from "rxjs";
+import _ from "lodash";
 
 let signer: Signer;
 let admin: User;
@@ -19,7 +21,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
-describe.skip("Strategy base", function () {
+describe("Strategy base", function () {
   before(async () => {
     const {
       vault: v,
@@ -39,7 +41,7 @@ describe.skip("Strategy base", function () {
   it("Vault should be initialized", async () => {
     await vault.initialize();
   });
-  it("should strategy deployed", async () => {
+  it.skip("should strategy deployed", async () => {
     strategy = await createAndRegisterStrategy({ signer, vault, governance });
     const { events: strategyAddedEvents } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "StrategyAdded",
@@ -47,7 +49,7 @@ describe.skip("Strategy base", function () {
     assertEvent(strategyAddedEvents, "StrategyAdded");
     expect(strategyAddedEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
   });
-  it("governance should deposit to strategies", async () => {
+  it.skip("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
     await user1.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT);
     console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
@@ -56,6 +58,7 @@ describe.skip("Strategy base", function () {
         {
           strategy: strategy.strategy.address,
           amount: locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT),
+          fee: locklift.utils.toNano(0.6),
         },
       ],
     });
@@ -68,16 +71,18 @@ describe.skip("Strategy base", function () {
     console.log(`Returned strategy fee is ${locklift.utils.fromNano(events[0].data.returnedFee)}`);
     console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
   });
-  it("governance shouldn't deposit to strategy with low value", async () => {
+  it.skip("governance shouldn't deposit to strategy with low value", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
     await user1.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT);
 
     console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`strategy balance before ${await getAddressBalance(strategy.strategy.address)}`);
     await governance.depositToStrategies({
       depositConfig: [
         {
           strategy: strategy.strategy.address,
           amount: locklift.utils.toNano(0.1),
+          fee: locklift.utils.toNano(0.6),
         },
       ],
     });
@@ -85,6 +90,28 @@ describe.skip("Strategy base", function () {
       filter: ({ event }) => event === "StrategyDidintHandleDeposit",
     });
     assertEvent(events, "StrategyDidintHandleDeposit");
+    console.log(`strategy balance after ${await getAddressBalance(strategy.strategy.address)}`);
     console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+  });
+  it("should created 20 strtegies", async () => {
+    const strategies = await lastValueFrom(
+      range(2).pipe(
+        concatMap(() => createAndRegisterStrategy({ signer, vault, governance })),
+        toArray(),
+      ),
+    );
+    await user1.depositToVault(4000);
+    console.log(`Vaults balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+
+    await governance.depositToStrategies({
+      depositConfig: _.range(0, 120)
+        .reduce((acc, next) => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
+        .map(strategy => ({
+          fee: locklift.utils.toNano(0.6),
+          strategy: strategy.strategy.address,
+          amount: locklift.utils.toNano(2),
+        })),
+    });
+    console.log(`Vaults balance after ${await getAddressBalance(vault.vaultContract.address)}`);
   });
 });

@@ -25,8 +25,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
     }
 
     // strategy
-    function addStrategy(address _strategy) override external onlyGovernance {
-        tvm.accept();
+    function addStrategy(address _strategy) override external onlyGovernanceAndAccept {
         strategies[_strategy] = StrategyParams(
             now,
             0,
@@ -36,13 +35,12 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         emit StrategyAdded(_strategy);
     }
 
-    function depositToStrategies(DepositConfig[] depositConfig) override external onlyGovernance {
-        tvm.accept();
+    function depositToStrategies(DepositConfig[] depositConfig) override external onlyGovernanceAndAccept {
         for (uint256 i = 0; i < depositConfig.length; i++) {
             DepositConfig depositConfig = depositConfig[i];
             require(strategies.exists(depositConfig.strategy),STRATEGY_NOT_EXISTS);
 
-            require(strategies[depositConfig.strategy].depositingAmount == 0,CANT_DEPOSIT_UNTILS_STRATEGY_IN_DEPOSIT_STATE);
+            // require(strategies[depositConfig.strategy].depositingAmount == 0,CANT_DEPOSIT_UNTILS_STRATEGY_IN_DEPOSIT_STATE);
 
             strategies[depositConfig.strategy].depositingAmount = depositConfig.amount;
             availableEverBalance -= depositConfig.amount;
@@ -51,30 +49,29 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
     }
 
     function onStrategyHandledDeposit() override external onlyStrategy {
-        tvm.accept();
         strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         emit StrategyHandledDeposit(msg.sender,msg.value);
     }
 
     function onStrategyDidntHandleDeposit() override external onlyStrategy {
-        tvm.accept();
         uint128 deposotingAmount = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         emit StrategyDidintHandleDeposit(msg.sender,deposotingAmount);
     }
 
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) override external onlyStrategy {
+        tvm.rawReserve(_reserve(),0);
         uint128 gainWithoutFee = gain - gainFee;
         strategies[msg.sender].lastReport = now;
         strategies[msg.sender].totalGain += gainWithoutFee;
         strategies[msg.sender].totalAssets += totalAssets;
         everBalance += gainWithoutFee;
         emit StrategyReported(msg.sender,StrategyReport(gainWithoutFee,loss,totalAssets));
+        msg.sender.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
     }
 
-    function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) override external onlyGovernance {
-        tvm.accept();
+    function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) override external onlyGovernanceAndAccept {
         for (uint128 i = 0; i < withdrawConfig.length; i++) {
             WithdrawConfig config  = withdrawConfig[i];
             IStrategy(config.strategy).withdraw{value:config.fee}(uint64(config.amount),config.fee);
@@ -87,16 +84,6 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         availableEverBalance += amountReceived;
         emit StrategyWithdrawSuccess(msg.sender,amountReceived);
     }
-
-    function strategyBalanceUpdated(uint128 update,bool isIncreased) override external onlyStrategy {
-        if (isIncreased) {
-            strategies[msg.sender].totalAssets += update;
-            return;
-        }
-        strategies[msg.sender].totalAssets -= update;
-    }
-
-
     // deposit
     function deposit(uint128 _amount,uint64 _nonce) override external {
         require(msg.value >= _amount+DEPOSIT_FEE,NOT_ENOUGH_DEPOSIT_VALUE);
@@ -183,8 +170,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
        delete pendingWithdrawMap[_nonce];
     }
 
-    function processSendToUser(SendToUserConfig[] sendConfig) override external onlyGovernance {
-        tvm.accept();
+    function processSendToUser(SendToUserConfig[] sendConfig) override external onlyGovernanceAndAccept {
         for (uint128 i = 0; i < sendConfig.length; i++) {
             SendToUserConfig config = sendConfig[i];
             address withdrawUserData = getWithdrawUserDataAddress(config.user);
@@ -240,12 +226,6 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         emit WithdrawSuccess(user,everAmount);
         user.transfer({value:everAmount});
     }
-
-    // TODO
-    function onRunBalancer(BalancingConfig[] balancerConfig) override external onlyGovernance {
-
-    }
-
 
     onBounce(TvmSlice slice) external {
 		tvm.accept();

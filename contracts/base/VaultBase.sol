@@ -11,8 +11,9 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 
 abstract contract VaultBase is VaultStorage {
     //modifiers 
-    modifier onlyGovernance() {
+    modifier onlyGovernanceAndAccept() {
         require(msg.pubkey() == governance,NOT_GOVERNANCE);
+        tvm.accept();
         _;
     }
 

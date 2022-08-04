@@ -13,7 +13,7 @@ struct WithdrawRequest {
 contract WithdrawUserData is IWithdrawUserData {
     // static
     address static vault;
-    address static user;
+    address static user; 
     TvmCell public static withdrawUserDataCode;
 
     uint128 pendingReturnedTokens;
@@ -23,7 +23,7 @@ contract WithdrawUserData is IWithdrawUserData {
     uint8 constant ONLY_VAULT = 101;
     uint8 constant RECEIVED_BAD_VALUE = 102;
     uint8 constant REQUEST_NOT_EXISTS = 103;
-    uint128 constant CONTRACT_MIN_BALANCE = 0.1 ever;
+    uint128 constant CONTRACT_MIN_BALANCE = 0.1 ton;
     // mappings
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
@@ -62,6 +62,7 @@ contract WithdrawUserData is IWithdrawUserData {
 
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
+        // ADD check for 1 ton fee
         uint128 amount;
         IVault.DumpWithdraw[] withdrawDump;
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
@@ -75,6 +76,6 @@ contract WithdrawUserData is IWithdrawUserData {
         IVault(vault).withdrawToUser{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount,user,withdrawDump);
     }
 
-    function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {
+    function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {   
     }
 }

@@ -36,12 +36,6 @@ interface IVault {
         address user;
     }
 
-    struct BalancingConfig {
-        address strategy;
-        uint128 deposit;
-        uint128 withdraw;
-    }
-
     struct WithdrawConfig {
         address strategy;
         uint128 amount;
@@ -68,7 +62,6 @@ interface IVault {
     // strategy
     function addStrategy(address strategy) external;
     function deposit(uint128 _amount,uint64 _nonce) external;
-    function onRunBalancer(BalancingConfig[] balancerConfig) external;
     function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) external;
     function processSendToUser(SendToUserConfig[] sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) external;
@@ -77,7 +70,6 @@ interface IVault {
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit() external;
     function receiveFromStrategy(uint128 fee) external;
-    function strategyBalanceUpdated(uint128 update,bool isIncreased) external;
     function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
     // utils
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);

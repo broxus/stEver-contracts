@@ -10,9 +10,9 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 enum StrategyState {INIT,BALANCING}
 contract StrategyBase is IStrategy,IParticipant {
     // constant
-    uint128 constant CONTRACT_MIN_BALANCE = 1 ton;
-    uint64 constant DEPOSIT_STAKE_DEPOOL_FEE = 0.5 ton;
-    uint64 constant DEPOSIT_STAKE_STRATEGY_FEE = 0.05 ton;
+    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+    uint64 constant DEPOSIT_STAKE_DEPOOL_FEE = 0.5 ever;
+    uint64 constant DEPOSIT_STAKE_STRATEGY_FEE = 0.05 ever;
     // dePoolAnserStatuses
     uint8 constant STATUS_SUCCESS = 0;
     uint8 constant STATUS_STAKE_TOO_SMALL = 1;
@@ -28,7 +28,9 @@ contract StrategyBase is IStrategy,IParticipant {
     uint128 public static nonce;
     // errors
     uint8 constant NOT_VAULT = 101;
-    uint8 constant BAD_DEPOSIT_VALUE = 102;
+    uint8 constant NOT_DEPOOL = 102;
+    uint8 constant NOT_DEPOOL_OR_VAULT = 103;
+    uint8 constant BAD_DEPOSIT_VALUE = 104;
     constructor(address _vault,address _dePool) public {
         tvm.accept();
         vault = _vault;
@@ -41,11 +43,11 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     modifier onlyDepool() {
-        require(msg.sender == dePool,NOT_VAULT);
+        require(msg.sender == dePool,NOT_DEPOOL);
         _;
     }
-
-    modifier onlyStrategy() {
+    modifier onlyDepoolOrVault() {
+        require(msg.sender == dePool || msg.sender == vault,NOT_DEPOOL_OR_VAULT);
         _;
     }
 
@@ -82,16 +84,6 @@ contract StrategyBase is IStrategy,IParticipant {
        withdrawFromDePool(amount);
     }
 
-    function receiveFromStrategy(uint64 amount) override external onlyStrategy {
-        tvm.rawReserve(_reserve(),0);
-        depositToDepool(amount,msg.sender);
-    }
-
-    function sendToStrategy(address strategy, uint64 amount) override external onlyVault {
-        tvm.rawReserve(_reserve(),0);
-        IStrategy(strategy).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
-    }
-
     function depositToDepool(uint64 amount,address remaining_gas_to) internal {
         IDePool(dePool).addOrdinaryStake{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
     }
@@ -125,9 +117,11 @@ contract StrategyBase is IStrategy,IParticipant {
 
     }
 
-    receive() external onlyDepool {
+    receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
-        IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastFee);
+        if(msg.sender == dePool) {
+            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastFee);
+        }
     }
 
     function onRoundComplete(
