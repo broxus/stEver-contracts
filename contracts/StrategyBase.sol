@@ -30,6 +30,8 @@ contract StrategyBase is IStrategy,IParticipant {
 
     // static
     uint128 public static nonce;
+    address public static fabric;
+    uint32 public static strategyVesrsion;
     // errors
     uint8 constant NOT_VAULT = 101;
     uint8 constant NOT_DEPOOL = 102;
