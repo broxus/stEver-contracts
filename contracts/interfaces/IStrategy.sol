@@ -6,9 +6,6 @@ interface IStrategy {
     event Withdraw(uint256 amount);
     struct Details {
         address vault;
-        bool isActive;
-        uint256 delegatedAssets;
-        uint256 totalAssets;
     }
     function getDetails() external responsible view returns(Details);
     function deposit(uint64 amount) external;

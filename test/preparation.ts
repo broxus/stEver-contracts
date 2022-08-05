@@ -54,7 +54,7 @@ const deployUsers = async (
         accountFactory.deployNewAccount({
           initParams: { _randomNonce: locklift.utils.getRandomNonce() },
           publicKey: signer.publicKey,
-          value: locklift.utils.toNano(100000),
+          value: locklift.utils.toNano(4000),
           constructorParams: {},
         }),
       ),

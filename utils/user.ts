@@ -10,6 +10,7 @@ import { TokenWallet } from "./tokenWallet";
 import { Contract } from "locklift";
 import { assertEvent } from "./index";
 import { expect } from "chai";
+import BigNumber from "bignumber.js";
 
 export class User {
   constructor(
@@ -59,6 +60,10 @@ export class User {
   };
 
   depositToVault = async (amount: number): Promise<any> => {
+    const { value0: stateBeforeWithdraw } = await this.vault.contract.methods.getDetails({ answerId: 0 }).call({});
+    const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
+    const expectedStEverAmount = depositRate.isNaN() ? new BigNumber(amount) : depositRate.times(amount);
+    debugger;
     await locklift.tracing.trace(
       this.account.runTarget(
         {
@@ -80,7 +85,9 @@ export class User {
     } = depositEvent.events[0];
     expect(user.equals(this.account.address)).to.be.true;
     expect(depositAmount).to.be.equals(locklift.utils.toNano(amount));
-    expect(receivedStEvers).to.be.equals(locklift.utils.toNano(amount));
+    expect(locklift.utils.fromNano(receivedStEvers)).to.be.equals(
+      locklift.utils.fromNano(locklift.utils.toNano(expectedStEverAmount.toString())),
+    );
   };
 
   getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {

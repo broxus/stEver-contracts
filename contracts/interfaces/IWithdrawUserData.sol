@@ -12,5 +12,4 @@ interface IWithdrawUserData {
     function getDetails() external responsible view returns (UserDataDetails);
     function addPendingValue(uint64 _nonce,uint128 amount) external;
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) external;
-    function finishWithdraw(uint64[] satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) external;
 }

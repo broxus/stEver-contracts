@@ -15,8 +15,8 @@ interface IVault {
        address stEverRoot;
        address stEverWallet;
        uint128 stEverSupply;
-       uint128 everBalance;
-       uint128 availableEverBalance;
+       uint128 totalAssets;
+       uint128 availableAssets;
        address owner;
     }
     struct StrategyReport {
@@ -62,11 +62,11 @@ interface IVault {
     // strategy
     function addStrategy(address strategy) external;
     function deposit(uint128 _amount,uint64 _nonce) external;
-    function processWithdrawFromStrategies(WithdrawConfig[] withdrawConfig) external;
-    function processSendToUser(SendToUserConfig[] sendConfig) external;
-    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets) external;
+    function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) external;
+    function processSendToUser(mapping(uint256 =>SendToUserConfig) sendConfig) external;
+    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
-    function depositToStrategies(DepositConfig[] depositConfig) external;
+    function depositToStrategies(mapping(uint256 => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit() external;
     function receiveFromStrategy(uint128 fee) external;

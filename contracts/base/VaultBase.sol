@@ -17,6 +17,12 @@ abstract contract VaultBase is VaultStorage {
         _;
     }
 
+    modifier onlyGovernanceOrSelfAndAccept() {
+        require(msg.pubkey() == governance || msg.sender == address(this),NOT_GOVERNANCE);
+        tvm.accept();
+        _;
+    }
+
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
@@ -84,17 +90,17 @@ abstract contract VaultBase is VaultStorage {
     }
         // when the user deposits we should calculate the amount of stEver to send
     function getDepositStEverAmount(uint128 _amount) public returns(uint128) {
-        if(stEverSupply == 0 || everBalance == 0) {
+        if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        return _amount * stEverSupply / everBalance;
+        return _amount * stEverSupply / totalAssets;
     }
         // when the user withdraw we should calculate the amount of ever to send
     function getWithdrawEverAmount(uint128 _amount) public returns(uint128) {
-        if(stEverSupply == 0 || everBalance == 0) {
+        if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        return math.muldiv(_amount,everBalance,stEverSupply);
+        return math.muldiv(_amount,totalAssets,stEverSupply);
     }
 
     // userdata utils
@@ -147,8 +153,8 @@ abstract contract VaultBase is VaultStorage {
                 stTokenRoot,
                 stEverWallet,
                 stEverSupply,
-                everBalance,
-                availableEverBalance,
+                totalAssets,
+                availableAssets,
                 owner
             );
     }

@@ -14,14 +14,15 @@ abstract contract VaultStorage is IVault {
     uint128 constant DEPOSIT_FEE = 1 ever;
     uint128 constant WITHDRAW_FEE_FOR_GOVERNANCE = 1 ever;
     uint128 constant WITHDRAW_FEE_FOR_USER_DATA = 1 ever;
+    uint128 constant SEND_SELF_VALUE = 1 ever;
 
     // static
     uint128 public static nonce;
     uint256 static governance;
     // balances
     uint128 stEverSupply;
-    uint128 everBalance;
-    uint128 availableEverBalance;
+    uint128 totalAssets;
+    uint128 availableAssets;
     // tokens
     address stEverWallet;
     address stTokenRoot;

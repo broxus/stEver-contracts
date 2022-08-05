@@ -17,19 +17,25 @@ export class DePoolStrategyWithPool {
         .sendExternal({ publicKey: this.signer.publicKey }),
     );
   };
+
+  getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);
 }
 
 export const createStrategy = async ({
   vaultContract,
   signer,
+  poolDeployValue,
+  strategyDeployValue,
 }: {
   vaultContract: Contract<VaultAbi>;
   signer: Signer;
+  poolDeployValue: string;
+  strategyDeployValue: string;
 }): Promise<DePoolStrategyWithPool> => {
   const dePool = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "TestDepool",
-      value: locklift.utils.toNano(200),
+      value: poolDeployValue,
       constructorParams: {},
       publicKey: signer.publicKey,
       initParams: {
@@ -48,7 +54,7 @@ export const createStrategy = async ({
         _vault: vaultContract.address,
         _dePool: dePool.contract.address,
       },
-      value: locklift.utils.toNano(2),
+      value: strategyDeployValue,
     }),
   );
   return new DePoolStrategyWithPool(dePool.contract, strategy.contract, signer);

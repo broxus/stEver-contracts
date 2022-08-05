@@ -76,6 +76,4 @@ contract WithdrawUserData is IWithdrawUserData {
         IVault(vault).withdrawToUser{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount,user,withdrawDump);
     }
 
-    function finishWithdraw(uint64[] _satisfiedWithdrawRequests,uint128 everAmount,address send_gas_to) override external onlyVault {   
-    }
 }

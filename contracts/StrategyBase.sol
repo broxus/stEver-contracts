@@ -6,11 +6,15 @@ import "./interfaces/IDePool.sol";
 import "./interfaces/IVault.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
+import "locklift/src/console.sol";
+
 
 enum StrategyState {INIT,BALANCING}
 contract StrategyBase is IStrategy,IParticipant {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+    uint128 constant THRESHOLD_BALANCE = 4 ever;
+    uint128 constant MAX_BALANCE = 10 ever;
     uint64 constant DEPOSIT_STAKE_DEPOOL_FEE = 0.5 ever;
     uint64 constant DEPOSIT_STAKE_STRATEGY_FEE = 0.05 ever;
     // dePoolAnserStatuses
@@ -21,7 +25,7 @@ contract StrategyBase is IStrategy,IParticipant {
 
     address vault;
     address dePool;
-    uint128 lastFee;
+    uint128 lastAttachedFee;
     StrategyState strategyState = StrategyState.INIT;
 
     // static
@@ -61,7 +65,7 @@ contract StrategyBase is IStrategy,IParticipant {
 	}
 
     function getDetails() override external responsible view returns(Details){
-        return {value:0,bounce:false,flag: MsgFlag.REMAINING_GAS} Details(vault,true,9999,9999);
+        return {value:0,bounce:false,flag: MsgFlag.REMAINING_GAS} Details(vault);
     }
 
     function deposit(uint64 amount) override external onlyVault{
@@ -76,11 +80,11 @@ contract StrategyBase is IStrategy,IParticipant {
         depositToDepool(amount,vault);
     }
 
-    function withdraw(uint64 amount,uint128 fee) override external onlyVault{
+    function withdraw(uint64 amount,uint128 attachedFee) override external onlyVault{
 
        tvm.rawReserve(_reserve(),0);
         // TODO resolve fee, it's need for calculating received amount withot fee. See receive method
-        lastFee = fee;
+       lastAttachedFee = attachedFee;
        withdrawFromDePool(amount);
     }
 
@@ -95,7 +99,6 @@ contract StrategyBase is IStrategy,IParticipant {
 
 
     function receiveAnswer(uint32 errcode, uint64 comment) override external onlyDepool {
-        // TODO can't sync what of the deposits accepted,so we should reject parallel deposits
         tvm.rawReserve(_reserve(),0);
         if(errcode == 0) {
            return depositHandled();
@@ -120,7 +123,7 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
         if(msg.sender == dePool) {
-            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastFee);
+            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastAttachedFee);
         }
     }
 
@@ -134,7 +137,11 @@ contract StrategyBase is IStrategy,IParticipant {
         uint8 reason
     ) override external onlyDepool {
         // TODO fix hardcode value
-        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake);
+        uint128 requestedBalance;
+        if(address(this).balance < THRESHOLD_BALANCE) {
+            requestedBalance = MAX_BALANCE - address(this).balance;
+        }
+        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake,requestedBalance);
     }
 
 }

@@ -27,7 +27,10 @@ export const makeWithdrawToUsers = async ({
     .toPromise())!;
 
   await governance.emitWithdraw({
-    sendConfig: withdrawSetup.map(({ user, nonce }) => ({ user: user.account.address, nonces: [nonce] })),
+    sendConfig: withdrawSetup.map(({ user, nonce }) => [
+      locklift.utils.getRandomNonce(),
+      { user: user.account.address, nonces: [nonce] },
+    ]),
   });
 
   const { events: withdrawSuccessEvents } = await vaultContract.getPastEvents({
@@ -47,12 +50,21 @@ export const createAndRegisterStrategy = async ({
   governance,
   vault,
   signer,
+  poolDeployValue,
+  strategyDeployValue,
 }: {
   governance: Governance;
   vault: Vault;
   signer: Signer;
+  poolDeployValue: string;
+  strategyDeployValue: string;
 }): Promise<DePoolStrategyWithPool> => {
-  const strategy = await createStrategy({ vaultContract: vault.vaultContract, signer });
+  const strategy = await createStrategy({
+    vaultContract: vault.vaultContract,
+    signer,
+    strategyDeployValue,
+    poolDeployValue,
+  });
 
   await locklift.tracing.trace(
     vault.vaultContract.methods
