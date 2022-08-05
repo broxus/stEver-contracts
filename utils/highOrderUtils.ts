@@ -7,6 +7,7 @@ import { Contract, Signer } from "locklift";
 import { VaultAbi } from "../build/factorySource";
 import { createStrategy, DePoolStrategyWithPool } from "./dePoolStrategy";
 import { Vault } from "./vault";
+import { StrategyFactory } from "./strategyFactory";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -52,18 +53,21 @@ export const createAndRegisterStrategy = async ({
   signer,
   poolDeployValue,
   strategyDeployValue,
+  strategyFactory,
 }: {
   governance: Governance;
   vault: Vault;
   signer: Signer;
   poolDeployValue: string;
   strategyDeployValue: string;
+  strategyFactory: StrategyFactory;
 }): Promise<DePoolStrategyWithPool> => {
   const strategy = await createStrategy({
     vaultContract: vault.vaultContract,
     signer,
     strategyDeployValue,
     poolDeployValue,
+    strategyFactory,
   });
 
   await locklift.tracing.trace(

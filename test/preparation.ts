@@ -7,6 +7,7 @@ import { createUserEntity, User } from "../utils/user";
 import { Governance } from "../utils/governance";
 import { creteVault, Vault } from "../utils/vault";
 import { GAIN_FEE } from "../utils/constants";
+import { StrategyFactory } from "../utils/strategyFactory";
 
 export const preparation = async (): Promise<{
   signer: Signer;
@@ -14,6 +15,7 @@ export const preparation = async (): Promise<{
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   users: Array<User>;
   governance: Governance;
+  strategyFactory: StrategyFactory;
 }> => {
   const signer = (await locklift.keystore.getSigner("0"))!;
   const governanceKeyPair = (await locklift.keystore.getSigner("1"))!;
@@ -33,6 +35,21 @@ export const preparation = async (): Promise<{
     vaultContract: vault,
     tokenRootContract: tokenRoot,
   });
+  const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyBase");
+  const factoryContact = await locklift.factory.deployContract({
+    contract: "DepoolStrategyFactory",
+    value: locklift.utils.toNano(2),
+    publicKey: signer.publicKey,
+    initParams: {
+      nonce: locklift.utils.getRandomNonce(),
+      dePoolStrategyCode: dePoolStrategyCode.code,
+    },
+    constructorParams: {
+      _owner: adminUser.address,
+    },
+  });
+
+  const strategyFactory = new StrategyFactory(adminUser, factoryContact.contract, vaultInstance);
 
   return {
     signer,
@@ -40,6 +57,7 @@ export const preparation = async (): Promise<{
     tokenRoot,
     vault: vaultInstance,
     governance: new Governance(governanceKeyPair, vault),
+    strategyFactory,
   };
 };
 

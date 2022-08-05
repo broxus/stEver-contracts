@@ -3,12 +3,9 @@ import { Contract, Signer } from "locklift";
 import { User } from "../utils/user";
 import { Governance } from "../utils/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
-import { TokenWallet } from "../utils/tokenWallet";
 
 import { expect } from "chai";
 import { Vault } from "../utils/vault";
-import { createStrategy } from "../utils/dePoolStrategy";
-import { assertEvent } from "../utils";
 
 let signer: Signer;
 let admin: User;

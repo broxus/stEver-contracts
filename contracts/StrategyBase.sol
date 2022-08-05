@@ -111,6 +111,7 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function depositHandled() internal {
+        console.log(format("strategy balance = {}",address(this).balance));
         IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED}();
     }
 
@@ -138,7 +139,6 @@ contract StrategyBase is IStrategy,IParticipant {
         bool reinvest,
         uint8 reason
     ) override external onlyDepool {
-        // TODO fix hardcode value
         uint128 requestedBalance;
         if(address(this).balance < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;

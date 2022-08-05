@@ -1,5 +1,7 @@
 import { Contract, Signer } from "locklift";
-import { StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../build/factorySource";
+import { DepoolStrategyFactoryAbi, StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../build/factorySource";
+import { StrategyFactory } from "./strategyFactory";
+import { getAddressBalance } from "./index";
 
 export class DePoolStrategyWithPool {
   constructor(
@@ -26,11 +28,13 @@ export const createStrategy = async ({
   signer,
   poolDeployValue,
   strategyDeployValue,
+  strategyFactory,
 }: {
   vaultContract: Contract<VaultAbi>;
   signer: Signer;
   poolDeployValue: string;
   strategyDeployValue: string;
+  strategyFactory: StrategyFactory;
 }): Promise<DePoolStrategyWithPool> => {
   const dePool = await locklift.tracing.trace(
     locklift.factory.deployContract({
@@ -43,19 +47,16 @@ export const createStrategy = async ({
       },
     }),
   );
-  const strategy = await locklift.tracing.trace(
-    locklift.factory.deployContract({
-      contract: "StrategyBase",
-      publicKey: signer.publicKey,
-      initParams: {
-        nonce: locklift.utils.getRandomNonce(),
-      },
-      constructorParams: {
-        _vault: vaultContract.address,
-        _dePool: dePool.contract.address,
-      },
-      value: strategyDeployValue,
-    }),
+  const strategyAddress = await strategyFactory.deployStrategy({
+    deployValue: strategyDeployValue,
+    dePool: dePool.contract.address,
+  });
+  console.log(`strategy balance: ${await getAddressBalance(strategyAddress)}`);
+  debugger;
+
+  return new DePoolStrategyWithPool(
+    dePool.contract,
+    locklift.factory.getDeployedContract("StrategyBase", strategyAddress),
+    signer,
   );
-  return new DePoolStrategyWithPool(dePool.contract, strategy.contract, signer);
 };

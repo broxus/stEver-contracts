@@ -3,15 +3,15 @@ import { Contract, Signer } from "locklift";
 import { User } from "../utils/user";
 import { Governance } from "../utils/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
-import { TokenWallet } from "../utils/tokenWallet";
 
 import { expect } from "chai";
 import { Vault } from "../utils/vault";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/dePoolStrategy";
+import { DePoolStrategyWithPool } from "../utils/dePoolStrategy";
 import { assertEvent, getAddressBalance } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, from, lastValueFrom, mergeMap, range, toArray } from "rxjs";
+import { concatMap, lastValueFrom, range, toArray } from "rxjs";
 import _ from "lodash";
+import { StrategyFactory } from "../utils/strategyFactory";
 
 let signer: Signer;
 let admin: User;
@@ -21,7 +21,8 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
-describe.skip("Strategy base", function () {
+let strategyFactory: StrategyFactory;
+describe("Strategy base", function () {
   before(async () => {
     const {
       vault: v,
@@ -29,6 +30,7 @@ describe.skip("Strategy base", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
+      strategyFactory: st,
     } = await preparation();
     signer = s;
     vault = v;
@@ -37,6 +39,7 @@ describe.skip("Strategy base", function () {
     user1 = u1;
     user2 = u2;
     tokenRoot = tr;
+    strategyFactory = st;
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
@@ -48,6 +51,7 @@ describe.skip("Strategy base", function () {
       governance,
       strategyDeployValue: locklift.utils.toNano(12),
       poolDeployValue: locklift.utils.toNano(200),
+      strategyFactory,
     });
     const { events: strategyAddedEvents } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "StrategyAdded",
@@ -108,7 +112,9 @@ describe.skip("Strategy base", function () {
       vault,
       strategyDeployValue: locklift.utils.toNano(4),
       poolDeployValue: locklift.utils.toNano(200),
+      strategyFactory,
     });
+    console.log(`strategy balance before ${await getAddressBalance(strategyWithDePool.strategy.address)}`);
     const strategyBalanceBeforeReport = await strategyWithDePool.getStrategyBalance();
     await user1.depositToVault(100);
     await governance.depositToStrategies({
@@ -137,6 +143,7 @@ describe.skip("Strategy base", function () {
             governance,
             strategyDeployValue: locklift.utils.toNano(12),
             poolDeployValue: locklift.utils.toNano(200),
+            strategyFactory,
           }),
         ),
         toArray(),

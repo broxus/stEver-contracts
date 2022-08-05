@@ -63,7 +63,6 @@ export class User {
     const { value0: stateBeforeWithdraw } = await this.vault.contract.methods.getDetails({ answerId: 0 }).call({});
     const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
     const expectedStEverAmount = depositRate.isNaN() ? new BigNumber(amount) : depositRate.times(amount);
-    debugger;
     await locklift.tracing.trace(
       this.account.runTarget(
         {

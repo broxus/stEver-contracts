@@ -14,7 +14,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     TvmCell public static dePoolStrategyCode;
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
-    uint128 constant UPGRADE_VALUE = 1 ton;
+    uint128 constant UPGRADE_VALUE = 1 ever;
+    uint128 constant STRATEGY_DEPLOY_VALUE = 2 ever;
 
 
     uint32 public strategyVesrsion;
@@ -25,6 +26,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 
 
     constructor(address _owner) public {
+        tvm.accept();
         owner = _owner;
     }
 
@@ -47,8 +49,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         sendGasTo.transfer({value:0,bounce:false,flag:MsgFlag.ALL_NOT_RESERVED});
     }
 
-    function deployStrategy(address strategyOwner,address dePool, address vault) override external returns (address) {
-        require (msg.value >= FARM_POOL_DEPLOY_VALUE, LOW_MSG_VALUE);
+    function deployStrategy(address strategyOwner,address dePool, address vault) override external  {
+        require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
         TvmCell stateInit = tvm.buildStateInit({
             contr:StrategyBase,
@@ -61,12 +63,13 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             code:dePoolStrategyCode
         });
         strategyCount++;
-        return new StrategyBase{
+        address strategy = new StrategyBase{
             stateInit: stateInit,
             value: 0,
             wid: address(this).wid,
             flag:MsgFlag.ALL_NOT_RESERVED
         }(vault,dePool);
+        emit NewStrategyDeployed(strategy, strategyVesrsion);
     }
 
 }

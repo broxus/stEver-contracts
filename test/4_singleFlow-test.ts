@@ -5,11 +5,12 @@ import { assertEvent, getAddressBalance } from "../utils";
 import { User } from "../utils/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/governance";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/dePoolStrategy";
+import { DePoolStrategyWithPool } from "../utils/dePoolStrategy";
 import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/vault";
 import BigNumber from "bignumber.js";
 import { GAIN_FEE } from "../utils/constants";
+import { StrategyFactory } from "../utils/strategyFactory";
 
 const TOKEN_ROOT_NAME = "StEver";
 const TOKEN_ROOT_SYMBOL = "STE";
@@ -22,6 +23,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
+let strategyFactory: StrategyFactory;
 
 describe("Single flow", async function () {
   before(async () => {
@@ -31,6 +33,7 @@ describe("Single flow", async function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
+      strategyFactory: st,
     } = await preparation();
     signer = s;
     vault = v;
@@ -39,6 +42,7 @@ describe("Single flow", async function () {
     user1 = u1;
     user2 = u2;
     tokenRoot = tr;
+    strategyFactory = st;
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
@@ -51,6 +55,7 @@ describe("Single flow", async function () {
         signer,
         poolDeployValue: locklift.utils.toNano(200),
         strategyDeployValue: locklift.utils.toNano(12),
+        strategyFactory,
       }),
     );
   });
