@@ -126,12 +126,14 @@ const deployVault = async ({
   governance: Signer;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
 }) => {
+  const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
+  const { code: withdrawUserDataCode } = locklift.factory.getContractArtifacts("WithdrawUserData");
+
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "Vault",
       value: locklift.utils.toNano(2),
       constructorParams: {
-        _withdrawUserDataCode: locklift.factory.getContractArtifacts("WithdrawUserData").code,
         _owner: owner.address,
         _gainFee: GAIN_FEE,
       },
@@ -139,6 +141,8 @@ const deployVault = async ({
       initParams: {
         nonce: locklift.utils.getRandomNonce(),
         governance: `0x${governance.publicKey}`,
+        platformCode,
+        withdrawUserDataCode,
       },
     }),
   );

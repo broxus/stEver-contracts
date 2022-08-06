@@ -63,9 +63,10 @@ interface IVault {
     function addStrategy(address strategy) external;
     function deposit(uint128 _amount,uint64 _nonce) external;
     function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) external;
-    function processSendToUser(mapping(uint256 =>SendToUserConfig) sendConfig) external;
+    function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
+    function removePendingWithdraw(uint64 nonce) external;
     function depositToStrategies(mapping(uint256 => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit() external;

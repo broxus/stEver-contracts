@@ -5,9 +5,9 @@ import { expect } from "chai";
 
 export class Governance {
   constructor(public readonly keyPair: Signer, private readonly vaultContract: Contract<VaultAbi>) {}
-  emitWithdraw = async (...params: Parameters<Contract<VaultAbi>["methods"]["processSendToUser"]>) => {
+  emitWithdraw = async (...params: Parameters<Contract<VaultAbi>["methods"]["processSendToUsers"]>) => {
     await locklift.tracing.trace(
-      this.vaultContract.methods.processSendToUser(...params).sendExternal({ publicKey: this.keyPair.publicKey }),
+      this.vaultContract.methods.processSendToUsers(...params).sendExternal({ publicKey: this.keyPair.publicKey }),
     );
   };
 

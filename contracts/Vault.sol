@@ -15,12 +15,10 @@ import "locklift/src/console.sol";
 contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallback {
     constructor(
         address _owner,
-        TvmCell _withdrawUserDataCode,
         uint128 _gainFee
     ) public {
         tvm.accept();
         owner = _owner;
-        withdrawUserDataCode = _withdrawUserDataCode;
         gainFee = _gainFee;
     }
 
@@ -183,8 +181,10 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
        pendingWithdraw.user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED});
        delete pendingWithdrawMap[_nonce];
     }
+    function removePendingWithdraw(uint64 nonce) override external {
+    }
 
-    function processSendToUser(mapping(uint256 =>SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
+    function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
         for(uint256 i = 0;i < chunkSize && !sendConfig.empty();i++) {
             (,SendToUserConfig config) = sendConfig.delMin().get();
@@ -192,7 +192,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
             IWithdrawUserData(withdrawUserData).processWithdraw{value:EXPEREMENTAL_FEE}(config.nonces);
         }
         if(!sendConfig.empty()) {
-            this.processSendToUser{value: SEND_SELF_VALUE}(sendConfig);
+            this.processSendToUsers{value: SEND_SELF_VALUE}(sendConfig);
         }
 
     }

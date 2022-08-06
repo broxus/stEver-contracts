@@ -11,13 +11,15 @@ struct WithdrawRequest {
     uint128 amount;
 }
 contract WithdrawUserData is IWithdrawUserData {
-    // static
-    address static vault;
-    address static user; 
-    TvmCell public static withdrawUserDataCode;
+
+    address vault; // setup from initData
+
+    address user; // setup from initData
 
     uint128 pendingReturnedTokens;
     uint128 pendingReceiveEver;
+
+    uint32 currentVersion;
 
     // errors
     uint8 constant ONLY_VAULT = 101;
@@ -27,7 +29,13 @@ contract WithdrawUserData is IWithdrawUserData {
     // mappings
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
-    constructor()public{}
+    constructor()public{
+    }
+
+    // should be called in onCodeUpgrade on platform initialization
+    function _init() internal {
+        
+    }
     modifier onlyVault() {
         require(msg.sender == vault,ONLY_VAULT);
         _;
@@ -74,6 +82,20 @@ contract WithdrawUserData is IWithdrawUserData {
             amount+=withdrawRequest.amount;
         }
         IVault(vault).withdrawToUser{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount,user,withdrawDump);
+    }
+
+    function onCodeUpgrade(TvmCell upgrade_data) private {
+        tvm.resetStorage();
+        tvm.rawReserve(_reserve(), 0);
+        TvmSlice s = upgrade_data.toSlice();
+        (address root_, , address send_gas_to,TvmCell platformCode) = s.decode(address, uint8, address,TvmCell);
+        vault = root_;
+
+
+        TvmSlice initialData = s.loadRefAsSlice();
+        user = initialData.decode(address);
+
+        send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
     }
 
 }

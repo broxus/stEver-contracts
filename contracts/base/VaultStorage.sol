@@ -19,6 +19,8 @@ abstract contract VaultStorage is IVault {
     // static
     uint128 public static nonce;
     uint256 static governance;
+    TvmCell static platformCode;
+    TvmCell static withdrawUserDataCode;
     // balances
     uint128 stEverSupply;
     uint128 totalAssets;
@@ -33,7 +35,7 @@ abstract contract VaultStorage is IVault {
     uint128 depositFee;
 
     address owner;
-    TvmCell public withdrawUserDataCode;
+    uint32 userDataVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
     mapping(uint64 => PendingWithdraw) pendingWithdrawMap;

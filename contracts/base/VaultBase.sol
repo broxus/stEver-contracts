@@ -5,6 +5,7 @@ pragma AbiHeader pubkey;
 import "./VaultStorage.sol";
 import "../interfaces/IVault.sol";
 import "../WithdrawUserData.sol";
+import "../Platform.sol";
 
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
@@ -106,7 +107,30 @@ abstract contract VaultBase is VaultStorage {
     }
 
     // userdata utils
-    function _buildInitWithdrawUserData(address _user)
+    function _buildWithdrawUserDataParams(address user) internal virtual view returns (TvmCell) {
+        TvmBuilder builder;
+        builder.store(user);
+        return builder.toCell();
+    }
+    // function _buildInitWithdrawUserData(address _user)
+	// 	internal
+	// 	view
+	// 	virtual
+	// 	returns (TvmCell)
+	// {
+	// 	return
+	// 		tvm.buildStateInit({
+	// 			contr: WithdrawUserData,
+	// 			varInit: {
+	// 				vault: address(this),
+	// 				user: _user,
+	// 				withdrawUserDataCode: withdrawUserDataCode
+	// 			},
+	// 			pubkey: 0,
+	// 			code: withdrawUserDataCode
+	// 		});
+	// }
+    function _buildInitWithdrawUserData(TvmCell _initialData)
 		internal
 		view
 		virtual
@@ -114,27 +138,30 @@ abstract contract VaultBase is VaultStorage {
 	{
 		return
 			tvm.buildStateInit({
-				contr: WithdrawUserData,
+				contr: Platform,
 				varInit: {
-					vault: address(this),
-					user: _user,
-					withdrawUserDataCode: withdrawUserDataCode
+					root:address(this),
+                    platformType:0,
+                    initialData:_initialData,
+                    platformCode: platformCode
 				},
 				pubkey: 0,
-				code: withdrawUserDataCode
+				code: platformCode
 			});
 	}
 
-    function deployWithdrawUserData(address user_data_owner)
+    function deployWithdrawUserData(address user)
 		internal
 		virtual
 		returns (address)
 	{
-		return
-			new WithdrawUserData{
-				stateInit: _buildInitWithdrawUserData(user_data_owner),
-				value: USER_DATA_DEPLOY_VALUE
-			}();
+        TvmBuilder constructor_params;
+        constructor_params.store(userDataVersion);
+        constructor_params.store(userDataVersion);
+        return new Platform{
+            stateInit: _buildInitWithdrawUserData(_buildWithdrawUserDataParams(user)),
+            value:USER_DATA_DEPLOY_VALUE
+        }(withdrawUserDataCode, constructor_params.toCell(), user);
 	}
 
     function getWithdrawUserDataAddress(address user)
@@ -146,7 +173,7 @@ abstract contract VaultBase is VaultStorage {
 	{
 		return
 			{value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
-				tvm.hash(_buildInitWithdrawUserData(user))
+				tvm.hash(_buildInitWithdrawUserData(_buildWithdrawUserDataParams(user)))
 			);
 	}
 
