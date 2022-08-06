@@ -49,6 +49,5 @@ abstract contract VaultStorage is IVault {
     uint8 constant NOT_ENOUGH_WITHDRAW_FEE = 108;
     uint8 constant NOT_ENOUGH_DEPOSIT_VALUE = 109;
     uint8 constant CANT_DEPOSIT_UNTILS_STRATEGY_IN_DEPOSIT_STATE = 110;
-
-
+    uint8 constant NOT_USER_DATA = 111;
 }

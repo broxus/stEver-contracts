@@ -28,7 +28,9 @@ abstract contract VaultBase is VaultStorage {
         _;
     }
 
-    modifier onlyWithdrawUserData() {
+    modifier onlyWithdrawUserData(address user) {
+        address withdrawUserData = getWithdrawUserDataAddress(user);
+        require(msg.sender == withdrawUserData,NOT_USER_DATA);
         _;
     }
 

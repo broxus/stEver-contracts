@@ -71,7 +71,6 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         emit StrategyReported(msg.sender,StrategyReport(gainWithoutFee,loss,_totalAssets));
 
         uint128 sendValueToStrategy;
-        console.log(format("requested balance = {}",requestedBalance));
         if(requestedBalance > 0 && availableAssets > requestedBalance) {
             totalAssets -= requestedBalance;
             availableAssets -= requestedBalance;
@@ -177,7 +176,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         }(_withdraw_nonce,amount);
     }
 
-    function onPendingWithdrawAccepted(uint64 _nonce,address user) override external {
+    function onPendingWithdrawAccepted(uint64 _nonce,address user) override external onlyWithdrawUserData(user) {
        tvm.rawReserve(_reserve(), 0);
        PendingWithdraw pendingWithdraw = pendingWithdrawMap[_nonce];
        emit WithdrawRequest(pendingWithdraw.user,pendingWithdraw.amount,_nonce);
@@ -202,7 +201,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         uint128 amount,
         address user,
         DumpWithdraw[] withdrawDump
-    ) override external onlyWithdrawUserData {
+    ) override external onlyWithdrawUserData(user) {
         tvm.rawReserve(_reserve(), 0);
         // if not enough balance, reset pending to the UserData;
         uint128 everAmount = getWithdrawEverAmount(amount);
