@@ -12,7 +12,9 @@ abstract contract VaultStorage is IVault {
 	uint128 constant ST_EVER_WALLET_DEPLOY_VALUE = 0.5 ever;
     uint128 constant USER_DATA_DEPLOY_VALUE = 0.2 ever;
     uint128 constant DEPOSIT_FEE = 1 ever;
-    uint128 constant WITHDRAW_FEE_FOR_GOVERNANCE = 1 ever;
+    // TOD remove
+    // uint128 constant WITHDRAW_FEE_FOR_GOVERNANCE = 1 ever;
+    uint128 constant WITHDRAW_FEE = 1 ever;
     uint128 constant WITHDRAW_FEE_FOR_USER_DATA = 1 ever;
     uint128 constant SEND_SELF_VALUE = 1 ever;
 

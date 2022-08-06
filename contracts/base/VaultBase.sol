@@ -11,7 +11,7 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 
 abstract contract VaultBase is VaultStorage {
-    //modifiers 
+    //modifiers
     modifier onlyGovernanceAndAccept() {
         require(msg.pubkey() == governance,NOT_GOVERNANCE);
         tvm.accept();
@@ -45,7 +45,8 @@ abstract contract VaultBase is VaultStorage {
         stTokenRoot = _stTokenRoot;
         ITokenRoot(stTokenRoot).deployWallet{
 			value: ST_EVER_WALLET_DEPLOY_VALUE,
-			callback: VaultBase.receiveTokenWalletAddress
+			callback: VaultBase.receiveTokenWalletAddress,
+            bounce: false
 		}(address(this), ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
@@ -123,9 +124,9 @@ abstract contract VaultBase is VaultStorage {
 			tvm.buildStateInit({
 				contr: Platform,
 				varInit: {
-					root:address(this),
-                    platformType:0,
-                    initialData:_initialData,
+					root: address(this),
+                    platformType: 0,
+                    initialData: _initialData,
                     platformCode: platformCode
 				},
 				pubkey: 0,
@@ -143,7 +144,7 @@ abstract contract VaultBase is VaultStorage {
         constructor_params.store(accountVersion);
         return new Platform{
             stateInit: _buildInitAccount(_buildAccountParams(user)),
-            value:USER_DATA_DEPLOY_VALUE
+            value: USER_DATA_DEPLOY_VALUE
         }(accountCode, constructor_params.toCell(), user);
 	}
 

@@ -46,28 +46,28 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         dePoolStrategyCode = _strategyCode;
         strategyVesrsion++;
         emit StrategyCodeUpdated(strategyVesrsion - 1,strategyVesrsion);
-        sendGasTo.transfer({value:0,bounce:false,flag:MsgFlag.ALL_NOT_RESERVED});
+        sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 
     function deployStrategy(address strategyOwner,address dePool, address vault) override external  {
         require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
         TvmCell stateInit = tvm.buildStateInit({
-            contr:StrategyBase,
-            varInit:{
-                nonce:strategyCount,
-                fabric:address(this),
-                strategyVesrsion:strategyVesrsion
+            contr: StrategyBase,
+            varInit: {
+                nonce: strategyCount,
+                fabric: address(this),
+                strategyVesrsion: strategyVesrsion
             },
             pubkey: tvm.pubkey(),
-            code:dePoolStrategyCode
+            code: dePoolStrategyCode
         });
         strategyCount++;
         address strategy = new StrategyBase{
             stateInit: stateInit,
             value: 0,
             wid: address(this).wid,
-            flag:MsgFlag.ALL_NOT_RESERVED
+            flag: MsgFlag.ALL_NOT_RESERVED
         }(vault,dePool);
         emit NewStrategyDeployed(strategy, strategyVesrsion);
     }

@@ -8,9 +8,10 @@ interface IVault {
     event StrategyWithdrawSuccess(address strategy,uint128 amount);
     event Deposit(address user,uint128 depositAmount,uint128 receivedStEvers);
     event WithdrawRequest(address user,uint128 amount,uint64 nonce);
+    event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user,uint128 amount,uint128 attachedValue);
-    event WithdrawError(address user,uint64 nonce,uint128 amount); 
-    event WithdrawSuccess(address user,uint128 amount);
+    event WithdrawError(address user,uint64[] nonces,uint128 amount); 
+    event WithdrawSuccess(address user,uint128 amount,uint64[] nonces);
     struct Details {
        address stEverRoot;
        address stEverWallet;
@@ -65,13 +66,15 @@ interface IVault {
     function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) external;
     function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
-    function onPendingWithdrawAccepted(uint64 nonce,address user) external;
     function removePendingWithdraw(uint64 nonce) external;
     function depositToStrategies(mapping(uint256 => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit() external;
     function receiveFromStrategy(uint128 fee) external;
     function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
+    // account
+    function onPendingWithdrawAccepted(uint64 nonce,address user) external;
+    function onPendingWithdrawRemoved(address user,uint64 nonce) external;
     // utils
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
     // setters

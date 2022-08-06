@@ -52,7 +52,17 @@ export class User {
     expect(withdrawRequestEvents[0].data.nonce).to.be.equals(nonce.toString());
     return txWithNonce;
   };
-
+  removeWithdrawRequest = async (nonce: number) => {
+    await locklift.tracing.trace(
+      this.account.runTarget(
+        {
+          contract: this.vault.contract,
+          value: locklift.utils.toNano(2),
+        },
+        vault => vault.methods.removePendingWithdraw({ _nonce: nonce }),
+      ),
+    );
+  };
   depositToVault = async (amount: number): Promise<any> => {
     const { value0: stateBeforeWithdraw } = await this.vault.contract.methods.getDetails({ answerId: 0 }).call({});
     const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);

@@ -67,7 +67,7 @@ contract StrategyBase is IStrategy,IParticipant {
 	}
 
     function getDetails() override external responsible view returns(Details){
-        return {value:0,bounce:false,flag: MsgFlag.REMAINING_GAS} Details(vault);
+        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault);
     }
 
     function deposit(uint64 amount) override external onlyVault{
@@ -91,11 +91,11 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function depositToDepool(uint64 amount,address remaining_gas_to) internal {
-        IDePool(dePool).addOrdinaryStake{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
+        IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(amount);
     }
 
     function withdrawFromDePool(uint64 amount) internal {
-        IDePool(dePool).withdrawFromPoolingRound{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(amount);
+        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(amount);
     }
 
 
@@ -111,11 +111,11 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function depositHandled() internal {
-        IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED}();
+        IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
     }
 
     function depositNotHandled() internal {
-        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED}();
+        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
     }
 
     function onTransfer(address source, uint128 amount) override external {
@@ -125,7 +125,7 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
         if(msg.sender == dePool) {
-            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED}(lastAttachedFee);
+            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}(lastAttachedFee);
         }
     }
 
@@ -144,7 +144,7 @@ contract StrategyBase is IStrategy,IParticipant {
         if(address(this).balance < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
-        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS}(reward,0,ordinaryStake,requestedBalance);
+        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS, bounce:false}(reward,0,ordinaryStake,requestedBalance);
     }
 
 }

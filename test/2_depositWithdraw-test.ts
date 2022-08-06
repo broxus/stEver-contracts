@@ -17,7 +17,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let vaultTokenWallet: TokenWallet;
 
-describe.skip("Deposit withdraw test", function () {
+describe("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,
@@ -92,5 +92,23 @@ describe.skip("Deposit withdraw test", function () {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
       expect(event.data.amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
     });
+  });
+  it("user should remove withdraw request", async () => {
+    const DEPOSIT_AMOUNT = 20;
+    await user1.depositToVault(DEPOSIT_AMOUNT);
+    const { nonce } = await user1.makeWithdrawRequest(locklift.utils.toNano(DEPOSIT_AMOUNT));
+    const withdrawRequestExisted = await user1
+      .getWithdrawRequests()
+      .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));
+    expect(withdrawRequestExisted?.amount).to.be.equals(locklift.utils.toNano(DEPOSIT_AMOUNT));
+    await user1.removeWithdrawRequest(nonce);
+    const { events } = await vault.vaultContract.getPastEvents({
+      filter: ({ event }) => event === "WithdrawRequestRemoved",
+    });
+    assertEvent(events, "WithdrawRequestRemoved");
+    const withdrawRequestNotExisted = await user1
+      .getWithdrawRequests()
+      .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));
+    expect(withdrawRequestNotExisted).to.be.equals(undefined);
   });
 });
