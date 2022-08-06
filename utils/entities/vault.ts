@@ -1,4 +1,4 @@
-import { TokenRootUpgradeableAbi, VaultAbi } from "../build/factorySource";
+import { TokenRootUpgradeableAbi, VaultAbi } from "../../build/factorySource";
 import { Contract } from "locklift";
 import { User } from "./user";
 import { TokenWallet } from "./tokenWallet";

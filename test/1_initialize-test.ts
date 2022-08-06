@@ -1,11 +1,11 @@
 import { preparation } from "./preparation";
 import { Contract, Signer } from "locklift";
-import { User } from "../utils/user";
-import { Governance } from "../utils/governance";
+import { User } from "../utils/entities/user";
+import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
-import { Vault } from "../utils/vault";
+import { Vault } from "../utils/entities/vault";
 
 let signer: Signer;
 let admin: User;

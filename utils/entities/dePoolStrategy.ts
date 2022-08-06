@@ -1,7 +1,7 @@
 import { Contract, Signer } from "locklift";
-import { DepoolStrategyFactoryAbi, StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../build/factorySource";
+import { DepoolStrategyFactoryAbi, StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
-import { getAddressBalance } from "./index";
+import { getAddressBalance } from "../index";
 
 export class DePoolStrategyWithPool {
   constructor(

@@ -1,6 +1,6 @@
 import { Contract, Signer } from "locklift";
-import { VaultAbi } from "../build/factorySource";
-import { assertEvent } from "./index";
+import { VaultAbi } from "../../build/factorySource";
+import { assertEvent } from "../index";
 import { expect } from "chai";
 
 export class Governance {

@@ -1,17 +1,17 @@
 import { preparation } from "./preparation";
 import { Contract, Signer } from "locklift";
-import { User } from "../utils/user";
-import { Governance } from "../utils/governance";
+import { User } from "../utils/entities/user";
+import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
-import { Vault } from "../utils/vault";
-import { DePoolStrategyWithPool } from "../utils/dePoolStrategy";
+import { Vault } from "../utils/entities/vault";
+import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { assertEvent, getAddressBalance } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { concatMap, lastValueFrom, range, toArray } from "rxjs";
 import _ from "lodash";
-import { StrategyFactory } from "../utils/strategyFactory";
+import { StrategyFactory } from "../utils/entities/strategyFactory";
 
 let signer: Signer;
 let admin: User;

@@ -1,13 +1,13 @@
 import { assertEvent } from "./index";
 import { expect } from "chai";
-import { User } from "./user";
+import { User } from "./entities/user";
 import { concatMap, from, map, toArray } from "rxjs";
-import { Governance } from "./governance";
+import { Governance } from "./entities/governance";
 import { Contract, Signer } from "locklift";
 import { VaultAbi } from "../build/factorySource";
-import { createStrategy, DePoolStrategyWithPool } from "./dePoolStrategy";
-import { Vault } from "./vault";
-import { StrategyFactory } from "./strategyFactory";
+import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
+import { Vault } from "./entities/vault";
+import { StrategyFactory } from "./entities/strategyFactory";
 
 export const makeWithdrawToUsers = async ({
   amount,

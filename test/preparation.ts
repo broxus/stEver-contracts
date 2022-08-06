@@ -3,11 +3,11 @@ import { TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../build/factorySo
 import { concatMap, from, map, range, toArray } from "rxjs";
 import { Address, Contract, Signer } from "locklift";
 import { expect } from "chai";
-import { createUserEntity, User } from "../utils/user";
-import { Governance } from "../utils/governance";
-import { creteVault, Vault } from "../utils/vault";
+import { createUserEntity, User } from "../utils/entities/user";
+import { Governance } from "../utils/entities/governance";
+import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
-import { StrategyFactory } from "../utils/strategyFactory";
+import { StrategyFactory } from "../utils/entities/strategyFactory";
 
 export const preparation = async (): Promise<{
   signer: Signer;
@@ -127,7 +127,7 @@ const deployVault = async ({
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
 }) => {
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
-  const { code: withdrawUserDataCode } = locklift.factory.getContractArtifacts("WithdrawUserData");
+  const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
 
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
@@ -142,7 +142,7 @@ const deployVault = async ({
         nonce: locklift.utils.getRandomNonce(),
         governance: `0x${governance.publicKey}`,
         platformCode,
-        withdrawUserDataCode,
+        accountCode,
       },
     }),
   );

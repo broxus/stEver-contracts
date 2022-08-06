@@ -1,5 +1,5 @@
 import { Account } from "locklift/build/factory";
-import { DepoolStrategyFactoryAbi, WalletAbi } from "../build/factorySource";
+import { DepoolStrategyFactoryAbi, WalletAbi } from "../../build/factorySource";
 import { Address, Contract } from "locklift";
 import { Vault } from "./vault";
 

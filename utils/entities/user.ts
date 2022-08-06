@@ -1,14 +1,8 @@
 import { Account } from "locklift/build/factory";
-import {
-  TokenRootAbi,
-  TokenRootUpgradeableAbi,
-  VaultAbi,
-  WalletAbi,
-  WithdrawUserDataAbi,
-} from "../build/factorySource";
+import { StEverAccountAbi, TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
 import { Contract } from "locklift";
-import { assertEvent } from "./index";
+import { assertEvent } from "../index";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 
@@ -17,7 +11,7 @@ export class User {
     public readonly account: Account<WalletAbi>,
     public readonly wallet: TokenWallet,
     protected readonly vault: { contract: Contract<VaultAbi>; wallet: TokenWallet },
-    public readonly withdrawUserData: Contract<WithdrawUserDataAbi>,
+    public readonly withdrawUserData: Contract<StEverAccountAbi>,
   ) {}
 
   makeWithdrawRequest = async (amount: string) => {
@@ -104,7 +98,7 @@ export const createUserEntity = async (
   const wallet = await TokenWallet.getWallet(locklift.provider, account.address, tokenRoot);
   const vaultWallet = await TokenWallet.getWallet(locklift.provider, vaultContract.address, tokenRoot);
   const withdrawUserData = await vaultContract.methods
-    .getWithdrawUserDataAddress({
+    .getAccountAddress({
       user: account.address,
       answerId: 0,
     })
@@ -113,6 +107,6 @@ export const createUserEntity = async (
     account,
     wallet,
     { contract: vaultContract, wallet: vaultWallet },
-    locklift.factory.getDeployedContract("WithdrawUserData", withdrawUserData.value0),
+    locklift.factory.getDeployedContract("StEverAccount", withdrawUserData.value0),
   );
 };

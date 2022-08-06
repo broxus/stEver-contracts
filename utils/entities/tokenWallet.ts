@@ -1,5 +1,5 @@
 import { ProviderRpcClient, Address } from "everscale-inpage-provider";
-import { factorySource, TokenRootUpgradeableAbi, TokenWalletAbi } from "../build/factorySource";
+import { factorySource, TokenRootUpgradeableAbi, TokenWalletAbi } from "../../build/factorySource";
 import { Contract } from "locklift";
 
 export class TokenWallet {

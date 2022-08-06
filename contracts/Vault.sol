@@ -2,7 +2,7 @@ pragma ton-solidity >=0.61.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 import "./interfaces/IStrategy.sol";
-import "./WithdrawUserData.sol";
+import "./StEverAccount.sol";
 import "./base/VaultBase.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
@@ -152,29 +152,29 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
 
     function requestWithdraw(address _user,uint128 _amount,TvmCell _payload) internal {
         tvm.rawReserve(address(this).balance - (msg.value - WITHDRAW_FEE_FOR_GOVERNANCE),0);
-        address userDataAddr = getWithdrawUserDataAddress(_user);
+        address accountAddr = getAccountAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
-        addPendingValueToUserData(_nonce,_amount,userDataAddr,0,MsgFlag.ALL_NOT_RESERVED);
+        addPendingValueToAccount(_nonce,_amount,accountAddr,0,MsgFlag.ALL_NOT_RESERVED);
     }
 
     function handleAddPendingValueError(TvmSlice slice) internal {
         tvm.rawReserve(_reserve(), 0);
         uint64 _withdraw_nonce = slice.decode(uint64);
         PendingWithdraw pendingWithdraw = pendingWithdrawMap[_withdraw_nonce];
-        deployWithdrawUserData(pendingWithdraw.user);
-        address withdrawUserData = getWithdrawUserDataAddress(pendingWithdraw.user);
-        addPendingValueToUserData(_withdraw_nonce,pendingWithdraw.amount,withdrawUserData,0,MsgFlag.ALL_NOT_RESERVED);
+        deployAccount(pendingWithdraw.user);
+        address account = getAccountAddress(pendingWithdraw.user);
+        addPendingValueToAccount(_withdraw_nonce,pendingWithdraw.amount,account,0,MsgFlag.ALL_NOT_RESERVED);
     }
 
-    function addPendingValueToUserData(uint64 _withdraw_nonce, uint128 amount, address withdrawUserData, uint128 _value, uint8 _flag) internal {
-        IWithdrawUserData(withdrawUserData).addPendingValue{
+    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 amount, address account, uint128 _value, uint8 _flag) internal {
+        IStEverAccount(account).addPendingValue{
             value:_value,
             flag: _flag
         }(_withdraw_nonce,amount);
     }
 
-    function onPendingWithdrawAccepted(uint64 _nonce,address user) override external onlyWithdrawUserData(user) {
+    function onPendingWithdrawAccepted(uint64 _nonce,address user) override external onlyAccount(user) {
        tvm.rawReserve(_reserve(), 0);
        PendingWithdraw pendingWithdraw = pendingWithdrawMap[_nonce];
        emit WithdrawRequest(pendingWithdraw.user,pendingWithdraw.amount,_nonce);
@@ -188,8 +188,8 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         uint256 chunkSize = 50;
         for(uint256 i = 0;i < chunkSize && !sendConfig.empty();i++) {
             (,SendToUserConfig config) = sendConfig.delMin().get();
-            address withdrawUserData = getWithdrawUserDataAddress(config.user);
-            IWithdrawUserData(withdrawUserData).processWithdraw{value:EXPEREMENTAL_FEE}(config.nonces);
+            address account = getAccountAddress(config.user);
+            IStEverAccount(account).processWithdraw{value:EXPEREMENTAL_FEE}(config.nonces);
         }
         if(!sendConfig.empty()) {
             this.processSendToUsers{value: SEND_SELF_VALUE}(sendConfig);
@@ -201,16 +201,16 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         uint128 amount,
         address user,
         DumpWithdraw[] withdrawDump
-    ) override external onlyWithdrawUserData(user) {
+    ) override external onlyAccount(user) {
         tvm.rawReserve(_reserve(), 0);
-        // if not enough balance, reset pending to the UserData;
+        // if not enough balance, reset pending to the Account;
         uint128 everAmount = getWithdrawEverAmount(amount);
         if(availableAssets < amount) {
             for (uint256 i = 0; i < withdrawDump.length; i++) {
                 DumpWithdraw dump = withdrawDump[i];
                 pendingWithdrawMap[dump.nonce] = PendingWithdraw(dump.amount,user);
                 emit WithdrawError(user,dump.nonce,amount);
-                addPendingValueToUserData(dump.nonce,dump.amount,msg.sender,0,MsgFlag.ALL_NOT_RESERVED);
+                addPendingValueToAccount(dump.nonce,dump.amount,msg.sender,0,MsgFlag.ALL_NOT_RESERVED);
             }
             return;
         }
@@ -248,7 +248,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
     onBounce(TvmSlice slice) external {
 		tvm.accept();
 		uint32 functionId = slice.decode(uint32);
-		if (functionId == tvm.functionId(WithdrawUserData.addPendingValue)) {
+		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
 			handleAddPendingValueError(slice);
 		}
 	}
