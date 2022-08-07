@@ -32,8 +32,6 @@ abstract contract VaultStorage is IVault {
 
     // modifiebale fileds
     uint128 gainFee;
-    // TODO is this feeld needs?
-    uint128 depositFee;
 
     address owner;
     uint32 accountVersion;
