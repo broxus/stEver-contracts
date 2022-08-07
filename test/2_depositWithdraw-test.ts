@@ -39,9 +39,9 @@ describe("Deposit withdraw test", function () {
   });
   it("user should successfully deposited", async () => {
     const DEPOSIT_AMOUNT = 20;
-    await user1.depositToVault(DEPOSIT_AMOUNT);
+    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_AMOUNT));
     const balance = await user1.wallet.getBalance();
-    expect(balance).to.be.equals(locklift.utils.toNano(DEPOSIT_AMOUNT));
+    expect(balance).to.be.equals(locklift.utils.toNano(DEPOSIT_AMOUNT), "user should receive stEvers by rate 1:1");
   });
   it("user shouldn't withdraw with bad value", async () => {
     const WITHDRAW_AMOUNT = 20;
@@ -77,7 +77,10 @@ describe("Deposit withdraw test", function () {
     assertEvent(events, "BadWithdrawRequest");
     expect(events[0].data.user.equals(user1.account.address)).to.be.true;
     expect(events[0].data.amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
-    expect(tokenBalanceBeforeWithdraw).to.be.equals(await user1.wallet.getBalance());
+    expect(tokenBalanceBeforeWithdraw).to.be.equals(
+      await user1.wallet.getBalance(),
+      "user stEver balance shouldn't change",
+    );
   });
   it("user should successfully withdraw", async () => {
     const WITHDRAW_AMOUNT = 20;
@@ -90,17 +93,23 @@ describe("Deposit withdraw test", function () {
     assertEvent(successEvents, "WithdrawSuccess");
     successEvents.forEach(event => {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
-      expect(event.data.amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
+      expect(event.data.amount).to.equal(
+        locklift.utils.toNano(WITHDRAW_AMOUNT),
+        "user should receive evers by rate 1:1",
+      );
     });
   });
   it("user should remove withdraw request", async () => {
     const DEPOSIT_AMOUNT = 20;
-    await user1.depositToVault(DEPOSIT_AMOUNT);
+    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_AMOUNT));
     const { nonce } = await user1.makeWithdrawRequest(locklift.utils.toNano(DEPOSIT_AMOUNT));
     const withdrawRequestExisted = await user1
       .getWithdrawRequests()
       .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));
-    expect(withdrawRequestExisted?.amount).to.be.equals(locklift.utils.toNano(DEPOSIT_AMOUNT));
+    expect(withdrawRequestExisted?.amount).to.be.equals(
+      locklift.utils.toNano(DEPOSIT_AMOUNT),
+      "user should have withdraw request with amount equals to requested amount",
+    );
     await user1.removeWithdrawRequest(nonce);
     const { events } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "WithdrawRequestRemoved",
@@ -109,6 +118,6 @@ describe("Deposit withdraw test", function () {
     const withdrawRequestNotExisted = await user1
       .getWithdrawRequests()
       .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));
-    expect(withdrawRequestNotExisted).to.be.equals(undefined);
+    expect(withdrawRequestNotExisted).to.be.equals(undefined, "user should not have withdraw request");
   });
 });

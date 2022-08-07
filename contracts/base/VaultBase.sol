@@ -40,6 +40,11 @@ abstract contract VaultBase is VaultStorage {
         _;
     }
 
+    modifier minCallValue() {
+        require(msg.value >= MIN_CALL_MSG_VALUE,LOW_MSG_VALUE);
+        _;
+    }
+
     // init
     function initVault(address _stTokenRoot) override external onlyOwner {
         stTokenRoot = _stTokenRoot;

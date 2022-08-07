@@ -52,7 +52,6 @@ export const createStrategy = async ({
     dePool: dePool.contract.address,
   });
   console.log(`strategy balance: ${await getAddressBalance(strategyAddress)}`);
-  debugger;
 
   return new DePoolStrategyWithPool(
     dePool.contract,

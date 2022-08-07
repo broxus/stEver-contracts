@@ -25,7 +25,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe.skip("Single flow", async function () {
+describe("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -61,10 +61,11 @@ describe.skip("Single flow", async function () {
   });
   it("user should deposit to vault", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
-    await user1.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT);
+    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = new BigNumber(locklift.utils.toNano(20));
+    const DEPOSIT_FEE = new BigNumber(locklift.utils.toNano(0.6));
     console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       depositConfig: [
@@ -72,8 +73,8 @@ describe.skip("Single flow", async function () {
           locklift.utils.getRandomNonce(),
           {
             strategy: strategiesWithPool[0].strategy.address,
-            amount: locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT),
-            fee: locklift.utils.toNano(0.6),
+            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.minus(DEPOSIT_FEE).toString(),
+            fee: DEPOSIT_FEE.toString(),
           },
         ],
       ],
@@ -82,18 +83,24 @@ describe.skip("Single flow", async function () {
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
-    const ROUND_REWARD = locklift.utils.toNano(2);
-    const EXPECTED_REWARD = new BigNumber(locklift.utils.toNano(2)).minus(GAIN_FEE);
+    const ROUND_REWARD = locklift.utils.toNano(3);
+    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
     await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD);
     const { events } = await vault.vaultContract.getPastEvents({ filter: ({ event }) => event === "StrategyReported" });
     assertEvent(events, "StrategyReported");
 
     expect(events[0].data.strategy.equals(strategiesWithPool[0].strategy.address)).to.be.true;
-    expect(events[0].data.report.gain).to.be.equals(EXPECTED_REWARD.toString());
+    expect(events[0].data.report.gain).to.be.equals(
+      EXPECTED_REWARD.toString(),
+      "reported gain should be reduced by fee",
+    );
 
     const stateAfter = await vault.getDetails();
-    expect(stateAfter.totalAssets).equals(EXPECTED_REWARD.plus(stateBefore.totalAssets).toString());
-    expect(stateAfter.stEverSupply).equals(stateBefore.stEverSupply);
+    expect(stateAfter.totalAssets).equals(
+      EXPECTED_REWARD.plus(stateBefore.totalAssets).toString(),
+      "total assets should be increased by reward",
+    );
+    expect(stateAfter.stEverSupply).equals(stateBefore.stEverSupply, "stever supply should be unchanged");
   });
   it("user shouldn't receive because harvest from strategy have not evaluated yet, so reset pending withdraw request to the user", async () => {
     const WITHDRAW_AMOUNT = 10;
@@ -114,10 +121,9 @@ describe.skip("Single flow", async function () {
   });
   it("should successfully withdraw from strategy", async () => {
     const WITHDRAW_AMOUNT = 15;
-    const {
-      value0: { availableAssets: availableBalanceBefore },
-    } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(availableBalanceBefore).to.be.equals(locklift.utils.toNano(0));
+    await user1.depositToVault(locklift.utils.toNano(0.5));
+    const { availableAssets: availableBalanceBefore } = await vault.getDetails();
+    expect(availableBalanceBefore).to.be.equals(locklift.utils.toNano(0.5));
     const withdrawSuccessEvents = await governance.withdrawFromStrategies({
       withdrawConfig: [
         [
@@ -136,12 +142,16 @@ describe.skip("Single flow", async function () {
     expect(Number(availableBalanceAfter)).to.be.gt(Number(availableBalanceBefore));
   });
   it("user should receive requested amount + reward", async () => {
-    console.log(`user balance before ${await getAddressBalance(user1.account.address)}`);
-    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+    const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([
+      locklift.provider.getBalance(user1.account.address),
+      locklift.provider.getBalance(vault.vaultContract.address),
+    ]).then(([userBalanceBefore, vaultBalanceBefore]) => ({ userBalanceBefore, vaultBalanceBefore }));
+
     const { value0: stateBeforeWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     const withdrawalRate = new BigNumber(stateBeforeWithdraw.totalAssets).dividedBy(stateBeforeWithdraw.stEverSupply);
 
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
+    const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
     await governance.emitWithdraw({
       sendConfig: [[locklift.utils.getRandomNonce(), { user: user1.account.address, nonces: [nonce] }]],
     });
@@ -151,11 +161,13 @@ describe.skip("Single flow", async function () {
     assertEvent(success, "WithdrawSuccess");
     const { value0: stateAfterWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     expect(success[0].data.user.equals(user1.account.address)).to.be.true;
-    expect(success[0].data.amount).to.equal(withdrawalRate.multipliedBy(withdrawAmount).toString());
 
-    expect(
-      new BigNumber(stateBeforeWithdraw.totalAssets).minus(withdrawalRate.multipliedBy(withdrawAmount)).toString(),
-    ).to.be.equals(stateAfterWithdraw.totalAssets);
+    expect(success[0].data.amount).to.equal(expectedEverAmountWithReward);
+
+    expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(expectedEverAmountWithReward).toString()).to.be.equals(
+      stateAfterWithdraw.totalAssets,
+      "totalAssets should be reduced by the amount withdrawn",
+    );
 
     expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(success[0].data.amount).toString()).to.be.equals(
       stateAfterWithdraw.totalAssets,
@@ -163,9 +175,26 @@ describe.skip("Single flow", async function () {
 
     expect(new BigNumber(stateBeforeWithdraw.stEverSupply).minus(withdrawAmount).toString()).to.be.equals(
       stateAfterWithdraw.stEverSupply,
+      "stEverSupply should be reduced by the amount withdrawn",
+    );
+    const { userBalanceAfter, vaultBalanceAfter } = await Promise.all([
+      locklift.provider.getBalance(user1.account.address),
+      locklift.provider.getBalance(vault.vaultContract.address),
+    ]).then(([userBalanceAfter, vaultBalanceAfter]) => ({ userBalanceAfter, vaultBalanceAfter }));
+
+    const returnedFeeToUser = new BigNumber(userBalanceAfter)
+      .minus(userBalanceBefore)
+      .minus(expectedEverAmountWithReward);
+    expect(returnedFeeToUser.toNumber()).to.be.above(
+      0,
+      "user balance should more than reward because we should send back attached fee from withdraw request",
     );
 
-    console.log(`user balance after ${await getAddressBalance(user1.account.address)}`);
-    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+    const payedVaultFee = new BigNumber(vaultBalanceBefore)
+      .minus(vaultBalanceAfter)
+      .minus(expectedEverAmountWithReward)
+      .minus(returnedFeeToUser);
+
+    expect(payedVaultFee.toNumber()).to.be.above(0, "vault should pay a fee for iteration under withdrawal ");
   });
 });

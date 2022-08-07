@@ -21,11 +21,32 @@ contract StrategyBase is IStrategy,IParticipant {
     uint8 constant STATUS_SUCCESS = 0;
     uint8 constant STATUS_STAKE_TOO_SMALL = 1;
     uint8 constant STATUS_DEPOOL_CLOSED = 3;
+    uint8 constant STATUS_NO_PARTICIPANT = 6;
+    uint8 constant STATUS_PARTICIPANT_ALREADY_HAS_VESTING = 9;
+    uint8 constant STATUS_WITHDRAWAL_PERIOD_GREATER_TOTAL_PERIOD = 10;
+    uint8 constant STATUS_TOTAL_PERIOD_MORE_18YEARS = 11;
+    uint8 constant STATUS_WITHDRAWAL_PERIOD_IS_ZERO = 12;
+    uint8 constant STATUS_TOTAL_PERIOD_IS_NOT_DIVISIBLE_BY_WITHDRAWAL_PERIOD = 13;
+    uint8 constant STATUS_REMAINING_STAKE_LESS_THAN_MINIMAL = 16;
+    uint8 constant STATUS_PARTICIPANT_ALREADY_HAS_LOCK = 17;
+    uint8 constant STATUS_TRANSFER_AMOUNT_IS_TOO_BIG = 18;
+    uint8 constant STATUS_TRANSFER_SELF = 19;
+    uint8 constant STATUS_TRANSFER_TO_OR_FROM_VALIDATOR = 20;
+    uint8 constant STATUS_FEE_TOO_SMALL = 21;
+    uint8 constant STATUS_INVALID_ADDRESS = 22;
+    uint8 constant STATUS_INVALID_DONOR = 23;
+    uint8 constant STATUS_NO_ELECTION_ROUND = 24;
+    uint8 constant STATUS_INVALID_ELECTION_ID = 25;
+    uint8 constant STATUS_TRANSFER_WHILE_COMPLETING_STEP = 26;
+    uint8 constant STATUS_NO_POOLING_STAKE = 27;
+    // strategy statuses
+    uint8 constant STAKE_TO_SMALL = 28;
+    uint8 constant DEPOSIT_FEE_TO_SMALL = 29;
+
     uint64 minStake = 1 ever;
 
     address vault;
     address dePool;
-    uint128 lastAttachedFee;
     StrategyState strategyState = StrategyState.INIT;
 
     // static
@@ -71,22 +92,21 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function deposit(uint64 amount) override external onlyVault{
-        // TODO strategy needs value for reporting. See onRoundComplete method
+        
         tvm.rawReserve(_reserve(),0);
         if(msg.value < amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE) {
-           return depositNotHandled();
+           return depositNotHandled(DEPOSIT_FEE_TO_SMALL);
         }
         if(amount < minStake) {
-           return depositNotHandled();
+           return depositNotHandled(STAKE_TO_SMALL);
         }
         depositToDepool(amount,vault);
     }
 
-    function withdraw(uint64 amount,uint128 attachedFee) override external onlyVault{
+    function withdraw(uint64 amount) override external onlyVault{
 
        tvm.rawReserve(_reserve(),0);
-        // TODO resolve fee, it's need for calculating received amount withot fee. See receive method
-       lastAttachedFee = attachedFee;
+
        withdrawFromDePool(amount);
     }
 
@@ -105,8 +125,19 @@ contract StrategyBase is IStrategy,IParticipant {
         if(errcode == 0) {
            return depositHandled();
         }
-        if(errcode > 0) {
-            return depositNotHandled();
+        if(
+            errcode == STATUS_DEPOOL_CLOSED ||
+            errcode == STATUS_FEE_TOO_SMALL ||
+            errcode == STATUS_STAKE_TOO_SMALL
+        ) {
+            return depositNotHandled(errcode);
+        }
+        if(
+            errcode == STATUS_DEPOOL_CLOSED ||
+            errcode == STATUS_NO_PARTICIPANT ||
+            errcode == STATUS_NO_POOLING_STAKE
+        ) {
+            return withdrawError(errcode);
         }
     }
 
@@ -114,8 +145,12 @@ contract StrategyBase is IStrategy,IParticipant {
         IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
     }
 
-    function depositNotHandled() internal {
-        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
+    function depositNotHandled(uint32 errcode) internal {
+        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}(errcode);
+    }
+
+    function withdrawError(uint32 errcode) internal {
+        IVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(errcode);
     }
 
     function onTransfer(address source, uint128 amount) override external {
@@ -125,7 +160,7 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
         if(msg.sender == dePool) {
-            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}(lastAttachedFee);
+            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
         }
     }
 

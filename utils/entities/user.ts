@@ -63,19 +63,21 @@ export class User {
       ),
     );
   };
-  depositToVault = async (amount: number): Promise<any> => {
+  depositToVault = async (amount: string, fee: string = locklift.utils.toNano(2)): Promise<any> => {
+    const feeBn = new BigNumber(fee);
+    const amountBn = new BigNumber(amount);
     const { value0: stateBeforeWithdraw } = await this.vault.contract.methods.getDetails({ answerId: 0 }).call({});
     const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
-    const expectedStEverAmount = depositRate.isNaN() ? new BigNumber(amount) : depositRate.times(amount);
+    const expectedStEverAmount = depositRate.isNaN() ? amountBn : depositRate.times(amountBn);
     await locklift.tracing.trace(
       this.account.runTarget(
         {
           contract: this.vault.contract,
-          value: locklift.utils.toNano(amount + 2),
+          value: amountBn.plus(feeBn).toString(),
         },
         vaultContract =>
           vaultContract.methods.deposit({
-            _amount: locklift.utils.toNano(amount),
+            _amount: amountBn.toString(),
             _nonce: locklift.utils.getRandomNonce(),
           }),
       ),
@@ -87,11 +89,12 @@ export class User {
       data: { user, depositAmount, receivedStEvers },
     } = depositEvent.events[0];
     expect(user.equals(this.account.address)).to.be.true;
-    expect(depositAmount).to.be.equals(locklift.utils.toNano(amount));
-    //TODO
-    // expect(locklift.utils.fromNano(receivedStEvers)).to.be.equals(
-    //   locklift.utils.fromNano(locklift.utils.toNano(expectedStEverAmount.toString())),
-    // );
+    expect(depositAmount).to.be.equals(amountBn.toString(), "deposit amount should be equal to the amount deposited");
+
+    expect(receivedStEvers).to.be.equals(
+      expectedStEverAmount.toFixed(0, BigNumber.ROUND_DOWN).toString(),
+      "user should receive the correct amount of stEvers",
+    );
   };
 
   getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {

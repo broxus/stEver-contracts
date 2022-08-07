@@ -9,5 +9,5 @@ interface IStrategy {
     }
     function getDetails() external responsible view returns(Details);
     function deposit(uint64 amount) external;
-    function withdraw(uint64 amount,uint128 fee) external;
+    function withdraw(uint64 amount) external;
 }
