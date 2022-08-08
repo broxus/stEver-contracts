@@ -92,7 +92,7 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function deposit(uint64 amount) override external onlyVault{
-        
+
         tvm.rawReserve(_reserve(),0);
         if(msg.value < amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE) {
            return depositNotHandled(DEPOSIT_FEE_TO_SMALL);

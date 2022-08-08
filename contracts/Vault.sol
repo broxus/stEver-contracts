@@ -207,8 +207,26 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
        tvm.rawReserve(_reserve(), 0);
        PendingWithdraw pendingWithdraw = pendingWithdrawMap[_nonce];
        emit WithdrawRequest(pendingWithdraw.user,pendingWithdraw.amount,_nonce);
-       pendingWithdraw.user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED,bounce:false});
        delete pendingWithdrawMap[_nonce];
+       pendingWithdraw.user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED,bounce:false});
+    }
+
+    function onPendingWithdrawRejected(uint64 _nonce,address user, uint128 _amount) override external onlyAccount(user) {
+        tvm.rawReserve(_reserveWithValue(WITHDRAW_FEE), 0);
+        delete pendingWithdrawMap[_nonce];
+        TvmCell payload;
+        ITokenWallet(stEverWallet).transfer{
+            value:0,
+            flag:MsgFlag.ALL_NOT_RESERVED,
+            bounce:false
+        }(
+            _amount,
+            user,
+            0,
+            user,
+            false,
+            payload
+        );
     }
 
     function removePendingWithdraw(uint64 _nonce) override external minCallValue {
@@ -217,10 +235,22 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
     }
 
-    function onPendingWithdrawRemoved(address user,uint64 nonce) override external onlyAccount(user) {
+    function onPendingWithdrawRemoved(address user,uint64 nonce, uint128 _amount) override external onlyAccount(user) {
         tvm.rawReserve(_reserveWithValue(WITHDRAW_FEE), 0);
         emit WithdrawRequestRemoved(user, nonce);
-        user.transfer({value:0 ,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false});
+        TvmCell payload;
+        ITokenWallet(stEverWallet).transfer{
+            value:0,
+            flag:MsgFlag.ALL_NOT_RESERVED,
+            bounce:false
+        }(
+            _amount,
+            user,
+            0,
+            user,
+            false,
+            payload
+        );
     }
 
     function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {

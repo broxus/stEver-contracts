@@ -1,6 +1,7 @@
 import { ProviderRpcClient, Address } from "everscale-inpage-provider";
 import { factorySource, TokenRootUpgradeableAbi, TokenWalletAbi } from "../../build/factorySource";
 import { Contract } from "locklift";
+import BigNumber from "bignumber.js";
 
 export class TokenWallet {
   constructor(public readonly walletContract: Contract<TokenWalletAbi>) {}
@@ -17,12 +18,12 @@ export class TokenWallet {
     return new TokenWallet(new ever.Contract(factorySource.TokenWallet, userTokenWallet));
   };
 
-  getBalance = async (): Promise<string> => {
+  getBalance = async (): Promise<BigNumber> => {
     return this.walletContract.methods
       .balance({
         answerId: 3,
       })
       .call()
-      .then(res => res.value0);
+      .then(res => new BigNumber(res.value0));
   };
 }

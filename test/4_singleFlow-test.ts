@@ -187,7 +187,7 @@ describe("Single flow", async function () {
       .minus(expectedEverAmountWithReward);
     expect(returnedFeeToUser.toNumber()).to.be.above(
       0,
-      "user balance should more than reward because we should send back attached fee from withdraw request",
+      "user should receive more than reward because we should send back attached fee from withdraw request",
     );
 
     const payedVaultFee = new BigNumber(vaultBalanceBefore)

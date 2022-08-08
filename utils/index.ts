@@ -1,5 +1,6 @@
 import { AbiEventName, Address, Contract, DecodedEventWithTransaction } from "locklift";
 import { VaultAbi } from "../build/factorySource";
+import BigNumber from "bignumber.js";
 
 type VaultEvents = DecodedEventWithTransaction<VaultAbi, AbiEventName<VaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
@@ -30,3 +31,4 @@ export function assertEvent<T extends VaultEvents>(
 
 export const getAddressBalance = async (address: Address) =>
   locklift.utils.fromNano(await locklift.provider.getBalance(address));
+export const toNanoBn = (value: string | number): BigNumber => new BigNumber(locklift.utils.toNano(value));

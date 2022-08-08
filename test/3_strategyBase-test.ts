@@ -138,7 +138,7 @@ describe("Strategy base", function () {
       "strategy balance should be increased",
     );
   });
-  it("should created and deposited to 250 strategies", async () => {
+  it("should created and deposited to 110 strategies", async () => {
     const strategies = await lastValueFrom(
       range(2).pipe(
         concatMap(() =>
@@ -158,7 +158,7 @@ describe("Strategy base", function () {
     console.log(`Vaults balance before ${await getAddressBalance(vault.vaultContract.address)}`);
 
     await governance.depositToStrategies({
-      depositConfig: _.range(0, 125)
+      depositConfig: _.range(0, 55)
         .reduce((acc, next) => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
         .map(strategy => [
           locklift.utils.getRandomNonce(),

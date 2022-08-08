@@ -60,11 +60,11 @@ interface IVault {
         uint128 amount;
         uint64 nonce;
     }
-    function initVault(address _stTtokenRoot) external;
+    function initVault(address stTtokenRoot) external;
     function getDetails() external responsible view returns(Details);
     // strategy
     function addStrategy(address strategy) external;
-    function deposit(uint128 _amount,uint64 _nonce) external;
+    function deposit(uint128 amount,uint64 nonce) external;
     function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) external;
     function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
@@ -77,7 +77,8 @@ interface IVault {
     function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
     // account
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
-    function onPendingWithdrawRemoved(address user,uint64 nonce) external;
+    function onPendingWithdrawRejected(uint64 nonce,address user, uint128 amount) external;
+    function onPendingWithdrawRemoved(address user,uint64 nonce, uint128 amount) external;
     // utils
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
     // setters
