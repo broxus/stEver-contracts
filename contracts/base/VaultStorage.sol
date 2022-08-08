@@ -1,10 +1,10 @@
-pragma ton-solidity >=0.61.0;
-pragma AbiHeader expire;
-pragma AbiHeader pubkey;
+pragma ever-solidity >=0.61.0;
+
 
 import "../interfaces/IVault.sol";
 
 abstract contract VaultStorage is IVault {
+    // TODO: move to library
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant ST_EVER_WALLET_DEPLOY_GRAMS_VALUE = 0.1 ever;
@@ -30,15 +30,17 @@ abstract contract VaultStorage is IVault {
     address stEverWallet;
     address stTokenRoot;
 
-    // modifiebale fileds
+    // modifiable field
     uint128 gainFee;
 
     address owner;
     uint32 accountVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
+    // TODO: dont specify type in name e.g remove Map from name
     mapping(uint64 => PendingWithdraw) pendingWithdrawMap;
 
+    // TODO: move to library
     // errors
     uint8 constant NOT_GOVERNANCE = 101;
     uint8 constant BAD_WITHDRAW_CONFIG = 102;
@@ -52,6 +54,6 @@ abstract contract VaultStorage is IVault {
     uint8 constant CANT_DEPOSIT_UNTILS_STRATEGY_IN_DEPOSIT_STATE = 110;
     uint8 constant NOT_USER_DATA = 111;
     uint8 constant LOW_MSG_VALUE = 112;
-    uint8 constant NOT_ENOGH_VALUE_TO_DEPOSIT = 113;
-    uint8 constant NOT_ENOGH_VALUE_TO_WITHDRAW = 114;
+    uint8 constant NOT_ENOUGH_VALUE_TO_DEPOSIT = 113;
+    uint8 constant NOT_ENOUGH_VALUE_TO_WITHDRAW = 114;
 }

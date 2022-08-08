@@ -1,4 +1,4 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
 
 
@@ -9,6 +9,4 @@ interface IDePool {
     function withdrawAll() external;
     // mock methods
     function roundCompelte(uint64 _reward) external;
-
-
 }

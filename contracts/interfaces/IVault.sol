@@ -1,10 +1,12 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
+
+
 interface IVault {
     event StrategyAdded(address strategy);
     event StrategyReported(address strategy, StrategyReport report);
     event StrategyHandledDeposit(address strategy,uint128 returnedFee);
-    event StrategyDidintHandleDeposit(address strategy,uint32 errcode);
+    event StrategyDidntHandleDeposit(address strategy,uint32 errcode);
     event StrategyWithdrawSuccess(address strategy,uint128 amount);
     event StrategyWithdrawError(address strategy,uint32 errcode);
     event Deposit(address user,uint128 depositAmount,uint128 receivedStEvers);
@@ -56,15 +58,11 @@ interface IVault {
         uint64[] nonces;
     }
 
-    struct DumpWithdraw {
-        uint128 amount;
-        uint64 nonce;
-    }
-    function initVault(address stTtokenRoot) external;
+    function initVault(address stTokenRoot) external;
     function getDetails() external responsible view returns(Details);
     // strategy
     function addStrategy(address strategy) external;
-    function deposit(uint128 amount,uint64 nonce) external;
+    function deposit(uint128 amount, uint64 nonce) external;
     function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) external;
     function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
@@ -73,8 +71,8 @@ interface IVault {
     function onStrategyHandledDeposit() external;
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
     function receiveFromStrategy() external;
-    function withdrawFromStrategyError(uint32 errocode) external;
-    function withdrawToUser(uint128 amount,address user,DumpWithdraw[] withdrawDump) external;
+    function withdrawFromStrategyError(uint32 errcode) external;
+    function withdrawToUser(uint128 amount,address user, uint128[] amountsWithdraw, uint64[] noncesWithdrawn) external;
     // account
     function onPendingWithdrawAccepted(uint64 nonce,address user) external;
     function onPendingWithdrawRejected(uint64 nonce,address user, uint128 amount) external;
