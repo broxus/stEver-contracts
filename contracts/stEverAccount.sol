@@ -101,7 +101,6 @@ contract StEverAccount is IStEverAccount {
 
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-        // ADD check for 1 ton fee
         uint128 amount;
         IVault.DumpWithdraw[] withdrawDump;
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
