@@ -1,6 +1,8 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
+
+
 import "./interfaces/IStrategy.sol";
 import "./StEverAccount.sol";
 import "./base/VaultBase.sol";
@@ -35,21 +37,23 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         emit StrategyAdded(_strategy);
     }
 
-    function depositToStrategies(mapping(uint256 => DepositConfig ) depositConfig) override external onlyGovernanceOrSelfAndAccept {
+    function depositToStrategies(mapping (uint256 => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
-        for (uint256 i = 0; i < chunkSize && !depositConfig.empty(); i++) {
-            (, DepositConfig depositConfig) = depositConfig.delMin().get();
-            require(strategies.exists(depositConfig.strategy),STRATEGY_NOT_EXISTS);
+        for (uint256 i = 0; i < chunkSize && !_depositConfigs.empty(); i++) {
+            (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
+            require(strategies.exists(depositConfig.strategy), STRATEGY_NOT_EXISTS);
+
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
-            require(availableAssets >= valueToSend,NOT_ENOGH_VALUE_TO_DEPOSIT);
+            require(availableAssets >= valueToSend, NOT_ENOUGH_VALUE_TO_DEPOSIT);
+
             strategies[depositConfig.strategy].depositingAmount = depositConfig.amount;
             availableAssets -= valueToSend;
-            // grab fee from total asssets, then add it back after receiving response from strategy
+            // grab fee from total assets, then add it back after receiving response from strategy
             totalAssets -= depositConfig.fee;
             IStrategy(depositConfig.strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
         }
-        if(!depositConfig.empty()) {
-            this.depositToStrategies{value: SEND_SELF_VALUE, bounce: false}(depositConfig);
+        if (!_depositConfigs.empty()) {
+            this.depositToStrategies{value: SEND_SELF_VALUE, bounce: false}(_depositConfigs);
         }
     }
 
@@ -57,19 +61,19 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         uint128 returnedFee = msg.value;
         strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
-        // add fee back to total assests
+        // add fee back to total assets
         totalAssets += msg.value;
-        emit StrategyHandledDeposit(msg.sender,returnedFee);
+        emit StrategyHandledDeposit(msg.sender, returnedFee);
     }
 
     function onStrategyDidntHandleDeposit(uint32 errcode) override external onlyStrategy {
-        uint128 deposotingAmount = strategies[msg.sender].depositingAmount;
+        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         availableAssets += msg.value;
-        // add fee back to total assests
-        uint128 returnedFee = deposotingAmount > msg.value ? deposotingAmount - msg.value : msg.value - deposotingAmount;
+        // add fee back to total assets
+        uint128 returnedFee = depositingAmount > msg.value ? depositingAmount - msg.value : msg.value - depositingAmount;
         totalAssets += returnedFee;
-        emit StrategyDidintHandleDeposit(msg.sender,errcode);
+        emit StrategyDidntHandleDeposit(msg.sender,errcode);
     }
 
     function strategyReport(uint128 gain, uint128 loss, uint128 _totalAssets,uint128 requestedBalance) override external onlyStrategy {
@@ -81,7 +85,7 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         emit StrategyReported(msg.sender,StrategyReport(gainWithoutFee,loss,_totalAssets));
 
         uint128 sendValueToStrategy;
-        if(requestedBalance > 0 && availableAssets > requestedBalance) {
+        if (requestedBalance > 0 && availableAssets > requestedBalance) {
             totalAssets -= requestedBalance;
             availableAssets -= requestedBalance;
             sendValueToStrategy = requestedBalance;
@@ -90,18 +94,20 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function processWithdrawFromStrategies(mapping(uint256 => WithdrawConfig) withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
+    function processWithdrawFromStrategies(mapping (uint256 => WithdrawConfig) withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
-        for(uint256 i = 0;i < chunkSize && !withdrawConfig.empty(); i++) {
+        for (uint256 i = 0; i < chunkSize && !withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = withdrawConfig.delMin().get();
             require(strategies.exists(config.strategy),STRATEGY_NOT_EXISTS);
-            require(availableAssets >= config.fee,NOT_ENOGH_VALUE_TO_WITHDRAW);
+            require(availableAssets >= config.fee,NOT_ENOUGH_VALUE_TO_WITHDRAW);
+
             availableAssets -= config.fee;
             totalAssets -= config.fee;
             strategies[config.strategy].withdrawingAmount = config.amount;
+
             IStrategy(config.strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
         }
-        if(!withdrawConfig.empty()) {
+        if (!withdrawConfig.empty()) {
             this.processWithdrawFromStrategies{value: SEND_SELF_VALUE, bounce:false}(withdrawConfig);
         }
     }
@@ -111,18 +117,18 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         strategies[msg.sender].totalAssets -= strategies[msg.sender].withdrawingAmount;
         availableAssets += msg.value;
         totalAssets += notUsedFee;
-        emit StrategyWithdrawSuccess(msg.sender,msg.value - notUsedFee);
+        emit StrategyWithdrawSuccess(msg.sender, msg.value - notUsedFee);
     }
 
-    function withdrawFromStrategyError(uint32 errocode) override external onlyStrategy {
+    function withdrawFromStrategyError(uint32 errcode) override external onlyStrategy {
         uint128 notUsedFee = msg.value;
         totalAssets += notUsedFee;
         availableAssets += notUsedFee;
-        emit StrategyWithdrawError(msg.sender,errocode);
+        emit StrategyWithdrawError(msg.sender, errcode);
     }
     // deposit
     function deposit(uint128 _amount, uint64 _nonce) override external {
-        require(msg.value >= _amount + MIN_CALL_MSG_VALUE ,NOT_ENOUGH_DEPOSIT_VALUE);
+        require(msg.value >= _amount + MIN_CALL_MSG_VALUE, NOT_ENOUGH_DEPOSIT_VALUE);
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
         uint128 amountToSend = getDepositStEverAmount(_amount);
         totalAssets += _amount;
@@ -131,19 +137,19 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         TvmBuilder builder;
 		builder.store(_nonce);
 
-        emit Deposit(msg.sender,_amount,amountToSend);
+        emit Deposit(msg.sender, _amount, amountToSend);
         ITokenRoot(stTokenRoot).mint{
-                value: 0,
-                flag:MsgFlag.ALL_NOT_RESERVED,
-                bounce: false
-            }(
-                uint128(amountToSend),
-                msg.sender,
-                ST_EVER_WALLET_DEPLOY_VALUE,
-                msg.sender,
-                false,
-                builder.toCell()
-            );
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(
+            amountToSend,
+            msg.sender,
+            ST_EVER_WALLET_DEPLOY_VALUE,
+            msg.sender,
+            false,
+            builder.toCell()
+        );
     }
 
 
@@ -158,14 +164,14 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
     ) override external {
         require(msg.sender == stEverWallet, NOT_ROOT_WALLET);
         // if not enough value, resend tokens to sender
-        if(msg.value < WITHDRAW_FEE + WITHDRAW_FEE_FOR_USER_DATA) {
+        if (msg.value < WITHDRAW_FEE + WITHDRAW_FEE_FOR_USER_DATA) {
             tvm.rawReserve(_reserve(),0);
             emit BadWithdrawRequest(_sender,_amount,msg.value);
             ITokenWallet(stEverWallet).transfer{
-                value:0,
-                flag:MsgFlag.ALL_NOT_RESERVED,
-                bounce:false
-                }(
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            }(
                     _amount,
                     _sender,
                     0,
@@ -178,21 +184,24 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         requestWithdraw(_sender,_amount,_payload);
     }
 
-    function requestWithdraw(address _user,uint128 _amount,TvmCell _payload) internal {
+    function requestWithdraw(address _user, uint128 _amount, TvmCell _payload) internal {
         tvm.rawReserve(address(this).balance - (msg.value - WITHDRAW_FEE),0);
+
         address accountAddr = getAccountAddress(_user);
         (address deposit_owner, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
         pendingWithdrawMap[_nonce] = PendingWithdraw(_amount,_user);
-        addPendingValueToAccount(_nonce,_amount,accountAddr,0,MsgFlag.ALL_NOT_RESERVED);
+
+        addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED);
     }
 
     function handleAddPendingValueError(TvmSlice slice) internal {
         tvm.rawReserve(_reserve(), 0);
+
         uint64 _withdraw_nonce = slice.decode(uint64);
         PendingWithdraw pendingWithdraw = pendingWithdrawMap[_withdraw_nonce];
-        deployAccount(pendingWithdraw.user);
-        address account = getAccountAddress(pendingWithdraw.user);
-        addPendingValueToAccount(_withdraw_nonce,pendingWithdraw.amount,account,0,MsgFlag.ALL_NOT_RESERVED);
+        address account = deployAccount(pendingWithdraw.user);
+
+        addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED);
     }
 
     function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 amount, address account, uint128 _value, uint8 _flag) internal {
@@ -200,15 +209,17 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
             value:_value,
             flag: _flag,
             bounce: true
-        }(_withdraw_nonce,amount);
+        }(_withdraw_nonce, amount);
     }
 
     function onPendingWithdrawAccepted(uint64 _nonce,address user) override external onlyAccount(user) {
        tvm.rawReserve(_reserve(), 0);
+
        PendingWithdraw pendingWithdraw = pendingWithdrawMap[_nonce];
-       emit WithdrawRequest(pendingWithdraw.user,pendingWithdraw.amount,_nonce);
+       emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, _nonce);
        delete pendingWithdrawMap[_nonce];
-       pendingWithdraw.user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED,bounce:false});
+
+       pendingWithdraw.user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce:false});
     }
 
     function onPendingWithdrawRejected(uint64 _nonce,address user, uint128 _amount) override external onlyAccount(user) {
@@ -253,36 +264,31 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         );
     }
 
-    function processSendToUsers(mapping(uint256 =>SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
+    function processSendToUsers(mapping (uint256 => SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
-        for(uint256 i = 0;i < chunkSize && !sendConfig.empty();i++) {
+        for (uint256 i = 0;i < chunkSize && !sendConfig.empty();i++) {
             (,SendToUserConfig config) = sendConfig.delMin().get();
             address account = getAccountAddress(config.user);
             IStEverAccount(account).processWithdraw{value:WITHDRAW_FEE * uint128(config.nonces.length), bounce: false}(config.nonces);
         }
-        if(!sendConfig.empty()) {
+        if (!sendConfig.empty()) {
             this.processSendToUsers{value: SEND_SELF_VALUE, bounce: false}(sendConfig);
         }
-
     }
 
     function withdrawToUser(
         uint128 amount,
         address user,
-        DumpWithdraw[] withdrawDump
+        uint128[] amountsWithdrawn,
+        uint64[] noncesWithdrawn
     ) override external onlyAccount(user) {
         tvm.rawReserve(_reserve(), 0);
 
         uint128 everAmount = getWithdrawEverAmount(amount);
-        uint64[] noncesToWithdraw;
-
-        for (uint256 i = 0; i < withdrawDump.length; i++) {
-            noncesToWithdraw.push(withdrawDump[i].nonce);
-        }
         // if not enough balance, reset pending to the Account;
-        if(availableAssets < amount) {
-            emit WithdrawError(user,noncesToWithdraw,amount);
-            IStEverAccount(msg.sender).resetPendingValues{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(withdrawDump);
+        if (availableAssets < amount) {
+            emit WithdrawError(user, noncesWithdrawn, amount);
+            IStEverAccount(msg.sender).resetPendingValues{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(amountsWithdrawn, noncesWithdrawn);
             return;
         }
         totalAssets -= everAmount;
@@ -292,10 +298,9 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         TvmBuilder builder;
         builder.store(user);
         builder.store(everAmount);
-        builder.store(noncesToWithdraw);
+        builder.store(noncesWithdrawn);
 
-
-        TokenWalletBurnableBase(stEverWallet).burn{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(
+        TokenWalletBurnableBase(stEverWallet).burn{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(
             amount,
             address(this),
             address(this),
@@ -311,12 +316,15 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
         TvmCell payload
     ) override external {
         require(wallet == stEverWallet,NOT_ROOT_WALLET);
+
         TvmSlice slice = payload.toSlice();
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
         uint64[] nonces = slice.decode(uint64[]);
+
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
-        emit WithdrawSuccess(user,everAmount,nonces);
+
+        emit WithdrawSuccess(user, everAmount, nonces);
         user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -327,5 +335,4 @@ contract Vault is VaultBase,IAcceptTokensBurnCallback,IAcceptTokensTransferCallb
 			handleAddPendingValueError(slice);
 		}
 	}
-
 }

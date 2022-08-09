@@ -1,4 +1,4 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
 
 import "@broxus/contracts/contracts/platform/Platform.sol";

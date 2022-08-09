@@ -1,4 +1,4 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IParticipant.sol";
@@ -43,7 +43,7 @@ contract StrategyBase is IStrategy,IParticipant {
     uint8 constant STAKE_TO_SMALL = 28;
     uint8 constant DEPOSIT_FEE_TO_SMALL = 29;
 
-    uint64 minStake = 1 ever;
+    uint128 minStake = 1 ever;
 
     address vault;
     address dePool;
@@ -91,38 +91,34 @@ contract StrategyBase is IStrategy,IParticipant {
         return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault);
     }
 
-    function deposit(uint64 amount) override external onlyVault{
-
+    function deposit(uint128 amount) override external onlyVault {
         tvm.rawReserve(_reserve(),0);
-        if(msg.value < amount+DEPOSIT_STAKE_DEPOOL_FEE+DEPOSIT_STAKE_STRATEGY_FEE) {
+        if (msg.value < amount + DEPOSIT_STAKE_DEPOOL_FEE + DEPOSIT_STAKE_STRATEGY_FEE) {
            return depositNotHandled(DEPOSIT_FEE_TO_SMALL);
         }
-        if(amount < minStake) {
+        if (amount < minStake) {
            return depositNotHandled(STAKE_TO_SMALL);
         }
-        depositToDepool(amount,vault);
+        depositToDepool(amount, vault);
     }
 
-    function withdraw(uint64 amount) override external onlyVault{
-
+    function withdraw(uint128 amount) override external onlyVault {
        tvm.rawReserve(_reserve(),0);
 
        withdrawFromDePool(amount);
     }
 
-    function depositToDepool(uint64 amount,address remaining_gas_to) internal {
-        IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(amount);
+    function depositToDepool(uint128 amount,address remaining_gas_to) internal {
+        IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(amount));
     }
 
-    function withdrawFromDePool(uint64 amount) internal {
-        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(amount);
+    function withdrawFromDePool(uint128 amount) internal {
+        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(amount));
     }
-
-
 
     function receiveAnswer(uint32 errcode, uint64 comment) override external onlyDepool {
         tvm.rawReserve(_reserve(),0);
-        if(errcode == 0) {
+        if (errcode == 0) {
            return depositHandled();
         }
         if(
@@ -160,7 +156,7 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
         if(msg.sender == dePool) {
-            IVault(vault).receiveFromStrategy{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
+            IVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
     }
 
@@ -174,12 +170,13 @@ contract StrategyBase is IStrategy,IParticipant {
         uint8 reason
     ) override external onlyDepool {
         tvm.accept();
-        tvm.rawReserve(_reserveWithValue(0.1 ton),0);
+        tvm.rawReserve(_reserveWithValue(0.1 ever),0);
+
         uint128 requestedBalance;
-        if(address(this).balance < THRESHOLD_BALANCE) {
+        if (address(this).balance < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
-        IVault(vault).strategyReport{value:0.1 ever,flag:MsgFlag.REMAINING_GAS, bounce:false}(reward,0,ordinaryStake,requestedBalance);
+        IVault(vault).strategyReport{value: 0.1 ever, flag: MsgFlag.REMAINING_GAS, bounce: false}(reward, 0, ordinaryStake, requestedBalance);
     }
 
 }

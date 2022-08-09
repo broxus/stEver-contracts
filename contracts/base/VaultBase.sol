@@ -1,6 +1,5 @@
-pragma ton-solidity >=0.61.0;
-pragma AbiHeader expire;
-pragma AbiHeader pubkey;
+pragma ever-solidity >=0.61.0;
+
 
 import "./VaultStorage.sol";
 import "../interfaces/IVault.sol";
@@ -56,11 +55,11 @@ abstract contract VaultBase is VaultStorage {
     }
 
     function receiveTokenWalletAddress(address wallet) external virtual {
-		tvm.accept();
+        require (msg.sender == stTokenRoot, NOT_ROOT_WALLET);
 		stEverWallet = wallet;
 	}
     // setters
-    function setGainFee(uint128 _gainFee) override external {
+    function setGainFee(uint128 _gainFee) override external onlyOwner {
         gainFee = _gainFee;
     }
     // utils
@@ -167,6 +166,7 @@ abstract contract VaultBase is VaultStorage {
 	}
 
     function getDetails() override external responsible view returns(Details) {
+        // TODO: add all variables
         return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
                 stTokenRoot,
                 stEverWallet,

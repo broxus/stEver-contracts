@@ -1,5 +1,6 @@
-pragma ton-solidity >=0.61.0;
+pragma ever-solidity >=0.61.0;
 pragma AbiHeader expire;
+pragma AbiHeader pubkey;
 
 import "./interfaces/IDepoolStrategyFactory.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
@@ -18,15 +19,20 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     uint128 constant STRATEGY_DEPLOY_VALUE = 2 ever;
 
 
-    uint32 public strategyVesrsion;
+    uint32 public strategyVersion;
     uint32 public strategyCount;
     // errors
     uint8 constant NOT_OWNER = 101;
     uint8 constant LOW_MSG_VALUE = 102;
+    uint8 constant WRONG_PUBKEY = 103;
 
 
     constructor(address _owner) public {
+        require (tvm.pubkey() != 0, WRONG_PUBKEY);
+        require (tvm.pubkey() == msg.pubkey(), WRONG_PUBKEY);
+
         tvm.accept();
+
         owner = _owner;
     }
 
@@ -40,24 +46,27 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
 
-    function installNewStrategyCode(TvmCell _strategyCode,address sendGasTo) override external onlyOwner {
+    function installNewStrategyCode(TvmCell _strategyCode, address sendGasTo) override external onlyOwner {
         require (msg.value >= UPGRADE_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(),0);
+
         dePoolStrategyCode = _strategyCode;
         strategyVesrsion++;
         emit StrategyCodeUpdated(strategyVesrsion - 1,strategyVesrsion);
+
         sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 
     function deployStrategy(address strategyOwner,address dePool, address vault) override external  {
         require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
+
         TvmCell stateInit = tvm.buildStateInit({
             contr: StrategyBase,
             varInit: {
                 nonce: strategyCount,
                 fabric: address(this),
-                strategyVesrsion: strategyVesrsion
+                strategyVesrsion: strategyVersion
             },
             pubkey: tvm.pubkey(),
             code: dePoolStrategyCode
@@ -68,8 +77,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             value: 0,
             wid: address(this).wid,
             flag: MsgFlag.ALL_NOT_RESERVED
-        }(vault,dePool);
-        emit NewStrategyDeployed(strategy, strategyVesrsion);
+        }(vault, dePool);
+        emit NewStrategyDeployed(strategy, strategyVersion);
     }
-
 }
