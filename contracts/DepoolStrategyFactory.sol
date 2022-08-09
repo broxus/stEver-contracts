@@ -1,4 +1,4 @@
-pragma ever-solidity >=0.61.0;
+pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
@@ -46,18 +46,18 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
 
-    function installNewStrategyCode(TvmCell _strategyCode, address sendGasTo) override external onlyOwner {
+    function installNewStrategyCode(TvmCell _strategyCode, address _sendGasTo) override external onlyOwner {
         require (msg.value >= UPGRADE_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(),0);
 
         dePoolStrategyCode = _strategyCode;
-        strategyVesrsion++;
-        emit StrategyCodeUpdated(strategyVesrsion - 1,strategyVesrsion);
+        strategyVersion++;
+        emit StrategyCodeUpdated(strategyVersion - 1,strategyVersion);
 
-        sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        _sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 
-    function deployStrategy(address strategyOwner,address dePool, address vault) override external  {
+    function deployStrategy(address _strategyOwner,address _dePool, address _vault) override external  {
         require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
@@ -66,7 +66,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             varInit: {
                 nonce: strategyCount,
                 fabric: address(this),
-                strategyVesrsion: strategyVersion
+                strategyVersion: strategyVersion
             },
             pubkey: tvm.pubkey(),
             code: dePoolStrategyCode
@@ -77,7 +77,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             value: 0,
             wid: address(this).wid,
             flag: MsgFlag.ALL_NOT_RESERVED
-        }(vault, dePool);
+        }(_vault, _dePool);
         emit NewStrategyDeployed(strategy, strategyVersion);
     }
 }

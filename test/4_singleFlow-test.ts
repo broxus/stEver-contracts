@@ -64,23 +64,20 @@ describe.skip("Single flow", async function () {
     await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(20);
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(19.4);
     const DEPOSIT_FEE = toNanoBn(0.6);
-    //TODO add balance checks
-    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
-      depositConfig: [
+      _depositConfigs: [
         [
           locklift.utils.getRandomNonce(),
           {
             strategy: strategiesWithPool[0].strategy.address,
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.minus(DEPOSIT_FEE).toString(),
+            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
             fee: DEPOSIT_FEE.toString(),
           },
         ],
       ],
     });
-    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
@@ -97,15 +94,18 @@ describe.skip("Single flow", async function () {
     );
 
     const stateAfter = await vault.getDetails();
-    expect(stateAfter.totalAssets).equals(
+    expect(stateAfter.totalAssets.toString()).equals(
       EXPECTED_REWARD.plus(stateBefore.totalAssets).toString(),
       "total assets should be increased by reward",
     );
-    expect(stateAfter.stEverSupply).equals(stateBefore.stEverSupply, "stever supply should be unchanged");
+    expect(stateAfter.stEverSupply.toString()).equals(
+      stateBefore.stEverSupply.toString(),
+      "stever supply should be unchanged",
+    );
   });
   it("user shouldn't receive because harvest from strategy have not evaluated yet, so reset pending withdraw request to the user", async () => {
     const WITHDRAW_AMOUNT = 10;
-
+    debugger;
     const { errorEvents } = await makeWithdrawToUsers({
       vaultContract: vault.vaultContract,
       users: [user1],
@@ -122,11 +122,9 @@ describe.skip("Single flow", async function () {
   });
   it("should successfully withdraw from strategy", async () => {
     const WITHDRAW_AMOUNT = 15;
-    await user1.depositToVault(locklift.utils.toNano(0.5));
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    expect(availableBalanceBefore).to.be.equals(locklift.utils.toNano(0.5));
     const withdrawSuccessEvents = await governance.withdrawFromStrategies({
-      withdrawConfig: [
+      _withdrawConfig: [
         [
           locklift.utils.getRandomNonce(),
           {
@@ -137,10 +135,8 @@ describe.skip("Single flow", async function () {
         ],
       ],
     });
-    const {
-      value0: { availableAssets: availableBalanceAfter },
-    } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(Number(availableBalanceAfter)).to.be.gt(Number(availableBalanceBefore));
+    const { availableAssets: availableBalanceAfter } = await vault.getDetails();
+    expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());
   });
   it("user should receive requested amount + reward + fee", async () => {
     const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([

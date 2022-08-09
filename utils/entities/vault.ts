@@ -3,6 +3,7 @@ import { Contract } from "locklift";
 import { User } from "./user";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
+import BigNumber from "bignumber.js";
 
 export class Vault {
   constructor(
@@ -32,7 +33,12 @@ export class Vault {
     this.vaultContract.methods
       .getDetails({ answerId: 0 })
       .call({})
-      .then(({ value0 }) => value0);
+      .then(({ value0 }) => ({
+        ...value0,
+        stEverSupply: new BigNumber(value0.stEverSupply),
+        totalAssets: new BigNumber(value0.totalAssets),
+        availableAssets: new BigNumber(value0.availableAssets),
+      }));
 }
 export const creteVault = async ({
   adminAccount,

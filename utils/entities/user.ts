@@ -19,7 +19,7 @@ export class User {
     const withdrawPayload = await this.vault.contract.methods
       .encodeDepositPayload({
         _nonce: nonce,
-        deposit_owner: this.account.address,
+        _deposit_owner: this.account.address,
       })
       .call();
     const txWithNonce = await locklift.tracing
@@ -112,7 +112,7 @@ export const createUserEntity = async (
   const vaultWallet = await TokenWallet.getWallet(locklift.provider, vaultContract.address, tokenRoot);
   const withdrawUserData = await vaultContract.methods
     .getAccountAddress({
-      user: account.address,
+      _user: account.address,
       answerId: 0,
     })
     .call({});

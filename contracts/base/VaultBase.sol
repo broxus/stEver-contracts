@@ -1,10 +1,11 @@
-pragma ever-solidity >=0.61.0;
+pragma ever-solidity >=0.62.0;
 
 
 import "./VaultStorage.sol";
 import "../interfaces/IVault.sol";
 import "../StEverAccount.sol";
 import "../Platform.sol";
+import "../utils/ErrorCodes.sol";
 
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
@@ -12,13 +13,13 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 abstract contract VaultBase is VaultStorage {
     //modifiers
     modifier onlyGovernanceAndAccept() {
-        require(msg.pubkey() == governance,NOT_GOVERNANCE);
+        require(msg.pubkey() == governance,ErrorCodes.NOT_GOVERNANCE);
         tvm.accept();
         _;
     }
 
     modifier onlyGovernanceOrSelfAndAccept() {
-        require(msg.pubkey() == governance || msg.sender == address(this),NOT_GOVERNANCE);
+        require(msg.pubkey() == governance || msg.sender == address(this),ErrorCodes.NOT_GOVERNANCE);
         tvm.accept();
         _;
     }
@@ -28,19 +29,19 @@ abstract contract VaultBase is VaultStorage {
         _;
     }
 
-    modifier onlyAccount(address user) {
-        address account = getAccountAddress(user);
-        require(msg.sender == account,NOT_USER_DATA);
+    modifier onlyAccount(address _user) {
+        address account = getAccountAddress(_user);
+        require(msg.sender == account,ErrorCodes.NOT_USER_DATA);
         _;
     }
 
     modifier onlyStrategy() {
-        require(strategies.exists(msg.sender),STRATEGY_NOT_EXISTS);
+        require(strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
         _;
     }
 
     modifier minCallValue() {
-        require(msg.value >= MIN_CALL_MSG_VALUE,LOW_MSG_VALUE);
+        require(msg.value >= MIN_CALL_MSG_VALUE, ErrorCodes.LOW_MSG_VALUE);
         _;
     }
 
@@ -54,9 +55,9 @@ abstract contract VaultBase is VaultStorage {
 		}(address(this), ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
-    function receiveTokenWalletAddress(address wallet) external virtual {
-        require (msg.sender == stTokenRoot, NOT_ROOT_WALLET);
-		stEverWallet = wallet;
+    function receiveTokenWalletAddress(address _wallet) external virtual {
+        require (msg.sender == stTokenRoot, ErrorCodes.NOT_ROOT_WALLET);
+		stEverWallet = _wallet;
 	}
     // setters
     function setGainFee(uint128 _gainFee) override external onlyOwner {
@@ -76,16 +77,16 @@ abstract contract VaultBase is VaultStorage {
 		return math.max(address(this).balance - (msg.value - _fee), CONTRACT_MIN_BALANCE);
 	}
 
-    function encodeDepositPayload(address deposit_owner, uint64 _nonce) external override pure returns (TvmCell deposit_payload) {
+    function encodeDepositPayload(address _deposit_owner, uint64 _nonce) external override pure returns (TvmCell deposit_payload) {
         TvmBuilder builder;
-        builder.store(deposit_owner);
+        builder.store(_deposit_owner);
         builder.store(_nonce);
         return builder.toCell();
     }
 
-    function decodeDepositPayload(TvmCell payload) public virtual view returns (address deposit_owner, uint64 nonce, bool correct) {
+    function decodeDepositPayload(TvmCell _payload) public virtual view returns (address deposit_owner, uint64 nonce, bool correct) {
         // check if payload assembled correctly
-        TvmSlice slice = payload.toSlice();
+        TvmSlice slice = _payload.toSlice();
         // 1 address and 1 cell
         if (!slice.hasNBitsAndRefs(267 + 32, 0)) {
             return (address.makeAddrNone(), 0, false);
@@ -112,9 +113,9 @@ abstract contract VaultBase is VaultStorage {
     }
 
     // account utils
-    function _buildAccountParams(address user) internal virtual view returns (TvmCell) {
+    function _buildAccountParams(address _user) internal virtual view returns (TvmCell) {
         TvmBuilder builder;
-        builder.store(user);
+        builder.store(_user);
         return builder.toCell();
     }
 
@@ -138,7 +139,7 @@ abstract contract VaultBase is VaultStorage {
 			});
 	}
 
-    function deployAccount(address user)
+    function deployAccount(address _user)
 		internal
 		virtual
 		returns (address)
@@ -147,12 +148,12 @@ abstract contract VaultBase is VaultStorage {
         constructor_params.store(accountVersion);
         constructor_params.store(accountVersion);
         return new Platform{
-            stateInit: _buildInitAccount(_buildAccountParams(user)),
+            stateInit: _buildInitAccount(_buildAccountParams(_user)),
             value: USER_DATA_DEPLOY_VALUE
-        }(accountCode, constructor_params.toCell(), user);
+        }(accountCode, constructor_params.toCell(), _user);
 	}
 
-    function getAccountAddress(address user)
+    function getAccountAddress(address _user)
 		public
 		view
 		virtual
@@ -161,7 +162,7 @@ abstract contract VaultBase is VaultStorage {
 	{
 		return
 			{value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
-				tvm.hash(_buildInitAccount(_buildAccountParams(user)))
+				tvm.hash(_buildInitAccount(_buildAccountParams(_user)))
 			);
 	}
 

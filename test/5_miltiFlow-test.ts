@@ -79,7 +79,7 @@ describe("Multi flow", async function () {
     const DEPOSIT_FEE = toNanoBn(0.6);
     console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
-      depositConfig: strategiesWithPool.map(({ strategy }) => [
+      _depositConfigs: strategiesWithPool.map(({ strategy }) => [
         locklift.utils.getRandomNonce(),
         {
           strategy: strategy.address,
@@ -114,18 +114,21 @@ describe("Multi flow", async function () {
     });
 
     const stateAfter = await vault.getDetails();
-    expect(stateAfter.totalAssets).equals(
+    expect(stateAfter.totalAssets.toString()).equals(
       EXPECTED_REWARD.times(strategiesWithPool.length).plus(stateBefore.totalAssets).toString(),
       "total assets should be increased by reward",
     );
-    expect(stateAfter.stEverSupply).equals(stateBefore.stEverSupply, "stever supply should be unchanged");
+    expect(stateAfter.stEverSupply.toNumber()).equals(
+      stateBefore.stEverSupply.toNumber(),
+      "stever supply should be unchanged",
+    );
   });
 
   it("should successfully withdraw from strategy", async () => {
     const WITHDRAW_AMOUNT = 15;
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
     const withdrawSuccessEvents = await governance.withdrawFromStrategies({
-      withdrawConfig: [
+      _withdrawConfig: [
         [
           locklift.utils.getRandomNonce(),
           {
@@ -136,10 +139,8 @@ describe("Multi flow", async function () {
         ],
       ],
     });
-    const {
-      value0: { availableAssets: availableBalanceAfter },
-    } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(Number(availableBalanceAfter)).to.be.gt(Number(availableBalanceBefore));
+    const { availableAssets: availableBalanceAfter } = await vault.getDetails();
+    expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());
   });
   // it("user should receive requested amount + reward + fee", async () => {
   //   const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([

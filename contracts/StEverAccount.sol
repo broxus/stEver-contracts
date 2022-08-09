@@ -1,8 +1,10 @@
-pragma ever-solidity >=0.61.0;
+pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
 import "./interfaces/IStEverAccount.sol";
 import "./interfaces/IVault.sol";
+import "./utils/ErrorCodes.sol";
+
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
@@ -22,10 +24,7 @@ contract StEverAccount is IStEverAccount {
     //constant
     uint128 constant CONTRACT_MIN_BALANCE = 0.1 ton;
     uint128 constant MAX_PENDING_COUNT = 50;
-    // errors
-    uint8 constant ONLY_VAULT = 101;
-    uint8 constant RECEIVED_BAD_VALUE = 102;
-    uint8 constant REQUEST_NOT_EXISTS = 103;
+
 
     // mappings
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
@@ -38,7 +37,7 @@ contract StEverAccount is IStEverAccount {
 
     }
     modifier onlyVault() {
-        require(msg.sender == vault,ONLY_VAULT);
+        require(msg.sender == vault, ErrorCodes.ONLY_VAULT);
         _;
     }
 
@@ -59,7 +58,7 @@ contract StEverAccount is IStEverAccount {
 				value: 0,
 				bounce: false,
 				flag: MsgFlag.REMAINING_GAS
-			} AccountDetails(pendingReturnedTokens,pendingReceiveEver,user);
+			} AccountDetails(pendingReturnedTokens, pendingReceiveEver,user);
 	}
 
     function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {
@@ -117,10 +116,10 @@ contract StEverAccount is IStEverAccount {
         );
     }
 
-    function onCodeUpgrade(TvmCell upgrade_data) private {
+    function onCodeUpgrade(TvmCell _upgrade_data) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = upgrade_data.toSlice();
+        TvmSlice s = _upgrade_data.toSlice();
         (address root_, , address send_gas_to, TvmCell platformCode) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 

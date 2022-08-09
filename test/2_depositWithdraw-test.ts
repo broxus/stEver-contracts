@@ -8,6 +8,7 @@ import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { TokenWallet } from "../utils/entities/tokenWallet";
+import BigNumber from "bignumber.js";
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -41,8 +42,9 @@ describe.skip("Deposit withdraw test", function () {
     const DEPOSIT_AMOUNT = toNanoBn(20);
     await user1.depositToVault(DEPOSIT_AMOUNT.toString());
     const balance = await user1.wallet.getBalance();
+    const { availableAssets } = await vault.getDetails();
     expect(balance.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "user should receive stEvers by rate 1:1");
-    const contract = locklift.factory.getDeployedContract("StEverAccount", new Address(""));
+    expect(availableAssets.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "vault should have availableAssets");
   });
   it("user shouldn't withdraw with bad value", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
@@ -51,7 +53,7 @@ describe.skip("Deposit withdraw test", function () {
     const withdrawPayload = await vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
-        deposit_owner: user1.account.address,
+        _deposit_owner: user1.account.address,
       })
       .call();
     await locklift.tracing.trace(
@@ -85,7 +87,7 @@ describe.skip("Deposit withdraw test", function () {
   });
   it("user should successfully withdraw", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
-
+    const { availableAssets: availableAssetsBeforeWithdraw } = await vault.getDetails();
     const userStBalanceBeforeWithdraw = await user1.wallet.getBalance();
     const { successEvents } = await makeWithdrawToUsers({
       vaultContract: vault.vaultContract,
@@ -98,10 +100,15 @@ describe.skip("Deposit withdraw test", function () {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
       expect(event.data.amount).to.equal(WITHDRAW_AMOUNT.toString(), "user should receive evers by rate 1:1");
     });
+    const { availableAssets: availableAssetsAfterWithdraw } = await vault.getDetails();
+
     const userStBalanceAfterWithdraw = await user1.wallet.getBalance();
     expect(userStBalanceAfterWithdraw.toString()).to.be.equals(
       userStBalanceBeforeWithdraw.minus(WITHDRAW_AMOUNT).toString(),
       "user balance should be reduced by withdraw amount",
+    );
+    expect(availableAssetsAfterWithdraw.toString()).to.be.equals(
+      availableAssetsBeforeWithdraw.minus(WITHDRAW_AMOUNT).toString(),
     );
   });
   it("user should remove withdraw request", async () => {

@@ -1,4 +1,4 @@
-pragma ever-solidity >=0.61.0;
+pragma ever-solidity >=0.62.0;
 
 
 import "../interfaces/IVault.sol";
@@ -37,23 +37,5 @@ abstract contract VaultStorage is IVault {
     uint32 accountVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
-    // TODO: dont specify type in name e.g remove Map from name
-    mapping(uint64 => PendingWithdraw) pendingWithdrawMap;
-
-    // TODO: move to library
-    // errors
-    uint8 constant NOT_GOVERNANCE = 101;
-    uint8 constant BAD_WITHDRAW_CONFIG = 102;
-    uint8 constant NOT_ENOUGH_VALUE = 103;
-    uint8 constant ONLY_ONE_VALUE_MOVE_PER_STEP = 104;
-    uint8 constant NOT_ROOT_WALLET = 105;
-    uint8 constant NOT_ENOUGH_ST_EVER = 106;
-    uint8 constant STRATEGY_NOT_EXISTS = 107;
-    uint8 constant NOT_ENOUGH_WITHDRAW_FEE = 108;
-    uint8 constant NOT_ENOUGH_DEPOSIT_VALUE = 109;
-    uint8 constant CANT_DEPOSIT_UNTILS_STRATEGY_IN_DEPOSIT_STATE = 110;
-    uint8 constant NOT_USER_DATA = 111;
-    uint8 constant LOW_MSG_VALUE = 112;
-    uint8 constant NOT_ENOUGH_VALUE_TO_DEPOSIT = 113;
-    uint8 constant NOT_ENOUGH_VALUE_TO_WITHDRAW = 114;
+    mapping(uint64 => PendingWithdraw) pendingWithdrawals;
 }
