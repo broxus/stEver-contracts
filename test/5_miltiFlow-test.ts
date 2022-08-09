@@ -1,7 +1,7 @@
 import { Address, Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, getAddressBalance, toNanoBn } from "../utils";
+import { assertEvent, getAddressEverBalance, getBalances, toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -11,17 +11,16 @@ import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { concatMap, from, lastValueFrom, range, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { intersectionWith } from "lodash";
 
-const TOKEN_ROOT_NAME = "StEver";
-const TOKEN_ROOT_SYMBOL = "STE";
-const ZERO_ADDRESS = new Address("0:0000000000000000000000000000000000000000000000000000000000000000");
 let signer: Signer;
 let admin: User;
 let governance: Governance;
 let user1: User;
 let user2: User;
+let user3: User;
+let user4: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
@@ -33,7 +32,7 @@ describe("Multi flow", async function () {
       vault: v,
       tokenRoot: tr,
       signer: s,
-      users: [adminUser, _, u1, u2],
+      users: [adminUser, _, u1, u2, u3, u4],
       governance: g,
       strategyFactory: st,
     } = await preparation();
@@ -43,6 +42,8 @@ describe("Multi flow", async function () {
     governance = g;
     user1 = u1;
     user2 = u2;
+    user3 = u3;
+    user4 = u4;
     tokenRoot = tr;
     strategyFactory = st;
   });
@@ -71,13 +72,15 @@ describe("Multi flow", async function () {
   it("users should deposit to vault", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(100);
     await lastValueFrom(
-      from([user1, user2]).pipe(concatMap(user => user.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT.toString()))),
+      from([user1, user2, user3, user4]).pipe(
+        concatMap(user => user.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT.toString())),
+      ),
     );
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(20);
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(130);
     const DEPOSIT_FEE = toNanoBn(0.6);
-    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       _depositConfigs: strategiesWithPool.map(({ strategy }) => [
         locklift.utils.getRandomNonce(),
@@ -88,11 +91,11 @@ describe("Multi flow", async function () {
         },
       ]),
     });
-    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
-    const ROUND_REWARD = toNanoBn(3);
+    const ROUND_REWARD = toNanoBn(123);
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
     await lastValueFrom(
       from(strategiesWithPool).pipe(concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString()))),
@@ -124,78 +127,76 @@ describe("Multi flow", async function () {
     );
   });
 
-  it("should successfully withdraw from strategy", async () => {
-    const WITHDRAW_AMOUNT = 15;
+  it("should successfully withdraw from strategies", async () => {
+    const WITHDRAW_AMOUNT = toNanoBn(250);
+    const FEE_AMOUNT = toNanoBn(0.1);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
     const withdrawSuccessEvents = await governance.withdrawFromStrategies({
-      _withdrawConfig: [
-        [
-          locklift.utils.getRandomNonce(),
-          {
-            strategy: strategiesWithPool[0].strategy.address,
-            amount: locklift.utils.toNano(WITHDRAW_AMOUNT),
-            fee: locklift.utils.toNano(0.1),
-          },
-        ],
-      ],
+      _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
+        locklift.utils.getRandomNonce(),
+        {
+          strategy: strategy.address,
+          amount: WITHDRAW_AMOUNT.toString(),
+          fee: FEE_AMOUNT.toString(),
+        },
+      ]),
     });
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
-    expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());
+    expect(availableBalanceAfter.toNumber()).to.be.gt(
+      availableBalanceBefore
+        .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length))
+        .minus(FEE_AMOUNT.times(strategiesWithPool.length))
+        .toNumber(),
+      "available balance should be increased by withdraw amount minus some fee",
+    );
+    expect(availableBalanceAfter.toNumber()).to.be.lt(
+      availableBalanceBefore
+        .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length).plus(FEE_AMOUNT.times(strategiesWithPool.length)))
+        .toNumber(),
+      "vault should pay some fees for withdrawing",
+    );
   });
-  // it("user should receive requested amount + reward + fee", async () => {
-  //   const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([
-  //     locklift.provider.getBalance(user1.account.address),
-  //     locklift.provider.getBalance(vault.vaultContract.address),
-  //   ]).then(([userBalanceBefore, vaultBalanceBefore]) => ({ userBalanceBefore, vaultBalanceBefore }));
-  //
-  //   const { value0: stateBeforeWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-  //   const withdrawalRate = new BigNumber(stateBeforeWithdraw.totalAssets).dividedBy(stateBeforeWithdraw.stEverSupply);
-  //
-  //   const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
-  //   const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
-  //   await governance.emitWithdraw({
-  //     sendConfig: [[locklift.utils.getRandomNonce(), { user: user1.account.address, nonces: [nonce] }]],
-  //   });
-  //   const { events: success } = await vault.vaultContract.getPastEvents({
-  //     filter: ({ event }) => event === "WithdrawSuccess",
-  //   });
-  //   assertEvent(success, "WithdrawSuccess");
-  //   const { value0: stateAfterWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-  //   expect(success[0].data.user.equals(user1.account.address)).to.be.true;
-  //
-  //   expect(success[0].data.amount).to.equal(expectedEverAmountWithReward);
-  //
-  //   expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(expectedEverAmountWithReward).toString()).to.be.equals(
-  //     stateAfterWithdraw.totalAssets,
-  //     "totalAssets should be reduced by the amount withdrawn",
-  //   );
-  //
-  //   expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(success[0].data.amount).toString()).to.be.equals(
-  //     stateAfterWithdraw.totalAssets,
-  //   );
-  //
-  //   expect(new BigNumber(stateBeforeWithdraw.stEverSupply).minus(withdrawAmount).toString()).to.be.equals(
-  //     stateAfterWithdraw.stEverSupply,
-  //     "stEverSupply should be reduced by the amount withdrawn",
-  //   );
-  //   const { userBalanceAfter, vaultBalanceAfter } = await Promise.all([
-  //     locklift.provider.getBalance(user1.account.address),
-  //     locklift.provider.getBalance(vault.vaultContract.address),
-  //   ]).then(([userBalanceAfter, vaultBalanceAfter]) => ({ userBalanceAfter, vaultBalanceAfter }));
-  //
-  //   const returnedFeeToUser = new BigNumber(userBalanceAfter)
-  //     .minus(userBalanceBefore)
-  //     .minus(expectedEverAmountWithReward);
-  //   expect(returnedFeeToUser.toNumber()).to.be.above(
-  //     0,
-  //     "user should receive more than reward because we should send back attached fee from withdraw request",
-  //   );
-  //
-  //   const payedVaultFee = new BigNumber(vaultBalanceBefore)
-  //     .minus(vaultBalanceAfter)
-  //     .minus(expectedEverAmountWithReward)
-  //     .minus(returnedFeeToUser);
-  //
-  //   expect(payedVaultFee.toNumber()).to.be.above(0, "vault should pay a fee for iteration under withdrawal ");
-  // });
+  it("users should receive requested amount + reward + fee", async () => {
+    const users = [user1, user2, user3, user4];
+    const balancesBefore = await getBalances(users.map(user => user.account.address));
+
+    const withdrawalRate = await vault.getRate();
+    const WITHDRAW_AMOUNT_FOR_EACH_REQUEST = toNanoBn(20);
+    const COUNT_OF_REQUESTS = 4;
+    const expectedAmountToReceive = WITHDRAW_AMOUNT_FOR_EACH_REQUEST.times(COUNT_OF_REQUESTS)
+      .times(withdrawalRate)
+      //minus 1 ever for fees
+      .minus(toNanoBn(1));
+
+    const withdrawNonces = await lastValueFrom(
+      //4 users
+      from(users).pipe(
+        //each user makes COUNT_OF_REQUESTS withdraw requests
+        concatMap(user =>
+          range(COUNT_OF_REQUESTS).pipe(
+            concatMap(() => user.makeWithdrawRequest(WITHDRAW_AMOUNT_FOR_EACH_REQUEST.toString())),
+            map(({ nonce }) => nonce),
+            toArray(),
+            map(nonces => ({ user, nonces })),
+          ),
+        ),
+        toArray(),
+      ),
+    );
+    await governance.emitWithdraw({
+      sendConfig: withdrawNonces.map(({ nonces, user }) => [
+        locklift.utils.getRandomNonce(),
+        { user: user.account.address, nonces },
+      ]),
+    });
+
+    const balancesAfterWithdraw = await getBalances(users.map(user => user.account.address));
+
+    balancesAfterWithdraw.forEach((balanceAfter, index) => {
+      expect(balanceAfter.toNumber()).to.be.gt(
+        balancesBefore[index].plus(expectedAmountToReceive).toNumber(),
+        "user should receive deposited amount + reward",
+      );
+    });
+  });
 });

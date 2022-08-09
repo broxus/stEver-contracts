@@ -4,10 +4,10 @@ import { User } from "./entities/user";
 import { concatMap, from, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
 import { Contract, Signer } from "locklift";
-import { VaultAbi } from "../build/factorySource";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
+import { StEverVaultAbi } from "../build/factorySource";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -18,7 +18,7 @@ export const makeWithdrawToUsers = async ({
   amount: string;
   users: Array<User>;
   governance: Governance;
-  vaultContract: Contract<VaultAbi>;
+  vaultContract: Contract<StEverVaultAbi>;
 }) => {
   const withdrawSetup = (await from(users)
     .pipe(

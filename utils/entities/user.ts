@@ -15,6 +15,7 @@ export class User {
   ) {}
 
   makeWithdrawRequest = async (amount: string) => {
+    const vaultBalanceBefore = await this.vault.wallet.getBalance();
     const nonce = locklift.utils.getRandomNonce();
     const withdrawPayload = await this.vault.contract.methods
       .encodeDepositPayload({
@@ -42,7 +43,10 @@ export class User {
         { allowedCodes: { compute: [null] } },
       )
       .then(res => ({ ...res, nonce }));
-    expect(await this.vault.wallet.getBalance().then(res => res.toString())).to.be.equals(amount);
+
+    expect(await this.vault.wallet.getBalance().then(res => res.toString())).to.be.equals(
+      vaultBalanceBefore.plus(amount).toString(),
+    );
     const { events: withdrawRequestEvents } = await this.vault.contract.getPastEvents({
       filter: event => event.event === "WithdrawRequest",
     });

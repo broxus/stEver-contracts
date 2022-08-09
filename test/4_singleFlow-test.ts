@@ -1,7 +1,7 @@
-import { Address, Contract, Signer } from "locklift";
+import { Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, getAddressBalance, toNanoBn } from "../utils";
+import { assertEvent, toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -12,9 +12,6 @@ import BigNumber from "bignumber.js";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 
-const TOKEN_ROOT_NAME = "StEver";
-const TOKEN_ROOT_SYMBOL = "STE";
-const ZERO_ADDRESS = new Address("0:0000000000000000000000000000000000000000000000000000000000000000");
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -25,7 +22,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe.skip("Single flow", async function () {
+describe("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -60,11 +57,11 @@ describe.skip("Single flow", async function () {
     );
   });
   it("user should deposit to vault", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = 120;
     await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(19.4);
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
     const DEPOSIT_FEE = toNanoBn(0.6);
     await governance.depositToStrategies({
       _depositConfigs: [
@@ -121,7 +118,7 @@ describe.skip("Single flow", async function () {
     expect(amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
   });
   it("should successfully withdraw from strategy", async () => {
-    const WITHDRAW_AMOUNT = 15;
+    const WITHDRAW_AMOUNT = toNanoBn(100);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
     const withdrawSuccessEvents = await governance.withdrawFromStrategies({
       _withdrawConfig: [
@@ -129,7 +126,7 @@ describe.skip("Single flow", async function () {
           locklift.utils.getRandomNonce(),
           {
             strategy: strategiesWithPool[0].strategy.address,
-            amount: locklift.utils.toNano(WITHDRAW_AMOUNT),
+            amount: WITHDRAW_AMOUNT.toString(),
             fee: locklift.utils.toNano(0.1),
           },
         ],

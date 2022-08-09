@@ -57,7 +57,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         _sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 
-    function deployStrategy(address _strategyOwner,address _dePool, address _vault) override external  {
+    function deployStrategy(address _dePool, address _vault) override external  {
         require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 

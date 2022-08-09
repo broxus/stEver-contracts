@@ -1,5 +1,5 @@
 import { Account, AccountFactory } from "locklift/build/factory";
-import { TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../build/factorySource";
+import { TokenRootUpgradeableAbi, WalletAbi } from "../build/factorySource";
 import { concatMap, from, map, range, toArray } from "rxjs";
 import { Address, Contract, Signer } from "locklift";
 import { expect } from "chai";
@@ -20,7 +20,7 @@ export const preparation = async (): Promise<{
   const signer = (await locklift.keystore.getSigner("0"))!;
   const governanceKeyPair = (await locklift.keystore.getSigner("1"))!;
   const accountFactory = locklift.factory.getAccountsFactory("Wallet");
-  const accounts = await deployUsers(4, accountFactory, signer);
+  const accounts = await deployUsers(6, accountFactory, signer);
   const [adminUser] = accounts;
   const tokenRoot = await deployTokenRoot({ signer, owner: adminUser.address });
   const vault = await deployVault({ owner: adminUser, signer, governance: governanceKeyPair, tokenRoot });
@@ -131,7 +131,7 @@ const deployVault = async ({
 
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
-      contract: "Vault",
+      contract: "StEverVault",
       value: locklift.utils.toNano(2),
       constructorParams: {
         _owner: owner.address,

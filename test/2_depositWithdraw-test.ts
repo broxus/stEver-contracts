@@ -2,13 +2,11 @@ import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { assertEvent, toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Address, Contract, Signer } from "locklift";
+import { Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
-import { TokenWallet } from "../utils/entities/tokenWallet";
-import BigNumber from "bignumber.js";
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -16,7 +14,6 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let vaultTokenWallet: TokenWallet;
 
 describe.skip("Deposit withdraw test", function () {
   before(async () => {

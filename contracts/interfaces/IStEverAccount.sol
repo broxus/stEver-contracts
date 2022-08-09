@@ -1,7 +1,7 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../interfaces/IVault.sol";
+import "../interfaces/IStEverVault.sol";
 
 interface IStEverAccount {
     event Receive(uint128 amount);

@@ -1,7 +1,7 @@
 import { Contract, Signer } from "locklift";
 import { DepoolStrategyFactoryAbi, StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
-import { getAddressBalance } from "../index";
+import { getAddressEverBalance } from "../index";
 
 export class DePoolStrategyWithPool {
   constructor(
@@ -51,7 +51,7 @@ export const createStrategy = async ({
     deployValue: strategyDeployValue,
     dePool: dePool.contract.address,
   });
-  console.log(`strategy balance: ${await getAddressBalance(strategyAddress)}`);
+  console.log(`strategy balance: ${await getAddressEverBalance(strategyAddress)}`);
 
   return new DePoolStrategyWithPool(
     dePool.contract,

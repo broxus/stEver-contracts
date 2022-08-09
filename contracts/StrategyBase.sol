@@ -3,7 +3,7 @@ pragma AbiHeader expire;
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IParticipant.sol";
 import "./interfaces/IDePool.sol";
-import "./interfaces/IVault.sol";
+import "./interfaces/IStEverVault.sol";
 import "./utils/ErrorCodes.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
@@ -93,7 +93,7 @@ contract StrategyBase is IStrategy,IParticipant {
         if (_amount < minStake) {
            return depositNotHandled(STAKE_TO_SMALL);
         }
-        depositToDepool(_amount, vault);
+        depositToDepool(_amount);
     }
 
     function withdraw(uint128 _amount) override external onlyVault {
@@ -102,7 +102,7 @@ contract StrategyBase is IStrategy,IParticipant {
        withdrawFromDePool(_amount);
     }
 
-    function depositToDepool(uint128 _amount, address _remaining_gas_to) internal {
+    function depositToDepool(uint128 _amount) internal {
         IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
     }
 
@@ -132,15 +132,15 @@ contract StrategyBase is IStrategy,IParticipant {
     }
 
     function depositHandled() internal {
-        IVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
+        IStEverVault(vault).onStrategyHandledDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}();
     }
 
     function depositNotHandled(uint32 _errcode) internal {
-        IVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}(_errcode);
+        IStEverVault(vault).onStrategyDidntHandleDeposit{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce:false}(_errcode);
     }
 
     function withdrawError(uint32 _errcode) internal {
-        IVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
+        IStEverVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
     function onTransfer(address source, uint128 amount) override external {
@@ -150,7 +150,7 @@ contract StrategyBase is IStrategy,IParticipant {
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
         if(msg.sender == dePool) {
-            IVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+            IStEverVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
     }
 
@@ -170,7 +170,7 @@ contract StrategyBase is IStrategy,IParticipant {
         if (address(this).balance < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
-        IVault(vault).strategyReport{value: 0.1 ever, flag: MsgFlag.REMAINING_GAS, bounce: false}(_reward, 0, _ordinaryStake, requestedBalance);
+        IStEverVault(vault).strategyReport{value: 0.1 ever, flag: MsgFlag.REMAINING_GAS, bounce: false}(_reward, 0, _ordinaryStake, requestedBalance);
     }
 
 }

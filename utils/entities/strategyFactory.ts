@@ -19,7 +19,6 @@ export class StrategyFactory {
           },
           factory =>
             factory.methods.deployStrategy({
-              _strategyOwner: this.owner.address,
               _vault: this.vault.vaultContract.address,
               _dePool: dePool,
             }),

@@ -7,7 +7,7 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { assertEvent, getAddressBalance, toNanoBn } from "../utils";
+import { assertEvent, getAddressEverBalance, toNanoBn } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { concatMap, lastValueFrom, range, toArray } from "rxjs";
 import _ from "lodash";
@@ -61,13 +61,13 @@ describe("Strategy base", function () {
     expect(strategyAddedEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(19.4);
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
     const DEPOSIT_FEE = new BigNumber(locklift.utils.toNano(0.6));
 
-    await user1.depositToVault(toNanoBn(100).toString());
+    await user1.depositToVault(toNanoBn(140).toString());
     const vaultStateBefore = await vault.getDetails();
 
-    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       _depositConfigs: [
         [
@@ -105,29 +105,64 @@ describe("Strategy base", function () {
       vaultStateBefore.availableAssets.minus(DEPOSIT_TO_STRATEGIES_AMOUNT).minus(DEPOSIT_FEE).toNumber(),
       "some fee should be returned",
     );
+    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
+    expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
+    expect(strategyInfo.totalGain).to.be.equals("0");
+    expect(strategyInfo.lastReport).to.be.equals("0");
     console.log(`Returned strategy fee is ${locklift.utils.fromNano(events[0].data.returnedFee)}`);
-    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
-  it("governance shouldn't deposit to strategy with low value", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 20;
-    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
-
-    console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
-    console.log(`strategy balance before ${await getAddressBalance(strategy.strategy.address)}`);
-    await governance.depositToStrategies({
-      _depositConfigs: [
+  it("strategy state should be changed after report", async () => {
+    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+    const ROUND_REWARD = toNanoBn(10);
+    await strategy.emitDePoolRoundComplete(ROUND_REWARD.toString());
+    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+    expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
+    expect(strategyInfoAfter.totalAssets).to.be.equals(ROUND_REWARD.plus(strategyInfoBefore.totalAssets).toString());
+  });
+  it("strategy state should be changed after withdraw", async () => {
+    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+    const WITHDRAW_AMOUNT = toNanoBn(100);
+    await governance.withdrawFromStrategies({
+      _withdrawConfig: [
         [
           locklift.utils.getRandomNonce(),
-          { fee: locklift.utils.toNano(0.6), amount: locklift.utils.toNano(0.1), strategy: strategy.strategy.address },
+          { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
         ],
       ],
     });
+    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+
+    expect(new BigNumber(strategyInfoBefore.totalAssets).minus(WITHDRAW_AMOUNT).toString()).to.be.equals(
+      strategyInfoAfter.totalAssets.toString(),
+    );
+  });
+  it.skip("governance shouldn't deposit to strategy with low value", async () => {
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = 100;
+    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
+
+    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
+    console.log(`strategy balance before ${await getAddressEverBalance(strategy.strategy.address)}`);
+    const result = await governance
+      .depositToStrategies({
+        _depositConfigs: [
+          [
+            locklift.utils.getRandomNonce(),
+            {
+              fee: locklift.utils.toNano(0.6),
+              amount: locklift.utils.toNano(0.1),
+              strategy: strategy.strategy.address,
+            },
+          ],
+        ],
+      })
+      .catch(e => ({ error: true }));
     const { events } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "StrategyDidntHandleDeposit",
     });
     assertEvent(events, "StrategyDidntHandleDeposit");
-    console.log(`strategy balance after ${await getAddressBalance(strategy.strategy.address)}`);
-    console.log(`vault balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`strategy balance after ${await getAddressEverBalance(strategy.strategy.address)}`);
+    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
   it("should strategy request value from vault", async () => {
     const strategyWithDePool = await createAndRegisterStrategy({
@@ -138,7 +173,7 @@ describe("Strategy base", function () {
       poolDeployValue: locklift.utils.toNano(200),
       strategyFactory,
     });
-    console.log(`strategy balance before ${await getAddressBalance(strategyWithDePool.strategy.address)}`);
+    console.log(`strategy balance before ${await getAddressEverBalance(strategyWithDePool.strategy.address)}`);
     const strategyBalanceBeforeReport = await strategyWithDePool.getStrategyBalance();
     await user1.depositToVault(locklift.utils.toNano(100));
     await governance.depositToStrategies({
@@ -147,7 +182,7 @@ describe("Strategy base", function () {
           locklift.utils.getRandomNonce(),
           {
             strategy: strategyWithDePool.strategy.address,
-            amount: locklift.utils.toNano(20),
+            amount: locklift.utils.toNano(100),
             fee: locklift.utils.toNano(0.6),
           },
         ],
@@ -160,7 +195,22 @@ describe("Strategy base", function () {
       "strategy balance should be increased",
     );
   });
-  it("should created and deposited to 110 strategies", async () => {
+  it("should validate deposit request", async () => {
+    const result = await vault.vaultContract.methods
+      .validateDepositRequest({
+        _depositConfigs: _.range(0, 120).map(() => [
+          locklift.utils.getRandomNonce(),
+          {
+            strategy: strategy.strategy.address,
+            amount: locklift.utils.toNano(90),
+            fee: locklift.utils.toNano(0.6),
+          },
+        ]),
+      })
+      .call();
+    expect(result.value0.length).to.be.equals(120);
+  });
+  it.skip("should created and deposited to 110 strategies", async () => {
     const strategies = await lastValueFrom(
       range(2).pipe(
         concatMap(() =>
@@ -177,11 +227,11 @@ describe("Strategy base", function () {
       ),
     );
     await user1.depositToVault(locklift.utils.toNano(3000));
-    console.log(`Vaults balance before ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
     await governance.depositToStrategies({
       _depositConfigs: _.range(0, 55)
-        .reduce((acc, next) => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
+        .reduce(acc => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
         .map(strategy => [
           locklift.utils.getRandomNonce(),
           {
@@ -191,6 +241,6 @@ describe("Strategy base", function () {
           },
         ]),
     });
-    console.log(`Vaults balance after ${await getAddressBalance(vault.vaultContract.address)}`);
+    console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
 });
