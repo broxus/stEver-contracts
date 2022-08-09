@@ -1,7 +1,7 @@
 import { Address, Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, getAddressBalance } from "../utils";
+import { assertEvent, getAddressBalance, toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -25,7 +25,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe("Single flow", async function () {
+describe.skip("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -64,8 +64,9 @@ describe("Single flow", async function () {
     await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = new BigNumber(locklift.utils.toNano(20));
-    const DEPOSIT_FEE = new BigNumber(locklift.utils.toNano(0.6));
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(20);
+    const DEPOSIT_FEE = toNanoBn(0.6);
+    //TODO add balance checks
     console.log(`vault balance before ${await getAddressBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       depositConfig: [
@@ -141,7 +142,7 @@ describe("Single flow", async function () {
     } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     expect(Number(availableBalanceAfter)).to.be.gt(Number(availableBalanceBefore));
   });
-  it("user should receive requested amount + reward", async () => {
+  it("user should receive requested amount + reward + fee", async () => {
     const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([
       locklift.provider.getBalance(user1.account.address),
       locklift.provider.getBalance(vault.vaultContract.address),

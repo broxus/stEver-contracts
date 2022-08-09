@@ -2,7 +2,7 @@ import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { assertEvent, toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Contract, Signer } from "locklift";
+import { Address, Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -17,7 +17,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let vaultTokenWallet: TokenWallet;
 
-describe("Deposit withdraw test", function () {
+describe.skip("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,
@@ -42,6 +42,7 @@ describe("Deposit withdraw test", function () {
     await user1.depositToVault(DEPOSIT_AMOUNT.toString());
     const balance = await user1.wallet.getBalance();
     expect(balance.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "user should receive stEvers by rate 1:1");
+    const contract = locklift.factory.getDeployedContract("StEverAccount", new Address(""));
   });
   it("user shouldn't withdraw with bad value", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
