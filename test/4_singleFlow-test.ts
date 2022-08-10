@@ -1,7 +1,7 @@
 import { Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, toNanoBn } from "../utils";
+import { toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -22,7 +22,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe.skip("Single flow", async function () {
+describe("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -53,7 +53,7 @@ describe.skip("Single flow", async function () {
         poolDeployValue: locklift.utils.toNano(200),
         strategyDeployValue: locklift.utils.toNano(12),
         strategyFactory,
-      }),
+      }).then(({ strategy }) => strategy),
     );
   });
   it("user should deposit to vault", async () => {
@@ -80,9 +80,12 @@ describe.skip("Single flow", async function () {
     const stateBefore = await vault.getDetails();
     const ROUND_REWARD = locklift.utils.toNano(3);
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
-    await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD);
-    const { events } = await vault.vaultContract.getPastEvents({ filter: ({ event }) => event === "StrategyReported" });
-    assertEvent(events, "StrategyReported");
+    const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD);
+
+    const events = await vault.getEventsAfterTransaction({
+      eventName: "StrategyReported",
+      parentTransaction: transaction,
+    });
 
     expect(events[0].data.strategy.equals(strategiesWithPool[0].strategy.address)).to.be.true;
     expect(events[0].data.report.gain).to.be.equals(
@@ -104,12 +107,11 @@ describe.skip("Single flow", async function () {
     const WITHDRAW_AMOUNT = 10;
     debugger;
     const { errorEvents } = await makeWithdrawToUsers({
-      vaultContract: vault.vaultContract,
+      vault: vault,
       users: [user1],
       governance,
       amount: locklift.utils.toNano(WITHDRAW_AMOUNT),
     });
-    assertEvent(errorEvents, "WithdrawError");
     expect(errorEvents[0].data.user.equals(user1.account.address)).to.be.true;
     expect(errorEvents[0].data.amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
 
@@ -146,13 +148,14 @@ describe.skip("Single flow", async function () {
 
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
     const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
-    await governance.emitWithdraw({
+    const { transaction } = await governance.emitWithdraw({
       sendConfig: [[locklift.utils.getRandomNonce(), { user: user1.account.address, nonces: [nonce] }]],
     });
-    const { events: success } = await vault.vaultContract.getPastEvents({
-      filter: ({ event }) => event === "WithdrawSuccess",
+    const success = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawSuccess",
+      parentTransaction: transaction,
     });
-    assertEvent(success, "WithdrawSuccess");
+
     const { value0: stateAfterWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     expect(success[0].data.user.equals(user1.account.address)).to.be.true;
 

@@ -1,10 +1,11 @@
-import { StEverVaultAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
+import { StEverVaultAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
 import { AbiEventName, Address, Contract, DecodedEventWithTransaction, Transaction } from "locklift";
 import { User } from "./user";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { assertEvent } from "../index";
+import { Account } from "locklift/build/factory";
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
   DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>,
@@ -12,7 +13,7 @@ type ExtractEvent<T extends VaultEvents> = Extract<
 >;
 export class Vault {
   constructor(
-    private readonly adminAccount: User,
+    private readonly adminAccount: Account<WalletAbi>,
     public readonly vaultContract: Contract<StEverVaultAbi>,
     private readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
     public readonly tokenWallet: TokenWallet,
@@ -20,7 +21,7 @@ export class Vault {
 
   initialize = async () => {
     await locklift.tracing.trace(
-      this.adminAccount.account.runTarget(
+      this.adminAccount.runTarget(
         {
           contract: this.vaultContract,
         },
@@ -93,8 +94,9 @@ export class Vault {
   }) => {
     return (await this.vaultContract
       .getPastEvents({
-        filter: ({ event, transaction }) =>
-          event === eventName && transaction.prevTransactionId?.lt === parentTransaction.id.lt,
+        filter: ({ event, transaction }) => {
+          return event === eventName && transaction.createdAt >= parentTransaction.createdAt;
+        },
       })
       .then(res => res.events)) as Array<ExtractEvent<T>>;
   };
@@ -105,7 +107,7 @@ export const creteVault = async ({
   tokenRootContract,
   vaultContract,
 }: {
-  adminAccount: User;
+  adminAccount: Account<WalletAbi>;
   vaultContract: Contract<StEverVaultAbi>;
   tokenRootContract: Contract<TokenRootUpgradeableAbi>;
 }): Promise<Vault> => {

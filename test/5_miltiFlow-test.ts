@@ -6,7 +6,7 @@ import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
+import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { GAIN_FEE } from "../utils/constants";
@@ -26,7 +26,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe.skip("Multi flow", async function () {
+describe("Multi flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -64,6 +64,7 @@ describe.skip("Multi flow", async function () {
               strategyFactory,
             }),
           ),
+          map(({ strategy }) => strategy),
           toArray(),
         ),
       )),
@@ -142,6 +143,7 @@ describe.skip("Multi flow", async function () {
       ]),
     });
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
+
     expect(availableBalanceAfter.toNumber()).to.be.gt(
       availableBalanceBefore
         .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length))
@@ -149,6 +151,7 @@ describe.skip("Multi flow", async function () {
         .toNumber(),
       "available balance should be increased by withdraw amount minus some fee",
     );
+
     expect(availableBalanceAfter.toNumber()).to.be.lt(
       availableBalanceBefore
         .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length).plus(FEE_AMOUNT.times(strategiesWithPool.length)))

@@ -1,44 +1,43 @@
-import { assertEvent } from "./index";
-import { expect } from "chai";
 import { User } from "./entities/user";
-import { concatMap, from, map, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { Contract, Signer } from "locklift";
+import { Signer, Transaction } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
-import { StEverVaultAbi } from "../build/factorySource";
 
 export const makeWithdrawToUsers = async ({
   amount,
   users,
   governance,
-  vaultContract,
+  vault,
 }: {
   amount: string;
   users: Array<User>;
   governance: Governance;
-  vaultContract: Contract<StEverVaultAbi>;
+  vault: Vault;
 }) => {
-  const withdrawSetup = (await from(users)
-    .pipe(
+  const withdrawSetup = await lastValueFrom(
+    from(users).pipe(
       concatMap(user => from(user.makeWithdrawRequest(amount)).pipe(map(({ nonce }) => ({ user, nonce })))),
       toArray(),
-    )
-    .toPromise())!;
+    ),
+  );
 
-  await governance.emitWithdraw({
+  const { transaction } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [
       locklift.utils.getRandomNonce(),
       { user: user.account.address, nonces: [nonce] },
     ]),
   });
 
-  const { events: withdrawSuccessEvents } = await vaultContract.getPastEvents({
-    filter: event => event.event === "WithdrawSuccess",
+  const withdrawSuccessEvents = await vault.getEventsAfterTransaction({
+    eventName: "WithdrawSuccess",
+    parentTransaction: transaction,
   });
-  const { events: withdrawErrorEvents } = await vaultContract.getPastEvents({
-    filter: event => event.event === "WithdrawError",
+  const withdrawErrorEvents = await vault.getEventsAfterTransaction({
+    eventName: "WithdrawError",
+    parentTransaction: transaction,
   });
 
   return {
@@ -61,7 +60,7 @@ export const createAndRegisterStrategy = async ({
   poolDeployValue: string;
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
-}): Promise<DePoolStrategyWithPool> => {
+}): Promise<{ strategy: DePoolStrategyWithPool; transaction: Transaction }> => {
   const strategy = await createStrategy({
     vaultContract: vault.vaultContract,
     signer,
@@ -70,10 +69,10 @@ export const createAndRegisterStrategy = async ({
     strategyFactory,
   });
 
-  await locklift.tracing.trace(
+  const { transaction } = await locklift.tracing.trace(
     vault.vaultContract.methods
       .addStrategy({ _strategy: strategy.strategy.address })
       .sendExternal({ publicKey: governance.keyPair.publicKey }),
   );
-  return strategy;
+  return { strategy, transaction };
 };

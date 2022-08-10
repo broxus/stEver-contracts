@@ -1,5 +1,5 @@
 import { makeWithdrawToUsers } from "../utils/highOrderUtils";
-import { assertEvent, toNanoBn } from "../utils";
+import { toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
 import { Contract, Signer } from "locklift";
@@ -15,7 +15,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 
-describe.skip("Deposit withdraw test", function () {
+describe("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,
@@ -53,7 +53,7 @@ describe.skip("Deposit withdraw test", function () {
         _deposit_owner: user1.account.address,
       })
       .call();
-    await locklift.tracing.trace(
+    const { transaction } = await locklift.tracing.trace(
       user1.account.runTarget(
         {
           contract: user1.wallet.walletContract,
@@ -71,10 +71,11 @@ describe.skip("Deposit withdraw test", function () {
       ),
       { allowedCodes: { compute: [null] } },
     );
-    const { events } = await vault.vaultContract.getPastEvents({
-      filter: ({ event }) => event === "BadWithdrawRequest",
+
+    const events = await vault.getEventsAfterTransaction({
+      eventName: "BadWithdrawRequest",
+      parentTransaction: transaction,
     });
-    assertEvent(events, "BadWithdrawRequest");
     expect(events[0].data.user.equals(user1.account.address)).to.be.true;
     expect(events[0].data.amount).to.be.equals(WITHDRAW_AMOUNT.toString());
     expect(tokenBalanceBeforeWithdraw.toString()).to.be.equals(
@@ -87,12 +88,11 @@ describe.skip("Deposit withdraw test", function () {
     const { availableAssets: availableAssetsBeforeWithdraw } = await vault.getDetails();
     const userStBalanceBeforeWithdraw = await user1.wallet.getBalance();
     const { successEvents } = await makeWithdrawToUsers({
-      vaultContract: vault.vaultContract,
+      vault: vault,
       users: [user1],
       governance,
       amount: WITHDRAW_AMOUNT.toString(),
     });
-    assertEvent(successEvents, "WithdrawSuccess");
     successEvents.forEach(event => {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
       expect(event.data.amount).to.equal(WITHDRAW_AMOUNT.toString(), "user should receive evers by rate 1:1");
@@ -121,11 +121,13 @@ describe.skip("Deposit withdraw test", function () {
       DEPOSIT_AMOUNT.toString(),
       "user should have withdraw request with amount equals to requested amount",
     );
-    await user1.removeWithdrawRequest(nonce);
-    const { events } = await vault.vaultContract.getPastEvents({
-      filter: ({ event }) => event === "WithdrawRequestRemoved",
+    const { transaction } = await user1.removeWithdrawRequest(nonce);
+
+    const withdrawRequestRemoverEvents = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawRequestRemoved",
+      parentTransaction: transaction,
     });
-    assertEvent(events, "WithdrawRequestRemoved");
+    expect(withdrawRequestRemoverEvents.length).to.be.equals(1);
     const withdrawRequestNotExisted = await user1
       .getWithdrawRequests()
       .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));

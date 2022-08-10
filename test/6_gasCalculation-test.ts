@@ -9,8 +9,7 @@ import { Vault } from "../utils/entities/vault";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { assertEvent, getAddressEverBalance, toNanoBn } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, lastValueFrom, range, toArray } from "rxjs";
-import _ from "lodash";
+
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 
@@ -53,7 +52,7 @@ describe.skip("Gas calculation", function () {
       strategyDeployValue: locklift.utils.toNano(12),
       poolDeployValue: locklift.utils.toNano(200),
       strategyFactory,
-    });
+    }).then(({ strategy }) => strategy);
     const { events: strategyAddedEvents } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "StrategyAdded",
     });

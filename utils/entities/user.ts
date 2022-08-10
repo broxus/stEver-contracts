@@ -1,23 +1,24 @@
 import { Account } from "locklift/build/factory";
-import { StEverAccountAbi, TokenRootUpgradeableAbi, VaultAbi, WalletAbi } from "../../build/factorySource";
+import { StEverAccountAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
 import { Contract } from "locklift";
 import { assertEvent } from "../index";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
+import { Vault } from "./vault";
 
 export class User {
   constructor(
     public readonly account: Account<WalletAbi>,
     public readonly wallet: TokenWallet,
-    protected readonly vault: { contract: Contract<VaultAbi>; wallet: TokenWallet },
+    protected readonly vault: Vault,
     public readonly withdrawUserData: Contract<StEverAccountAbi>,
   ) {}
 
   makeWithdrawRequest = async (amount: string) => {
-    const vaultBalanceBefore = await this.vault.wallet.getBalance();
+    const vaultBalanceBefore = await this.vault.tokenWallet.getBalance();
     const nonce = locklift.utils.getRandomNonce();
-    const withdrawPayload = await this.vault.contract.methods
+    const withdrawPayload = await this.vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
         _deposit_owner: this.account.address,
@@ -36,7 +37,7 @@ export class User {
               deployWalletValue: 0,
               amount,
               notify: true,
-              recipient: this.vault.contract.address,
+              recipient: this.vault.vaultContract.address,
               payload: withdrawPayload.deposit_payload,
             }),
         ),
@@ -44,23 +45,26 @@ export class User {
       )
       .then(res => ({ ...res, nonce }));
 
-    expect(await this.vault.wallet.getBalance().then(res => res.toString())).to.be.equals(
+    expect(await this.vault.tokenWallet.getBalance().then(res => res.toString())).to.be.equals(
       vaultBalanceBefore.plus(amount).toString(),
     );
-    const { events: withdrawRequestEvents } = await this.vault.contract.getPastEvents({
-      filter: event => event.event === "WithdrawRequest",
+    // const { events: withdrawRequestEvents } = await this.vault.vaultContract.getPastEvents({
+    //   filter: event => event.event === "WithdrawRequest",
+    // });
+    const withdrawRequestEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "WithdrawRequest",
+      parentTransaction: txWithNonce.transaction,
     });
-    assertEvent(withdrawRequestEvents, "WithdrawRequest");
     expect(withdrawRequestEvents[0].data.user.equals(this.account.address)).to.be.true;
     expect(withdrawRequestEvents[0].data.amount).to.be.equals(amount);
     expect(withdrawRequestEvents[0].data.nonce).to.be.equals(nonce.toString());
     return txWithNonce;
   };
   removeWithdrawRequest = async (nonce: number) => {
-    await locklift.tracing.trace(
+    return await locklift.tracing.trace(
       this.account.runTarget(
         {
-          contract: this.vault.contract,
+          contract: this.vault.vaultContract,
           value: locklift.utils.toNano(2),
         },
         vault => vault.methods.removePendingWithdraw({ _nonce: nonce }),
@@ -70,13 +74,13 @@ export class User {
   depositToVault = async (amount: string, fee: string = locklift.utils.toNano(2)): Promise<any> => {
     const feeBn = new BigNumber(fee);
     const amountBn = new BigNumber(amount);
-    const { value0: stateBeforeWithdraw } = await this.vault.contract.methods.getDetails({ answerId: 0 }).call({});
+    const { value0: stateBeforeWithdraw } = await this.vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
     const expectedStEverAmount = depositRate.isNaN() ? amountBn : depositRate.times(amountBn);
-    await locklift.tracing.trace(
+    const { transaction } = await locklift.tracing.trace(
       this.account.runTarget(
         {
-          contract: this.vault.contract,
+          contract: this.vault.vaultContract,
           value: amountBn.plus(feeBn).toString(),
         },
         vaultContract =>
@@ -86,12 +90,14 @@ export class User {
           }),
       ),
     );
-    const depositEvent = await this.vault.contract.getPastEvents({ filter: event => event.event === "Deposit" });
-    assertEvent(depositEvent.events, "Deposit");
 
+    const depositEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "Deposit",
+      parentTransaction: transaction,
+    });
     const {
       data: { user, depositAmount, receivedStEvers },
-    } = depositEvent.events[0];
+    } = depositEvents[0];
     expect(user.equals(this.account.address)).to.be.true;
     expect(depositAmount).to.be.equals(amountBn.toString(), "deposit amount should be equal to the amount deposited");
 
@@ -110,20 +116,19 @@ export class User {
 export const createUserEntity = async (
   account: Account<WalletAbi>,
   tokenRoot: Contract<TokenRootUpgradeableAbi>,
-  vaultContract: Contract<VaultAbi>,
+  vault: Vault,
 ): Promise<User> => {
   const wallet = await TokenWallet.getWallet(locklift.provider, account.address, tokenRoot);
-  const vaultWallet = await TokenWallet.getWallet(locklift.provider, vaultContract.address, tokenRoot);
-  const withdrawUserData = await vaultContract.methods
+  const withdrawUserData = await vault.vaultContract.methods
     .getAccountAddress({
       _user: account.address,
       answerId: 0,
     })
-    .call({});
+    .call();
   return new User(
     account,
     wallet,
-    { contract: vaultContract, wallet: vaultWallet },
+    vault,
     locklift.factory.getDeployedContract("StEverAccount", withdrawUserData.value0),
   );
 };

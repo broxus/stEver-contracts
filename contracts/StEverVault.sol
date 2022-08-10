@@ -77,14 +77,22 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
             require(strategies.exists(depositConfig.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
             require(depositConfig.amount >= StEverVaultConstants.MIN_STRATEGY_DEPOSIT_VALUE, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
+
+            // calculate required amount to send
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
+
             require(availableAssets >= valueToSend, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
             require(strategies[depositConfig.strategy].depositingAmount == 0, ErrorCodes.STRATEGY_IN_DEPOSITING_STATE);
 
+            // change depositing strategy state
             strategies[depositConfig.strategy].depositingAmount = depositConfig.amount;
+
+            // reduce availableAssets
             availableAssets -= valueToSend;
+
             // grab fee from total assets, then add it back after receiving response from strategy
             totalAssets -= depositConfig.fee;
+
             IStrategy(depositConfig.strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
         }
         if (!_depositConfigs.empty()) {
@@ -93,10 +101,15 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function onStrategyHandledDeposit() override external onlyStrategy {
-        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
         strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
+
+        // set init state for depositing
         strategies[msg.sender].depositingAmount = 0;
-        // add fee back to total assets
+
+        // calculate remaining gas
+        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+
+        // add fee back
         availableAssets += returnedFee;
         totalAssets += returnedFee;
         emit StrategyHandledDeposit(msg.sender, returnedFee);
@@ -106,13 +119,14 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
         uint128 depositingAmount = strategies[msg.sender].depositingAmount;
+        // set init state for depositing
         strategies[msg.sender].depositingAmount = 0;
+
         availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
         // add fee back to total assets
-
-        // if depositing amount gt msg.value therefore we spent more than attached fee
         if (depositingAmount > msg.value) {
+        // if depositing amount gt msg.value therefore we spent more than attached fee
             totalAssets -= depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
         }
         if (msg.value > depositingAmount) {
@@ -139,6 +153,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         tvm.rawReserve(_reserveWithValue(sendValueToStrategy),0);
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+    
     function validateWithdrawFromStrategiesRequest(mapping (uint256 => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
         ValidationResult[] validationResults;
         for (uint256 i = 0; !_withdrawConfig.empty(); i++) {
@@ -163,6 +178,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function processWithdrawFromStrategies(mapping (uint256 => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
+
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = _withdrawConfig.delMin().get();
             require(config.amount >= StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
@@ -170,8 +186,11 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             require(availableAssets >= config.fee, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
             require(strategies[config.strategy].withdrawingAmount == 0, ErrorCodes.STRATEGY_IN_WITHDRAWING_STATE);
 
+            // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
             totalAssets -= config.fee;
+
+            // change withdrawing strategy state
             strategies[config.strategy].withdrawingAmount = config.amount;
 
             IStrategy(config.strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
@@ -182,19 +201,32 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function receiveFromStrategy() override external onlyStrategy {
-        strategies[msg.sender].totalAssets -= strategies[msg.sender].withdrawingAmount;
+        uint128 withdrawingAmount = strategies[msg.sender].withdrawingAmount;
+        // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        uint128 notUsedFee = (msg.value - strategies[msg.sender].withdrawingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+
+        strategies[msg.sender].totalAssets -= withdrawingAmount;
+        // calculate remaining gas
+        uint128 notUsedFee = (msg.value - withdrawingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+        // reset remaining gas back
         totalAssets += notUsedFee;
-        emit StrategyWithdrawSuccess(msg.sender, msg.value - notUsedFee);
+        // set whole value
+        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        
+        emit StrategyWithdrawSuccess(msg.sender, withdrawingAmount);
     }
 
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
+        // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;
+
+        // calculate remaining gas
         uint128 notUsedFee = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+
+        // set remaining gas
         totalAssets += notUsedFee;
         availableAssets += notUsedFee;
+
         emit StrategyWithdrawError(msg.sender, _errcode);
     }
     // deposit

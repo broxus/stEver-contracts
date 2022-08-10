@@ -24,17 +24,18 @@ export const preparation = async (): Promise<{
   const [adminUser] = accounts;
   const tokenRoot = await deployTokenRoot({ signer, owner: adminUser.address });
   const vault = await deployVault({ owner: adminUser, signer, governance: governanceKeyPair, tokenRoot });
-  const users = (await from(accounts)
-    .pipe(
-      concatMap(account => createUserEntity(account, tokenRoot, vault)),
-      toArray(),
-    )
-    .toPromise())!;
+
   const vaultInstance = await creteVault({
-    adminAccount: users[0],
+    adminAccount: accounts[0],
     vaultContract: vault,
     tokenRootContract: tokenRoot,
   });
+  const users = (await from(accounts)
+    .pipe(
+      concatMap(account => createUserEntity(account, tokenRoot, vaultInstance)),
+      toArray(),
+    )
+    .toPromise())!;
   const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyBase");
   const factoryContact = await locklift.factory.deployContract({
     contract: "DepoolStrategyFactory",

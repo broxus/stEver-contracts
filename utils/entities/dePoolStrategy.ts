@@ -1,5 +1,5 @@
 import { Contract, Signer } from "locklift";
-import { DepoolStrategyFactoryAbi, StrategyBaseAbi, TestDepoolAbi, VaultAbi } from "../../build/factorySource";
+import { StEverVaultAbi, StrategyBaseAbi, TestDepoolAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
 import { getAddressEverBalance } from "../index";
 
@@ -11,7 +11,7 @@ export class DePoolStrategyWithPool {
   ) {}
 
   emitDePoolRoundComplete = async (reward: string) => {
-    await locklift.tracing.trace(
+    return await locklift.tracing.trace(
       this.dePoolContract.methods
         .roundCompelte({
           _reward: reward,
@@ -43,7 +43,7 @@ export const createStrategy = async ({
   strategyDeployValue,
   strategyFactory,
 }: {
-  vaultContract: Contract<VaultAbi>;
+  vaultContract: Contract<StEverVaultAbi>;
   signer: Signer;
   poolDeployValue: string;
   strategyDeployValue: string;
