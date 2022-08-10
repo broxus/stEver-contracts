@@ -56,7 +56,7 @@ export const preparation = async (): Promise<{
     users,
     tokenRoot,
     vault: vaultInstance,
-    governance: new Governance(governanceKeyPair, vault),
+    governance: new Governance(governanceKeyPair, vaultInstance),
     strategyFactory,
   };
 };

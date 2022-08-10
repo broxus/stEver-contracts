@@ -93,7 +93,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function onStrategyHandledDeposit() override external onlyStrategy {
-        uint128 returnedFee = msg.value;
+        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
         strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
         // add fee back to total assets
@@ -102,13 +102,22 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         emit StrategyHandledDeposit(msg.sender, returnedFee);
     }
 
+
+
     function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
         uint128 depositingAmount = strategies[msg.sender].depositingAmount;
         strategies[msg.sender].depositingAmount = 0;
-        availableAssets += msg.value;
+        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+
         // add fee back to total assets
-        uint128 returnedFee =  depositingAmount - msg.value;
-        totalAssets += returnedFee;
+
+        // if depositing amount gt msg.value therefore we spent more than attached fee
+        if (depositingAmount > msg.value) {
+            totalAssets -= depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        }
+        if (msg.value > depositingAmount) {
+            totalAssets += msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        }
         emit StrategyDidntHandleDeposit(msg.sender, _errcode);
     }
 
@@ -173,17 +182,17 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function receiveFromStrategy() override external onlyStrategy {
-        uint128 notUsedFee = msg.value - strategies[msg.sender].withdrawingAmount;
         strategies[msg.sender].totalAssets -= strategies[msg.sender].withdrawingAmount;
         strategies[msg.sender].withdrawingAmount = 0;
-        availableAssets += msg.value;
+        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        uint128 notUsedFee = (msg.value - strategies[msg.sender].withdrawingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
         totalAssets += notUsedFee;
         emit StrategyWithdrawSuccess(msg.sender, msg.value - notUsedFee);
     }
 
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
         strategies[msg.sender].withdrawingAmount = 0;
-        uint128 notUsedFee = msg.value;
+        uint128 notUsedFee = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
         totalAssets += notUsedFee;
         availableAssets += notUsedFee;
         emit StrategyWithdrawError(msg.sender, _errcode);

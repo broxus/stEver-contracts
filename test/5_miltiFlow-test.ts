@@ -26,7 +26,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe("Multi flow", async function () {
+describe.skip("Multi flow", async function () {
   before(async () => {
     const {
       vault: v,

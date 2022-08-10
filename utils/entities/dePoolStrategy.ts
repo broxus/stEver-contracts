@@ -20,6 +20,19 @@ export class DePoolStrategyWithPool {
     );
   };
 
+  setDePoolDepositsState = ({ isClosed }: { isClosed: boolean }) => {
+    return locklift.tracing.trace(
+      this.dePoolContract.methods.setClosed({ _closed: isClosed }).sendExternal({ publicKey: this.signer.publicKey }),
+    );
+  };
+  setDePoolWithdrawalState = ({ isClosed }: { isClosed: boolean }) => {
+    return locklift.tracing.trace(
+      this.dePoolContract.methods
+        .setWithdrawalsClosed({ _withdrawalsClosed: isClosed })
+        .sendExternal({ publicKey: this.signer.publicKey }),
+    );
+  };
+
   getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);
 }
 

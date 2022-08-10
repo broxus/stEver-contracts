@@ -1,10 +1,15 @@
 import { StEverVaultAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
-import { Address, Contract } from "locklift";
+import { AbiEventName, Address, Contract, DecodedEventWithTransaction, Transaction } from "locklift";
 import { User } from "./user";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
-
+import { assertEvent } from "../index";
+type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
+type ExtractEvent<T extends VaultEvents> = Extract<
+  DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>,
+  { event: T }
+>;
 export class Vault {
   constructor(
     private readonly adminAccount: User,
@@ -32,13 +37,29 @@ export class Vault {
   getDetails = async () =>
     this.vaultContract.methods
       .getDetails({ answerId: 0 })
-      .call({})
-      .then(({ value0 }) => ({
-        ...value0,
-        stEverSupply: new BigNumber(value0.stEverSupply),
-        totalAssets: new BigNumber(value0.totalAssets),
-        availableAssets: new BigNumber(value0.availableAssets),
-      }));
+      .call()
+      .then(async ({ value0 }) => {
+        const availableAssets = new BigNumber(value0.availableAssets);
+
+        const contractBalance = await locklift.provider
+          .getBalance(this.vaultContract.address)
+          .then(res => new BigNumber(res));
+
+        expect(contractBalance.toNumber()).to.be.gte(
+          availableAssets.toNumber(),
+          "Vault contract balance should always be gte available assets",
+        );
+
+        return {
+          ...value0,
+          stEverSupply: new BigNumber(value0.stEverSupply),
+          totalAssets: new BigNumber(value0.totalAssets),
+          availableAssets,
+          contractBalance: await locklift.provider
+            .getBalance(this.vaultContract.address)
+            .then(res => new BigNumber(res)),
+        };
+      });
 
   getStrategiesInfo = () =>
     this.vaultContract.methods
@@ -62,6 +83,21 @@ export class Vault {
   };
 
   getStrategyInfo = (address: Address) => this.getStrategiesInfo().then(strategies => strategies[address.toString()]);
+
+  getEventsAfterTransaction = async <T extends VaultEvents>({
+    eventName,
+    parentTransaction,
+  }: {
+    eventName: T;
+    parentTransaction: Transaction;
+  }) => {
+    return (await this.vaultContract
+      .getPastEvents({
+        filter: ({ event, transaction }) =>
+          event === eventName && transaction.prevTransactionId?.lt === parentTransaction.id.lt,
+      })
+      .then(res => res.events)) as Array<ExtractEvent<T>>;
+  };
 }
 
 export const creteVault = async ({

@@ -9,4 +9,6 @@ interface IDePool {
     function withdrawAll() external;
     // mock methods
     function roundCompelte(uint64 _reward) external;
+    function setClosed(bool _closed) external;
+    function setWithdrawalsClosed(bool _withdrawalsClosed) external;
 }

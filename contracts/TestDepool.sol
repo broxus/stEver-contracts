@@ -20,15 +20,29 @@ contract TestDepool is IDePool {
     uint8 constant STATUS_STAKE_TOO_SMALL = 1;
     uint8 constant STATUS_DEPOOL_CLOSED = 3;
     uint8 constant STATUS_FEE_TOO_SMALL = 21;
+    uint8 constant STATUS_NO_POOLING_STAKE = 27;
     uint64 round;
     bool closed = false;
     uint64 m_minStake = 1 ever;
 
+    bool withdrawalsClosed = false;
+
+    // TESTING FIELDS
     uint128 public static nonce;
+
+    // TESTING METHODS
+    function setClosed(bool _closed) override external {
+        tvm.accept();
+        closed = _closed;
+    }
+    function setWithdrawalsClosed(bool _withdrawalsClosed) override external {
+        tvm.accept();
+        withdrawalsClosed = _withdrawalsClosed;
+    }
 
     mapping(address => Depositor) depositors;
     function addOrdinaryStake(uint64 stake) override external {
-
+        
         if(closed) {
             return _sendError(STATUS_DEPOOL_CLOSED, 0);
         }
@@ -53,6 +67,9 @@ contract TestDepool is IDePool {
 
     function withdrawFromPoolingRound(uint64 withdrawValue) override external {
         require(depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+        if(withdrawalsClosed) {
+           return _sendError(STATUS_NO_POOLING_STAKE, 0);
+        }
         depositors[msg.sender].amount -= withdrawValue;
         msg.sender.transfer({value: withdrawValue, flag: MsgFlag.REMAINING_GAS, bounce: false});
     }

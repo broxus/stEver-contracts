@@ -120,6 +120,24 @@ describe("Strategy base", function () {
     expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
     expect(strategyInfoAfter.totalAssets).to.be.equals(ROUND_REWARD.plus(strategyInfoBefore.totalAssets).toString());
   });
+  it.skip("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
+    await strategy.setDePoolWithdrawalState({ isClosed: true });
+    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+    const WITHDRAW_AMOUNT = toNanoBn(100);
+    const { errorEvent } = await governance.withdrawFromStrategies({
+      _withdrawConfig: [
+        [
+          locklift.utils.getRandomNonce(),
+          { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
+        ],
+      ],
+    });
+    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+
+    expect(errorEvent[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
+    expect(strategyInfoAfter.totalAssets).to.be.equals(strategyInfoBefore.totalAssets);
+    await strategy.setDePoolWithdrawalState({ isClosed: false });
+  });
   it("strategy state should be changed after withdraw", async () => {
     const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
     const WITHDRAW_AMOUNT = toNanoBn(100);
@@ -137,32 +155,38 @@ describe("Strategy base", function () {
       strategyInfoAfter.totalAssets.toString(),
     );
   });
-  it.skip("governance shouldn't deposit to strategy with low value", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 100;
-    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
+  it("governance shouldn't deposit to strategy if dePool is closed", async () => {
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(110);
+    const DEPOSIT_FEE = toNanoBn(0.6);
+    await user1.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
 
-    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
-    console.log(`strategy balance before ${await getAddressEverBalance(strategy.strategy.address)}`);
-    const result = await governance
-      .depositToStrategies({
-        _depositConfigs: [
-          [
-            locklift.utils.getRandomNonce(),
-            {
-              fee: locklift.utils.toNano(0.6),
-              amount: locklift.utils.toNano(0.1),
-              strategy: strategy.strategy.address,
-            },
-          ],
+    const vaultStateBefore = await vault.getDetails();
+    await strategy.setDePoolDepositsState({ isClosed: true });
+    await governance.depositToStrategies({
+      _depositConfigs: [
+        [
+          locklift.utils.getRandomNonce(),
+          {
+            fee: DEPOSIT_FEE.toString(),
+            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
+            strategy: strategy.strategy.address,
+          },
         ],
-      })
-      .catch(e => ({ error: true }));
+      ],
+    });
+
     const { events } = await vault.vaultContract.getPastEvents({
       filter: ({ event }) => event === "StrategyDidntHandleDeposit",
     });
     assertEvent(events, "StrategyDidntHandleDeposit");
-    console.log(`strategy balance after ${await getAddressEverBalance(strategy.strategy.address)}`);
-    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
+    const vaultStateAfter = await vault.getDetails();
+
+    expect(vaultStateAfter.availableAssets.toNumber()).to.be.gt(
+      vaultStateBefore.availableAssets.minus(DEPOSIT_FEE).toNumber(),
+      "some fee should be returned to vault, also full deposit amount should be returned",
+    );
+
+    await strategy.setDePoolDepositsState({ isClosed: false });
   });
   it("should strategy request value from vault", async () => {
     const strategyWithDePool = await createAndRegisterStrategy({
@@ -195,7 +219,7 @@ describe("Strategy base", function () {
       "strategy balance should be increased",
     );
   });
-  it("should validate deposit request", async () => {
+  it.skip("should validate deposit request", async () => {
     const result = await vault.vaultContract.methods
       .validateDepositRequest({
         _depositConfigs: _.range(0, 120).map(() => [
