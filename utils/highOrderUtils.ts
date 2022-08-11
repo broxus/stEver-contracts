@@ -1,7 +1,7 @@
 import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { Signer, Transaction } from "locklift";
+import { Signer, Transaction, zeroAddress } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
@@ -61,6 +61,7 @@ export const createAndRegisterStrategy = async ({
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
 }): Promise<{ strategy: DePoolStrategyWithPool; transaction: Transaction }> => {
+  zeroAddress;
   const strategy = await createStrategy({
     vaultContract: vault.vaultContract,
     signer,

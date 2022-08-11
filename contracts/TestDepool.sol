@@ -66,7 +66,8 @@ contract TestDepool is IDePool {
     }
 
     function withdrawFromPoolingRound(uint64 withdrawValue) override external {
-        require(depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+        require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+
         if(withdrawalsClosed) {
            return _sendError(STATUS_NO_POOLING_STAKE, 0);
         }
@@ -75,13 +76,14 @@ contract TestDepool is IDePool {
     }
 
     function withdrawPart(uint64 withdrawValue) override external {
-        require(depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+        require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+
         depositors[msg.sender].amount -= withdrawValue;
         msg.sender.transfer({value: withdrawValue, bounce: false});
     }
 
     function withdrawAll() override external {
-        require(depositors[msg.sender].amount > 0,DEPOSITOR_NOT_EXISTS);
+        require (depositors[msg.sender].amount > 0,DEPOSITOR_NOT_EXISTS);
         uint128 amountToSend = depositors[msg.sender].amount;
         delete depositors[msg.sender];
         msg.sender.transfer({value: amountToSend, bounce: false});

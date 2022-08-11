@@ -33,8 +33,7 @@ describe("Initialize testing", function () {
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
-    const details = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
 
-    expect(details.value0.stEverRoot.equals(tokenRoot.address)).to.be.true;
+    expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
   });
 });

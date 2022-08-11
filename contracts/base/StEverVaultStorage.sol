@@ -23,6 +23,7 @@ abstract contract StEverVaultStorage is IStEverVault {
 
     address owner;
     uint32 accountVersion;
+    uint32 stEverVaultVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
     mapping(uint64 => PendingWithdraw) pendingWithdrawals;

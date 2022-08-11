@@ -12,7 +12,7 @@ interface IStEverAccount {
     }
 
     function getDetails() external responsible view returns (AccountDetails);
-    function addPendingValue(uint64 _nonce,uint128 amount) external;
+    function addPendingValue(uint64 _nonce, uint128 amount) external;
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) external;
     function resetPendingValues(uint128[] _amountWithdrawn, uint64[] _noncesWithdrawn) external;
     function removePendingWithdraw(uint64 _nonce) external;

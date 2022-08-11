@@ -24,6 +24,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         uint128 _gainFee
     ) public {
         tvm.accept();
+
         owner = _owner;
         gainFee = _gainFee;
     }
@@ -41,16 +42,20 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function removeStrategy(address _strategy) override external onlyGovernanceAndAccept {
-        require(strategies.exists(_strategy));
+        require (strategies.exists(_strategy));
         emit StrategyRemoved(_strategy);
         delete strategies[_strategy];
     }
 
     function validateDepositRequest(mapping (uint256 => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
+
         for (uint256 i = 0; !_depositConfigs.empty(); i++) {
+
             (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
+
             address strategy = depositConfig.strategy;
+
             if(!strategies.exists(strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
             }
@@ -73,16 +78,21 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function depositToStrategies(mapping (uint256 => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
+
         for (uint256 i = 0; i < chunkSize && !_depositConfigs.empty(); i++) {
+
             (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
-            require(strategies.exists(depositConfig.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
-            require(depositConfig.amount >= StEverVaultConstants.MIN_STRATEGY_DEPOSIT_VALUE, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
+
+            require (strategies.exists(depositConfig.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+
+            require (depositConfig.amount >= StEverVaultConstants.MIN_STRATEGY_DEPOSIT_VALUE, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
 
             // calculate required amount to send
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
 
-            require(availableAssets >= valueToSend, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
-            require(strategies[depositConfig.strategy].depositingAmount == 0, ErrorCodes.STRATEGY_IN_DEPOSITING_STATE);
+            require (availableAssets >= valueToSend, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
+
+            require (strategies[depositConfig.strategy].depositingAmount == 0, ErrorCodes.STRATEGY_IN_DEPOSITING_STATE);
 
             // change depositing strategy state
             strategies[depositConfig.strategy].depositingAmount = depositConfig.amount;
@@ -150,25 +160,30 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             availableAssets -= _requestedBalance;
             sendValueToStrategy = _requestedBalance;
         }
-        tvm.rawReserve(_reserveWithValue(sendValueToStrategy),0);
+        tvm.rawReserve(_reserveWithValue(sendValueToStrategy), 0);
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
     
     function validateWithdrawFromStrategiesRequest(mapping (uint256 => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
         ValidationResult[] validationResults;
+
         for (uint256 i = 0; !_withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = _withdrawConfig.delMin().get();
+
             address strategy = config.strategy;
 
             if(config.amount < StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE));
             }
+
             if(!strategies.exists(config.strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
             }
+
             if(availableAssets < config.fee) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW));
             }
+
             if(strategies[config.strategy].withdrawingAmount != 0) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW));
             }
@@ -181,10 +196,14 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = _withdrawConfig.delMin().get();
-            require(config.amount >= StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
-            require(strategies.exists(config.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
-            require(availableAssets >= config.fee, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
-            require(strategies[config.strategy].withdrawingAmount == 0, ErrorCodes.STRATEGY_IN_WITHDRAWING_STATE);
+
+            require (config.amount >= StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
+
+            require (strategies.exists(config.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+
+            require (availableAssets >= config.fee, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
+
+            require (strategies[config.strategy].withdrawingAmount == 0, ErrorCodes.STRATEGY_IN_WITHDRAWING_STATE);
 
             // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
@@ -231,12 +250,16 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
     // deposit
     function deposit(uint128 _amount, uint64 _nonce) override external {
-        require(msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
+        require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
+
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
+
         uint128 amountToSend = getDepositStEverAmount(_amount);
+
         totalAssets += _amount;
         availableAssets += _amount;
         stEverSupply += amountToSend;
+
         TvmBuilder builder;
 		builder.store(_nonce);
 
@@ -265,34 +288,37 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         address _remainingGasTo,
         TvmCell _payload
     ) override external {
-        require(msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
+        require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
+
         // if not enough value, resend tokens to sender
         if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA) {
-            tvm.rawReserve(_reserve(),0);
-            emit BadWithdrawRequest(_sender,_amount,msg.value);
+            tvm.rawReserve(_reserve(), 0);
+            emit BadWithdrawRequest(_sender, _amount, msg.value);
             ITokenWallet(stEverWallet).transfer{
                 value: 0,
                 flag: MsgFlag.ALL_NOT_RESERVED,
                 bounce: false
             }(
-                    _amount,
-                    _sender,
-                    0,
-                    _sender,
-                    false,
-                    _payload
+                _amount,
+                _sender,
+                0,
+                _sender,
+                false,
+                _payload
             );
             return;
         }
-        requestWithdraw(_sender,_amount,_payload);
+        requestWithdraw(_sender, _amount, _payload);
     }
 
     function requestWithdraw(address _user, uint128 _amount, TvmCell _payload) internal {
-        tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE),0);
+        tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE), 0);
 
         address accountAddr = getAccountAddress(_user);
+
         (, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
-        pendingWithdrawals[_nonce] = PendingWithdraw(_amount,_user);
+
+        pendingWithdrawals[_nonce] = PendingWithdraw(_amount, _user);
 
         addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED);
     }
@@ -301,7 +327,9 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         tvm.rawReserve(_reserve(), 0);
 
         uint64 _withdraw_nonce = slice.decode(uint64);
+
         PendingWithdraw pendingWithdraw = pendingWithdrawals[_withdraw_nonce];
+
         address account = deployAccount(pendingWithdraw.user);
 
         addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED);
@@ -325,9 +353,11 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
        pendingWithdraw.user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce:false});
     }
 
-    function onPendingWithdrawRejected(uint64 _nonce,address user, uint128 _amount) override external onlyAccount(user) {
+    function onPendingWithdrawRejected(uint64 _nonce, address user, uint128 _amount) override external onlyAccount(user) {
         tvm.rawReserve(_reserveWithValue(StEverVaultGas.WITHDRAW_FEE), 0);
+
         delete pendingWithdrawals[_nonce];
+
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
             value:0,
@@ -349,9 +379,11 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
     }
 
-    function onPendingWithdrawRemoved(address user,uint64 nonce, uint128 _amount) override external onlyAccount(user) {
+    function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 _amount) override external onlyAccount(user) {
         tvm.rawReserve(_reserveWithValue(StEverVaultGas.WITHDRAW_FEE), 0);
+
         emit WithdrawRequestRemoved(user, nonce);
+
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
             value:0,
@@ -369,11 +401,13 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function processSendToUsers(mapping (uint256 => SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
-        for (uint256 i = 0;i < chunkSize && !sendConfig.empty();i++) {
+
+        for (uint256 i = 0; i < chunkSize && !sendConfig.empty(); i++) {
             (,SendToUserConfig config) = sendConfig.delMin().get();
             address account = getAccountAddress(config.user);
             IStEverAccount(account).processWithdraw{value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length), bounce: false}(config.nonces);
         }
+
         if (!sendConfig.empty()) {
             this.processSendToUsers{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(sendConfig);
         }
@@ -395,7 +429,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         // if not enough balance, reset pending to the Account;
         if (availableAssets < everAmount) {
             emit WithdrawError(user, noncesWithdrawn, amount);
-            IStEverAccount(msg.sender).resetPendingValues{value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(amountsWithdrawn, noncesWithdrawn);
+            IStEverAccount(msg.sender).resetPendingValues{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(amountsWithdrawn, noncesWithdrawn);
             return;
         }
         totalAssets -= everAmount;
@@ -422,7 +456,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         address remainingGasTo,
         TvmCell payload
     ) override external {
-        require(wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
+        require (wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
         TvmSlice slice = payload.toSlice();
         address user = slice.decode(address);
@@ -432,14 +466,54 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
 
         emit WithdrawSuccess(user, everAmount, nonces);
-        user.transfer({value:0,flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        user.transfer({value: 0, flag :MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     onBounce(TvmSlice slice) external {
 		tvm.accept();
+        
 		uint32 functionId = slice.decode(uint32);
 		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
 			handleAddPendingValueError(slice);
 		}
 	}
+
+    // upgrade
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
+        if (_newVersion == stEverVaultVersion) {
+            tvm.rawReserve(_reserve(), 0);
+            _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
+            return;
+        }
+
+        // should be unpacked in the same order!
+        TvmCell data = abi.encode(
+            _newVersion,
+            _sendGasTo,
+            governance,
+            platformCode,
+            accountCode,
+            stEverSupply,
+            totalAssets,
+            availableAssets,
+            stEverWallet,
+            stTokenRoot,
+            gainFee,
+            owner,
+            accountVersion,
+            strategies,
+            pendingWithdrawals
+        );
+
+        // set code after complete this method
+        tvm.setcode(_newCode);
+        // run onCodeUpgrade from new code
+        tvm.setCurrentCode(_newCode);
+
+        onCodeUpgrade(data);
+
+    }
+
+    // upgrade to v2
+    function onCodeUpgrade(TvmCell _upgradeData) private {}
 }

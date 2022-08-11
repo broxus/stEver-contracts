@@ -30,7 +30,7 @@ contract StEverAccount is IStEverAccount {
     // mappings
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
-    constructor()public{
+    constructor() public {
     }
 
     // should be called in onCodeUpgrade on platform initialization
@@ -38,7 +38,7 @@ contract StEverAccount is IStEverAccount {
 
     }
     modifier onlyVault() {
-        require(msg.sender == vault, ErrorCodes.ONLY_VAULT);
+        require (msg.sender == vault, ErrorCodes.ONLY_VAULT);
         _;
     }
 
@@ -127,7 +127,7 @@ contract StEverAccount is IStEverAccount {
         TvmSlice initialData = s.loadRefAsSlice();
         user = initialData.decode(address);
 
-        send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
+        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 }
  

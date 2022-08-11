@@ -14,36 +14,54 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 abstract contract StEverVaultBase is StEverVaultStorage {
     //modifiers
     modifier onlyGovernanceAndAccept() {
-        require(msg.pubkey() == governance,ErrorCodes.NOT_GOVERNANCE);
+        require (msg.pubkey() == governance, ErrorCodes.NOT_GOVERNANCE);
         tvm.accept();
         _;
     }
 
     modifier onlyGovernanceOrSelfAndAccept() {
-        require(msg.pubkey() == governance || msg.sender == address(this),ErrorCodes.NOT_GOVERNANCE);
+        require (msg.pubkey() == governance || msg.sender == address(this), ErrorCodes.NOT_GOVERNANCE);
         tvm.accept();
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require (msg.sender == owner);
         _;
     }
 
     modifier onlyAccount(address _user) {
         address account = getAccountAddress(_user);
-        require(msg.sender == account,ErrorCodes.NOT_USER_DATA);
+
+        require (msg.sender == account, ErrorCodes.NOT_USER_DATA);
         _;
     }
 
     modifier onlyStrategy() {
-        require(strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
+        require (strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
         _;
     }
 
     modifier minCallValue() {
-        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.LOW_MSG_VALUE);
+        require (msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.LOW_MSG_VALUE);
         _;
+    }
+
+    // ownership
+    function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        owner = _newOwner;
+
+        _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function transferGovernance(uint256 _newGovernance, address _sendGasTo) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        governance = _newGovernance;
+
+        _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     // init
@@ -60,10 +78,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         require (msg.sender == stTokenRoot, ErrorCodes.NOT_ROOT_WALLET);
 		stEverWallet = _wallet;
 	}
+
     // setters
     function setGainFee(uint128 _gainFee) override external onlyOwner {
         gainFee = _gainFee;
     }
+
     // utils
     function _reserve() internal pure returns (uint128) {
 		return
@@ -110,7 +130,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        return math.muldiv(_amount,totalAssets,stEverSupply);
+        return math.muldiv(_amount, totalAssets, stEverSupply);
     }
 
     // account utils
@@ -168,14 +188,17 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 	}
 
     function getDetails() override external responsible view returns(Details) {
-        // TODO: add all variables
         return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
                 stTokenRoot,
                 stEverWallet,
                 stEverSupply,
                 totalAssets,
                 availableAssets,
-                owner
+                owner,
+                governance,
+                gainFee,
+                accountVersion,
+                stEverVaultVersion
             );
     }
 }

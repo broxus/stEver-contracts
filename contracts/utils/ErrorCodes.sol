@@ -31,4 +31,5 @@ library ErrorCodes {
     uint16 constant NOT_DEPOOL = 3002;
     uint16 constant NOT_DEPOOL_OR_VAULT = 3003;
     uint16 constant BAD_DEPOSIT_VALUE = 3004;
+    uint16 constant NOT_FABRIC = 3005;
 }

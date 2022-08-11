@@ -8,7 +8,7 @@ export class DePoolStrategyWithPool {
     public readonly dePoolContract: Contract<TestDepoolAbi>,
     public readonly strategy: Contract<StrategyBaseAbi>,
     private readonly signer: Signer,
-  ) {}
+  ) { }
 
   emitDePoolRoundComplete = async (reward: string) => {
     return await locklift.tracing.trace(

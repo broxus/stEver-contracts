@@ -31,8 +31,8 @@ export class Vault {
           }),
       ),
     );
-    const details = await this.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(details.value0.stEverRoot.equals(this.tokenRootContract.address)).to.be.true;
+    // const details = await this.vaultContract.methods.getDetails({ answerId: 0 }).call({});
+    expect((await this.getDetails()).stTokenRoot.equals(this.tokenRootContract.address)).to.be.true;
   };
 
   getDetails = async () =>
