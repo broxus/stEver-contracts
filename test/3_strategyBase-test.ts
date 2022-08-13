@@ -89,7 +89,7 @@ describe("Strategy base", function () {
     const vaultStateAfter = await vault.getDetails();
 
     expect(successEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
-    expect(Number(successEvents[0].data.returnedFee)).to.be.above(0);
+    expect(Number(successEvents[0].data.depositValue)).to.be.eq(DEPOSIT_TO_STRATEGIES_AMOUNT.toNumber());
     expect(vaultStateBefore.totalAssets.toNumber()).to.be.gt(
       vaultStateAfter.totalAssets.toNumber(),
       "total assets should be reduced by fee",
@@ -111,7 +111,6 @@ describe("Strategy base", function () {
     expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
     expect(strategyInfo.totalGain).to.be.equals("0");
     expect(strategyInfo.lastReport).to.be.equals("0");
-    console.log(`Returned strategy fee is ${locklift.utils.fromNano(successEvents[0].data.returnedFee)}`);
     console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
   it("strategy state should be changed after report", async () => {

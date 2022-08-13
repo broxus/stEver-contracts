@@ -20,6 +20,8 @@ abstract contract StEverVaultStorage is IStEverVault {
 
     // modifiable field
     uint128 gainFee;
+    uint128 minStrategyDepositValue = 100 ever;
+    uint128 minStrategyWithdrawValue = 100 ever;
 
     address owner;
     uint32 accountVersion;

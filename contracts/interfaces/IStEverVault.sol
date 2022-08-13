@@ -3,10 +3,11 @@ pragma AbiHeader expire;
 
 
 interface IStEverVault {
+    event AdminDeposited(uint128 amount);
     event StrategyAdded(address strategy);
     event StrategyRemoved(address strategy);
     event StrategyReported(address strategy, StrategyReport report);
-    event StrategyHandledDeposit(address strategy, uint128 returnedFee);
+    event StrategyHandledDeposit(address strategy, uint128 depositValue);
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
     event StrategyWithdrawSuccess(address strategy, uint128 amount);
     event StrategyWithdrawError(address strategy, uint32 errcode);
@@ -27,6 +28,8 @@ interface IStEverVault {
        uint128 gainFee;
        uint32 accountVersion;
        uint32 stEverVaultVersion;
+       uint128 minStrategyDepositValue;
+       uint128 minStrategyWithdrawValue;
     }
     struct StrategyReport {
         uint128 gain;
@@ -94,6 +97,8 @@ interface IStEverVault {
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
     // setters
     function setGainFee(uint128 _gainFee) external;
+    function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
+    function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;

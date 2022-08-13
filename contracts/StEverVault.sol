@@ -7,7 +7,6 @@ import "./interfaces/IStrategy.sol";
 import "./StEverAccount.sol";
 import "./base/StEverVaultBase.sol";
 import "./utils/ErrorCodes.sol";
-import "./utils/Constants.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
@@ -24,11 +23,17 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         uint128 _gainFee
     ) public {
         tvm.accept();
-
         owner = _owner;
         gainFee = _gainFee;
     }
 
+    // function depositFromAdmin(uint128 _amount) override external onlyOwner {
+    //     require(msg.value > _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.STRATEGY_NOT_EXISTS);
+    //     tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
+    //     availableAssets += _amount;
+    //     emit AdminDeposited(_amount);
+    //     owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    // }
     // strategy
     function addStrategy(address _strategy) override external onlyGovernanceAndAccept {
         strategies[_strategy] = StrategyParams(
@@ -49,7 +54,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function validateDepositRequest(mapping (uint256 => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
-
+        uint128 totalRequiredBalance;
         for (uint256 i = 0; !_depositConfigs.empty(); i++) {
 
             (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
@@ -60,15 +65,17 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
             }
 
-            if(depositConfig.amount < StEverVaultConstants.MIN_STRATEGY_DEPOSIT_VALUE) {
+            if(depositConfig.amount < minStrategyDepositValue) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE));
             }
             
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
+            totalRequiredBalance += valueToSend;
 
-            if(availableAssets < valueToSend) {
+            if(availableAssets < totalRequiredBalance) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT));
             }
+
             if(strategies[depositConfig.strategy].depositingAmount != 0) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_IN_DEPOSITING_STATE));
             }
@@ -85,7 +92,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
             require (strategies.exists(depositConfig.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
 
-            require (depositConfig.amount >= StEverVaultConstants.MIN_STRATEGY_DEPOSIT_VALUE, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
+            require (depositConfig.amount >= minStrategyDepositValue, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
 
             // calculate required amount to send
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
@@ -111,10 +118,13 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     }
 
     function onStrategyHandledDeposit() override external onlyStrategy {
-        strategies[msg.sender].totalAssets = strategies[msg.sender].depositingAmount;
-
+        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
         // set init state for depositing
         strategies[msg.sender].depositingAmount = 0;
+        
+        strategies[msg.sender].totalAssets = depositingAmount;
+
+
 
         // calculate remaining gas
         uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
@@ -122,7 +132,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         // add fee back
         availableAssets += returnedFee;
         totalAssets += returnedFee;
-        emit StrategyHandledDeposit(msg.sender, returnedFee);
+        emit StrategyHandledDeposit(msg.sender, depositingAmount);
     }
 
 
@@ -172,7 +182,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
             address strategy = config.strategy;
 
-            if(config.amount < StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE) {
+            if(config.amount < minStrategyWithdrawValue) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE));
             }
 
@@ -197,7 +207,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = _withdrawConfig.delMin().get();
 
-            require (config.amount >= StEverVaultConstants.MIN_STRATEGY_WITHDRAW_VALUE, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
+            require (config.amount >= minStrategyWithdrawValue, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
 
             require (strategies.exists(config.strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
 

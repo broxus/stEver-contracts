@@ -66,7 +66,7 @@ describe("Deposit withdraw test", function () {
             amount: WITHDRAW_AMOUNT.toString(),
             notify: true,
             recipient: vault.vaultContract.address,
-            payload: withdrawPayload.deposit_payload,
+            payload: withdrawPayload.depositPayload,
           }),
       ),
       { allowedCodes: { compute: [null] } },

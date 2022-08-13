@@ -38,7 +38,7 @@ export class User {
               amount,
               notify: true,
               recipient: this.vault.vaultContract.address,
-              payload: withdrawPayload.deposit_payload,
+              payload: withdrawPayload.depositPayload,
             }),
         ),
         { allowedCodes: { compute: [null] } },

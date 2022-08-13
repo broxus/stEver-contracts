@@ -20,6 +20,7 @@ library ErrorCodes {
     uint16 constant NOT_ENOUGH_VALUE_TO_WITHDRAW = 1015;
     uint16 constant BAD_DEPOSIT_TO_STRATEGY_VALUE = 1016;
     uint16 constant BAD_WITHDRAW_FROM_STRATEGY_VALUE = 1017;
+    uint16 constant BAD_ADMIN_DEPOSIT_VALUE = 1018;
 
     // StEverAccount
     uint16 constant ONLY_VAULT = 2001;

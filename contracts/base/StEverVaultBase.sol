@@ -84,6 +84,14 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         gainFee = _gainFee;
     }
 
+    function setMinStrategyDepositValue(uint128 _minStrategyDepositValue) override external {
+        minStrategyDepositValue = _minStrategyDepositValue;
+    }
+
+    function setMinStrategyWithdrawValue(uint128 _minStrategyWithdrawValue) override external {
+        minStrategyWithdrawValue = _minStrategyWithdrawValue;
+    }
+
     // utils
     function _reserve() internal pure returns (uint128) {
 		return
@@ -98,7 +106,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 		return math.max(address(this).balance - (msg.value - _fee), StEverVaultGas.CONTRACT_MIN_BALANCE);
 	}
 
-    function encodeDepositPayload(address _deposit_owner, uint64 _nonce) external override pure returns (TvmCell deposit_payload) {
+    function encodeDepositPayload(address _deposit_owner, uint64 _nonce) external override pure returns (TvmCell depositPayload) {
         TvmBuilder builder;
         builder.store(_deposit_owner);
         builder.store(_nonce);
@@ -198,7 +206,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 governance,
                 gainFee,
                 accountVersion,
-                stEverVaultVersion
+                stEverVaultVersion,
+                minStrategyDepositValue,
+                minStrategyWithdrawValue
             );
     }
 }
