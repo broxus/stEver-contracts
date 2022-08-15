@@ -49,7 +49,7 @@ describe("Strategy base", function () {
     const transaction = await createAndRegisterStrategy({
       signer,
       vault,
-      governance,
+      admin: admin.account,
       strategyDeployValue: locklift.utils.toNano(12),
       poolDeployValue: locklift.utils.toNano(200),
       strategyFactory,
@@ -187,7 +187,7 @@ describe("Strategy base", function () {
   });
   it("should strategy request value from vault", async () => {
     const { strategy: strategyWithDePool } = await createAndRegisterStrategy({
-      governance,
+      admin: admin.account,
       signer,
       vault,
       strategyDeployValue: locklift.utils.toNano(4),
@@ -237,7 +237,7 @@ describe("Strategy base", function () {
           createAndRegisterStrategy({
             signer,
             vault,
-            governance,
+            admin: admin.account,
             strategyDeployValue: locklift.utils.toNano(12),
             poolDeployValue: locklift.utils.toNano(200),
             strategyFactory,

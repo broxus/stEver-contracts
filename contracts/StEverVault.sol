@@ -27,15 +27,9 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         gainFee = _gainFee;
     }
 
-    // function depositFromAdmin(uint128 _amount) override external onlyOwner {
-    //     require(msg.value > _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.STRATEGY_NOT_EXISTS);
-    //     tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
-    //     availableAssets += _amount;
-    //     emit AdminDeposited(_amount);
-    //     owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    // }
-    // strategy
-    function addStrategy(address _strategy) override external onlyGovernanceAndAccept {
+
+    function addStrategy(address _strategy) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(),0);
         strategies[_strategy] = StrategyParams(
             0,
             0,
@@ -44,12 +38,15 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             0
         );
         emit StrategyAdded(_strategy);
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function removeStrategy(address _strategy) override external onlyGovernanceAndAccept {
+    function removeStrategy(address _strategy) override external onlyOwner minCallValue {
         require (strategies.exists(_strategy));
+        tvm.rawReserve(_reserve(),0);
         emit StrategyRemoved(_strategy);
         delete strategies[_strategy];
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function validateDepositRequest(mapping (uint256 => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {

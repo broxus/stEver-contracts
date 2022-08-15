@@ -47,7 +47,7 @@ describe("Single flow", async function () {
   it("should strategy deployed", async () => {
     strategiesWithPool.push(
       await createAndRegisterStrategy({
-        governance,
+        admin: admin.account,
         vault,
         signer,
         poolDeployValue: locklift.utils.toNano(200),

@@ -26,7 +26,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     modifier onlyOwner() {
-        require (msg.sender == owner);
+        require (msg.sender == owner,ErrorCodes.NOT_OWNER);
         _;
     }
 
@@ -81,15 +81,27 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // setters
     function setGainFee(uint128 _gainFee) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
         gainFee = _gainFee;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function setMinStrategyDepositValue(uint128 _minStrategyDepositValue) override external {
+    function setMinStrategyDepositValue(uint128 _minStrategyDepositValue) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
         minStrategyDepositValue = _minStrategyDepositValue;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function setMinStrategyWithdrawValue(uint128 _minStrategyWithdrawValue) override external {
+    function setMinStrategyWithdrawValue(uint128 _minStrategyWithdrawValue) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
         minStrategyWithdrawValue = _minStrategyWithdrawValue;
+        
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     // utils

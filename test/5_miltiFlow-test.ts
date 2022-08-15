@@ -56,7 +56,7 @@ describe("Multi flow", async function () {
         range(3).pipe(
           concatMap(() =>
             createAndRegisterStrategy({
-              governance,
+              admin: admin.account,
               vault,
               signer,
               poolDeployValue: locklift.utils.toNano(200),

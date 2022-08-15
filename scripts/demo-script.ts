@@ -1,8 +1,6 @@
-import { concatMap, defer, filter, from, lastValueFrom, map, mergeMap, range, switchMap, toArray } from "rxjs";
-import { Address, Contract, Signer, Transaction, zeroAddress } from "locklift";
-import { StEverVaultAbi, TokenRootUpgradeableAbi } from "../build/factorySource";
-import { forEach } from "lodash";
-import chalk from "chalk";
+import { concatMap, defer, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { Address, zeroAddress } from "locklift";
+
 import { getBalanceInfo, getSteEverWallet, getStrategiesInfo, getVaultInfo, logger, printEvents } from "./utils";
 
 async function main() {

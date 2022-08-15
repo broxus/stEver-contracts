@@ -48,7 +48,7 @@ describe.skip("Gas calculation", function () {
     strategy = await createAndRegisterStrategy({
       signer,
       vault,
-      governance,
+      admin: admin.account,
       strategyDeployValue: locklift.utils.toNano(12),
       poolDeployValue: locklift.utils.toNano(200),
       strategyFactory,

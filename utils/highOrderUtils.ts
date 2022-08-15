@@ -1,10 +1,12 @@
 import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { Signer, Transaction, zeroAddress } from "locklift";
+import { Signer, Transaction } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
+import { Account } from "locklift/build/factory";
+import { WalletAbi } from "../build/factorySource";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -47,21 +49,20 @@ export const makeWithdrawToUsers = async ({
 };
 
 export const createAndRegisterStrategy = async ({
-  governance,
+  admin,
   vault,
   signer,
   poolDeployValue,
   strategyDeployValue,
   strategyFactory,
 }: {
-  governance: Governance;
+  admin: Account<WalletAbi>;
   vault: Vault;
   signer: Signer;
   poolDeployValue: string;
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
 }): Promise<{ strategy: DePoolStrategyWithPool; transaction: Transaction }> => {
-  zeroAddress;
   const strategy = await createStrategy({
     vaultContract: vault.vaultContract,
     signer,
@@ -69,11 +70,15 @@ export const createAndRegisterStrategy = async ({
     poolDeployValue,
     strategyFactory,
   });
-
   const { transaction } = await locklift.tracing.trace(
-    vault.vaultContract.methods
-      .addStrategy({ _strategy: strategy.strategy.address })
-      .sendExternal({ publicKey: governance.keyPair.publicKey }),
+    admin.runTarget(
+      {
+        contract: vault.vaultContract,
+        value: locklift.utils.toNano(2),
+      },
+      vault => vault.methods.addStrategy({ _strategy: strategy.strategy.address }),
+    ),
   );
+
   return { strategy, transaction };
 };
