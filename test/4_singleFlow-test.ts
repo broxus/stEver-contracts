@@ -22,7 +22,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe.skip("Single flow", async function () {
+describe("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -31,7 +31,7 @@ describe.skip("Single flow", async function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(100) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(200) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -57,7 +57,7 @@ describe.skip("Single flow", async function () {
     );
   });
   it("user should deposit to vault", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 120;
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = 122;
     await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
   });
   it("governance should deposit to strategies", async () => {

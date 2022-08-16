@@ -104,6 +104,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function isCanTransferValue(uint128 _amount) internal view returns (bool) {
+        return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
+         availableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE >= _amount;
+    }
+
     // utils
     function _reserve() internal pure returns (uint128) {
 		return
@@ -152,6 +157,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         }
         return math.muldiv(_amount, totalAssets, stEverSupply);
     }
+
 
     // account utils
     function _buildAccountParams(address _user) internal virtual view returns (TvmCell) {

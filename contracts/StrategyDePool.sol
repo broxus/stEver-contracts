@@ -183,7 +183,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
 
-        IStEverVault(vault).strategyReport{value: 0.1 ever, flag: MsgFlag.REMAINING_GAS, bounce: false}(_reward, 0, _ordinaryStake, requestedBalance);
+        IStEverVault(vault).strategyReport{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_reward, 0, _ordinaryStake, requestedBalance);
     }
 
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyFactory {

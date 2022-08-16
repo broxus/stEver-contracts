@@ -39,7 +39,6 @@ interface IStEverVault {
     struct StrategyParams {
         uint128 lastReport;
         uint128 totalGain;
-        uint128 totalAssets;
         uint128 depositingAmount;    
         uint128 withdrawingAmount;
     }

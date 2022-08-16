@@ -32,7 +32,7 @@ describe.skip("Strategy base", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(200) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -108,18 +108,15 @@ describe.skip("Strategy base", function () {
       "some fee should be returned",
     );
     const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-    expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
     expect(strategyInfo.totalGain).to.be.equals("0");
     expect(strategyInfo.lastReport).to.be.equals("0");
     console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
   it("strategy state should be changed after report", async () => {
-    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
     const ROUND_REWARD = toNanoBn(10);
     await strategy.emitDePoolRoundComplete(ROUND_REWARD.toString());
     const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
     expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
-    expect(strategyInfoAfter.totalAssets).to.be.equals(ROUND_REWARD.plus(strategyInfoBefore.totalAssets).toString());
   });
   it("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
     await strategy.setDePoolWithdrawalState({ isClosed: true });
@@ -136,26 +133,25 @@ describe.skip("Strategy base", function () {
     const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
     expect(errorEvent.length).to.be.equal(1);
     expect(errorEvent[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
-    expect(strategyInfoAfter.totalAssets).to.be.equals(strategyInfoBefore.totalAssets);
     await strategy.setDePoolWithdrawalState({ isClosed: false });
   });
-  it("strategy state should be changed after withdraw", async () => {
-    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
-    const WITHDRAW_AMOUNT = toNanoBn(100);
-    await governance.withdrawFromStrategies({
-      _withdrawConfig: [
-        [
-          locklift.utils.getRandomNonce(),
-          { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
-        ],
-      ],
-    });
-    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
-
-    expect(new BigNumber(strategyInfoBefore.totalAssets).minus(WITHDRAW_AMOUNT).toString()).to.be.equals(
-      strategyInfoAfter.totalAssets.toString(),
-    );
-  });
+  // it("strategy state should be changed after withdraw", async () => {
+  //   const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+  //   const WITHDRAW_AMOUNT = toNanoBn(100);
+  //   await governance.withdrawFromStrategies({
+  //     _withdrawConfig: [
+  //       [
+  //         locklift.utils.getRandomNonce(),
+  //         { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
+  //       ],
+  //     ],
+  //   });
+  //   const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+  //
+  //   expect(new BigNumber(strategyInfoBefore.totalAssets).minus(WITHDRAW_AMOUNT).toString()).to.be.equals(
+  //     strategyInfoAfter.totalAssets.toString(),
+  //   );
+  // });
   it("governance shouldn't deposit to strategy if dePool is closed", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(110);
     const DEPOSIT_FEE = toNanoBn(0.6);
