@@ -22,7 +22,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 
-describe("Single flow", async function () {
+describe.skip("Single flow", async function () {
   before(async () => {
     const {
       vault: v,
@@ -31,7 +31,7 @@ describe("Single flow", async function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation();
+    } = await preparation({ deployUserValue: locklift.utils.toNano(100) });
     signer = s;
     vault = v;
     admin = adminUser;

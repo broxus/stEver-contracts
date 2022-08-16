@@ -35,6 +35,46 @@ export class Vault {
     expect((await this.getDetails()).stTokenRoot.equals(this.tokenRootContract.address)).to.be.true;
   };
 
+  setMinDepositToStrategyValue = async ({ minDepositToStrategyValue }: { minDepositToStrategyValue: string }) => {
+    await locklift.tracing.trace(
+      this.adminAccount.runTarget(
+        {
+          contract: this.vaultContract,
+          value: locklift.utils.toNano(2),
+        },
+        vault => vault.methods.setMinStrategyDepositValue({ _minStrategyDepositValue: minDepositToStrategyValue }),
+      ),
+    );
+  };
+
+  setMinWithdrawFromStrategyValue = async ({
+    minWithdrawFromStrategyValue,
+  }: {
+    minWithdrawFromStrategyValue: string;
+  }) => {
+    await locklift.tracing.trace(
+      this.adminAccount.runTarget(
+        {
+          contract: this.vaultContract,
+          value: locklift.utils.toNano(2),
+        },
+        vault => vault.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minWithdrawFromStrategyValue }),
+      ),
+    );
+  };
+
+  setGainFee = async ({ ginFee }: { ginFee: string }) => {
+    await locklift.tracing.trace(
+      this.adminAccount.runTarget(
+        {
+          contract: this.vaultContract,
+          value: locklift.utils.toNano(2),
+        },
+        vault => vault.methods.setGainFee({ _gainFee: ginFee }),
+      ),
+    );
+  };
+
   getDetails = async () =>
     this.vaultContract.methods
       .getDetails({ answerId: 0 })

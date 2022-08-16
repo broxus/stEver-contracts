@@ -23,7 +23,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
 let strategyFactory: StrategyFactory;
-describe("Strategy base", function () {
+describe.skip("Strategy base", function () {
   before(async () => {
     const {
       vault: v,
@@ -32,7 +32,7 @@ describe("Strategy base", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation();
+    } = await preparation({ deployUserValue: locklift.utils.toNano(200) });
     signer = s;
     vault = v;
     admin = adminUser;

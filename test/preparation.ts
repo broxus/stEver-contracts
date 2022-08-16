@@ -8,8 +8,13 @@ import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-
-export const preparation = async (): Promise<{
+export const preparation = async ({
+  deployUserValue,
+  countOfUsers = 6,
+}: {
+  deployUserValue: string;
+  countOfUsers?: number;
+}): Promise<{
   signer: Signer;
   vault: Vault;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
@@ -20,7 +25,7 @@ export const preparation = async (): Promise<{
   const signer = (await locklift.keystore.getSigner("0"))!;
   const governanceKeyPair = (await locklift.keystore.getSigner("1"))!;
   const accountFactory = locklift.factory.getAccountsFactory("Wallet");
-  const accounts = await deployUsers(6, accountFactory, signer);
+  const accounts = await deployUsers(countOfUsers, accountFactory, signer, deployUserValue);
   const [adminUser] = accounts;
   const tokenRoot = await deployTokenRoot({ signer, owner: adminUser.address });
   const vault = await deployVault({ owner: adminUser, signer, governance: governanceKeyPair, tokenRoot });
@@ -66,6 +71,7 @@ const deployUsers = async (
   countOfUsers: number,
   accountFactory: AccountFactory<WalletAbi>,
   signer: Signer,
+  deployAccountValue: string,
 ): Promise<Array<Account<WalletAbi>>> => {
   return (await range(0, countOfUsers)
     .pipe(
@@ -73,7 +79,7 @@ const deployUsers = async (
         accountFactory.deployNewAccount({
           initParams: { _randomNonce: locklift.utils.getRandomNonce() },
           publicKey: signer.publicKey,
-          value: locklift.utils.toNano(4000),
+          value: deployAccountValue,
           constructorParams: {},
         }),
       ),
@@ -163,7 +169,6 @@ const deployVault = async ({
       }),
   );
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
-  console.log(`New owner: ${newOwner.value0.toString()}`);
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
   const vaultSubscriber = new locklift.provider.Subscriber();
   vaultSubscriber.transactions(vaultContract.address).on(transaction => {

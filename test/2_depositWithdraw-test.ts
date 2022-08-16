@@ -15,7 +15,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 
-describe("Deposit withdraw test", function () {
+describe.skip("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,
@@ -23,7 +23,7 @@ describe("Deposit withdraw test", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation();
+    } = await preparation({ deployUserValue: locklift.utils.toNano(30) });
     signer = s;
     vault = v;
     admin = adminUser;

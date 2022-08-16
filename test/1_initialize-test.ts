@@ -14,7 +14,7 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-describe("Initialize testing", function () {
+describe.skip("Initialize testing", function () {
   before(async () => {
     const {
       vault: v,
@@ -22,7 +22,7 @@ describe("Initialize testing", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation();
+    } = await preparation({ deployUserValue: locklift.utils.toNano(10) });
     signer = s;
     vault = v;
     admin = adminUser;

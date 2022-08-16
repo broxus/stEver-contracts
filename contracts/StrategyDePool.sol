@@ -1,6 +1,7 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 import "./interfaces/IStrategy.sol";
+import "./interfaces/IDePoolStrategy.sol";
 import "./interfaces/IParticipant.sol";
 import "./interfaces/IDePool.sol";
 import "./interfaces/IStEverVault.sol";
@@ -10,7 +11,7 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
 
-contract StrategyDePool is IStrategy,IParticipant {
+contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant THRESHOLD_BALANCE = 4 ever;
@@ -89,7 +90,7 @@ contract StrategyDePool is IStrategy,IParticipant {
 	}
 
     function getDetails() override external responsible view returns(Details){
-        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault);
+        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool);
     }
 
     function deposit(uint128 _amount) override external onlyVault {
