@@ -1,0 +1,88 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getDetails",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"pendingReturnedTokens","type":"uint128"},{"name":"pendingReceiveEver","type":"uint128"},{"name":"user","type":"address"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "addPendingValue",
+			"inputs": [
+				{"name":"_nonce","type":"uint64"},
+				{"name":"_amount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "resetPendingValues",
+			"inputs": [
+				{"name":"_amountsWithdrawn","type":"uint128[]"},
+				{"name":"_noncesWithdrawn","type":"uint64[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removePendingWithdraw",
+			"inputs": [
+				{"name":"_nonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdraw",
+			"inputs": [
+				{"name":"_satisfiedWithdrawRequests","type":"uint64[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "withdrawRequests",
+			"inputs": [
+			],
+			"outputs": [
+				{"components":[{"name":"amount","type":"uint128"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
+			]
+		}
+	],
+	"data": [
+	],
+	"events": [
+		{
+			"name": "Receive",
+			"inputs": [
+				{"name":"amount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"vault","type":"address"},
+		{"name":"user","type":"address"},
+		{"name":"pendingReturnedTokens","type":"uint128"},
+		{"name":"pendingReceiveEver","type":"uint128"},
+		{"name":"currentVersion","type":"uint32"},
+		{"components":[{"name":"amount","type":"uint128"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
+	]
+}

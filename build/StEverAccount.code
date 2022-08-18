@@ -1,0 +1,1010 @@
+.version sol 0.62.0
+
+.macro constructor
+DROP
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+GETGLOB 6
+THROWIF 51
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.globl	_init_b349b973_internal
+.type	_init_b349b973_internal, @function
+CALL $_init_b349b973_internal_macro$
+
+.macro _init_b349b973_internal_macro
+.loc ../contracts/StEverAccount.sol, 0
+
+.globl	_reserve_413ab4a8_internal
+.type	_reserve_413ab4a8_internal, @function
+CALL $_reserve_413ab4a8_internal_macro$
+
+.macro _reserve_413ab4a8_internal_macro
+.loc ../contracts/StEverAccount.sol, 47
+GETPARAM 7
+FIRST
+DEPTH
+ADDCONST -2
+PICK
+SUB
+UFITS 128
+PUSHINT 100000000
+MAX
+.loc ../contracts/StEverAccount.sol, 0
+
+.macro getDetails
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StEverAccount.sol, 50
+LDU 32
+GETGLOB 4
+ROT
+SETINDEXQ 5
+SETGLOB 4
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $getDetails_fbbf93a0_internal_macro$
+}
+OVER
+PUSHCONT {
+	PUSH S3
+	CTOS
+	LDU 2
+	LDMSGADDR
+	DROP
+	NIP
+	NEWC
+	STSLICECONST xc
+	STSLICE
+	PUSHINT 1
+	STUR 98
+	SWAP
+	NEWC
+	STSLICECONST x9ea3fe8e
+	SWAP
+	UNTRIPLE
+	REVERSE 4, 0
+	STU 128
+	STU 128
+	STSLICE
+	STBREFR
+	ENDC
+	PUSHINT 0
+}
+PUSHCONT {
+	GETGLOB 4
+	DUP
+	INDEX 3
+	OVER
+	THIRD
+	GETGLOB 9
+	ROLL 3
+	SECOND
+	NEWC
+	STSLICECONST x2_
+	STI 1
+	STSLICECONST x1_
+	STSLICE
+	SWAP
+	STGRAMS
+	STDICT
+	PUSHINT 1
+	STUR 106
+	SWAP
+	NEWC
+	GETGLOB 4
+	INDEX 5
+	STUR 32
+	SWAP
+	UNTRIPLE
+	REVERSE 4, 0
+	STU 128
+	STU 128
+	STSLICE
+	STBREFR
+	ENDC
+	GETGLOB 4
+	INDEX 4
+}
+IFELSE
+SENDRAWMSG
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.macro getDetails_fbbf93a0_internal_macro
+.loc ../contracts/StEverAccount.sol, 62
+GETGLOB 4
+PUSHINT 0
+SETINDEXQ 2
+FALSE
+SETINDEXQ 1
+PUSHINT 64
+SETINDEXQ 4
+SETGLOB 4
+GETGLOB 12
+GETGLOB 13
+GETGLOB 11
+TRIPLE
+.loc ../contracts/StEverAccount.sol, 0
+
+.macro addPendingValue
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StEverAccount.sol, 65
+LDU 64
+LDU 128
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $addPendingValue_c60a706a_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro addPendingValue_c60a706a_internal_macro
+.loc ../contracts/StEverAccount.sol, 41
+GETGLOB 9
+GETGLOB 10
+SDEQ
+THROWIFNOT 2001
+.loc ../contracts/StEverAccount.sol, 42
+PUSHCONT {
+	.loc ../contracts/StEverAccount.sol, 66
+	CALLREF {
+		CALL $_reserve_413ab4a8_internal_macro$
+	}
+	PUSHINT 0
+	RAWRESERVE
+	.loc ../contracts/StEverAccount.sol, 67
+	PUSHINT 0
+	NEWDICT
+	PAIR
+	GETGLOB 15
+	DUP
+	PUSHINT 64
+	DICTUMIN
+	NULLSWAPIFNOT
+	IFREF {
+		SWAP
+		LDU 128
+		ENDS
+		SINGLE
+		PAIR
+	}
+	PUSHCONT {
+		DUP
+		ISNULL
+		NOT
+	}
+	PUSHCONT {
+		PUSH2 S2, S0
+		FIRST
+		NEWC
+		STU 64
+		SWAP
+		UNPAIR
+		OVER
+		INC
+		ROLLREV 3
+		PUSHINT 32
+		DICTUSETB
+		PAIR
+		POP S3
+		FIRST
+		OVER
+		PUSHINT 64
+		DICTUGETNEXT
+		NULLSWAPIFNOT
+		IFREF {
+			SWAP
+			LDU 128
+			ENDS
+			SINGLE
+			PAIR
+		}
+	}
+	WHILE
+	DROP2
+	FIRST
+	LESSINT 50
+	DUP
+	PUSHCONT {
+		DROP
+		OVER
+		GETGLOB 15
+		PUSHINT 64
+		DICTUGET
+		NULLSWAPIFNOT
+		NIP
+		NOT
+	}
+	IF
+	PUSHCONT {
+		.loc ../contracts/StEverAccount.sol, 68
+		SINGLE
+		OVER
+		GETGLOB 15
+		ROT
+		CALLREF {
+			UNSINGLE
+			NEWC
+			STU 128
+		}
+		ROTREV
+		PUSHINT 64
+		DICTUSETB
+		SETGLOB 15
+		.loc ../contracts/StEverAccount.sol, 69
+		GETGLOB 11
+		SWAP
+		GETGLOB 10
+		FALSE
+		NEWC
+		STSLICECONST x6_
+		STI 1
+		STSLICECONST x1_
+		STSLICE
+		PUSHINT 1
+		STUR 111
+		ROTREV
+		NEWC
+		STSLICECONST x01678ee5
+		STU 64
+		STSLICE
+		STBREFR
+		ENDC
+		PUSHPOW2 7
+		SENDRAWMSG
+		.loc ../contracts/StEverAccount.sol, 0
+	}
+	IFJMP
+	.loc ../contracts/StEverAccount.sol, 72
+	GETGLOB 11
+	ROT
+	GETGLOB 10
+	FALSE
+	NEWC
+	STSLICECONST x6_
+	STI 1
+	STSLICECONST x1_
+	STSLICE
+	PUSHINT 1
+	STUR 111
+	ROLLREV 3
+	NEWC
+	STSLICECONST x63aaabb0
+	STU 64
+	STSLICE
+	STU 128
+	STBREFR
+	ENDC
+	PUSHPOW2 7
+	SENDRAWMSG
+	.loc ../contracts/StEverAccount.sol, 65
+}
+CALLX
+.loc ../contracts/StEverAccount.sol, 0
+
+.macro resetPendingValues
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StEverAccount.sol, 75
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $resetPendingValues_23948186_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro resetPendingValues_23948186_internal_macro
+.loc ../contracts/StEverAccount.sol, 41
+GETGLOB 9
+GETGLOB 10
+SDEQ
+THROWIFNOT 2001
+.loc ../contracts/StEverAccount.sol, 76
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/StEverAccount.sol, 77
+PUSHINT 0
+PUSHCONT {
+	PUSH2 S0, S2
+	FIRST
+	LESS
+}
+PUSHCONT {
+	.loc ../contracts/StEverAccount.sol, 78
+	PUSH2 S0, S2
+	SECOND
+	PUSHINT 32
+	DICTUGET
+	THROWIFNOT 50
+	PLDU 128
+	SINGLE
+	GETGLOB 15
+	PUSH2 S2, S3
+	SECOND
+	PUSHINT 32
+	DICTUGET
+	THROWIFNOT 50
+	PLDU 64
+	XCHG S2
+	CALLREF {
+		UNSINGLE
+		NEWC
+		STU 128
+	}
+	ROTREV
+	PUSHINT 64
+	DICTUSETB
+	SETGLOB 15
+	.loc ../contracts/StEverAccount.sol, 77
+	INC
+	.loc ../contracts/StEverAccount.sol, 0
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/StEverAccount.sol, 80
+GETGLOB 10
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/StEverAccount.sol, 0
+
+.macro removePendingWithdraw
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StEverAccount.sol, 83
+LDU 64
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $removePendingWithdraw_cd5e4686_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro removePendingWithdraw_cd5e4686_internal_macro
+.loc ../contracts/StEverAccount.sol, 41
+GETGLOB 9
+GETGLOB 10
+SDEQ
+THROWIFNOT 2001
+.loc ../contracts/StEverAccount.sol, 42
+PUSHCONT {
+	.loc ../contracts/StEverAccount.sol, 84
+	CALLREF {
+		CALL $_reserve_413ab4a8_internal_macro$
+	}
+	PUSHINT 0
+	RAWRESERVE
+	.loc ../contracts/StEverAccount.sol, 85
+	DUP
+	GETGLOB 15
+	PUSHINT 64
+	DICTUGET
+	NULLSWAPIFNOT
+	NIP
+	PUSHCONT {
+		.loc ../contracts/StEverAccount.sol, 86
+		DUP
+		GETGLOB 15
+		PUSHINT 64
+		DICTUGET
+IFREFELSEREF
+{
+			LDU 128
+			ENDS
+			SINGLE
+}
+{
+			PUSHINT 0
+			SINGLE
+}
+		.loc ../contracts/StEverAccount.sol, 87
+		OVER
+		GETGLOB 15
+		PUSHINT 64
+		DICTUDEL
+		DROP
+		SETGLOB 15
+		.loc ../contracts/StEverAccount.sol, 88
+		FIRST
+		SWAP
+		GETGLOB 11
+		GETGLOB 10
+		FALSE
+		NEWC
+		STSLICECONST x6_
+		STI 1
+		STSLICECONST x1_
+		STSLICE
+		PUSHINT 1
+		STUR 111
+		ROLLREV 3
+		NEWC
+		STSLICECONST x144aebf7
+		STSLICE
+		STU 64
+		STU 128
+		STBREFR
+		ENDC
+		PUSHPOW2 7
+		SENDRAWMSG
+		.loc ../contracts/StEverAccount.sol, 0
+	}
+	IFJMP
+	.loc ../contracts/StEverAccount.sol, 95
+	DROP
+	GETGLOB 11
+	NEWC
+	STSLICECONST x42_
+	STSLICE
+	PUSHINT 111
+	STZEROES
+	ENDC
+	PUSHPOW2 7
+	SENDRAWMSG
+	.loc ../contracts/StEverAccount.sol, 83
+}
+CALLX
+.loc ../contracts/StEverAccount.sol, 0
+
+.macro processWithdraw
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StEverAccount.sol, 99
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $processWithdraw_c0fbda78_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro processWithdraw_c0fbda78_internal_macro
+.loc ../contracts/StEverAccount.sol, 41
+GETGLOB 9
+GETGLOB 10
+SDEQ
+THROWIFNOT 2001
+.loc ../contracts/StEverAccount.sol, 100
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/StEverAccount.sol, 102
+PUSHINT 0
+DUP
+.loc ../contracts/StEverAccount.sol, 103
+NEWDICT
+PAIR
+DUP
+.loc ../contracts/StEverAccount.sol, 105
+PUSHINT 0
+PUSHCONT {
+	PUSH2 S0, S4
+	FIRST
+	LESS
+}
+PUSHCONT {
+	.loc ../contracts/StEverAccount.sol, 106
+	PUSH2 S0, S4
+	SECOND
+	PUSHINT 32
+	DICTUGET
+	THROWIFNOT 50
+	PLDU 64
+	.loc ../contracts/StEverAccount.sol, 107
+	DUP
+	GETGLOB 15
+	PUSHINT 64
+	DICTUGET
+	NULLSWAPIFNOT
+	NIP
+	PUSHCONT {
+		.loc ../contracts/StEverAccount.sol, 108
+		DUP
+		GETGLOB 15
+		PUSHINT 64
+		DICTUGET
+IFREFELSEREF
+{
+			LDU 128
+			ENDS
+			SINGLE
+}
+{
+			PUSHINT 0
+			SINGLE
+}
+		.loc ../contracts/StEverAccount.sol, 109
+		PUSH2 S4, S0
+		FIRST
+		NEWC
+		STU 128
+		SWAP
+		UNPAIR
+		OVER
+		INC
+		ROLLREV 3
+		PUSHINT 32
+		DICTUSETB
+		PAIR
+		POP S5
+		.loc ../contracts/StEverAccount.sol, 110
+		PUSH2 S3, S1
+		NEWC
+		STU 64
+		SWAP
+		UNPAIR
+		OVER
+		INC
+		ROLLREV 3
+		PUSHINT 32
+		DICTUSETB
+		PAIR
+		POP S4
+		.loc ../contracts/StEverAccount.sol, 111
+		OVER
+		GETGLOB 15
+		PUSHINT 64
+		DICTUDEL
+		DROP
+		SETGLOB 15
+		.loc ../contracts/StEverAccount.sol, 112
+		FIRST
+		PUSH S5
+		ADD
+		UFITS 128
+		POP S5
+		.loc ../contracts/StEverAccount.sol, 0
+	}
+	IF
+	.loc ../contracts/StEverAccount.sol, 0
+	DROP
+	.loc ../contracts/StEverAccount.sol, 105
+	INC
+	.loc ../contracts/StEverAccount.sol, 0
+}
+WHILE
+DROP
+.loc ../contracts/StEverAccount.sol, 115
+SWAP
+GETGLOB 11
+ROLL 3
+GETGLOB 10
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+PUSHINT 1
+STUR 111
+ROLLREV 4
+NEWC
+STSLICECONST x37321e98
+STU 128
+STSLICE
+SWAP
+UNPAIR
+XCHG S2
+STU 32
+STDICT
+SWAP
+UNPAIR
+XCHG S2
+STU 32
+STDICT
+STBREFR
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/StEverAccount.sol, 0
+DROP
+
+.internal-alias :onCodeUpgrade, 2
+.internal :onCodeUpgrade
+.loc ../contracts/StEverAccount.sol, 121
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 10
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 11
+PUSHINT 0
+SETGLOB 12
+PUSHINT 0
+SETGLOB 13
+PUSHINT 0
+SETGLOB 14
+NEWDICT
+SETGLOB 15
+.loc ../contracts/StEverAccount.sol, 122
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/StEverAccount.sol, 123
+CTOS
+.loc ../contracts/StEverAccount.sol, 124
+DUP
+LDMSGADDR
+LDU 8
+LDMSGADDR
+LDREF
+POP S5
+DROP
+NIP
+.loc ../contracts/StEverAccount.sol, 125
+SWAP
+SETGLOB 10
+.loc ../contracts/StEverAccount.sol, 127
+SWAP
+LDREFRTOS
+NIP
+.loc ../contracts/StEverAccount.sol, 128
+LDMSGADDR
+DROP
+SETGLOB 11
+.loc ../contracts/StEverAccount.sol, 130
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/StEverAccount.sol, 0
+CALLREF {
+	CALL $c7_to_c4$
+}
+COMMIT
+THROW 0
+
+.macro c4_to_c7
+PUSHROOT
+CTOS
+LDU 256 ; pubkey c4
+LDU 64 ; pubkey timestamp c4
+LDU 1 ; ctor flag
+NIP
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDU 128
+LDU 128
+LDU 32
+LDDICT
+ENDS
+SETGLOB 15
+SETGLOB 14
+SETGLOB 13
+SETGLOB 12
+SETGLOB 11
+SETGLOB 10
+SETGLOB 3
+SETGLOB 2
+
+.macro c4_to_c7_with_init_storage
+PUSHROOT
+CTOS
+SBITS
+GTINT 1
+PUSHCONT {
+	PUSHINT 0
+	PUSHROOT
+	CTOS
+	PLDDICT ; D
+	PUSHREFSLICE {
+		.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+	}
+	DUP
+	PUSHINT 0
+	BLKPUSH 2, 0
+	NEWDICT
+	SETGLOB 15
+	SETGLOB 14
+	SETGLOB 13
+	SETGLOB 12
+	SETGLOB 11
+	SETGLOB 10
+	PUSHINT 64
+	DICTUGET
+	THROWIFNOT 61
+	PLDU 256
+	SETGLOB 2
+	PUSHINT 0 ; timestamp
+	SETGLOB 3
+}
+IFREFELSE {
+	CALL $c4_to_c7$
+}
+
+.macro c7_to_c4
+GETGLOB 15
+GETGLOB 14
+GETGLOB 13
+GETGLOB 12
+GETGLOB 11
+GETGLOB 10
+GETGLOB 3
+GETGLOB 2
+NEWC
+STU 256
+STU 64
+STONE
+STSLICE
+ROLLREV 5
+NEWC
+STSLICE
+STU 128
+STU 128
+STU 32
+STDICT
+STBREFR
+ENDC
+POPROOT
+
+.macro upd_only_time_in_c4
+PUSHROOT
+CTOS
+LDU 256
+LDU 64
+NIP
+GETGLOB 3
+ROT
+NEWC
+STU 256
+STU 64
+STSLICE
+ENDC
+POPROOT
+
+.internal-alias :main_internal, 0
+.internal :main_internal
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSH S2
+CTOS
+LDU 4 ; bounced tail
+LDMSGADDR ; bounced src tail
+DROP
+SETGLOB 9
+MODPOW2 1
+GETGLOB 4
+TRUE
+SETINDEXQ 1
+PUSHINT 10000000
+SETINDEXQ 2
+NULL
+SETINDEXQ 3
+PUSHINT 0
+SETINDEXQ 4
+SETGLOB 4
+IFRET
+OVER
+SEMPTY ; isEmpty
+IFJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+OVER
+LDUQ 32  ; [funcId] body' ok
+THROWIFNOT 60
+OVER
+IFNOTJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.internal-alias :main_external, -1
+.internal :main_external
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 9
+OVER
+CALLREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+LDU 1 ; haveSign msgSlice
+SWAP
+PUSHCONT {
+	PUSHPOW2 9
+	LDSLICEX ; signatureSlice msgSlice
+	DUP
+	HASHSU ; signatureSlice msgSlice hashMsgSlice
+	ROT
+	GETGLOB 2
+	CHKSIGNU ; msgSlice isSigned
+	THROWIFNOT 40
+}
+IF
+LDU 64 ; timestamp msgSlice
+SWAP
+CALL $replay_protection_macro$
+LDU 32 ; expireAt msgSlice
+SWAP
+NOW ; msgSlice expireAt now
+GREATER ; msgSlice expireAt>now
+THROWIFNOT 57
+LDU 32 ; funcId body
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.macro withdrawRequests
+DROP
+ENDS
+CALLREF {
+	CALL $c4_to_c7$
+}
+GETGLOB 15
+OVER
+PUSHCONT {
+	PUSHSLICE xc000000000000000000000000094fb0e0a
+	NEWC
+	STSLICE
+	STDICT
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+IF
+THROW 0
+
+.macro public_function_selector
+DUP
+PUSHINT 1018088721
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 351997450
+	EQUAL
+	IFJMPREF {
+		CALL $withdrawRequests$
+	}
+	DUP
+	PUSHINT 377932942
+	EQUAL
+	IFJMPREF {
+		CALL $removePendingWithdraw$
+	}
+	DUP
+	PUSHINT 514064014
+	EQUAL
+	IFJMPREF {
+		CALL $getDetails$
+	}
+	DUP
+	PUSHINT 1018088721
+	EQUAL
+	IFJMPREF {
+		CALL $processWithdraw$
+	}
+}
+DUP
+PUSHINT 1815307730
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 1124753509
+	EQUAL
+	IFJMPREF {
+		CALL $addPendingValue$
+	}
+	DUP
+	PUSHINT 1756716863
+	EQUAL
+	IFJMPREF {
+		CALL $constructor$
+	}
+	DUP
+	PUSHINT 1815307730
+	EQUAL
+	IFJMPREF {
+		CALL $resetPendingValues$
+	}
+}
+
