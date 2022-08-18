@@ -122,7 +122,7 @@ describe("Single flow", async function () {
   it("should successfully withdraw from strategy", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(100);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    const withdrawSuccessEvents = await governance.withdrawFromStrategies({
+    const { successEvents } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [
           locklift.utils.getRandomNonce(),
@@ -134,7 +134,11 @@ describe("Single flow", async function () {
         ],
       ],
     });
+    expect(successEvents.length).to.be.equals(1);
+    expect(successEvents[0].data.amount).equals(WITHDRAW_AMOUNT.toString());
+    await strategiesWithPool[0].emitWithdrawByRequests();
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
+
     expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());
   });
   it("user should receive requested amount + reward + fee", async () => {

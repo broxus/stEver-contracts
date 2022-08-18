@@ -10,6 +10,7 @@ import "locklift/src/console.sol";
 
 struct Depositor {
     uint128 amount;
+    uint128 withdrawValue;
 }
 
 contract TestDepool is IDePool {
@@ -29,6 +30,8 @@ contract TestDepool is IDePool {
 
     // TESTING FIELDS
     uint128 public static nonce;
+
+    address depositor;
 
     // TESTING METHODS
     function setClosed(bool _closed) override external {
@@ -59,7 +62,8 @@ contract TestDepool is IDePool {
 
         uint128 fee = msg.value - stake;
         if (!depositors.exists(msg.sender)) {
-            depositors[msg.sender] = Depositor(0);
+            depositors[msg.sender] = Depositor(0, 0);
+            depositor = msg.sender;
         }
         depositors[msg.sender].amount += stake;
         sendAcceptAndReturnChange128(uint64(fee));
@@ -77,9 +81,12 @@ contract TestDepool is IDePool {
 
     function withdrawPart(uint64 withdrawValue) override external {
         require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
-
+        if(withdrawalsClosed) {
+           return _sendError(STATUS_NO_POOLING_STAKE, 0);
+        }
         depositors[msg.sender].amount -= withdrawValue;
-        msg.sender.transfer({value: withdrawValue, bounce: false});
+        depositors[msg.sender].withdrawValue = withdrawValue;
+        sendAcceptAndReturnChange();
     }
 
     function withdrawAll() override external {
@@ -89,12 +96,17 @@ contract TestDepool is IDePool {
         msg.sender.transfer({value: amountToSend, bounce: false});
     }
 
-    function roundCompelte(uint64 _reward) override external {
+    function roundComplete(uint64 _reward, bool includesWithdraw) override external {
         tvm.accept();
         round += 1;
         for ((address key, ) : depositors) {
             depositors[key].amount += _reward;
-            IParticipant(key).onRoundComplete(
+            uint128 attachedValue = 0.01 ever;
+            if (includesWithdraw) {
+                attachedValue = depositors[depositor].withdrawValue;
+                depositors[depositor].withdrawValue = 0;
+            }
+            IParticipant(key).onRoundComplete{value: attachedValue, bounce: false}(
                 round,
                 _reward,
                 uint64(depositors[key].amount),
@@ -113,5 +125,9 @@ contract TestDepool is IDePool {
     function sendAcceptAndReturnChange128(uint64 fee) private view {
         tvm.rawReserve(address(this).balance - fee, 0);
         IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 128}(STATUS_SUCCESS, 0);
+    }
+
+    function sendAcceptAndReturnChange() pure private {
+        IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 64}(STATUS_SUCCESS, 0);
     }
 }

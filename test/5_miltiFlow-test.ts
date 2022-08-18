@@ -132,7 +132,7 @@ describe("Multi flow", async function () {
     const WITHDRAW_AMOUNT = toNanoBn(250);
     const FEE_AMOUNT = toNanoBn(0.1);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    const withdrawSuccessEvents = await governance.withdrawFromStrategies({
+    const withdrawSuccessEvents = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
         locklift.utils.getRandomNonce(),
         {
@@ -142,8 +142,10 @@ describe("Multi flow", async function () {
         },
       ]),
     });
-    const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
+    await lastValueFrom(from(strategiesWithPool).pipe(concatMap(dePool => dePool.emitWithdrawByRequests())));
+    const { availableAssets: availableBalanceAfter } = await vault.getDetails();
+    debugger;
     expect(availableBalanceAfter.toNumber()).to.be.gt(
       availableBalanceBefore
         .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length))

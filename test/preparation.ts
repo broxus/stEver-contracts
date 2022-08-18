@@ -41,7 +41,7 @@ export const preparation = async ({
       toArray(),
     )
     .toPromise())!;
-  const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyBase");
+  const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyDePool");
   const factoryContact = await locklift.factory.deployContract({
     contract: "DepoolStrategyFactory",
     value: locklift.utils.toNano(2),

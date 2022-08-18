@@ -23,7 +23,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
 let strategyFactory: StrategyFactory;
-describe.skip("Strategy base", function () {
+describe("Strategy base", function () {
   before(async () => {
     const {
       vault: v,
@@ -122,7 +122,7 @@ describe.skip("Strategy base", function () {
     await strategy.setDePoolWithdrawalState({ isClosed: true });
     const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
     const WITHDRAW_AMOUNT = toNanoBn(100);
-    const { errorEvent } = await governance.withdrawFromStrategies({
+    const { errorEvent } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [
           locklift.utils.getRandomNonce(),

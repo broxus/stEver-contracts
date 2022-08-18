@@ -34,7 +34,7 @@ export class Governance {
     };
   };
 
-  withdrawFromStrategies = async (
+  withdrawFromStrategiesRequest = async (
     ...params: Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawFromStrategies"]>
   ) => {
     const { transaction } = await locklift.tracing.trace(
@@ -43,7 +43,7 @@ export class Governance {
         .sendExternal({ publicKey: this.keyPair.publicKey }),
     );
     const successEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "StrategyWithdrawSuccess",
+      eventName: "StrategyHandledWithdrawRequest",
       parentTransaction: transaction,
     });
     const errorEvent = await this.vault.getEventsAfterTransaction({

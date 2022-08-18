@@ -8,13 +8,25 @@ export class DePoolStrategyWithPool {
     public readonly dePoolContract: Contract<TestDepoolAbi>,
     public readonly strategy: Contract<StrategyBaseAbi>,
     private readonly signer: Signer,
-  ) { }
+  ) {}
 
   emitDePoolRoundComplete = async (reward: string) => {
     return await locklift.tracing.trace(
       this.dePoolContract.methods
-        .roundCompelte({
+        .roundComplete({
           _reward: reward,
+          includesWithdraw: false,
+        })
+        .sendExternal({ publicKey: this.signer.publicKey }),
+    );
+  };
+
+  emitWithdrawByRequests = async () => {
+    return await locklift.tracing.trace(
+      this.dePoolContract.methods
+        .roundComplete({
+          _reward: 0,
+          includesWithdraw: true,
         })
         .sendExternal({ publicKey: this.signer.publicKey }),
     );
@@ -68,7 +80,7 @@ export const createStrategy = async ({
 
   return new DePoolStrategyWithPool(
     dePool.contract,
-    locklift.factory.getDeployedContract("StrategyBase", strategyAddress),
+    locklift.factory.getDeployedContract("StrategyDePool", strategyAddress),
     signer,
   );
 };

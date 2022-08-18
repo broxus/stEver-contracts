@@ -207,6 +207,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
             // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
+            totalAssets -= config.fee;
 
             // change withdrawing strategy state
             strategies[config.strategy].withdrawingAmount = config.amount;
@@ -218,14 +219,25 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         }
     }
 
+    function onStrategyHandledWithdrawRequest() override external onlyStrategy {
+        // set back remaining gas after withdraw request
+        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        totalAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        
+        emit StrategyHandledWithdrawRequest(msg.sender, strategies[msg.sender].withdrawingAmount);
+    }
+
     function receiveFromStrategy() override external onlyStrategy {
         uint128 withdrawingAmount = strategies[msg.sender].withdrawingAmount;
         // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;
-
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
         
-        emit StrategyWithdrawSuccess(msg.sender, withdrawingAmount);
+        uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+
+        availableAssets += receivedAmount;
+        
+        emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
+        
     }
 
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {

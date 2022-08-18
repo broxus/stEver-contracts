@@ -4,19 +4,27 @@ pragma AbiHeader expire;
 
 interface IStEverVault {
     event AdminDeposited(uint128 amount);
+    
     event StrategyAdded(address strategy);
     event StrategyRemoved(address strategy);
+
     event StrategyReported(address strategy, StrategyReport report);
+
     event StrategyHandledDeposit(address strategy, uint128 depositValue);
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
+
+    event StrategyHandledWithdrawRequest(address strategy, uint128 amount);
     event StrategyWithdrawSuccess(address strategy, uint128 amount);
     event StrategyWithdrawError(address strategy, uint32 errcode);
+
     event Deposit(address user, uint128 depositAmount, uint128 receivedStEvers);
+
     event WithdrawRequest(address user, uint128 amount, uint64 nonce);
     event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
     event WithdrawError(address user, uint64[] nonces, uint128 amount); 
     event WithdrawSuccess(address user, uint128 amount, uint64[] nonces);
+
     struct Details {
        address stTokenRoot;
        address stEverWallet;
@@ -81,6 +89,7 @@ interface IStEverVault {
     function removePendingWithdraw(uint64 nonce) external;
     function depositToStrategies(mapping(uint256 => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;
+    function onStrategyHandledWithdrawRequest() external;
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
     function receiveFromStrategy() external;
     function withdrawFromStrategyError(uint32 errcode) external;
