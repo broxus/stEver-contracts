@@ -129,7 +129,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     function withdrawFromDePool(uint128 _amount) internal {
         IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
     }
-// TODO continue here
+
     function receiveAnswer(uint32 _errcode, uint64 comment) override external onlyDepool {
         tvm.rawReserve(_reserve(),0);
 
@@ -182,12 +182,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     }
 
-    // receive() external onlyDepoolOrVault {
-    //     tvm.rawReserve(_reserve(),0);
-    //     if(msg.sender == dePool) {
-    //         IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
-    //     }
-    // }
+    receive() external onlyDepoolOrVault {
+        tvm.rawReserve(_reserve(),0);
+        if(msg.sender == dePool) {
+            IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+        }
+    }
 
     function onRoundComplete(
         uint64 _roundId,
@@ -200,7 +200,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     ) override external onlyDepool {
         tvm.accept();
         /*
-        making free 0.11 ever for evaluating report and full msg.value if report has attached withdraw value
+        making free 0.11 ever for evaluating report also full msg.value if report has attached withdraw value
         */ 
         tvm.rawReserve(address(this).balance - 0.11 ever - msg.value, 0);
 

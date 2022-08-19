@@ -55,8 +55,6 @@ contract TestDepool is IDePool {
         }
 
         if (stake < m_minStake) {
-        console.log(format("addOrdinaryStake msg.value = {}",msg.value));
-
             return _sendError(STATUS_STAKE_TOO_SMALL, m_minStake);
         }
 

@@ -10,7 +10,6 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
 
-// TODO: struct with one field? we really need it ????
 struct WithdrawRequest {
     uint128 amount;
 }
@@ -95,7 +94,6 @@ contract StEverAccount is IStEverAccount {
         user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    // TODO: add recursive handling for big input array, otherwise gas overflow could occur
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 

@@ -156,7 +156,6 @@ describe("Multi flow", async function () {
         eventName: "WithdrawRequestRemoved",
         parentTransaction: transaction,
       });
-      debugger;
       expect(removeWithdrawRequest.data.nonce).to.be.equals(withdrawRequestNonce.toString());
       expect(
         (await user1.getWithdrawRequests()).filter(({ nonce }) => nonce === withdrawRequestNonce.toString()),

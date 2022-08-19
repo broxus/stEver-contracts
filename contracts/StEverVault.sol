@@ -30,6 +30,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function addStrategy(address _strategy) override external onlyOwner minCallValue {
         tvm.rawReserve(_reserve(),0);
+
         strategies[_strategy] = StrategyParams(
             0,
             0,
@@ -37,20 +38,26 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             0
         );
         emit StrategyAdded(_strategy);
+
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function removeStrategy(address _strategy) override external onlyOwner minCallValue {
         require (strategies.exists(_strategy));
+
         tvm.rawReserve(_reserve(),0);
+
         emit StrategyRemoved(_strategy);
         delete strategies[_strategy];
+
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function validateDepositRequest(mapping (uint256 => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
+
         uint128 totalRequiredBalance;
+
         for (uint256 i = 0; !_depositConfigs.empty(); i++) {
 
             (, DepositConfig depositConfig) = _depositConfigs.delMin().get();
@@ -146,7 +153,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         emit StrategyDidntHandleDeposit(msg.sender, _errcode);
     }
 
-    function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets,uint128 _requestedBalance) override external onlyStrategy {
+    function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
         
         strategies[msg.sender].lastReport = now;
         strategies[msg.sender].totalGain += _gain;
@@ -166,7 +173,9 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     
     function validateWithdrawFromStrategiesRequest(mapping (uint256 => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
         ValidationResult[] validationResults;
+
         uint128 totalRequiredBalance;
+        
         for (uint256 i = 0; !_withdrawConfig.empty(); i++) {
             (,WithdrawConfig config) = _withdrawConfig.delMin().get();
 
