@@ -31,8 +31,7 @@
 		{
 			"name": "resetPendingValues",
 			"inputs": [
-				{"name":"_amountsWithdrawn","type":"uint128[]"},
-				{"name":"_noncesWithdrawn","type":"uint64[]"}
+				{"name":"rejectedWithdrawals","type":"map(uint64,uint128)"}
 			],
 			"outputs": [
 			]

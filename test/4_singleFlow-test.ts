@@ -116,7 +116,7 @@ describe("Single flow", async function () {
     expect(errorEvents[0].data.amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
 
     const { amount, nonce } = (await user1.getWithdrawRequests())[0];
-    expect(nonce).to.be.equals(errorEvents[0].data.nonces[0]);
+    expect(nonce).to.be.equals(errorEvents[0].data.withdrawInfo[0][0]);
     expect(amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
   });
   it("should successfully withdraw from strategy", async () => {

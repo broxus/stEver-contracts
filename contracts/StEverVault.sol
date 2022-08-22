@@ -428,31 +428,35 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
     function withdrawToUser(
         uint128 amount,
-        address user,
-        uint128[] amountsWithdrawn,
-        uint64[] noncesWithdrawn
-    ) override external onlyAccount(user) {
+        address _user,
+        mapping(uint64 => uint128) _withdrawals
+    ) override external onlyAccount(_user) {
         tvm.rawReserve(_reserve(), 0);
         
-        if(amountsWithdrawn.length == 0 || noncesWithdrawn.length == 0) {
+        if(_withdrawals.empty()) {
             return;
         }
+        
+        // create withdraw info
+        mapping(uint64 => WithdrawToUserInfo) withdrawInfo = getWithdrawToUserInfo(_withdrawals);
 
         uint128 everAmount = getWithdrawEverAmount(amount);
         // if not enough balance, reset pending to the Account;
         if (availableAssets < everAmount) {
-            emit WithdrawError(user, noncesWithdrawn, amount);
-            IStEverAccount(msg.sender).resetPendingValues{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(amountsWithdrawn, noncesWithdrawn);
+            emit WithdrawError(_user, withdrawInfo, amount);
+            IStEverAccount(msg.sender).resetPendingValues{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_withdrawals);
             return;
         }
         totalAssets -= everAmount;
         availableAssets -= everAmount;
         stEverSupply -= amount;
 
+
+
         TvmBuilder builder;
-        builder.store(user);
+        builder.store(_user);
         builder.store(everAmount);
-        builder.store(noncesWithdrawn);
+        builder.store(withdrawInfo);
 
         TokenWalletBurnableBase(stEverWallet).burn{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(
             amount,
@@ -474,11 +478,11 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         TvmSlice slice = payload.toSlice();
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
-        uint64[] nonces = slice.decode(uint64[]);
+        mapping(uint64 => WithdrawToUserInfo) withdrawals = slice.decode(mapping(uint64 => WithdrawToUserInfo));
 
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
 
-        emit WithdrawSuccess(user, everAmount, nonces);
+        emit WithdrawSuccess(user, everAmount, withdrawals);
         user.transfer({value: 0, flag :MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 

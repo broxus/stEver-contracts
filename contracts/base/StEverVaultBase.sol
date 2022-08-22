@@ -158,6 +158,20 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, totalAssets, stEverSupply);
     }
 
+    function getWithdrawToUserInfo(mapping(uint64 => uint128) _withdrawals) internal returns(mapping(uint64 => WithdrawToUserInfo)) {
+
+        mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
+
+        for ((uint64 nonce, uint128 amount) : _withdrawals) {
+            withdrawInfo[nonce] = WithdrawToUserInfo({
+                stEverAmount: amount,
+                everAmount: getWithdrawEverAmount(amount)
+            });
+        }
+        
+        return withdrawInfo;
+    }
+
 
     // account utils
     function _buildAccountParams(address _user) internal virtual view returns (TvmCell) {

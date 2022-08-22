@@ -22,8 +22,8 @@ interface IStEverVault {
     event WithdrawRequest(address user, uint128 amount, uint64 nonce);
     event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
-    event WithdrawError(address user, uint64[] nonces, uint128 amount); 
-    event WithdrawSuccess(address user, uint128 amount, uint64[] nonces);
+    event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount); 
+    event WithdrawSuccess(address user, uint128 amount, mapping(uint64 => WithdrawToUserInfo) withdrawInfo);
 
     struct Details {
        address stTokenRoot;
@@ -72,6 +72,11 @@ interface IStEverVault {
         address user;
         uint64[] nonces;
     }
+
+    struct WithdrawToUserInfo {
+        uint128 stEverAmount;
+        uint128 everAmount;
+    }
     struct ValidationResult {
         address strategy;
         uint16 errCode;
@@ -93,7 +98,7 @@ interface IStEverVault {
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
     function receiveFromStrategy() external;
     function withdrawFromStrategyError(uint32 errcode) external;
-    function withdrawToUser(uint128 amount, address user, uint128[] amountsWithdraw, uint64[] noncesWithdrawn) external;
+    function withdrawToUser(uint128 amount, address user, mapping(uint64 => uint128) withdrawals) external;
     // validators
     function validateDepositRequest(mapping (uint256 => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
     function validateWithdrawFromStrategiesRequest(mapping (uint256 => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);

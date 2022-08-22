@@ -584,6 +584,56 @@ THROW 0
 DROP2
 .loc ../contracts/StrategyDePool.sol, 0
 
+.macro receive_macro
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/StrategyDePool.sol, 86
+PUSHINT 3003
+GETGLOB 9
+GETGLOB 12
+SDEQ
+GETGLOB 9
+GETGLOB 11
+SDEQ
+OR
+THROWANYIFNOT
+.loc ../contracts/StrategyDePool.sol, 186
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/StrategyDePool.sol, 187
+GETGLOB 9
+GETGLOB 12
+SDEQ
+PUSHCONT {
+	.loc ../contracts/StrategyDePool.sol, 188
+	GETGLOB 11
+	FALSE
+	NEWC
+	STSLICECONST x6_
+	STI 1
+	STSLICECONST x1_
+	STSLICE
+	PUSHINT 1159026958
+	STUR 143
+	ENDC
+	PUSHPOW2 7
+	SENDRAWMSG
+	.loc ../contracts/StrategyDePool.sol, 0
+}
+IF
+.loc ../contracts/StrategyDePool.sol, 0
+CALLREF {
+	CALL $c7_to_c4$
+}
+
 .macro onRoundComplete
 DROP
 GETGLOB 6
@@ -1008,17 +1058,23 @@ SETGLOB 4
 IFRET
 OVER
 SEMPTY ; isEmpty
-IFJMPREF {
-	GETGLOB 6
-	THROWIFNOT 76
+DUP
+PUSHCONT {
+	DROP
+	OVER
+	LDUQ 32  ; [funcId] body' ok
+	THROWIFNOT 60
+	OVER
+	EQINT 0 ; funcId body' isZero
+	DUP
+	PUSHCONT {
+		BLKDROP2 2, 1
+	}
+	IF
 }
-OVER
-LDUQ 32  ; [funcId] body' ok
-THROWIFNOT 60
-OVER
-IFNOTJMPREF {
-	GETGLOB 6
-	THROWIFNOT 76
+IFNOT
+IFJMPREF {
+	CALL $receive_macro$
 }
 SWAP
 CALLREF {

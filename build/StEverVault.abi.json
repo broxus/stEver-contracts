@@ -181,9 +181,8 @@
 			"name": "withdrawToUser",
 			"inputs": [
 				{"name":"amount","type":"uint128"},
-				{"name":"user","type":"address"},
-				{"name":"amountsWithdrawn","type":"uint128[]"},
-				{"name":"noncesWithdrawn","type":"uint64[]"}
+				{"name":"_user","type":"address"},
+				{"name":"_withdrawals","type":"map(uint64,uint128)"}
 			],
 			"outputs": [
 			]
@@ -471,7 +470,7 @@
 			"name": "WithdrawError",
 			"inputs": [
 				{"name":"user","type":"address"},
-				{"name":"nonces","type":"uint64[]"},
+				{"components":[{"name":"stEverAmount","type":"uint128"},{"name":"everAmount","type":"uint128"}],"name":"withdrawInfo","type":"map(uint64,tuple)"},
 				{"name":"amount","type":"uint128"}
 			],
 			"outputs": [
@@ -482,7 +481,7 @@
 			"inputs": [
 				{"name":"user","type":"address"},
 				{"name":"amount","type":"uint128"},
-				{"name":"nonces","type":"uint64[]"}
+				{"components":[{"name":"stEverAmount","type":"uint128"},{"name":"everAmount","type":"uint128"}],"name":"withdrawInfo","type":"map(uint64,tuple)"}
 			],
 			"outputs": [
 			]

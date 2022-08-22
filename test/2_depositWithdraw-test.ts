@@ -96,6 +96,7 @@ describe("Deposit withdraw test", function () {
     successEvents.forEach(event => {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
       expect(event.data.amount).to.equal(WITHDRAW_AMOUNT.toString(), "user should receive evers by rate 1:1");
+      expect(event.data.withdrawInfo[0][1].everAmount).to.be.equals(event.data.withdrawInfo[0][1].stEverAmount);
     });
     const { availableAssets: availableAssetsAfterWithdraw } = await vault.getDetails();
 

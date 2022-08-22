@@ -71,11 +71,13 @@ contract StEverAccount is IStEverAccount {
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount);
     }
 
-    function resetPendingValues(uint128[] _amountsWithdrawn, uint64[] _noncesWithdrawn) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => uint128) rejectedWithdrawals) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-        for (uint256 i = 0; i < _amountsWithdrawn.length; i++) {
-            withdrawRequests[_noncesWithdrawn[i]] = WithdrawRequest(_amountsWithdrawn[i]);
+
+        for ((uint64 nonce, uint128 amount) : rejectedWithdrawals) {
+            withdrawRequests[nonce] = WithdrawRequest(amount);
         }
+
         vault.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -98,20 +100,24 @@ contract StEverAccount is IStEverAccount {
         tvm.rawReserve(_reserve(), 0);
 
         uint128 totalAmount = 0;
-        uint128[] amountsWithdrawn;
-        uint64[] noncesWithdrawn;
+        mapping(uint64 => uint128) withdrawals;
+
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
             uint64 withdrawRequestKey = _satisfiedWithdrawRequests[i];
             if (withdrawRequests.exists(withdrawRequestKey)) {
                 WithdrawRequest withdrawRequest = withdrawRequests[withdrawRequestKey];
-                amountsWithdrawn.push(withdrawRequest.amount);
-                noncesWithdrawn.push(withdrawRequestKey);
+                withdrawals[withdrawRequestKey] = withdrawRequest.amount;
                 delete withdrawRequests[withdrawRequestKey];
                 totalAmount += withdrawRequest.amount;
             }
         }
-        IStEverVault(vault).withdrawToUser{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(
-            totalAmount, user, amountsWithdrawn, noncesWithdrawn
+
+        IStEverVault(vault).withdrawToUser{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+            }(
+            totalAmount, user, withdrawals
         );
     }
 
