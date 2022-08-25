@@ -75,9 +75,8 @@ describe("Strategy base", function () {
     const { successEvents } = await governance.depositToStrategies({
       _depositConfigs: [
         [
-          locklift.utils.getRandomNonce(),
+          strategy.strategy.address,
           {
-            strategy: strategy.strategy.address,
             amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
             fee: DEPOSIT_FEE.toString(),
           },
@@ -124,10 +123,7 @@ describe("Strategy base", function () {
     const WITHDRAW_AMOUNT = toNanoBn(100);
     const { errorEvent } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
-        [
-          locklift.utils.getRandomNonce(),
-          { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
-        ],
+        [strategy.strategy.address, { amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
       ],
     });
     const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
@@ -162,11 +158,10 @@ describe("Strategy base", function () {
     const { errorEvents } = await governance.depositToStrategies({
       _depositConfigs: [
         [
-          locklift.utils.getRandomNonce(),
+          strategy.strategy.address,
           {
             fee: DEPOSIT_FEE.toString(),
             amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-            strategy: strategy.strategy.address,
           },
         ],
       ],
@@ -195,9 +190,8 @@ describe("Strategy base", function () {
     await governance.depositToStrategies({
       _depositConfigs: [
         [
-          locklift.utils.getRandomNonce(),
+          strategyWithDePool.strategy.address,
           {
-            strategy: strategyWithDePool.strategy.address,
             amount: locklift.utils.toNano(100),
             fee: locklift.utils.toNano(0.6),
           },
@@ -215,9 +209,8 @@ describe("Strategy base", function () {
     const result = await vault.vaultContract.methods
       .validateDepositRequest({
         _depositConfigs: _.range(0, 120).map(() => [
-          locklift.utils.getRandomNonce(),
+          strategy.strategy.address,
           {
-            strategy: strategy.strategy.address,
             amount: locklift.utils.toNano(90),
             fee: locklift.utils.toNano(0.6),
           },
@@ -250,11 +243,10 @@ describe("Strategy base", function () {
       _depositConfigs: _.range(0, 55)
         .reduce(acc => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
         .map(strategy => [
-          locklift.utils.getRandomNonce(),
+          strategy.strategy.address,
           {
             fee: locklift.utils.toNano(0.6),
             amount: locklift.utils.toNano(2),
-            strategy: strategy.strategy.address,
           },
         ]),
     });

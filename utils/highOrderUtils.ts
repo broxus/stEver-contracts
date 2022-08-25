@@ -27,10 +27,7 @@ export const makeWithdrawToUsers = async ({
   );
 
   const { transaction } = await governance.emitWithdraw({
-    sendConfig: withdrawSetup.map(({ user, nonce }) => [
-      locklift.utils.getRandomNonce(),
-      { user: user.account.address, nonces: [nonce] },
-    ]),
+    sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });
 
   const withdrawSuccessEvents = await vault.getEventsAfterTransaction({

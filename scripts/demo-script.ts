@@ -301,9 +301,8 @@ async function main() {
     vaultContract.methods
       .processWithdrawFromStrategies({
         _withdrawConfig: strategiesWithDePools.map(({ strategyContract: { address } }) => [
-          locklift.utils.getRandomNonce(),
+          address,
           {
-            strategy: address,
             amount: locklift.utils.toNano(DEPOSIT_TO_STRATEGY_AMOUNT + ROUND_REWARD),
             fee: locklift.utils.toNano(0.6),
           },
@@ -376,10 +375,7 @@ async function main() {
   const { transaction: withdrawToUsersTransaction } = await locklift.tracing.trace(
     vaultContract.methods
       .processSendToUsers({
-        sendConfig: users.map(({ address }) => [
-          locklift.utils.getRandomNonce(),
-          { user: address, nonces: [withdrawNonces[address.toString()]] },
-        ]),
+        sendConfig: users.map(({ address }) => [address, { nonces: [withdrawNonces[address.toString()]] }]),
       })
       .sendExternal({ publicKey: governanceSigner.publicKey }),
   );

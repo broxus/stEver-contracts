@@ -84,9 +84,8 @@ describe("Multi flow", async function () {
     console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       _depositConfigs: strategiesWithPool.map(({ strategy }) => [
-        locklift.utils.getRandomNonce(),
+        strategy.address,
         {
-          strategy: strategy.address,
           amount: DEPOSIT_TO_STRATEGIES_AMOUNT.minus(DEPOSIT_FEE).toString(),
           fee: DEPOSIT_FEE.toString(),
         },
@@ -134,9 +133,8 @@ describe("Multi flow", async function () {
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
     const withdrawSuccessEvents = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
-        locklift.utils.getRandomNonce(),
+        strategy.address,
         {
-          strategy: strategy.address,
           amount: WITHDRAW_AMOUNT.toString(),
           fee: FEE_AMOUNT.toString(),
         },
@@ -189,10 +187,7 @@ describe("Multi flow", async function () {
       ),
     );
     await governance.emitWithdraw({
-      sendConfig: withdrawNonces.map(({ nonces, user }) => [
-        locklift.utils.getRandomNonce(),
-        { user: user.account.address, nonces },
-      ]),
+      sendConfig: withdrawNonces.map(({ nonces, user }) => [user.account.address, { nonces }]),
     });
 
     const balancesAfterWithdraw = await getBalances(users.map(user => user.account.address));

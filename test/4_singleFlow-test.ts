@@ -66,9 +66,8 @@ describe("Single flow", async function () {
     await governance.depositToStrategies({
       _depositConfigs: [
         [
-          locklift.utils.getRandomNonce(),
+          strategiesWithPool[0].strategy.address,
           {
-            strategy: strategiesWithPool[0].strategy.address,
             amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
             fee: DEPOSIT_FEE.toString(),
           },
@@ -125,9 +124,8 @@ describe("Single flow", async function () {
     const { successEvents } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [
-          locklift.utils.getRandomNonce(),
+          strategiesWithPool[0].strategy.address,
           {
-            strategy: strategiesWithPool[0].strategy.address,
             amount: WITHDRAW_AMOUNT.toString(),
             fee: locklift.utils.toNano(0.1),
           },
@@ -153,7 +151,7 @@ describe("Single flow", async function () {
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
     const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
     const { transaction } = await governance.emitWithdraw({
-      sendConfig: [[locklift.utils.getRandomNonce(), { user: user1.account.address, nonces: [nonce] }]],
+      sendConfig: [[user1.account.address, { nonces: [nonce] }]],
     });
     const success = await vault.getEventsAfterTransaction({
       eventName: "WithdrawSuccess",

@@ -31,7 +31,7 @@
 		{
 			"name": "validateDepositRequest",
 			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(uint256,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
 			],
 			"outputs": [
 				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
@@ -40,7 +40,7 @@
 		{
 			"name": "depositToStrategies",
 			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(uint256,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]
@@ -74,7 +74,7 @@
 		{
 			"name": "validateWithdrawFromStrategiesRequest",
 			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(uint256,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
 			],
 			"outputs": [
 				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
@@ -83,7 +83,7 @@
 		{
 			"name": "processWithdrawFromStrategies",
 			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(uint256,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]
@@ -172,7 +172,7 @@
 		{
 			"name": "processSendToUsers",
 			"inputs": [
-				{"components":[{"name":"user","type":"address"},{"name":"nonces","type":"uint64[]"}],"name":"sendConfig","type":"map(uint256,tuple)"}
+				{"components":[{"name":"nonces","type":"uint64[]"}],"name":"sendConfig","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]
