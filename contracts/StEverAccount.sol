@@ -58,7 +58,7 @@ contract StEverAccount is IStEverAccount {
 				value: 0,
 				bounce: false,
 				flag: MsgFlag.REMAINING_GAS
-			} AccountDetails(pendingReturnedTokens, pendingReceiveEver,user);
+			} AccountDetails(pendingReturnedTokens, pendingReceiveEver, user);
 	}
 
     function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {

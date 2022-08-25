@@ -148,7 +148,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        return _amount * stEverSupply / totalAssets;
+        return math.muldiv(_amount, stEverSupply, totalAssets);
     }
         // when the user withdraw we should calculate the amount of ever to send
     function getWithdrawEverAmount(uint128 _amount) public view returns(uint128) {
@@ -168,7 +168,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 everAmount: getWithdrawEverAmount(amount)
             });
         }
-        
+
         return withdrawInfo;
     }
 

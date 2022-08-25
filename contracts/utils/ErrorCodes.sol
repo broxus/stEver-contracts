@@ -3,6 +3,7 @@ pragma AbiHeader expire;
 
 library ErrorCodes {
     // Vault
+    uint16 constant WRONG_PUB_KEY = 1000;
     uint16 constant NOT_OWNER = 1001;
     uint16 constant NOT_GOVERNANCE = 1002;
     uint16 constant BAD_WITHDRAW_CONFIG = 1003;

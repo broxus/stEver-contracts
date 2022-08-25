@@ -22,6 +22,9 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         address _owner,
         uint128 _gainFee
     ) public {
+        require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUBKEY);
+        require (tvm.pubkey() == msg.pubkey(), ErrorCodes.WRONG_PUBKEY);
+
         tvm.accept();
         owner = _owner;
         gainFee = _gainFee;
@@ -31,12 +34,13 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
     function addStrategy(address _strategy) override external onlyOwner minCallValue {
         tvm.rawReserve(_reserve(),0);
 
-        strategies[_strategy] = StrategyParams(
-            0,
-            0,
-            0,
-            0
-        );
+        strategies[_strategy] = StrategyParams({
+            lastReport: 0,
+            totalGain: 0,
+            depositingAmount: 0,    
+            withdrawingAmount: 0
+        });
+        
         emit StrategyAdded(_strategy);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
