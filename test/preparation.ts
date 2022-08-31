@@ -1,4 +1,4 @@
-import { Account, AccountFactory } from "locklift/build/factory";
+import { Account, AccountFactory } from "locklift/factory";
 import { TokenRootUpgradeableAbi, WalletAbi } from "../build/factorySource";
 import { concatMap, from, map, range, toArray } from "rxjs";
 import { Address, Contract, Signer } from "locklift";

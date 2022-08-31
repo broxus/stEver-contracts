@@ -88,7 +88,7 @@ contract StEverAccount is IStEverAccount {
             delete withdrawRequests[_nonce];
             IStEverVault(vault).onPendingWithdrawRemoved{
                 value:0,
-                flag:MsgFlag.ALL_NOT_RESERVED, 
+                flag:MsgFlag.ALL_NOT_RESERVED,
                 bounce: false
             }(user, _nonce, withdrawRequest.amount);
             return;
@@ -134,4 +134,3 @@ contract StEverAccount is IStEverAccount {
         send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 }
- 

@@ -160,7 +160,6 @@ describe("Multi flow", async function () {
         (await user1.getWithdrawRequests()).filter(({ nonce }) => nonce === withdrawRequestNonce.toString()),
         "Withdraw request shouldn't exists",
       );
-      await lastValueFrom(timer(10000));
     });
   });
   it("users should receive requested amount + reward + fee", async () => {
