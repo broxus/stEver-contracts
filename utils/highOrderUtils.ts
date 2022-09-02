@@ -1,12 +1,11 @@
 import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { Signer, Transaction } from "locklift";
+import { Signer, toNano, Transaction } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
-import { Account } from "locklift/build/factory";
-import { WalletAbi } from "../build/factorySource";
+import { Account } from "everscale-standalone-client/nodejs";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -53,7 +52,7 @@ export const createAndRegisterStrategy = async ({
   strategyDeployValue,
   strategyFactory,
 }: {
-  admin: Account<WalletAbi>;
+  admin: Account;
   vault: Vault;
   signer: Signer;
   poolDeployValue: string;
@@ -67,14 +66,11 @@ export const createAndRegisterStrategy = async ({
     poolDeployValue,
     strategyFactory,
   });
-  const { transaction } = await locklift.tracing.trace(
-    admin.runTarget(
-      {
-        contract: vault.vaultContract,
-        value: locklift.utils.toNano(2),
-      },
-      vault => vault.methods.addStrategy({ _strategy: strategy.strategy.address }),
-    ),
+  const transaction = await locklift.tracing.trace(
+    vault.vaultContract.methods.addStrategy({ _strategy: strategy.strategy.address }).send({
+      from: admin.address,
+      amount: toNano(2),
+    }),
   );
 
   return { strategy, transaction };

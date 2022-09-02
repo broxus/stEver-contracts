@@ -33,7 +33,7 @@ describe("Multi flow", async function () {
       users: [adminUser, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(20), countOfUsers: 3 });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(20), countOfUsers: 4 });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -131,7 +131,7 @@ describe("Multi flow", async function () {
     let withdrawRequestTransaction: Transaction;
     it("before", async () => {
       userStBalanceBeforeRequest = await user1.wallet.getBalance();
-      const { nonce, transaction } = await user1.makeWithdrawRequest(locklift.utils.toNano(1));
+      const { nonce, ...transaction } = await user1.makeWithdrawRequest(locklift.utils.toNano(1));
       withdrawRequestNonce = nonce;
       withdrawRequestTransaction = transaction;
     });
@@ -150,7 +150,7 @@ describe("Multi flow", async function () {
       );
     });
     it("user should remove withdraw request", async () => {
-      const { transaction } = await user1.removeWithdrawRequest(withdrawRequestNonce);
+      const transaction = await user1.removeWithdrawRequest(withdrawRequestNonce);
       const [removeWithdrawRequest] = await vault.getEventsAfterTransaction({
         eventName: "WithdrawRequestRemoved",
         parentTransaction: transaction,

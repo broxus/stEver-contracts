@@ -1,28 +1,27 @@
-import { Account } from "locklift/build/factory";
-import { DepoolStrategyFactoryAbi, WalletAbi } from "../../build/factorySource";
+import { Account } from "everscale-standalone-client/nodejs";
+
+import { DepoolStrategyFactoryAbi } from "../../build/factorySource";
 import { Address, Contract } from "locklift";
 import { Vault } from "./vault";
 
 export class StrategyFactory {
   constructor(
-    private readonly owner: Account<WalletAbi>,
+    private readonly owner: Account,
     private readonly factoryContract: Contract<DepoolStrategyFactoryAbi>,
     private readonly vault: Vault,
   ) {}
   deployStrategy = async ({ deployValue, dePool }: { deployValue: string; dePool: Address }): Promise<Address> =>
     locklift.tracing
       .trace(
-        this.owner.runTarget(
-          {
-            contract: this.factoryContract,
-            value: deployValue,
-          },
-          factory =>
-            factory.methods.deployStrategy({
-              _vault: this.vault.vaultContract.address,
-              _dePool: dePool,
-            }),
-        ),
+        this.factoryContract.methods
+          .deployStrategy({
+            _vault: this.vault.vaultContract.address,
+            _dePool: dePool,
+          })
+          .send({
+            from: this.owner.address,
+            amount: deployValue,
+          }),
       )
       .then(async () => {
         const events = await this.factoryContract.getPastEvents({

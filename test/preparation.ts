@@ -1,13 +1,14 @@
-import { Account, AccountFactory } from "locklift/factory";
 import { TokenRootUpgradeableAbi, WalletAbi } from "../build/factorySource";
-import { concatMap, from, map, range, toArray } from "rxjs";
-import { Address, Contract, Signer } from "locklift";
+import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { Address, Contract, getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
 import { expect } from "chai";
 import { createUserEntity, User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
+import { Account } from "everscale-standalone-client/nodejs";
+
 export const preparation = async ({
   deployUserValue,
   countOfUsers = 6,
@@ -22,13 +23,17 @@ export const preparation = async ({
   governance: Governance;
   strategyFactory: StrategyFactory;
 }> => {
-  const signer = (await locklift.keystore.getSigner("0"))!;
-  const governanceKeyPair = (await locklift.keystore.getSigner("1"))!;
-  const accountFactory = locklift.factory.getAccountsFactory("Wallet");
-  const accounts = await deployUsers(countOfUsers, accountFactory, signer, deployUserValue);
+  const [adminSigner, governanceSigner, ...signers] = await lastValueFrom(
+    range(countOfUsers).pipe(
+      mergeMap(idx => locklift.keystore.getSigner(idx.toString())),
+      filter(<T>(signer: T): signer is T & {} => !!signer),
+      toArray(),
+    ),
+  );
+  const accounts = await deployAccounts([adminSigner, ...signers], deployUserValue);
   const [adminUser] = accounts;
-  const tokenRoot = await deployTokenRoot({ signer, owner: adminUser.address });
-  const vault = await deployVault({ owner: adminUser, signer, governance: governanceKeyPair, tokenRoot });
+  const tokenRoot = await deployTokenRoot({ signer: adminSigner, owner: adminUser.address });
+  const vault = await deployVault({ owner: adminUser, signer: adminSigner, governance: governanceSigner, tokenRoot });
 
   const vaultInstance = await creteVault({
     adminAccount: accounts[0],
@@ -45,7 +50,7 @@ export const preparation = async ({
   const factoryContact = await locklift.factory.deployContract({
     contract: "DepoolStrategyFactory",
     value: locklift.utils.toNano(2),
-    publicKey: signer.publicKey,
+    publicKey: adminSigner.publicKey,
     initParams: {
       nonce: locklift.utils.getRandomNonce(),
       dePoolStrategyCode: dePoolStrategyCode.code,
@@ -58,26 +63,23 @@ export const preparation = async ({
   const strategyFactory = new StrategyFactory(adminUser, factoryContact.contract, vaultInstance);
 
   return {
-    signer,
+    signer: adminSigner,
     users,
     tokenRoot,
     vault: vaultInstance,
-    governance: new Governance(governanceKeyPair, vaultInstance),
+    governance: new Governance(governanceSigner, vaultInstance),
     strategyFactory,
   };
 };
 
-const deployUsers = async (
-  countOfUsers: number,
-  accountFactory: AccountFactory<WalletAbi>,
-  signer: Signer,
-  deployAccountValue: string,
-): Promise<Array<Account<WalletAbi>>> => {
-  return (await range(0, countOfUsers)
-    .pipe(
-      concatMap(() =>
-        accountFactory.deployNewAccount({
-          initParams: { _randomNonce: locklift.utils.getRandomNonce() },
+const deployAccounts = async (signers: Array<Signer>, deployAccountValue: string): Promise<Array<Account>> => {
+  return lastValueFrom(
+    from(signers).pipe(
+      concatMap(signer =>
+        locklift.factory.accounts.addNewAccount({
+          type: WalletTypes.Custom,
+          contract: "Wallet",
+          initParams: { _randomNonce: getRandomNonce() },
           publicKey: signer.publicKey,
           value: deployAccountValue,
           constructorParams: {},
@@ -85,8 +87,8 @@ const deployUsers = async (
       ),
       map(({ account }) => account),
       toArray(),
-    )
-    .toPromise()) as Array<Account<WalletAbi>>;
+    ),
+  );
 };
 type DeployRootParams = { signer: Signer; owner: Address };
 const deployTokenRoot = async ({ signer, owner }: DeployRootParams): Promise<Contract<TokenRootUpgradeableAbi>> => {
@@ -128,7 +130,7 @@ const deployVault = async ({
   governance,
   tokenRoot,
 }: {
-  owner: Account<WalletAbi>;
+  owner: Account;
   signer: Signer;
   governance: Signer;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
@@ -155,19 +157,17 @@ const deployVault = async ({
   );
   console.log(`Vault contract deployed: ${vaultContract.address.toString()}`);
   expect(await locklift.provider.getBalance(vaultContract.address).then(Number)).to.be.above(0);
-  await owner.runTarget(
-    {
-      contract: tokenRoot,
-      value: locklift.utils.toNano(2),
-      flags: 0,
-    },
-    contract =>
-      contract.methods.transferOwnership({
-        remainingGasTo: owner.address,
-        newOwner: vaultContract.address,
-        callbacks: [],
-      }),
-  );
+
+  await tokenRoot.methods
+    .transferOwnership({
+      remainingGasTo: owner.address,
+      newOwner: vaultContract.address,
+      callbacks: [],
+    })
+    .send({
+      from: owner.address,
+      amount: toNano(2),
+    });
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
   const vaultSubscriber = new locklift.provider.Subscriber();

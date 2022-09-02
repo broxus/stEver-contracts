@@ -1,11 +1,10 @@
 import { StEverVaultAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
-import { AbiEventName, Address, Contract, DecodedEventWithTransaction, Transaction } from "locklift";
-import { User } from "./user";
+import { AbiEventName, Address, Contract, DecodedEventWithTransaction, toNano, Transaction } from "locklift";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
-import { assertEvent } from "../index";
-import { Account } from "locklift/build/factory";
+import { Account } from "everscale-standalone-client/nodejs";
+
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
   DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>,
@@ -13,7 +12,7 @@ type ExtractEvent<T extends VaultEvents> = Extract<
 >;
 export class Vault {
   constructor(
-    private readonly adminAccount: Account<WalletAbi>,
+    private readonly adminAccount: Account,
     public readonly vaultContract: Contract<StEverVaultAbi>,
     private readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
     public readonly tokenWallet: TokenWallet,
@@ -21,29 +20,26 @@ export class Vault {
 
   initialize = async () => {
     await locklift.tracing.trace(
-      this.adminAccount.runTarget(
-        {
-          contract: this.vaultContract,
-        },
-        vault =>
-          vault.methods.initVault({
-            _stTokenRoot: this.tokenRootContract.address,
-          }),
-      ),
+      this.vaultContract.methods
+        .initVault({
+          _stTokenRoot: this.tokenRootContract.address,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(2),
+        }),
     );
-    // const details = await this.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     expect((await this.getDetails()).stTokenRoot.equals(this.tokenRootContract.address)).to.be.true;
   };
 
   setMinDepositToStrategyValue = async ({ minDepositToStrategyValue }: { minDepositToStrategyValue: string }) => {
     await locklift.tracing.trace(
-      this.adminAccount.runTarget(
-        {
-          contract: this.vaultContract,
-          value: locklift.utils.toNano(2),
-        },
-        vault => vault.methods.setMinStrategyDepositValue({ _minStrategyDepositValue: minDepositToStrategyValue }),
-      ),
+      this.vaultContract.methods
+        .setMinStrategyDepositValue({ _minStrategyDepositValue: minDepositToStrategyValue })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(2),
+        }),
     );
   };
 
@@ -53,25 +49,23 @@ export class Vault {
     minWithdrawFromStrategyValue: string;
   }) => {
     await locklift.tracing.trace(
-      this.adminAccount.runTarget(
-        {
-          contract: this.vaultContract,
-          value: locklift.utils.toNano(2),
-        },
-        vault => vault.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minWithdrawFromStrategyValue }),
-      ),
+      this.vaultContract.methods
+        .setMinStrategyWithdrawValue({
+          _minStrategyWithdrawValue: minWithdrawFromStrategyValue,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(2),
+        }),
     );
   };
 
   setGainFee = async ({ ginFee }: { ginFee: string }) => {
     await locklift.tracing.trace(
-      this.adminAccount.runTarget(
-        {
-          contract: this.vaultContract,
-          value: locklift.utils.toNano(2),
-        },
-        vault => vault.methods.setGainFee({ _gainFee: ginFee }),
-      ),
+      this.vaultContract.methods.setGainFee({ _gainFee: ginFee }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
     );
   };
 
@@ -147,7 +141,7 @@ export const creteVault = async ({
   tokenRootContract,
   vaultContract,
 }: {
-  adminAccount: Account<WalletAbi>;
+  adminAccount: Account;
   vaultContract: Contract<StEverVaultAbi>;
   tokenRootContract: Contract<TokenRootUpgradeableAbi>;
 }): Promise<Vault> => {

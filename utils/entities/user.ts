@@ -1,15 +1,15 @@
-import { Account } from "locklift/build/factory";
-import { StEverAccountAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
+import { StEverAccountAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
-import { Contract } from "locklift";
-import { assertEvent } from "../index";
+import { Contract, toNano } from "locklift";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
+import { Account } from "everscale-standalone-client/nodejs";
+
 import { Vault } from "./vault";
 
 export class User {
   constructor(
-    public readonly account: Account<WalletAbi>,
+    public readonly account: Account,
     public readonly wallet: TokenWallet,
     protected readonly vault: Vault,
     public readonly withdrawUserData: Contract<StEverAccountAbi>,
@@ -26,21 +26,19 @@ export class User {
       .call();
     const txWithNonce = await locklift.tracing
       .trace(
-        this.account.runTarget(
-          {
-            contract: this.wallet.walletContract,
-            value: locklift.utils.toNano(3),
-          },
-          walletContract =>
-            walletContract.methods.transfer({
-              remainingGasTo: this.account.address,
-              deployWalletValue: 0,
-              amount,
-              notify: true,
-              recipient: this.vault.vaultContract.address,
-              payload: withdrawPayload.depositPayload,
-            }),
-        ),
+        this.wallet.walletContract.methods
+          .transfer({
+            remainingGasTo: this.account.address,
+            deployWalletValue: 0,
+            amount,
+            notify: true,
+            recipient: this.vault.vaultContract.address,
+            payload: withdrawPayload.depositPayload,
+          })
+          .send({
+            from: this.account.address,
+            amount: toNano(3),
+          }),
         { allowedCodes: { compute: [null] } },
       )
       .then(res => ({ ...res, nonce }));
@@ -53,7 +51,7 @@ export class User {
     // });
     const withdrawRequestEvents = await this.vault.getEventsAfterTransaction({
       eventName: "WithdrawRequest",
-      parentTransaction: txWithNonce.transaction,
+      parentTransaction: txWithNonce,
     });
     expect(withdrawRequestEvents[0].data.user.equals(this.account.address)).to.be.true;
     expect(withdrawRequestEvents[0].data.amount).to.be.equals(amount);
@@ -62,13 +60,10 @@ export class User {
   };
   removeWithdrawRequest = async (nonce: number) => {
     return await locklift.tracing.trace(
-      this.account.runTarget(
-        {
-          contract: this.vault.vaultContract,
-          value: locklift.utils.toNano(2),
-        },
-        vault => vault.methods.removePendingWithdraw({ _nonce: nonce }),
-      ),
+      this.vault.vaultContract.methods.removePendingWithdraw({ _nonce: nonce }).send({
+        from: this.account.address,
+        amount: toNano(2),
+      }),
     );
   };
   depositToVault = async (amount: string, fee: string = locklift.utils.toNano(2)): Promise<any> => {
@@ -77,18 +72,17 @@ export class User {
     const { value0: stateBeforeWithdraw } = await this.vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
     const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
     const expectedStEverAmount = depositRate.isNaN() ? amountBn : depositRate.times(amountBn);
-    const { transaction } = await locklift.tracing.trace(
-      this.account.runTarget(
-        {
-          contract: this.vault.vaultContract,
-          value: amountBn.plus(feeBn).toString(),
-        },
-        vaultContract =>
-          vaultContract.methods.deposit({
-            _amount: amountBn.toString(),
-            _nonce: locklift.utils.getRandomNonce(),
-          }),
-      ),
+
+    const transaction = await locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .deposit({
+          _amount: amountBn.toString(),
+          _nonce: locklift.utils.getRandomNonce(),
+        })
+        .send({
+          from: this.account.address,
+          amount: amountBn.plus(feeBn).toString(),
+        }),
     );
 
     const depositEvents = await this.vault.getEventsAfterTransaction({
@@ -114,7 +108,7 @@ export class User {
 }
 
 export const createUserEntity = async (
-  account: Account<WalletAbi>,
+  account: Account,
   tokenRoot: Contract<TokenRootUpgradeableAbi>,
   vault: Vault,
 ): Promise<User> => {

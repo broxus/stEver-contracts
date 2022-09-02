@@ -1,12 +1,12 @@
 import { Contract, Signer } from "locklift";
-import { StEverVaultAbi, StrategyBaseAbi, TestDepoolAbi } from "../../build/factorySource";
+import { StEverVaultAbi, StrategyDePoolAbi, TestDepoolAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
 import { getAddressEverBalance } from "../index";
 
 export class DePoolStrategyWithPool {
   constructor(
     public readonly dePoolContract: Contract<TestDepoolAbi>,
-    public readonly strategy: Contract<StrategyBaseAbi>,
+    public readonly strategy: Contract<StrategyDePoolAbi>,
     private readonly signer: Signer,
   ) {}
 

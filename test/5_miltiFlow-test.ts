@@ -32,7 +32,7 @@ describe("Multi flow", async function () {
       vault: v,
       tokenRoot: tr,
       signer: s,
-      users: [adminUser, _, u1, u2, u3, u4],
+      users: [adminUser, u1, u2, u3, u4],
       governance: g,
       strategyFactory: st,
     } = await preparation({ deployUserValue: locklift.utils.toNano(200), countOfUsers: 6 });
