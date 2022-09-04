@@ -7,6 +7,7 @@ import "./interfaces/IStrategy.sol";
 import "./StEverAccount.sol";
 import "./base/StEverVaultBase.sol";
 import "./utils/ErrorCodes.sol";
+import "./utils/Constants.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
@@ -159,9 +160,17 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         
         strategies[msg.sender].lastReport = now;
         strategies[msg.sender].totalGain += _gain;
-        uint128 gainWithoutFee = _gain > gainFee ? _gain - gainFee : _gain;
-        totalAssets += gainWithoutFee;
-        emit StrategyReported(msg.sender, StrategyReport(gainWithoutFee, _loss, _totalAssets));
+
+        uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
+        totalStEverFee += stEverFee;
+        uint128 gainWithoutStEverFee = _gain - stEverFee;
+
+        uint128 gainWithoutGasFee = gainWithoutStEverFee > gainFee ?
+            gainWithoutStEverFee - gainFee :
+            gainWithoutStEverFee;
+
+        totalAssets += gainWithoutGasFee;
+        emit StrategyReported(msg.sender, StrategyReport(gainWithoutGasFee, _loss, _totalAssets));
 
         uint128 sendValueToStrategy;
         if (_requestedBalance > 0 && isCanTransferValue(_requestedBalance)) {
@@ -495,6 +504,19 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 		}
 	}
 
+    // withdraw stEver fee
+    function withdrawStEverFee(uint128 _amount) override external onlyGovernanceOrSelfAndAccept {
+        require (totalStEverFee >= _amount, ErrorCodes.NOT_ENOUGH_ST_EVER_FEE);
+        require (isCanTransferValue(_amount), ErrorCodes.NOT_ENOUGH_AVAILABLE_ASSETS);
+
+        // fee should payed by admin
+        tvm.rawReserve(address(this).balance - _amount, 0);
+
+        totalStEverFee -= _amount;
+        availableAssets -= _amount;
+        emit WithdrawFee(_amount);
+        owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
         if (_newVersion == stEverVaultVersion) {
@@ -513,9 +535,13 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             stEverSupply,
             totalAssets,
             availableAssets,
+            totalStEverFee,
             stEverWallet,
             stTokenRoot,
             gainFee,
+            stEverFeePercent,
+            minStrategyDepositValue,
+            minStrategyWithdrawValue,
             owner,
             accountVersion,
             strategies,

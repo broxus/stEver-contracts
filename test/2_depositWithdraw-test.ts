@@ -2,7 +2,7 @@ import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Contract, Signer } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -15,7 +15,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 
-describe.skip("Deposit withdraw test", function () {
+describe("Deposit withdraw test", function () {
   before(async () => {
     const {
       vault: v,
@@ -53,22 +53,38 @@ describe.skip("Deposit withdraw test", function () {
         _deposit_owner: user1.account.address,
       })
       .call();
-    const { transaction } = await locklift.tracing.trace(
-      user1.account.runTarget(
-        {
-          contract: user1.wallet.walletContract,
-          value: locklift.utils.toNano(1),
-        },
-        walletContract =>
-          walletContract.methods.transfer({
-            remainingGasTo: user1.account.address,
-            deployWalletValue: 0,
-            amount: WITHDRAW_AMOUNT.toString(),
-            notify: true,
-            recipient: vault.vaultContract.address,
-            payload: withdrawPayload.depositPayload,
-          }),
-      ),
+    // const { transaction } = await locklift.tracing.trace(
+    //   user1.account.runTarget(
+    //     {
+    //       contract: user1.wallet.walletContract,
+    //       value: locklift.utils.toNano(1),
+    //     },
+    //     walletContract =>
+    //       walletContract.methods.transfer({
+    //         remainingGasTo: user1.account.address,
+    //         deployWalletValue: 0,
+    //         amount: WITHDRAW_AMOUNT.toString(),
+    //         notify: true,
+    //         recipient: vault.vaultContract.address,
+    //         payload: withdrawPayload.depositPayload,
+    //       }),
+    //   ),
+    //   { allowedCodes: { compute: [null] } },
+    // );
+    const transaction = await locklift.tracing.trace(
+      user1.wallet.walletContract.methods
+        .transfer({
+          remainingGasTo: user1.account.address,
+          deployWalletValue: 0,
+          amount: WITHDRAW_AMOUNT.toString(),
+          notify: true,
+          recipient: vault.vaultContract.address,
+          payload: withdrawPayload.depositPayload,
+        })
+        .send({
+          from: user1.account.address,
+          amount: toNano(1),
+        }),
       { allowedCodes: { compute: [null] } },
     );
 
@@ -122,7 +138,7 @@ describe.skip("Deposit withdraw test", function () {
       DEPOSIT_AMOUNT.toString(),
       "user should have withdraw request with amount equals to requested amount",
     );
-    const { transaction } = await user1.removeWithdrawRequest(nonce);
+    const transaction = await user1.removeWithdrawRequest(nonce);
 
     const withdrawRequestRemoverEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawRequestRemoved",

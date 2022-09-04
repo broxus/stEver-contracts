@@ -103,7 +103,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    function setStEverFeePercent(uint8 _stEverFeePercent) override external onlyOwner {
+        require(_stEverFeePercent <= 100,ErrorCodes.BAD_FEE_PERCENT);
+        tvm.rawReserve(_reserve(), 0);
+        stEverFeePercent = _stEverFeePercent;
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
+    }
+    // predicates
     function isCanTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
          availableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE >= _amount;
@@ -240,7 +246,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 accountVersion,
                 stEverVaultVersion,
                 minStrategyDepositValue,
-                minStrategyWithdrawValue
+                minStrategyWithdrawValue,
+                stEverFeePercent,
+                totalStEverFee
             );
     }
 }

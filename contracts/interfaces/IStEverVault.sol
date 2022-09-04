@@ -25,6 +25,8 @@ interface IStEverVault {
     event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount); 
     event WithdrawSuccess(address user, uint128 amount, mapping(uint64 => WithdrawToUserInfo) withdrawInfo);
 
+    event WithdrawFee(uint128 amount);
+
     struct Details {
        address stTokenRoot;
        address stEverWallet;
@@ -38,6 +40,8 @@ interface IStEverVault {
        uint32 stEverVaultVersion;
        uint128 minStrategyDepositValue;
        uint128 minStrategyWithdrawValue;
+       uint8 stEverFeePercent;
+       uint128 totalStEverFee;
     }
     struct StrategyReport {
         uint128 gain;
@@ -96,6 +100,8 @@ interface IStEverVault {
     function receiveFromStrategy() external;
     function withdrawFromStrategyError(uint32 errcode) external;
     function withdrawToUser(uint128 amount, address user, mapping(uint64 => uint128) withdrawals) external;
+    // withdraw fee
+    function withdrawStEverFee(uint128 _amount) external;
     // validators
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
@@ -109,6 +115,7 @@ interface IStEverVault {
     function setGainFee(uint128 _gainFee) external;
     function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
+    function setStEverFeePercent(uint8 _stEverFeePercent) external;
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;

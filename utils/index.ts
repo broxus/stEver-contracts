@@ -17,17 +17,6 @@ export function assertEvent<T extends VaultEvents>(
     throw new Error("No deposit event found");
   }
 }
-// type ExtractEvent1<A, T extends string> = Extract<DecodedEventWithTransaction<A, AbiEventName<A>>, { event: T }>;
-// type AbiExtractor<C extends Contract<any>> = C extends Contract<infer A> ? A : never;
-// export const getLastEvents = async <
-//   C extends Contract<any>,
-//   A extends AbiExtractor<C>,
-//   T extends DecodedEventWithTransaction<A, AbiEventName<A>>["event"],
-//   R extends ExtractEvent1<A, T>,
-// >(
-//   contract: C,
-//   eventName: T,
-// ): Promise<R> => {};
 
 export const getAddressEverBalance = async (address: Address) =>
   locklift.utils.fromNano(await locklift.provider.getBalance(address));
@@ -36,3 +25,4 @@ export const getBalances = (addresses: Array<Address>): Promise<Array<BigNumber>
   Promise.all(addresses.map(address => locklift.provider.getBalance(address))).then(res =>
     res.map(balance => new BigNumber(balance)),
   );
+export const getBalance = (address: Address) => getBalances([address]).then(res => res[0]);

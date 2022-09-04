@@ -69,6 +69,19 @@ export class Vault {
     );
   };
 
+  setStEverFeePercent = async ({ percentFee }: { percentFee: number }) => {
+    await locklift.tracing.trace(
+      this.vaultContract.methods
+        .setStEverFeePercent({
+          _stEverFeePercent: percentFee,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(2),
+        }),
+    );
+  };
+
   getDetails = async () =>
     this.vaultContract.methods
       .getDetails({ answerId: 0 })
@@ -89,6 +102,8 @@ export class Vault {
           ...value0,
           stEverSupply: new BigNumber(value0.stEverSupply),
           totalAssets: new BigNumber(value0.totalAssets),
+          stEverFeePercent: new BigNumber(value0.stEverFeePercent),
+          totalStEverFee: new BigNumber(value0.totalStEverFee),
           availableAssets,
           contractBalance: await locklift.provider
             .getBalance(this.vaultContract.address)

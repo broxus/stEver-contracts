@@ -56,4 +56,16 @@ export class Governance {
       transaction,
     };
   };
+
+  withdrawFee = ({ amount }: { amount: number }) => {
+    return locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .withdrawStEverFee({
+          _amount: amount,
+        })
+        .sendExternal({
+          publicKey: this.keyPair.publicKey,
+        }),
+    );
+  };
 }

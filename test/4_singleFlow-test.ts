@@ -43,6 +43,9 @@ describe("Single flow", async function () {
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
+    await vault.setStEverFeePercent({
+      percentFee: 11,
+    });
   });
   it("should strategy deployed", async () => {
     strategiesWithPool.push(
@@ -77,9 +80,11 @@ describe("Single flow", async function () {
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
-    const ROUND_REWARD = locklift.utils.toNano(3);
-    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
-    const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD);
+    const ROUND_REWARD = toNanoBn(3);
+    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
+      .minus(stateBefore.gainFee)
+      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(100));
+    const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
 
     const events = await vault.getEventsAfterTransaction({
       eventName: "StrategyReported",

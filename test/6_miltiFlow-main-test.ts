@@ -49,6 +49,7 @@ describe("Multi flow", async function () {
     await vault.setMinWithdrawFromStrategyValue({ minWithdrawFromStrategyValue: locklift.utils.toNano(1) });
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: locklift.utils.toNano(1) });
     await vault.setGainFee({ ginFee: GAIN_FEE });
+    await vault.setStEverFeePercent({ percentFee: 5 });
   });
   it("should strategies deployed", async () => {
     strategiesWithPool.push(
@@ -94,7 +95,9 @@ describe("Multi flow", async function () {
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
     const ROUND_REWARD = toNanoBn(1);
-    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
+    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
+      .minus(stateBefore.gainFee)
+      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(100));
     await lastValueFrom(
       from(strategiesWithPool).pipe(concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString()))),
     );

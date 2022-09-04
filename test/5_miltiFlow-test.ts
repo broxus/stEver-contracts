@@ -1,7 +1,7 @@
 import { Address, Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, getAddressEverBalance, getBalances, toNanoBn } from "../utils";
+import { assertEvent, getAddressEverBalance, getBalance, getBalances, toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -49,6 +49,9 @@ describe("Multi flow", async function () {
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
+    await vault.setStEverFeePercent({
+      percentFee: 12,
+    });
   });
   it("should strategies deployed", async () => {
     strategiesWithPool.push(
@@ -96,7 +99,9 @@ describe("Multi flow", async function () {
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
     const ROUND_REWARD = toNanoBn(123);
-    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD).minus(GAIN_FEE);
+    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
+      .minus(stateBefore.gainFee)
+      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(100));
     await lastValueFrom(
       from(strategiesWithPool).pipe(concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString()))),
     );
@@ -143,7 +148,7 @@ describe("Multi flow", async function () {
 
     await lastValueFrom(from(strategiesWithPool).pipe(concatMap(dePool => dePool.emitWithdrawByRequests())));
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
-    debugger;
+
     expect(availableBalanceAfter.toNumber()).to.be.gt(
       availableBalanceBefore
         .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length))
@@ -198,5 +203,38 @@ describe("Multi flow", async function () {
         "user should receive deposited amount + reward",
       );
     });
+  });
+  it("admin should withdraw fees", async () => {
+    const MAX_FEE = toNanoBn(1);
+    const vaultDetailsBefore = await vault.getDetails();
+    const adminBalanceBefore = await getBalance(admin.account.address);
+    const withdrawingAmount = vaultDetailsBefore.totalStEverFee;
+    const { transaction } = await locklift.tracing.trace(
+      governance.withdrawFee({ amount: withdrawingAmount.toNumber() }),
+    );
+    const [event] = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawFee",
+      parentTransaction: transaction,
+    });
+    const expectedMinAdminBalanceAfterWithdraw = adminBalanceBefore
+      .minus(MAX_FEE)
+      .plus(vaultDetailsBefore.totalStEverFee);
+
+    const adminBalanceAfter = await getBalance(admin.account.address);
+    const vaultDetailsAfter = await vault.getDetails();
+
+    expect(withdrawingAmount.toString()).to.be.equals(event.data.amount, "event should emitted with right amount");
+
+    expect(adminBalanceAfter.toNumber()).to.be.gt(
+      expectedMinAdminBalanceAfterWithdraw.toNumber(),
+      "admin balance should increased after fee withdraw",
+    );
+
+    expect(vaultDetailsBefore.totalStEverFee.minus(event.data.amount).toNumber()).to.be.equals(
+      vaultDetailsAfter.totalStEverFee.toNumber(),
+      "totalStEverFee should be reduced by withdraw value",
+    );
+
+    expect(vaultDetailsAfter.totalStEverFee.toNumber()).to.be.equals(0, "Full amount of stEverFee should be withdrawn");
   });
 });

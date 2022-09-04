@@ -23,6 +23,9 @@ library ErrorCodes {
     uint16 constant BAD_DEPOSIT_TO_STRATEGY_VALUE = 1017;
     uint16 constant BAD_WITHDRAW_FROM_STRATEGY_VALUE = 1018;
     uint16 constant BAD_ADMIN_DEPOSIT_VALUE = 1019;
+    uint16 constant BAD_FEE_PERCENT = 1020;
+    uint16 constant NOT_ENOUGH_ST_EVER_FEE = 1021;
+    uint16 constant NOT_ENOUGH_AVAILABLE_ASSETS = 1022;
 
     // StEverAccount
     uint16 constant ONLY_VAULT = 2001;

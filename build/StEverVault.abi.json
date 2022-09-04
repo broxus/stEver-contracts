@@ -200,6 +200,14 @@
 			]
 		},
 		{
+			"name": "withdrawStEverFee",
+			"inputs": [
+				{"name":"_amount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "upgrade",
 			"inputs": [
 				{"name":"_newCode","type":"cell"},
@@ -268,6 +276,14 @@
 			]
 		},
 		{
+			"name": "setStEverFeePercent",
+			"inputs": [
+				{"name":"_stEverFeePercent","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "encodeDepositPayload",
 			"inputs": [
 				{"name":"_deposit_owner","type":"address"},
@@ -322,7 +338,7 @@
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"stEverFeePercent","type":"uint8"},{"name":"totalStEverFee","type":"uint128"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -485,6 +501,14 @@
 			],
 			"outputs": [
 			]
+		},
+		{
+			"name": "WithdrawFee",
+			"inputs": [
+				{"name":"amount","type":"uint128"}
+			],
+			"outputs": [
+			]
 		}
 	],
 	"fields": [
@@ -498,9 +522,11 @@
 		{"name":"stEverSupply","type":"uint128"},
 		{"name":"totalAssets","type":"uint128"},
 		{"name":"availableAssets","type":"uint128"},
+		{"name":"totalStEverFee","type":"uint128"},
 		{"name":"stEverWallet","type":"address"},
 		{"name":"stTokenRoot","type":"address"},
 		{"name":"gainFee","type":"uint128"},
+		{"name":"stEverFeePercent","type":"uint8"},
 		{"name":"minStrategyDepositValue","type":"uint128"},
 		{"name":"minStrategyWithdrawValue","type":"uint128"},
 		{"name":"owner","type":"address"},

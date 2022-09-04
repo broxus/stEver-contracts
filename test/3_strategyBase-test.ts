@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Contract, Signer } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -9,7 +9,7 @@ import { Vault } from "../utils/entities/vault";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { getAddressEverBalance, toNanoBn } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, lastValueFrom, map, range, toArray } from "rxjs";
+import { concatMap, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
 import _ from "lodash";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
@@ -23,6 +23,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategy: DePoolStrategyWithPool;
 let strategyFactory: StrategyFactory;
+const ST_EVER_FEE_PERCENT = 11;
 describe("Strategy base", function () {
   before(async () => {
     const {
@@ -44,6 +45,8 @@ describe("Strategy base", function () {
   });
   it("Vault should be initialized", async () => {
     await vault.initialize();
+    await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
+    await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
   });
   it("should strategy deployed", async () => {
     const transaction = await createAndRegisterStrategy({
@@ -111,11 +114,22 @@ describe("Strategy base", function () {
     expect(strategyInfo.lastReport).to.be.equals("0");
     console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
-  it("strategy state should be changed after report", async () => {
+  it("strategy and vault state should be changed after report", async () => {
     const ROUND_REWARD = toNanoBn(10);
+    const vaultStateBefore = await vault.getDetails();
     await strategy.emitDePoolRoundComplete(ROUND_REWARD.toString());
+    const vaultStateAfter = await vault.getDetails();
     const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
     expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
+
+    const expectedAccumulatedFee = ROUND_REWARD.multipliedBy(vaultStateBefore.stEverFeePercent).dividedBy(100);
+    expect(vaultStateAfter.totalStEverFee.toNumber()).to.be.equals(expectedAccumulatedFee.toNumber());
+
+    const expectedAvailableBalance = vaultStateBefore.totalAssets.plus(
+      ROUND_REWARD.minus(expectedAccumulatedFee).minus(vaultStateBefore.gainFee),
+    );
+
+    expect(vaultStateAfter.totalAssets.toNumber()).to.be.equals(expectedAvailableBalance.toNumber());
   });
   it("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
     await strategy.setDePoolWithdrawalState({ isClosed: true });
@@ -131,23 +145,7 @@ describe("Strategy base", function () {
     expect(errorEvent[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
     await strategy.setDePoolWithdrawalState({ isClosed: false });
   });
-  // it("strategy state should be changed after withdraw", async () => {
-  //   const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
-  //   const WITHDRAW_AMOUNT = toNanoBn(100);
-  //   await governance.withdrawFromStrategies({
-  //     _withdrawConfig: [
-  //       [
-  //         locklift.utils.getRandomNonce(),
-  //         { strategy: strategy.strategy.address, amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() },
-  //       ],
-  //     ],
-  //   });
-  //   const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
-  //
-  //   expect(new BigNumber(strategyInfoBefore.totalAssets).minus(WITHDRAW_AMOUNT).toString()).to.be.equals(
-  //     strategyInfoAfter.totalAssets.toString(),
-  //   );
-  // });
+
   it("governance shouldn't deposit to strategy if dePool is closed", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(110);
     const DEPOSIT_FEE = toNanoBn(0.6);
@@ -205,51 +203,54 @@ describe("Strategy base", function () {
       "strategy balance should be increased",
     );
   });
-  it.skip("should validate deposit request", async () => {
+  it("should validate deposit request", async () => {
     const result = await vault.vaultContract.methods
       .validateDepositRequest({
-        _depositConfigs: _.range(0, 120).map(() => [
-          strategy.strategy.address,
-          {
-            amount: locklift.utils.toNano(90),
-            fee: locklift.utils.toNano(0.6),
-          },
-        ]),
+        _depositConfigs: [
+          [
+            strategy.strategy.address,
+            {
+              amount: locklift.utils.toNano(90000),
+              fee: locklift.utils.toNano(0.6),
+            },
+          ],
+        ],
       })
       .call();
-    expect(result.value0.length).to.be.equals(120);
+    expect(result.value0.length).to.be.equals(1);
   });
-  it.skip("should created and deposited to 110 strategies", async () => {
+  it("should created and deposited to 55 strategies", async () => {
     const strategies = await lastValueFrom(
-      range(2).pipe(
-        concatMap(() =>
-          createAndRegisterStrategy({
-            signer,
-            vault,
-            admin: admin.account,
-            strategyDeployValue: locklift.utils.toNano(12),
-            poolDeployValue: locklift.utils.toNano(200),
-            strategyFactory,
-          }),
+      range(55).pipe(
+        mergeMap(
+          () =>
+            createAndRegisterStrategy({
+              signer,
+              vault,
+              admin: admin.account,
+              strategyDeployValue: locklift.utils.toNano(12),
+              poolDeployValue: locklift.utils.toNano(200),
+              strategyFactory,
+            }),
+          1,
         ),
         map(({ strategy }) => strategy),
         toArray(),
       ),
     );
-    await user1.depositToVault(locklift.utils.toNano(3000));
+    await user1.depositToVault(locklift.utils.toNano(1000));
     console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
     await governance.depositToStrategies({
-      _depositConfigs: _.range(0, 55)
-        .reduce(acc => [...acc, ...strategies], [] as DePoolStrategyWithPool[])
-        .map(strategy => [
-          strategy.strategy.address,
-          {
-            fee: locklift.utils.toNano(0.6),
-            amount: locklift.utils.toNano(2),
-          },
-        ]),
+      _depositConfigs: strategies.map(({ strategy }) => [
+        strategy.address,
+        {
+          fee: locklift.utils.toNano(0.6),
+          amount: locklift.utils.toNano(2),
+        },
+      ]),
     });
+
     console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
 });

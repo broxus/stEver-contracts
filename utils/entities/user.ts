@@ -89,6 +89,7 @@ export class User {
       eventName: "Deposit",
       parentTransaction: transaction,
     });
+
     const {
       data: { user, depositAmount, receivedStEvers },
     } = depositEvents[0];
