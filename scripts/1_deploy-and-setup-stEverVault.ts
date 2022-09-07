@@ -1,6 +1,9 @@
-import { Address, zeroAddress } from "locklift";
+import { Address, toNano, WalletTypes, zeroAddress } from "locklift";
 import { getVaultInfo, logger } from "./utils";
-
+const governanceKeys = {
+  publicKey: "2ada2e65ab8eeab09490e3521415f45b6e42df9c760a639bcf53957550b25a16",
+  secretKey: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
+};
 const deployAndSetupStEverVault = async ({
   adminAddress,
   deployVaultValue = locklift.utils.toNano(10),
@@ -20,8 +23,13 @@ const deployAndSetupStEverVault = async ({
 
   const accountFactory = locklift.factory.getAccountsFactory("Wallet");
   const adminAccountAddress = new Address(adminAddress);
-  const adminAccount = accountFactory.getAccount(adminAccountAddress, signer.publicKey);
-
+  // const adminAccount = accountFactory.getAccount(adminAccountAddress, signer.publicKey);
+  const adminAccount = await locklift.factory.accounts.addExistingAccount({
+    publicKey: signer.publicKey,
+    address: adminAccountAddress,
+    type: WalletTypes.Custom,
+  });
+  debugger;
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
@@ -33,7 +41,7 @@ const deployAndSetupStEverVault = async ({
       value: deployVaultValue,
       initParams: {
         nonce: locklift.utils.getRandomNonce(),
-        governance: `0x${signer.publicKey}`,
+        governance: `0x${governanceKeys.publicKey}`,
         platformCode: platformCode,
         accountCode: accountCode,
       },
@@ -44,24 +52,14 @@ const deployAndSetupStEverVault = async ({
       },
     }),
   );
-  await locklift.tracing.trace(
-    adminAccount.runTarget(
-      {
-        contract: vaultContract,
-        value: locklift.utils.toNano(2),
-      },
-      vault => vault.methods.setMinStrategyDepositValue({ _minStrategyDepositValue: minStrategyDepositValue }),
-    ),
+
+  await locklift.transactions.waitFinalized(
+    vaultContract.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minStrategyWithdrawValue }).send({
+      from: adminAccount.address,
+      amount: toNano(2),
+    }),
   );
-  await locklift.tracing.trace(
-    adminAccount.runTarget(
-      {
-        contract: vaultContract,
-        value: locklift.utils.toNano(2),
-      },
-      vault => vault.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minStrategyWithdrawValue }),
-    ),
-  );
+
   logger.info(`Vault details ${JSON.stringify(await getVaultInfo(vaultContract), null, 4)}`);
   logger.successStep(`Vault deployed: ${vaultContract.address.toString()}`);
 
@@ -81,12 +79,12 @@ const deployAndSetupStEverVault = async ({
         rootOwner_: vaultContract.address,
         walletCode_: tokenWalletCode,
         randomNonce_: locklift.utils.getRandomNonce(),
-        deployer_: new Address(zeroAddress),
+        deployer_: zeroAddress,
         platformCode_: tokenWalletPlatformCode,
       },
       publicKey: signer.publicKey,
       constructorParams: {
-        initialSupplyTo: new Address(zeroAddress),
+        initialSupplyTo: zeroAddress,
         initialSupply: 0,
         deployWalletValue: 0,
         mintDisabled: false,
@@ -100,14 +98,12 @@ const deployAndSetupStEverVault = async ({
   logger.successStep(`StEverTokenRoot deployed: ${stEverTokenRootContract.address.toString()}`);
 
   logger.startStep("Initializing StEverVault...");
-  await locklift.tracing.trace(
-    adminAccount.runTarget(
-      {
-        contract: vaultContract,
-        value: locklift.utils.toNano(2),
-      },
-      vaultContract => vaultContract.methods.initVault({ _stTokenRoot: stEverTokenRootContract.address }),
-    ),
+
+  await locklift.transactions.waitFinalized(
+    vaultContract.methods.initVault({ _stTokenRoot: stEverTokenRootContract.address }).send({
+      from: adminAccount.address,
+      amount: toNano(2),
+    }),
   );
   logger.info(`Vault details ${JSON.stringify(await getVaultInfo(vaultContract), null, 4)}`);
   logger.successStep(`Vault initialized`);
@@ -117,7 +113,7 @@ const deployAndSetupStEverVault = async ({
     locklift.factory.deployContract({
       contract: "DepoolStrategyFactory",
       value: locklift.utils.toNano(2),
-      publicKey: adminAccount.publicKey,
+      publicKey: signer.publicKey,
       initParams: {
         nonce: locklift.utils.getRandomNonce(),
         dePoolStrategyCode: strategyDePoolCode,
@@ -133,7 +129,7 @@ const deployAndSetupStEverVault = async ({
 deployAndSetupStEverVault({
   // adminPubKey: "",
   // governancePubKey: "",
-  adminAddress: "0:ebdfb5fbb1615240d72ada4cdba95759c7ac721eeefc31137859dd7eda2f56c7",
+  adminAddress: "0:a1c67f9d2fac7de14e3bfd0d454b9ecf4a10b683e532bf85585c7f96634fd160",
   minStrategyDepositValue: locklift.utils.toNano(100),
   minStrategyWithdrawValue: locklift.utils.toNano(100),
 })

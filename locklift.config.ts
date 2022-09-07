@@ -93,6 +93,34 @@ const config: LockliftConfig = {
         amount: 20,
       },
     },
+    broxusTestnet: {
+      // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
+      connection: {
+        group: "1",
+        type: "jrpc",
+        data: {
+          endpoint: "https://jrpc-broxustestnet.everwallet.net/rpc",
+        },
+      },
+      // This giver is default local-node giverV2
+      giver: {
+        // Check if you need provide custom giver
+        giverFactory: (ever, keyPair, address) => new GiverWallet(ever, keyPair, address),
+        // address: "0:ece57bcc6c530283becbbd8a3b24d3c5987cdddc3c8b7b33be6e4a6312490415",
+        // key: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
+        phrase: "expire caution sausage spot monkey prefer dad rib vicious pepper mimic armed",
+        accountId: 0,
+        address: "0:a1c67f9d2fac7de14e3bfd0d454b9ecf4a10b683e532bf85585c7f96634fd160",
+      },
+
+      keys: {
+        // Use everdev to generate your phrase
+        // !!! Never commit it in your repos !!!
+        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        phrase: "expire caution sausage spot monkey prefer dad rib vicious pepper mimic armed",
+        amount: 20,
+      },
+    },
     testnet: {
       // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: "testnet",

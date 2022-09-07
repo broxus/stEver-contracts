@@ -7,6 +7,7 @@
     "main-flow-local": "npx locklift run --network local -s scripts/demo-script.ts",
     "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
     "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",
+    "main-flow-deployed-broxus-testnet": "npx locklift run --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
     "testnet-send-ever-to-account": "npx locklift run --network testnet -s scripts/0_giver_send_to_account.ts",
     "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts"
   },
