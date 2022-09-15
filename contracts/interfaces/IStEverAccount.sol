@@ -6,9 +6,8 @@ import "../interfaces/IStEverVault.sol";
 interface IStEverAccount {
     event Receive(uint128 amount);
     struct AccountDetails {
-        uint128 pendingReturnedTokens;
-        uint128 pendingReceiveEver;
         address user;
+        address vault;
     }
 
     function getDetails() external responsible view returns (AccountDetails);

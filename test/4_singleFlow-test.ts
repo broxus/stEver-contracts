@@ -109,7 +109,6 @@ describe("Single flow", async function () {
   });
   it("user shouldn't receive because harvest from strategy have not evaluated yet, so reset pending withdraw request to the user", async () => {
     const WITHDRAW_AMOUNT = 10;
-    debugger;
     const { errorEvents } = await makeWithdrawToUsers({
       vault: vault,
       users: [user1],

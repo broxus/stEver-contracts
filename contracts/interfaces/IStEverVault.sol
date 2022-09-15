@@ -3,27 +3,35 @@ pragma AbiHeader expire;
 
 
 interface IStEverVault {
-    event AdminDeposited(uint128 amount);
-    
+    // Strategy 
     event StrategyAdded(address strategy);
     event StrategyRemoved(address strategy);
-
     event StrategyReported(address strategy, StrategyReport report);
 
+    // Strategy deposit
     event StrategyHandledDeposit(address strategy, uint128 depositValue);
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
+    event ProcessDepositToStrategyError(address strategy, uint16 errcode);
 
+    // Strategy withdraw
     event StrategyHandledWithdrawRequest(address strategy, uint128 amount);
     event StrategyWithdrawSuccess(address strategy, uint128 amount);
     event StrategyWithdrawError(address strategy, uint32 errcode);
+    event ProcessWithdrawFromStrategyError(address strategy, uint16 errcode);
+    event ReceiveAdditionalTransferFromStrategy(address strategy, uint128 amount);
+        // Withdraw extra money from strategies
+    event ProcessWithdrawExtraMoneyFromStrategyError(address strategy, uint16 ercode);
+    event ReceiveExtraMoneyFromStrategy(address strategy, uint128 value);
 
+    // User interaction
     event Deposit(address user, uint128 depositAmount, uint128 receivedStEvers);
-
     event WithdrawRequest(address user, uint128 amount, uint64 nonce);
     event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
     event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount); 
     event WithdrawSuccess(address user, uint128 amount, mapping(uint64 => WithdrawToUserInfo) withdrawInfo);
+
+
 
     event WithdrawFee(uint128 amount);
 
@@ -88,37 +96,59 @@ interface IStEverVault {
     // strategy
     function addStrategy(address strategy) external;
     function removeStrategy(address _strategy) external;
-    function deposit(uint128 amount, uint64 nonce) external;
-    function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
-    function processSendToUsers(mapping(address => SendToUserConfig) sendConfig) external;
+
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
-    function removePendingWithdraw(uint64 nonce) external;
+
+
+    // Deposit to strategy
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;
+
+    // Withdraw from strategies
+    function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
     function onStrategyHandledWithdrawRequest() external;
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
     function receiveFromStrategy() external;
+    function receiveAdditionalTransferFromStrategy() external;
     function withdrawFromStrategyError(uint32 errcode) external;
+
+    // User interactions
     function withdrawToUser(uint128 amount, address user, mapping(uint64 => uint128) withdrawals) external;
+    function removePendingWithdraw(uint64 nonce) external;
+    function deposit(uint128 amount, uint64 nonce) external;
+
+    // Withdraw to user
+    function processSendToUsers(mapping(address => SendToUserConfig) sendConfig) external;
+
+    // extra money from strategy
+    function processWithdrawExtraMoneyFromStrategies(address[] _strategies) external;
+    function receiveExtraMoneyFromStrategy() external;
+
     // withdraw fee
     function withdrawStEverFee(uint128 _amount) external;
+
     // validators
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
+
     // account
     function onPendingWithdrawAccepted(uint64 nonce, address user) external;
     function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount) external;
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
+
     // utils
     function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
+
     // setters
     function setGainFee(uint128 _gainFee) external;
     function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
     function setStEverFeePercent(uint8 _stEverFeePercent) external;
+
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;
+    
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

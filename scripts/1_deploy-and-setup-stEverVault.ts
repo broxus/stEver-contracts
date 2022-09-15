@@ -6,7 +6,7 @@ const governanceKeys = {
 };
 const deployAndSetupStEverVault = async ({
   adminAddress,
-  deployVaultValue = locklift.utils.toNano(10),
+  deployVaultValue = locklift.utils.toNano(100),
   minStrategyWithdrawValue = locklift.utils.toNano(100),
   minStrategyDepositValue = locklift.utils.toNano(100),
 }: {
@@ -21,15 +21,12 @@ const deployAndSetupStEverVault = async ({
     throw new Error("Admin signer not found");
   }
 
-  const accountFactory = locklift.factory.getAccountsFactory("Wallet");
   const adminAccountAddress = new Address(adminAddress);
-  // const adminAccount = accountFactory.getAccount(adminAccountAddress, signer.publicKey);
   const adminAccount = await locklift.factory.accounts.addExistingAccount({
     publicKey: signer.publicKey,
     address: adminAccountAddress,
     type: WalletTypes.Custom,
   });
-  debugger;
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");

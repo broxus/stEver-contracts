@@ -16,16 +16,17 @@ library ErrorCodes {
     uint16 constant NOT_ENOUGH_DEPOSIT_VALUE = 1010;
     uint16 constant STRATEGY_IN_DEPOSITING_STATE = 1011;
     uint16 constant STRATEGY_IN_WITHDRAWING_STATE = 1012;
-    uint16 constant NOT_USER_DATA = 1013;
-    uint16 constant LOW_MSG_VALUE = 1014;
-    uint16 constant NOT_ENOUGH_VALUE_TO_DEPOSIT = 1015;
-    uint16 constant NOT_ENOUGH_VALUE_TO_WITHDRAW = 1016;
-    uint16 constant BAD_DEPOSIT_TO_STRATEGY_VALUE = 1017;
-    uint16 constant BAD_WITHDRAW_FROM_STRATEGY_VALUE = 1018;
-    uint16 constant BAD_ADMIN_DEPOSIT_VALUE = 1019;
-    uint16 constant BAD_FEE_PERCENT = 1020;
-    uint16 constant NOT_ENOUGH_ST_EVER_FEE = 1021;
-    uint16 constant NOT_ENOUGH_AVAILABLE_ASSETS = 1022;
+    uint16 constant STRATEGY_NOT_IN_INITIAL_STATE = 1013;
+    uint16 constant NOT_USER_DATA = 1014;
+    uint16 constant LOW_MSG_VALUE = 1015;
+    uint16 constant NOT_ENOUGH_VALUE_TO_DEPOSIT = 1016;
+    uint16 constant NOT_ENOUGH_VALUE_TO_WITHDRAW = 1017;
+    uint16 constant BAD_DEPOSIT_TO_STRATEGY_VALUE = 1018;
+    uint16 constant BAD_WITHDRAW_FROM_STRATEGY_VALUE = 1019;
+    uint16 constant BAD_ADMIN_DEPOSIT_VALUE = 1020;
+    uint16 constant BAD_FEE_PERCENT = 1021;
+    uint16 constant NOT_ENOUGH_ST_EVER_FEE = 1022;
+    uint16 constant NOT_ENOUGH_AVAILABLE_ASSETS = 1023;
 
     // StEverAccount
     uint16 constant ONLY_VAULT = 2001;

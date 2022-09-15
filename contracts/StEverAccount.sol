@@ -17,9 +17,6 @@ contract StEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
 
-    uint128 pendingReturnedTokens;
-    uint128 pendingReceiveEver;
-
     uint32 currentVersion;
     //constant
 
@@ -58,7 +55,7 @@ contract StEverAccount is IStEverAccount {
 				value: 0,
 				bounce: false,
 				flag: MsgFlag.REMAINING_GAS
-			} AccountDetails(pendingReturnedTokens, pendingReceiveEver, user);
+			} AccountDetails(user, vault);
 	}
 
     function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {

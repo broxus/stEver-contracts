@@ -27,9 +27,14 @@ export class Governance {
       eventName: "StrategyDidntHandleDeposit",
       parentTransaction: transaction,
     });
+    const processingErrorEvent = await this.vault.getEventsAfterTransaction({
+      eventName: "ProcessDepositToStrategyError",
+      parentTransaction: transaction,
+    });
     return {
       successEvents: depositSuccessEvents,
       errorEvents: depositToStrategyErrorEvents,
+      processingErrorEvent,
       transaction,
     };
   };
@@ -50,10 +55,15 @@ export class Governance {
       eventName: "StrategyWithdrawError",
       parentTransaction: transaction,
     });
+    const processingErrorEvent = await this.vault.getEventsAfterTransaction({
+      eventName: "ProcessWithdrawFromStrategyError",
+      parentTransaction: transaction,
+    });
     return {
       successEvents,
       errorEvent,
       transaction,
+      processingErrorEvent,
     };
   };
 
@@ -67,5 +77,22 @@ export class Governance {
           publicKey: this.keyPair.publicKey,
         }),
     );
+  };
+
+  withdrawExtraMoneyFromStrategy = async (
+    ...params: Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawExtraMoneyFromStrategies"]>
+  ) => {
+    const { transaction } = await locklift.tracing.trace(
+      this.vault.vaultContract.methods.processWithdrawExtraMoneyFromStrategies(...params).sendExternal({
+        publicKey: this.keyPair.publicKey,
+      }),
+    );
+    const successEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "ReceiveExtraMoneyFromStrategy",
+      parentTransaction: transaction,
+    });
+    return {
+      successEvents,
+    };
   };
 }

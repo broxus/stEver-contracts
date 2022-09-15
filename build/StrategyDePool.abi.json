@@ -70,6 +70,13 @@
 			]
 		},
 		{
+			"name": "withdrawExtraMoney",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "upgrade",
 			"inputs": [
 				{"name":"_newCode","type":"cell"},

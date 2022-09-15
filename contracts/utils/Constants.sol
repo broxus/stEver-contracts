@@ -3,4 +3,7 @@ pragma AbiHeader expire;
 
 library Constants {
     uint8 constant ONE_HUNDRED_PERCENT = 100;
+    uint128 constant MIN_TRANSACTION_VALUE = 0.01 ever;
+    uint128 constant INITIAL_AVAILABLE_ASSETS = 100 ever;
+    uint128 constant DEPLOY_VAULT_FEE = 1 ever;
 }

@@ -9,8 +9,7 @@ import { Vault } from "../utils/entities/vault";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { getAddressEverBalance, toNanoBn } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
-import _ from "lodash";
+import { lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 
@@ -114,6 +113,7 @@ describe("Strategy base", function () {
     expect(strategyInfo.lastReport).to.be.equals("0");
     console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
+
   it("strategy and vault state should be changed after report", async () => {
     const ROUND_REWARD = toNanoBn(10);
     const vaultStateBefore = await vault.getDetails();
@@ -131,6 +131,7 @@ describe("Strategy base", function () {
 
     expect(vaultStateAfter.totalAssets.toNumber()).to.be.equals(expectedAvailableBalance.toNumber());
   });
+
   it("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
     await strategy.setDePoolWithdrawalState({ isClosed: true });
     const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
@@ -219,6 +220,49 @@ describe("Strategy base", function () {
       .call();
     expect(result.value0.length).to.be.equals(1);
   });
+  it("Vault should reject deposit to strategy cause strategy not in initial state", async () => {
+    const FIRST_WITHDRAW_AMOUNT = toNanoBn(100);
+    await user1.depositToVault(toNano(200));
+    await governance.withdrawFromStrategiesRequest({
+      _withdrawConfig: [
+        [strategy.strategy.address, { amount: FIRST_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
+      ],
+    });
+    const SECOND_WITHDRAW_AMOUNT = toNanoBn(201);
+    const { processingErrorEvent: depositingErrorEvents } = await governance.withdrawFromStrategiesRequest({
+      _withdrawConfig: [
+        [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
+      ],
+    });
+    expect(depositingErrorEvents.length).to.be.equals(1);
+    expect(depositingErrorEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.equals(true);
+    expect(depositingErrorEvents[0].data.errcode).to.be.equals("1013", "strategy should not to be in initial state");
+
+    const { processingErrorEvent: withdrawingErrorEvents } = await governance.depositToStrategies({
+      _depositConfigs: [
+        [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
+      ],
+    });
+    expect(withdrawingErrorEvents.length).to.be.equals(1);
+    expect(withdrawingErrorEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.equals(true);
+    expect(withdrawingErrorEvents[0].data.errcode).to.be.equals("1013", "strategy should not to be in initial state");
+    await strategy.emitDePoolRoundComplete(FIRST_WITHDRAW_AMOUNT.toString());
+  });
+  it("Strategy should send additional transfer", async () => {});
+  it("governance should withdraw extra money from strategy", async () => {
+    const vaultStateBefore = await vault.getDetails();
+    console.log(`strategy balance ${await getAddressEverBalance(strategy.strategy.address)}`);
+    const { successEvents } = await governance.withdrawExtraMoneyFromStrategy({
+      _strategies: [strategy.strategy.address],
+    });
+    const vaultStateAfter = await vault.getDetails();
+
+    expect(successEvents.length).to.be.equals(1);
+    expect(vaultStateBefore.availableAssets.plus(successEvents[0].data.value).toNumber()).to.be.eq(
+      vaultStateAfter.availableAssets.toNumber(),
+    );
+  });
+
   it("should created and deposited to 55 strategies", async () => {
     const strategies = await lastValueFrom(
       range(55).pipe(

@@ -47,6 +47,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     // strategy statuses
     uint8 constant STAKE_TO_SMALL = 28;
     uint8 constant DEPOSIT_FEE_TO_SMALL = 29;
+    uint8 constant STRATEGY_NOT_IN_INITIAL_STATE = 30;
 
     uint128 minStake = 1 ever;
 
@@ -102,7 +103,9 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     function deposit(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-
+        if(state != State.INITIAL) {
+            return depositNotHandled(STRATEGY_NOT_IN_INITIAL_STATE);
+        }
         state = State.DEPOSITING;
 
         if (msg.value < _amount + DEPOSIT_STAKE_DEPOOL_FEE + DEPOSIT_STAKE_STRATEGY_FEE) {
@@ -116,7 +119,9 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     function withdraw(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(),0);
-        
+        if(state != State.INITIAL) {
+            return depositNotHandled(STRATEGY_NOT_IN_INITIAL_STATE);
+        }
         state = State.WITHDRAWING;
         
         withdrawFromDePool(_amount);
@@ -219,11 +224,35 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
                 requestedBalance
             );
 
-        if (state == State.WITHDRAWING) {
-        // if withdraw was requested, then send whole value to the StEverVault
-            state = State.INITIAL;
-            IStEverVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
-        } 
+        if (isDePoolMakingWithdraw(msg.value)) {
+            if (state == State.WITHDRAWING) {
+                state = State.INITIAL;
+
+                IStEverVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+                return;
+            }
+
+            IStEverVault(vault).receiveAdditionalTransferFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+        }
+    }
+
+    function isDePoolMakingWithdraw(uint128 _msgValue) internal pure returns (bool) {
+        return _msgValue > 0.05 ever;
+    }
+
+    function withdrawExtraMoney() override external onlyVault {
+        uint128 balance = address(this).balance;
+        
+        if (balance > MAX_BALANCE) {
+            tvm.rawReserve(MAX_BALANCE, 0);
+
+            IStEverVault(vault).receiveExtraMoneyFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}();
+            return;
+        }
+
+        tvm.rawReserve(_reserve(), 0);
+
+        IStEverVault(vault).receiveExtraMoneyFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}();
     }
 
 

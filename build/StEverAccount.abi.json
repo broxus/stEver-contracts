@@ -16,7 +16,7 @@
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"pendingReturnedTokens","type":"uint128"},{"name":"pendingReceiveEver","type":"uint128"},{"name":"user","type":"address"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"user","type":"address"},{"name":"vault","type":"address"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -79,8 +79,6 @@
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"vault","type":"address"},
 		{"name":"user","type":"address"},
-		{"name":"pendingReturnedTokens","type":"uint128"},
-		{"name":"pendingReceiveEver","type":"uint128"},
 		{"name":"currentVersion","type":"uint32"},
 		{"components":[{"name":"amount","type":"uint128"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
 	]

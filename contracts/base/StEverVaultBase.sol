@@ -114,6 +114,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
          availableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE >= _amount;
     }
+    
+    function isStrategyInInitialState(address _strategy) internal view returns (bool) {
+        StrategyParams strategy = strategies[_strategy];
+        return strategy.depositingAmount == 0 &&  strategy.withdrawingAmount == 0;
+    }
 
     // utils
     function _reserve() internal pure returns (uint128) {

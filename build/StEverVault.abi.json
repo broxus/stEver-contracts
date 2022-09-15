@@ -103,6 +103,13 @@
 			]
 		},
 		{
+			"name": "receiveAdditionalTransferFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "withdrawFromStrategyError",
 			"inputs": [
 				{"name":"_errcode","type":"uint32"}
@@ -195,6 +202,21 @@
 				{"name":"wallet","type":"address"},
 				{"name":"remainingGasTo","type":"address"},
 				{"name":"payload","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawExtraMoneyFromStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveExtraMoneyFromStrategy",
+			"inputs": [
 			],
 			"outputs": [
 			]
@@ -366,14 +388,6 @@
 	],
 	"events": [
 		{
-			"name": "AdminDeposited",
-			"inputs": [
-				{"name":"amount","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "StrategyAdded",
 			"inputs": [
 				{"name":"strategy","type":"address"}
@@ -417,6 +431,15 @@
 			]
 		},
 		{
+			"name": "ProcessDepositToStrategyError",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"errcode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "StrategyHandledWithdrawRequest",
 			"inputs": [
 				{"name":"strategy","type":"address"},
@@ -439,6 +462,42 @@
 			"inputs": [
 				{"name":"strategy","type":"address"},
 				{"name":"errcode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ProcessWithdrawFromStrategyError",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"errcode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ReceiveAdditionalTransferFromStrategy",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"amount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ProcessWithdrawExtraMoneyFromStrategyError",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"ercode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ReceiveExtraMoneyFromStrategy",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"value","type":"uint128"}
 			],
 			"outputs": [
 			]
