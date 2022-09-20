@@ -25,7 +25,7 @@ const deployAndSetupStEverVault = async ({
   const adminAccount = await locklift.factory.accounts.addExistingAccount({
     publicKey: signer.publicKey,
     address: adminAccountAddress,
-    type: WalletTypes.Custom,
+    type: WalletTypes.MsigAccount,
   });
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");

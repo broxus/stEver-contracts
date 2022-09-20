@@ -1,4 +1,4 @@
-import { ProviderRpcClient, Address } from "everscale-inpage-provider";
+import { ProviderRpcClient, Address } from "locklift/everscale-inpage-provider";
 import { factorySource, TokenRootUpgradeableAbi, TokenWalletAbi } from "../../build/factorySource";
 import { Contract } from "locklift";
 import BigNumber from "bignumber.js";

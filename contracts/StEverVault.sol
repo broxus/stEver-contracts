@@ -180,10 +180,11 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
         uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
         totalStEverFee += stEverFee;
         uint128 gainWithoutStEverFee = _gain - stEverFee;
-
+        
+        // if gain less than the fee, therefore, we shouldn't increase total assets
         uint128 gainWithoutGasFee = gainWithoutStEverFee > gainFee ?
             gainWithoutStEverFee - gainFee :
-            gainWithoutStEverFee;
+            0;
 
         totalAssets += gainWithoutGasFee;
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGasFee, _loss, _totalAssets));

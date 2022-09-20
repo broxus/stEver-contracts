@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Contract, Signer, toNano } from "locklift";
+import { Contract, fromNano, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -246,9 +246,15 @@ describe("Strategy base", function () {
     expect(withdrawingErrorEvents.length).to.be.equals(1);
     expect(withdrawingErrorEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.equals(true);
     expect(withdrawingErrorEvents[0].data.errcode).to.be.equals("1013", "strategy should not to be in initial state");
-    await strategy.emitDePoolRoundComplete(FIRST_WITHDRAW_AMOUNT.toString());
   });
-  it("Strategy should send additional transfer", async () => {});
+  it("report with low gain than the gain fee should be 0", async () => {
+    const { transaction } = await strategy.emitDePoolRoundComplete(toNano(0.9));
+    const events = await vault.getEventsAfterTransaction({
+      eventName: "StrategyReported",
+      parentTransaction: transaction,
+    });
+    expect(events[0].data.report.gain).to.be.equals("0", "report less than the gain fee should be equals to 0");
+  });
   it("governance should withdraw extra money from strategy", async () => {
     const vaultStateBefore = await vault.getDetails();
     console.log(`strategy balance ${await getAddressEverBalance(strategy.strategy.address)}`);

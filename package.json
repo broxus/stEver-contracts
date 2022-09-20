@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "build": "npx locklift build",
     "test": "npx locklift test --network local",
     "main-flow-local": "npx locklift run --network local -s scripts/demo-script.ts",
     "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
