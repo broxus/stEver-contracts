@@ -189,7 +189,7 @@
 			"inputs": [
 				{"name":"amount","type":"uint128"},
 				{"name":"_user","type":"address"},
-				{"name":"_withdrawals","type":"map(uint64,uint128)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"_withdrawals","type":"map(uint64,tuple)"}
 			],
 			"outputs": [
 			]
@@ -237,6 +237,33 @@
 				{"name":"_sendGasTo","type":"address"}
 			],
 			"outputs": [
+			]
+		},
+		{
+			"name": "emergencyWithdrawProcess",
+			"inputs": [
+				{"name":"_user","type":"address"},
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_emergencyWithdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_processEmergencyWithdraw",
+			"inputs": [
+				{"name":"_user","type":"address"},
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_emergencyWithdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getEmergencyWithdrawConfig",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"value0","type":"map(address,tuple)"}
 			]
 		},
 		{
@@ -592,6 +619,7 @@
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
 		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
-		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"}
+		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
+		{"components":[{"name":"isEmergency","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]
 }

@@ -10,9 +10,7 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
 
-struct WithdrawRequest {
-    uint128 amount;
-}
+
 contract StEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
@@ -58,21 +56,30 @@ contract StEverAccount is IStEverAccount {
 			} AccountDetails(user, vault);
 	}
 
+    function onEmergencyWithdrawStart() override external onlyVault {
+
+    }
+
     function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
-            withdrawRequests[_nonce] = WithdrawRequest(_amount);
+            
+            withdrawRequests[_nonce] = WithdrawRequest({
+                amount: _amount,
+                timestamp: now
+            });
+
             IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user);
             return;
         }
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount);
     }
 
-    function resetPendingValues(mapping(uint64 => uint128) rejectedWithdrawals) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
-        for ((uint64 nonce, uint128 amount) : rejectedWithdrawals) {
-            withdrawRequests[nonce] = WithdrawRequest(amount);
+        for ((uint64 nonce, WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
+            withdrawRequests[nonce] = rejectedWithdrawRequest;
         }
 
         vault.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -84,7 +91,7 @@ contract StEverAccount is IStEverAccount {
             WithdrawRequest withdrawRequest = withdrawRequests[_nonce];
             delete withdrawRequests[_nonce];
             IStEverVault(vault).onPendingWithdrawRemoved{
-                value:0,
+                value: 0,
                 flag:MsgFlag.ALL_NOT_RESERVED,
                 bounce: false
             }(user, _nonce, withdrawRequest.amount);
@@ -97,13 +104,13 @@ contract StEverAccount is IStEverAccount {
         tvm.rawReserve(_reserve(), 0);
 
         uint128 totalAmount = 0;
-        mapping(uint64 => uint128) withdrawals;
+        mapping(uint64 => WithdrawRequest) withdrawals;
 
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
             uint64 withdrawRequestKey = _satisfiedWithdrawRequests[i];
             if (withdrawRequests.exists(withdrawRequestKey)) {
                 WithdrawRequest withdrawRequest = withdrawRequests[withdrawRequestKey];
-                withdrawals[withdrawRequestKey] = withdrawRequest.amount;
+                withdrawals[withdrawRequestKey] = withdrawRequest;
                 delete withdrawRequests[withdrawRequestKey];
                 totalAmount += withdrawRequest.amount;
             }

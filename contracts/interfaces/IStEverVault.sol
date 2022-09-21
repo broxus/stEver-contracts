@@ -1,5 +1,6 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
+import "./IStEverAccount.sol";
 
 
 interface IStEverVault {
@@ -91,6 +92,12 @@ interface IStEverVault {
         uint16 errCode;
     }
 
+    struct EmergencyState {
+        bool isEmergency;
+        address emitter;
+        uint64 emitTimestamp;
+    }
+
     function initVault(address stTokenRoot) external;
     function getDetails() external responsible view returns(Details);
     // strategy
@@ -113,7 +120,7 @@ interface IStEverVault {
     function withdrawFromStrategyError(uint32 errcode) external;
 
     // User interactions
-    function withdrawToUser(uint128 amount, address user, mapping(uint64 => uint128) withdrawals) external;
+    function withdrawToUser(uint128 amount, address user, mapping(uint64 => IStEverAccount.WithdrawRequest) withdrawals) external;
     function removePendingWithdraw(uint64 nonce) external;
     function deposit(uint128 amount, uint64 nonce) external;
 
@@ -148,7 +155,11 @@ interface IStEverVault {
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;
-    
+
+    // emergency
+    function emergencyWithdrawProcess(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) external;
+    function getEmergencyWithdrawConfig() external responsible view returns(mapping (address => WithdrawConfig));
+    function _processEmergencyWithdraw(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

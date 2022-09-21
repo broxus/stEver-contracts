@@ -34,5 +34,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     // mappings
     mapping(address => StrategyParams) public strategies;
     mapping(uint64 => PendingWithdraw) pendingWithdrawals;
+    // emergency
+    EmergencyState emergencyState;
 
 }

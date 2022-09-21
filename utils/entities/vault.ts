@@ -3,7 +3,7 @@ import { AbiEventName, Address, Contract, DecodedEventWithTransaction, toNano, T
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
-import { Account } from "everscale-standalone-client/nodejs";
+import { Account } from "locklift/everscale-standalone-client";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<

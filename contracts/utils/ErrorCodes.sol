@@ -27,6 +27,7 @@ library ErrorCodes {
     uint16 constant BAD_FEE_PERCENT = 1021;
     uint16 constant NOT_ENOUGH_ST_EVER_FEE = 1022;
     uint16 constant NOT_ENOUGH_AVAILABLE_ASSETS = 1023;
+    uint16 constant EMERGENCY_ALREADY_RUN = 1024;
 
     // StEverAccount
     uint16 constant ONLY_VAULT = 2001;

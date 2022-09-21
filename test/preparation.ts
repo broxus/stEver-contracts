@@ -7,7 +7,7 @@ import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { Account } from "everscale-standalone-client/nodejs";
+import { Account } from "locklift/everscale-standalone-client";
 
 export const preparation = async ({
   deployUserValue,
@@ -77,7 +77,7 @@ const deployAccounts = async (signers: Array<Signer>, deployAccountValue: string
     from(signers).pipe(
       concatMap(signer =>
         locklift.factory.accounts.addNewAccount({
-          type: WalletTypes.Custom,
+          type: WalletTypes.MsigAccount,
           contract: "Wallet",
           initParams: { _randomNonce: getRandomNonce() },
           publicKey: signer.publicKey,
