@@ -5,7 +5,7 @@ import { Signer, toNano, Transaction } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
-import { Account } from "everscale-standalone-client/nodejs";
+import { Account } from "locklift/everscale-standalone-client";
 
 export const makeWithdrawToUsers = async ({
   amount,

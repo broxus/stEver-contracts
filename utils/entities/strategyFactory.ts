@@ -1,4 +1,4 @@
-import { Account } from "everscale-standalone-client/nodejs";
+import { Account } from "locklift/everscale-standalone-client";
 
 import { DepoolStrategyFactoryAbi } from "../../build/factorySource";
 import { Address, Contract } from "locklift";

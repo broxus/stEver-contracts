@@ -129,6 +129,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
             availableAssets -= valueToSend;
 
             // grab fee from total assets, then add it back after receiving response from strategy
+            // TODO CHECK!
             totalAssets -= depositConfig.fee;
 
             IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
@@ -258,6 +259,7 @@ contract StEverVault is StEverVaultBase,IAcceptTokensBurnCallback,IAcceptTokensT
 
             // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
+            // TODO CHECK!
             totalAssets -= config.fee;
 
             // change withdrawing strategy state
