@@ -38,7 +38,8 @@
 		{
 			"name": "resetPendingValues",
 			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"rejectedWithdrawals","type":"map(uint64,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"rejectedWithdrawals","type":"map(uint64,tuple)"},
+				{"name":"sendGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -55,6 +56,21 @@
 			"name": "processWithdraw",
 			"inputs": [
 				{"name":"_satisfiedWithdrawRequests","type":"uint64[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onEmergencyWithdrawToUser",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStartEmergency",
+			"inputs": [
+				{"name":"_proofNonce","type":"uint64"}
 			],
 			"outputs": [
 			]

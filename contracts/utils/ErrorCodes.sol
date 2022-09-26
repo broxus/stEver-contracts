@@ -28,11 +28,16 @@ library ErrorCodes {
     uint16 constant NOT_ENOUGH_ST_EVER_FEE = 1022;
     uint16 constant NOT_ENOUGH_AVAILABLE_ASSETS = 1023;
     uint16 constant EMERGENCY_ALREADY_RUN = 1024;
+    uint16 constant NOT_EMERGENCY_STATE = 1025;
+    uint16 constant NOT_SELF = 1026;
+    uint16 constant AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS = 1027;
+
 
     // StEverAccount
     uint16 constant ONLY_VAULT = 2001;
     uint16 constant RECEIVED_BAD_VALUE = 2002;
     uint16 constant REQUEST_NOT_EXISTS = 2003;
+    uint16 constant EMERGENCY_CANT_BE_ACTIVATED = 2004;
 
     // Strategy
     uint16 constant NOT_VAULT = 3001;

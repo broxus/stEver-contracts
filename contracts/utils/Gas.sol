@@ -13,6 +13,7 @@ library StEverVaultGas {
     uint128 constant WITHDRAW_FEE_FOR_USER_DATA = 1 ever;
     uint128 constant SEND_SELF_VALUE = 1 ever;
     uint128 constant HANDLING_STRATEGY_CB_FEE = 0.03 ever;
+    uint128 constant MIN_WITHDRAW_FROM_STRATEGY_FEE = 0.6 ever;
 }
 
 library StEverAccountGas {

@@ -78,12 +78,13 @@ contract TestDepool is IDePool {
     }
 
     function withdrawPart(uint64 withdrawValue) override external {
-        require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+        // require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
         if(withdrawalsClosed) {
            return _sendError(STATUS_NO_POOLING_STAKE, 0);
         }
-        depositors[msg.sender].amount -= withdrawValue;
-        depositors[msg.sender].withdrawValue = withdrawValue;
+        uint128 withdrawingValue = math.min(withdrawValue, depositors[msg.sender].amount);
+        depositors[msg.sender].amount -= withdrawingValue;
+        depositors[msg.sender].withdrawValue = withdrawingValue;
         sendAcceptAndReturnChange();
     }
 
@@ -104,7 +105,7 @@ contract TestDepool is IDePool {
                 attachedValue = depositors[depositor].withdrawValue;
                 depositors[depositor].withdrawValue = 0;
             }
-            IParticipant(key).onRoundComplete{value: attachedValue, bounce: false}(
+            IParticipant(key).onRoundComplete{value: attachedValue, bounce: false, flag: 1}(
                 round,
                 _reward,
                 uint64(depositors[key].amount),

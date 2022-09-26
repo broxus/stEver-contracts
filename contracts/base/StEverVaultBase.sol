@@ -25,6 +25,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         _;
     }
 
+    modifier onlySelf() {
+        require(msg.sender == address(this), ErrorCodes.NOT_SELF);
+        _;
+    }
+
     modifier onlyOwner() {
         require (msg.sender == owner,ErrorCodes.NOT_OWNER);
         _;
@@ -253,7 +258,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 minStrategyDepositValue,
                 minStrategyWithdrawValue,
                 stEverFeePercent,
-                totalStEverFee
+                totalStEverFee,
+                emergencyState
             );
     }
 }

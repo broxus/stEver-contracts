@@ -5,6 +5,7 @@ import "./interfaces/IStEverAccount.sol";
 import "./interfaces/IStEverVault.sol";
 import "./utils/ErrorCodes.sol";
 import "./utils/Gas.sol";
+import "./utils/Constants.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
@@ -75,14 +76,14 @@ contract StEverAccount is IStEverAccount {
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount);
     }
 
-    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
         for ((uint64 nonce, WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
             withdrawRequests[nonce] = rejectedWithdrawRequest;
         }
 
-        vault.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function removePendingWithdraw(uint64 _nonce) override external onlyVault {
@@ -100,9 +101,8 @@ contract StEverAccount is IStEverAccount {
         user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
-        tvm.rawReserve(_reserve(), 0);
-
+    function createAndSendWithdrawToUserRequest(uint64[] _satisfiedWithdrawRequests) internal {
+        
         uint128 totalAmount = 0;
         mapping(uint64 => WithdrawRequest) withdrawals;
 
@@ -123,6 +123,36 @@ contract StEverAccount is IStEverAccount {
             }(
             totalAmount, user, withdrawals
         );
+    }
+
+    function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
+        createAndSendWithdrawToUserRequest(_satisfiedWithdrawRequests);
+    }
+
+    function onEmergencyWithdrawToUser() override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
+        uint64[] satisfiedWithdrawRequests;
+        for((uint64 nonce,) : withdrawRequests) {
+            satisfiedWithdrawRequests.push(nonce);
+        }
+        createAndSendWithdrawToUserRequest(satisfiedWithdrawRequests);
+    }
+
+    function onStartEmergency(uint64 _proofNonce) override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
+        if (!withdrawRequests.exists(_proofNonce)) {
+            IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.REQUEST_NOT_EXISTS);
+            return;
+        }
+
+        WithdrawRequest withdrawRequest = withdrawRequests[_proofNonce];
+        if ((withdrawRequest.timestamp + Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED) > now) {
+            IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.EMERGENCY_CANT_BE_ACTIVATED);
+            return;
+        }
+
+        IStEverVault(vault).emergencyWithdrawFromStrategiesProcess{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user);
     }
 
     function onCodeUpgrade(TvmCell _upgrade_data) private {

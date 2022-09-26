@@ -20,9 +20,12 @@ interface IStEverVault {
     event StrategyWithdrawError(address strategy, uint32 errcode);
     event ProcessWithdrawFromStrategyError(address strategy, uint16 errcode);
     event ReceiveAdditionalTransferFromStrategy(address strategy, uint128 amount);
-        // Withdraw extra money from strategies
+        // Withdraw extra ever from strategies
     event ProcessWithdrawExtraMoneyFromStrategyError(address strategy, uint16 ercode);
     event ReceiveExtraMoneyFromStrategy(address strategy, uint128 value);
+
+    // Withdraw extra ever from vault
+    event SuccessWithdrawExtraEver(uint128 value);
 
     // User interaction
     event Deposit(address user, uint128 depositAmount, uint128 receivedStEvers);
@@ -31,6 +34,12 @@ interface IStEverVault {
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
     event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount); 
     event WithdrawSuccess(address user, uint128 amount, mapping(uint64 => WithdrawToUserInfo) withdrawInfo);
+    // Emergency
+    event EmergencyProcessStarted(address emitter);
+    event EmergencyProcessRejectedByAccount(address emitter, uint16 errcode);
+    event EmergencyStatePaused();
+    event EmergencyStateContinued();
+    event EmergencyStopped();
 
 
 
@@ -51,6 +60,7 @@ interface IStEverVault {
        uint128 minStrategyWithdrawValue;
        uint8 stEverFeePercent;
        uint128 totalStEverFee;
+       EmergencyState emergencyState;
     }
     struct StrategyReport {
         uint128 gain;
@@ -94,6 +104,7 @@ interface IStEverVault {
 
     struct EmergencyState {
         bool isEmergency;
+        bool isPaused;
         address emitter;
         uint64 emitTimestamp;
     }
@@ -134,6 +145,9 @@ interface IStEverVault {
     // withdraw fee
     function withdrawStEverFee(uint128 _amount) external;
 
+    // withdraw extra ever
+    function withdrawExtraEver() external;
+
     // validators
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
@@ -157,9 +171,13 @@ interface IStEverVault {
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;
 
     // emergency
-    function emergencyWithdrawProcess(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) external;
-    function getEmergencyWithdrawConfig() external responsible view returns(mapping (address => WithdrawConfig));
-    function _processEmergencyWithdraw(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) external;
+    function startEmergencyProcess(uint64 _poofNonce) external;
+    function changeEmergencyPauseState(bool _isPaused) external;
+    function stopEmergencyProcess() external;
+    function startEmergencyRejected(address _user, uint16 errcode) external;
+    function emergencyWithdrawFromStrategiesProcess(address _user) external;
+    function _processEmergencyWithdrawFromStrategy(address _user, optional(address, StrategyParams) _startPair) external;
+    function emergencyWithdrawToUser() external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

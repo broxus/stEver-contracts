@@ -203,6 +203,7 @@ describe("Strategy base", function () {
       Number(strategyBalanceBeforeReport),
       "strategy balance should be increased",
     );
+    debugger;
   });
   it("should validate deposit request", async () => {
     const result = await vault.vaultContract.methods

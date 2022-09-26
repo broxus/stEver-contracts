@@ -24,7 +24,7 @@ let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 const GAIN_FEE = locklift.utils.toNano(0.1);
-describe("Multi flow", async function () {
+describe.skip("Multi flow", async function () {
   before(async () => {
     const {
       vault: v,

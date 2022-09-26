@@ -14,75 +14,117 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
 
     function enableEmergencyState(address _emergencyEmitter) internal {
         emergencyState = EmergencyState({
-            isEmergency:true,
+            isEmergency: true,
             emitter: _emergencyEmitter,
-            emitTimestamp: now
+            emitTimestamp: now,
+            isPaused: false
         });
     }
-    //predicate
-    function isEmergencyProcess() internal returns (bool) {
-        return emergencyState.isEmergency && (emergencyState.emitTimestamp + Constants.EMERGENCY_DURATION) <= now;
+
+    modifier onlyEmergencyState() {
+        require(isEmergencyProcess(), ErrorCodes.NOT_EMERGENCY_STATE);
+        _;
     }
 
-    function emergencyWithdrawProcess(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) override external onlyAccount(_user){
-        require(!isEmergencyProcess(), ErrorCodes.EMERGENCY_ALREADY_RUN);
+    //predicate
+    function isEmergencyProcess() public view returns (bool) {
+        return emergencyState.isEmergency && !emergencyState.isPaused;
+    }
 
-        uint128 countOfStrategies = uint128(_emergencyWithdrawConfig.keys().length);
-        uint128 requiredMsgValue = countOfStrategies * (StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.EXPEREMENTAL_FEE);
+    function startEmergencyProcess(uint64 _poofNonce) override external {
+        require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        address accountAddress = getAccountAddress(msg.sender);
+        IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_poofNonce);
+    }
+
+    function changeEmergencyPauseState(bool _isPaused) override external onlyOwner minCallValue {
+        require(emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emergencyState.isPaused = _isPaused;
+        if (_isPaused) {
+            emit EmergencyStatePaused();
+        } else {
+            emit EmergencyStateContinued();
+        }
+        
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function stopEmergencyProcess() override external onlyOwner minCallValue {
+        require (emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
+        tvm.rawReserve(_reserve(), 0);
+
+        EmergencyState initialEmergencyState;
+        emergencyState = initialEmergencyState;
+
+        emit EmergencyStopped();
+        
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function startEmergencyRejected(address _user, uint16 errcode) override external onlyAccount(_user) {
+        tvm.rawReserve(_reserve(), 0);
+
+        emit EmergencyProcessRejectedByAccount(_user, errcode);
+
+        _user.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function emergencyWithdrawFromStrategiesProcess(address _user) override external onlyAccount(_user){
+        require (!isEmergencyProcess(), ErrorCodes.EMERGENCY_ALREADY_RUN);
+
+        uint128 countOfStrategies = uint128(strategies.keys().length);
+        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPEREMENTAL_FEE;
+        uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy;
 
         require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
 
         tvm.rawReserve(_reserve(), 0);
+        emit EmergencyProcessStarted(_user);
 
         enableEmergencyState(_user);
-
-        this._processEmergencyWithdraw{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_user ,_emergencyWithdrawConfig);
-    }
-
-    function startEmergencyWithdraw() internal {
-
+        optional(address, StrategyParams) startPair = strategies.min();
+        this._processEmergencyWithdrawFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_user, startPair);
     }
 
 
-    function _processEmergencyWithdraw(address _user, mapping (address => WithdrawConfig) _emergencyWithdrawConfig) override external {
-        require(msg.sender == address(this), 9999);
-        tvm.rawReserve(_reserve(), 0);
+    function _processEmergencyWithdrawFromStrategy(address _user, optional(address, StrategyParams) _startPair) override external onlySelf {
         uint256 chunkSize = 50;
-        for (uint256 i = 0; i < chunkSize && !_emergencyWithdrawConfig.empty(); i++) {
-            (address strategy, WithdrawConfig config) = _emergencyWithdrawConfig.delMin().get();
+        tvm.rawReserve(_reserve(), 0);
 
-            if (!strategies.exists(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
+        optional(address, StrategyParams) pair = _startPair;
+
+        for (uint256 i = 0; i < chunkSize && pair.hasValue(); i++) {
+
+            (address strategy,) = pair.get();
+            pair = strategies.next(strategy);
 
             if (!isStrategyInInitialState(strategy)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
                 continue;
             }
-            strategies[strategy].withdrawingAmount = config.amount;
 
-            IStrategy(strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
+            strategies[strategy].withdrawingAmount = Constants.MAX_UINT_64;
+
+            IStrategy(strategy).withdraw{value: StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE, bounce: false}(uint64(Constants.MAX_UINT_64));
         }
 
-        if (!_emergencyWithdrawConfig.empty()) {
-            this._processEmergencyWithdraw{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false}(_user, _emergencyWithdrawConfig);
+        if (pair.hasValue()) {
+            this._processEmergencyWithdrawFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false}(_user, pair);
+            return;
         }
 
         _user.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function getEmergencyWithdrawConfig() override external responsible view returns(mapping (address => WithdrawConfig)) {
-        uint128 maxUint128 = 2**128 - 1;
-
-        mapping (address => WithdrawConfig) emergencyWithdrawConfig;
-        for ((address strategy,) : strategies) {
-            emergencyWithdrawConfig[strategy] = WithdrawConfig({
-                amount: maxUint128,
-                fee: StEverVaultGas.WITHDRAW_FEE
-            });
-        }
-
-        return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} emergencyWithdrawConfig;
+    function emergencyWithdrawToUser() override external onlyEmergencyState minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+        address accountAddress = getAccountAddress(msg.sender);
+        IStEverAccount(accountAddress).onEmergencyWithdrawToUser{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
     }
 }

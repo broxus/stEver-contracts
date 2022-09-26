@@ -509,7 +509,21 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         // if not enough balance, reset pending to the Account;
         if (availableAssets < everAmount) {
             emit WithdrawError(_user, withdrawInfo, amount);
-            IStEverAccount(msg.sender).resetPendingValues{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_withdrawals);
+
+            if (isEmergencyProcess()) {
+                IStEverAccount(msg.sender).resetPendingValues{
+                    value:0,
+                    flag:MsgFlag.ALL_NOT_RESERVED,
+                    bounce: false
+                }(_withdrawals, _user);
+                return;
+            }
+
+            IStEverAccount(msg.sender).resetPendingValues{
+                value:0,
+                flag:MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            }(_withdrawals, address(this));
             return;
         }
         totalAssets -= everAmount;
@@ -601,6 +615,27 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         availableAssets -= _amount;
         emit WithdrawFee(_amount);
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+    // withdraw extra
+    function withdrawExtraEver() override external onlyOwner {
+        
+        require (
+            availableAssets > totalAssets && (availableAssets - totalAssets) > totalStEverFee,
+            ErrorCodes.AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS
+        );
+
+        uint128 extraAvailableAssets = availableAssets - totalAssets - totalStEverFee;
+        uint128 extraPureBalance = address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE;
+        uint128 totalExtraEver = extraAvailableAssets + extraPureBalance;
+
+        // remove extra ever from availableAssets
+        availableAssets -= extraAvailableAssets;
+
+        tvm.rawReserve(_reserveWithValue(totalExtraEver), 0);
+
+        emit SuccessWithdrawExtraEver(totalExtraEver);
+        
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     // upgrade

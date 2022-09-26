@@ -10,12 +10,12 @@ export class DePoolStrategyWithPool {
     private readonly signer: Signer,
   ) {}
 
-  emitDePoolRoundComplete = async (reward: string) => {
+  emitDePoolRoundComplete = async (reward: string, withWithdraw = false) => {
     return await locklift.tracing.trace(
       this.dePoolContract.methods
         .roundComplete({
           _reward: reward,
-          includesWithdraw: false,
+          includesWithdraw: withWithdraw,
         })
         .sendExternal({ publicKey: this.signer.publicKey }),
     );

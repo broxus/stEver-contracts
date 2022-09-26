@@ -149,6 +149,24 @@ export class Vault {
       })
       .then(res => res.events)) as Array<ExtractEvent<T>>;
   };
+
+  changeEmergencyPausedState = ({ isPaused }: { isPaused: boolean }) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.changeEmergencyPauseState({ _isPaused: isPaused }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+  };
+
+  stopEmergencyProcess = () => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.stopEmergencyProcess().send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+  };
 }
 
 export const creteVault = async ({
