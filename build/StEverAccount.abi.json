@@ -20,6 +20,13 @@
 			]
 		},
 		{
+			"name": "onEmergencyWithdrawStart",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "addPendingValue",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"},
@@ -31,7 +38,8 @@
 		{
 			"name": "resetPendingValues",
 			"inputs": [
-				{"name":"rejectedWithdrawals","type":"map(uint64,uint128)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"rejectedWithdrawals","type":"map(uint64,tuple)"},
+				{"name":"sendGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -53,11 +61,26 @@
 			]
 		},
 		{
+			"name": "onEmergencyWithdrawToUser",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStartEmergency",
+			"inputs": [
+				{"name":"_proofNonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "withdrawRequests",
 			"inputs": [
 			],
 			"outputs": [
-				{"components":[{"name":"amount","type":"uint128"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
 			]
 		}
 	],
@@ -80,6 +103,6 @@
 		{"name":"vault","type":"address"},
 		{"name":"user","type":"address"},
 		{"name":"currentVersion","type":"uint32"},
-		{"components":[{"name":"amount","type":"uint128"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
+		{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
 	]
 }

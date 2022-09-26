@@ -26,3 +26,4 @@ export const getBalances = (addresses: Array<Address>): Promise<Array<BigNumber>
     res.map(balance => new BigNumber(balance)),
   );
 export const getBalance = (address: Address) => getBalances([address]).then(res => res[0]);
+export const isT = <T>(p: T): p is T & {} => !!p;

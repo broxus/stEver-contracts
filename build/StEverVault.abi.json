@@ -189,7 +189,7 @@
 			"inputs": [
 				{"name":"amount","type":"uint128"},
 				{"name":"_user","type":"address"},
-				{"name":"_withdrawals","type":"map(uint64,uint128)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"_withdrawals","type":"map(uint64,tuple)"}
 			],
 			"outputs": [
 			]
@@ -230,11 +230,82 @@
 			]
 		},
 		{
+			"name": "withdrawExtraEver",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "upgrade",
 			"inputs": [
 				{"name":"_newCode","type":"cell"},
 				{"name":"_newVersion","type":"uint32"},
 				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "isEmergencyProcess",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"value0","type":"bool"}
+			]
+		},
+		{
+			"name": "startEmergencyProcess",
+			"inputs": [
+				{"name":"_poofNonce","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "changeEmergencyPauseState",
+			"inputs": [
+				{"name":"_isPaused","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "stopEmergencyProcess",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "startEmergencyRejected",
+			"inputs": [
+				{"name":"_user","type":"address"},
+				{"name":"errcode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "emergencyWithdrawFromStrategiesProcess",
+			"inputs": [
+				{"name":"_user","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_processEmergencyWithdrawFromStrategy",
+			"inputs": [
+				{"name":"_user","type":"address"},
+				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "emergencyWithdrawToUser",
+			"inputs": [
 			],
 			"outputs": [
 			]
@@ -360,7 +431,7 @@
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"stEverFeePercent","type":"uint8"},{"name":"totalStEverFee","type":"uint128"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"stEverFeePercent","type":"uint8"},{"name":"totalStEverFee","type":"uint128"},{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -503,6 +574,14 @@
 			]
 		},
 		{
+			"name": "SuccessWithdrawExtraEver",
+			"inputs": [
+				{"name":"value","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "Deposit",
 			"inputs": [
 				{"name":"user","type":"address"},
@@ -562,6 +641,44 @@
 			]
 		},
 		{
+			"name": "EmergencyProcessStarted",
+			"inputs": [
+				{"name":"emitter","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "EmergencyProcessRejectedByAccount",
+			"inputs": [
+				{"name":"emitter","type":"address"},
+				{"name":"errcode","type":"uint16"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "EmergencyStatePaused",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "EmergencyStateContinued",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "EmergencyStopped",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "WithdrawFee",
 			"inputs": [
 				{"name":"amount","type":"uint128"}
@@ -592,6 +709,7 @@
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
 		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
-		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"}
+		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
+		{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]
 }

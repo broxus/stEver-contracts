@@ -1,6 +1,6 @@
 import { StEverAccountAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
-import { Contract, toNano } from "locklift";
+import { Contract, fromNano, toNano } from "locklift";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-standalone-client";
@@ -99,6 +99,38 @@ export class User {
     expect(receivedStEvers).to.be.equals(
       expectedStEverAmount.toFixed(0, BigNumber.ROUND_DOWN).toString(),
       "user should receive the correct amount of stEvers",
+    );
+  };
+  startEmergency = async ({ attachedValue, proofNonce }: { proofNonce: number; attachedValue: string }) => {
+    const transaction = await locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .startEmergencyProcess({
+          _poofNonce: proofNonce,
+        })
+        .send({
+          from: this.account.address,
+          amount: attachedValue,
+        }),
+    );
+    const successEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "EmergencyProcessStarted",
+      parentTransaction: transaction,
+    });
+    const errorEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "EmergencyProcessRejectedByAccount",
+      parentTransaction: transaction,
+    });
+    return {
+      successEvents,
+      errorEvents,
+    };
+  };
+  emergencyWithdraw = () => {
+    return locklift.tracing.trace(
+      this.vault.vaultContract.methods.emergencyWithdrawToUser().send({
+        from: this.account.address,
+        amount: toNano(2),
+      }),
     );
   };
 
