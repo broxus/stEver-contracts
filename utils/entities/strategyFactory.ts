@@ -15,7 +15,6 @@ export class StrategyFactory {
       .trace(
         this.factoryContract.methods
           .deployStrategy({
-            _vault: this.vault.vaultContract.address,
             _dePool: dePool,
           })
           .send({

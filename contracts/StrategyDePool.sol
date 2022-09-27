@@ -129,15 +129,15 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         withdrawFromDePool(_amount);
     }
 
-    function depositToDePool(uint128 _amount) internal {
+    function depositToDePool(uint128 _amount) internal view {
         IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
     }
 
-    function withdrawFromDePool(uint128 _amount) internal {
+    function withdrawFromDePool(uint128 _amount) internal view {
         IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
     }
 
-    function receiveAnswer(uint32 _errcode, uint64 comment) override external onlyDepool {
+    function receiveAnswer(uint32 _errcode, uint64) override external onlyDepool {
         tvm.rawReserve(_reserve(),0);
 
         if (_errcode == 0) {
@@ -174,15 +174,15 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         }
     }
 
-    function depositHandled() internal {
+    function depositHandled() internal view {
         IStEverVault(vault).onStrategyHandledDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
     }
 
-    function depositNotHandled(uint32 _errcode) internal {
+    function depositNotHandled(uint32 _errcode) internal view {
         IStEverVault(vault).onStrategyDidntHandleDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
-    function withdrawError(uint32 _errcode) internal {
+    function withdrawError(uint32 _errcode) internal view {
         IStEverVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
@@ -190,21 +190,22 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     }
 
-    receive() external onlyDepoolOrVault {
+    receive() external view onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
+        
         if(msg.sender == dePool) {
             IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
     }
 
     function onRoundComplete(
-        uint64 _roundId,
+        uint64,
         uint64 _reward,
         uint64 _ordinaryStake,
-        uint64 _vestingStake,
-        uint64 _lockStake,
-        bool _reinvest,
-        uint8 _reason
+        uint64,
+        uint64,
+        bool,
+        uint8
     ) override external onlyDepool {
         tvm.accept();
         /*
@@ -273,6 +274,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             minStake,
             vault,
             dePool,
+            state,
+            nonce,
             factory
         );
         // set code after complete this method

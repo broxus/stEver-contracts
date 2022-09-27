@@ -159,7 +159,7 @@ contract StEverAccount is IStEverAccount {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
-        (address root_, , address send_gas_to, TvmCell platformCode) = s.decode(address, uint8, address,TvmCell);
+        (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 
         TvmSlice initialData = s.loadRefAsSlice();

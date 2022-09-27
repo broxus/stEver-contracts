@@ -41,7 +41,7 @@
 			"name": "receiveAnswer",
 			"inputs": [
 				{"name":"_errcode","type":"uint32"},
-				{"name":"comment","type":"uint64"}
+				{"name":"value1","type":"uint64"}
 			],
 			"outputs": [
 			]
@@ -58,13 +58,13 @@
 		{
 			"name": "onRoundComplete",
 			"inputs": [
-				{"name":"_roundId","type":"uint64"},
+				{"name":"value0","type":"uint64"},
 				{"name":"_reward","type":"uint64"},
 				{"name":"_ordinaryStake","type":"uint64"},
-				{"name":"_vestingStake","type":"uint64"},
-				{"name":"_lockStake","type":"uint64"},
-				{"name":"_reinvest","type":"bool"},
-				{"name":"_reason","type":"uint8"}
+				{"name":"value3","type":"uint64"},
+				{"name":"value4","type":"uint64"},
+				{"name":"value5","type":"bool"},
+				{"name":"value6","type":"uint8"}
 			],
 			"outputs": [
 			]

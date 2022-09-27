@@ -288,7 +288,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     function receiveFromStrategy() override external onlyStrategy {
-        uint128 withdrawingAmount = strategies[msg.sender].withdrawingAmount;
         // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;
 
@@ -359,17 +358,19 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
     // withdraw
     function onAcceptTokensTransfer(
-        address _tokenRoot,
+        address,
         uint128 _amount,
         address _sender,
-        address _senderWallet,
-        address _remainingGasTo,
+        address,
+        address,
         TvmCell _payload
     ) override external {
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
+        (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
+
         // if not enough value, resend tokens to sender
-        if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA) {
+        if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
             ITokenWallet(stEverWallet).transfer{
@@ -386,25 +387,23 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             );
             return;
         }
-        requestWithdraw(_sender, _amount, _payload);
+        requestWithdraw(_sender, _amount, _nonce);
     }
 
-    function requestWithdraw(address _user, uint128 _amount, TvmCell _payload) internal {
+    function requestWithdraw(address _user, uint128 _amount, uint64 _nonce) internal {
         tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE), 0);
 
         address accountAddr = getAccountAddress(_user);
-
-        (, uint64 _nonce, bool correct) = decodeDepositPayload(_payload);
 
         pendingWithdrawals[_nonce] = PendingWithdraw(_amount, _user);
 
         addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED);
     }
 
-    function handleAddPendingValueError(TvmSlice slice) internal {
+    function handleAddPendingValueError(TvmSlice _slice) internal view {
         tvm.rawReserve(_reserve(), 0);
 
-        uint64 _withdraw_nonce = slice.decode(uint64);
+        uint64 _withdraw_nonce = _slice.decode(uint64);
 
         PendingWithdraw pendingWithdraw = pendingWithdrawals[_withdraw_nonce];
 
@@ -413,7 +412,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED);
     }
 
-    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 amount, address account, uint128 _value, uint8 _flag) internal {
+    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 amount, address account, uint128 _value, uint8 _flag) internal pure {
         IStEverAccount(account).addPendingValue{
             value:_value,
             flag: _flag,
@@ -545,10 +544,10 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     function onAcceptTokensBurn(
-        uint128 amount,
-        address walletOwner,
+        uint128,
+        address,
         address wallet,
-        address remainingGasTo,
+        address,
         TvmCell payload
     ) override external {
         require (wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
@@ -564,12 +563,12 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         user.transfer({value: 0, flag :MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    onBounce(TvmSlice slice) external {
+    onBounce(TvmSlice _slice) external view {
 		tvm.accept();
 
-		uint32 functionId = slice.decode(uint32);
+		uint32 functionId = _slice.decode(uint32);
 		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
-			handleAddPendingValueError(slice);
+			handleAddPendingValueError(_slice);
 		}
 	}
     // extra money from strategies

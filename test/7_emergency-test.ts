@@ -23,7 +23,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
 let strategies: DePoolStrategyWithPool[] = [];
-describe.skip("Emergency testing", function () {
+describe("Emergency testing", function () {
   before(async () => {
     const {
       vault: v,

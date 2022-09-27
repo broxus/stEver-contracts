@@ -146,7 +146,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return builder.toCell();
     }
 
-    function decodeDepositPayload(TvmCell _payload) public virtual view returns (address deposit_owner, uint64 nonce, bool correct) {
+    function decodeDepositPayload(TvmCell _payload) public virtual pure returns (address deposit_owner, uint64 nonce, bool correct) {
         // check if payload assembled correctly
         TvmSlice slice = _payload.toSlice();
         // 1 address and 1 cell
@@ -174,7 +174,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, totalAssets, stEverSupply);
     }
 
-    function getWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal returns(mapping(uint64 => WithdrawToUserInfo)) {
+    function getWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo)) {
 
         mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
 
@@ -190,7 +190,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
 
     // account utils
-    function _buildAccountParams(address _user) internal virtual view returns (TvmCell) {
+    function _buildAccountParams(address _user) internal virtual pure returns (TvmCell) {
         TvmBuilder builder;
         builder.store(_user);
         return builder.toCell();
@@ -219,6 +219,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function deployAccount(address _user)
 		internal
 		virtual
+        view
 		returns (address)
 	{
         TvmBuilder constructor_params;

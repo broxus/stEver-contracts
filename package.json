@@ -31,7 +31,7 @@
     "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#d3c1cd920c0320ffaab03b54c878dd0e06fed3c7",
     "chalk": "^4.1.2",
     "everscale-standalone-client": "^2.0.31",
-    "locklift": "^2.2.2",
+    "locklift": "^2.2.3",
     "lodash": "^4.17.21",
     "rxjs": "^7.5.6"
   }

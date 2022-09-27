@@ -121,7 +121,7 @@ contract TestDepool is IDePool {
         IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 64}(errcode, comment);
     }
 
-    function sendAcceptAndReturnChange128(uint64 fee) private view {
+    function sendAcceptAndReturnChange128(uint64 fee) private pure {
         tvm.rawReserve(address(this).balance - fee, 0);
         IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 128}(STATUS_SUCCESS, 0);
     }

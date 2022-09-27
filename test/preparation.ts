@@ -52,6 +52,7 @@ export const preparation = async ({
     value: locklift.utils.toNano(2),
     publicKey: adminSigner.publicKey,
     initParams: {
+      stEverVault: vault.address,
       nonce: locklift.utils.getRandomNonce(),
       dePoolStrategyCode: dePoolStrategyCode.code,
     },

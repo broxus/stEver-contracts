@@ -129,11 +129,11 @@
 		{
 			"name": "onAcceptTokensTransfer",
 			"inputs": [
-				{"name":"_tokenRoot","type":"address"},
+				{"name":"value0","type":"address"},
 				{"name":"_amount","type":"uint128"},
 				{"name":"_sender","type":"address"},
-				{"name":"_senderWallet","type":"address"},
-				{"name":"_remainingGasTo","type":"address"},
+				{"name":"value3","type":"address"},
+				{"name":"value4","type":"address"},
 				{"name":"_payload","type":"cell"}
 			],
 			"outputs": [
@@ -197,10 +197,10 @@
 		{
 			"name": "onAcceptTokensBurn",
 			"inputs": [
-				{"name":"amount","type":"uint128"},
-				{"name":"walletOwner","type":"address"},
+				{"name":"value0","type":"uint128"},
+				{"name":"value1","type":"address"},
 				{"name":"wallet","type":"address"},
-				{"name":"remainingGasTo","type":"address"},
+				{"name":"value3","type":"address"},
 				{"name":"payload","type":"cell"}
 			],
 			"outputs": [

@@ -13,6 +13,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     // static
     uint128 public static nonce;
     TvmCell public static dePoolStrategyCode;
+    address public static stEverVault;
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant UPGRADE_VALUE = 1 ever;
@@ -66,7 +67,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         _sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 
-    function deployStrategy(address _dePool, address _vault) override external onlyOwner {
+    function deployStrategy(address _dePool) override external onlyOwner {
         require (msg.value >= STRATEGY_DEPLOY_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
@@ -86,7 +87,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             value: 0,
             wid: address(this).wid,
             flag: MsgFlag.ALL_NOT_RESERVED
-        }(_vault, _dePool);
+        }(stEverVault, _dePool);
         emit NewStrategyDeployed(strategy, strategyVersion);
     }
 
@@ -106,6 +107,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         TvmCell data = abi.encode(
             _newVersion,
             dePoolStrategyCode,
+            stEverVault,
             owner,
             strategyCount
         );

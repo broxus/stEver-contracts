@@ -112,6 +112,7 @@ const deployAndSetupStEverVault = async ({
       value: locklift.utils.toNano(2),
       publicKey: signer.publicKey,
       initParams: {
+        stEverVault: vaultContract.address,
         nonce: locklift.utils.getRandomNonce(),
         dePoolStrategyCode: strategyDePoolCode,
       },
