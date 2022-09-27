@@ -3793,6 +3793,7 @@ PUSHCONT {
 	}
 	IFJMP
 	.loc ../contracts/StEverVault.sol, 650
+	GETGLOB 29
 	GETGLOB 28
 	GETGLOB 27
 	GETGLOB 25
@@ -3811,7 +3812,7 @@ PUSHCONT {
 	GETGLOB 12
 	GETGLOB 11
 	PUSHINT 2
-	PUSHINT 17
+	PUSHINT 18
 	BLKSWX
 	SWAP
 	NEWC
@@ -3821,33 +3822,43 @@ PUSHCONT {
 	STREF
 	STREF
 	STU 128
-	ROLLREV 13
+	ROLLREV 14
 	NEWC
 	STU 128
 	STU 128
 	STU 128
 	STSLICE
-	ROLLREV 9
+	ROLLREV 10
 	NEWC
 	STSLICE
 	STU 128
 	STU 8
 	STU 128
 	STU 128
-	ROLLREV 4
+	ROLLREV 5
 	NEWC
 	STSLICE
 	STU 32
 	STDICT
 	STDICT
+	SWAP
+	UNTUPLE 4
+	REVERSE 5, 0
+	STI 1
+	STI 1
+	ROTREV
+	NEWC
+	STSLICE
+	STU 64
+	STBREFR
 	STBREFR
 	STBREFR
 	STBREFR
 	ENDC
-	.loc ../contracts/StEverVault.sol, 673
+	.loc ../contracts/StEverVault.sol, 674
 	OVER
 	SETCODE
-	.loc ../contracts/StEverVault.sol, 675
+	.loc ../contracts/StEverVault.sol, 676
 	SWAP
 	CTOS
 	DUP
@@ -3862,7 +3873,7 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/StEverVault.sol, 677
+	.loc ../contracts/StEverVault.sol, 678
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}

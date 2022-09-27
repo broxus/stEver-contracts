@@ -666,7 +666,8 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             owner,
             accountVersion,
             strategies,
-            pendingWithdrawals
+            pendingWithdrawals,
+            emergencyState
         );
 
         // set code after complete this method

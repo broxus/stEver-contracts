@@ -44,6 +44,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     uint8 constant STATUS_INVALID_ELECTION_ID = 25;
     uint8 constant STATUS_TRANSFER_WHILE_COMPLETING_STEP = 26;
     uint8 constant STATUS_NO_POOLING_STAKE = 27;
+    uint8 constant STATUS_NOT_ALLOWED_PARTICIPANT = 28;
+
     // strategy statuses
     uint8 constant STAKE_TO_SMALL = 28;
     uint8 constant DEPOSIT_FEE_TO_SMALL = 29;
@@ -155,7 +157,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         if (
             _errcode == STATUS_DEPOOL_CLOSED ||
             _errcode == STATUS_FEE_TOO_SMALL ||
-            _errcode == STATUS_STAKE_TOO_SMALL
+            _errcode == STATUS_STAKE_TOO_SMALL ||
+            _errcode == STATUS_NOT_ALLOWED_PARTICIPANT
         ) {
             state = State.INITIAL;
             return depositNotHandled(_errcode);
