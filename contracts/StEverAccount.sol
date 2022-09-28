@@ -15,6 +15,7 @@ import "locklift/src/console.sol";
 contract StEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
+    // TODO: ты не забираешь его в onCodeUpgrade
     TvmCell platformCode; // setup from initData
     uint32 currentVersion; //setup from _init
 

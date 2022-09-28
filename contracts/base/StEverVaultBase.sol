@@ -264,6 +264,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    // TODO: батч метод только для овнера. Для юзера сделать метод, где он может свой акк апдейтнуть
     function upgradeStEverAccounts(address _sendGasTo, address[] _users) override external minCallValue {
         require(msg.value >= _users.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
@@ -271,7 +272,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) override external onlySelf {
-
         tvm.rawReserve(_reserve(), 0);
         uint128 batchSize = 50;
         for (; _startIdx < _users.length && batchSize != 0; _startIdx++) {
@@ -283,6 +283,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
             IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, _sendGasTo);
         }
 
+        // TODO: по-моему здесь надо > ?
         if (_users.length < _startIdx) {
             this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, _startIdx);
             return;
@@ -294,6 +295,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function onAccountUpdated(address _user, address _sendGasTo) override external onlyAccount(_user) {
 
         tvm.rawReserve(_reserve(), 0);
+        // TODO: мб хоть добавить до какой версии обновился юзер?
         emit AccountUpdated(_user);
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

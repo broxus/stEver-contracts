@@ -383,14 +383,16 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         uint128 _amount,
         address _sender,
         address,
-        address,
+        address, // TODO: а чего ты игноришь remainingGasTo и всегда отдаешь сендеру?
         TvmCell _payload
     ) override external minCallValue notPaused {
+        // TODO: notPaused здесь не надо так проверять. Мы не хотим, чтобы вызов падал. Надо чекунть и вернуть токены с газом
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
         (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
         // if not enough value, resend tokens to sender
+        // TODO: вот сюда проверку паузы наверн
         if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
