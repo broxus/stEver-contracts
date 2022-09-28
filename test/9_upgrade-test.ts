@@ -4,11 +4,9 @@ import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { concatMap, from, lastValueFrom, mergeMap, switchMap, timer, toArray } from "rxjs";
 
 let signer: Signer;
 let admin: User;
@@ -19,8 +17,7 @@ let user3: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
-let strategies: DePoolStrategyWithPool[] = [];
-describe("Withdraw extra testing", function () {
+describe("Upgrade testing", function () {
   before(async () => {
     const {
       vault: v,
@@ -71,7 +68,7 @@ describe("Withdraw extra testing", function () {
     const users = [user2, user3];
     const upgradedUsersData = await lastValueFrom(
       from(users).pipe(
-        concatMap(() => user1.upgradeAccounts(users.map(user => user.account.address))),
+        concatMap(() => admin.upgradeAccounts(users.map(user => user.account.address))),
         switchMap(() => from(users.map(user => user.getUpgradedUser()))),
         mergeMap(user => user.checkIsUpdateApplied()),
         toArray(),

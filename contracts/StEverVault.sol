@@ -383,16 +383,14 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         uint128 _amount,
         address _sender,
         address,
-        address, // TODO: а чего ты игноришь remainingGasTo и всегда отдаешь сендеру?
+        address _remainingGasTo,
         TvmCell _payload
     ) override external minCallValue notPaused {
-        // TODO: notPaused здесь не надо так проверять. Мы не хотим, чтобы вызов падал. Надо чекунть и вернуть токены с газом
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
         (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
         // if not enough value, resend tokens to sender
-        // TODO: вот сюда проверку паузы наверн
         if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
@@ -404,23 +402,27 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
                 _amount,
                 _sender,
                 0,
-                _sender,
+                _remainingGasTo,
                 false,
                 _payload
             );
             return;
         }
-        requestWithdraw(_sender, _amount, _nonce);
+        requestWithdraw(_sender, _amount, _nonce, _remainingGasTo);
     }
 
-    function requestWithdraw(address _user, uint128 _amount, uint64 _nonce) internal {
+    function requestWithdraw(address _user, uint128 _amount, uint64 _nonce, address _remainingGasTo) internal {
         tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE), 0);
 
         address accountAddr = getAccountAddress(_user);
 
-        pendingWithdrawals[_nonce] = PendingWithdraw(_amount, _user);
+        pendingWithdrawals[_nonce] = PendingWithdraw({
+            amount: _amount,
+            user: _user,
+            remainingGasTo: _remainingGasTo
+        });
 
-        addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED);
+        addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
     }
 
     function handleAddPendingValueError(TvmSlice _slice) internal view {
@@ -432,28 +434,28 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         address account = deployAccount(pendingWithdraw.user);
 
-        addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED);
+        addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED, pendingWithdraw.remainingGasTo);
     }
 
-    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 amount, address account, uint128 _value, uint8 _flag) internal pure {
+    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 _amount, address account, uint128 _value, uint8 _flag, address _remainingGasTo) internal pure {
         IStEverAccount(account).addPendingValue{
             value:_value,
             flag: _flag,
             bounce: true
-        }(_withdraw_nonce, amount);
+        }(_withdraw_nonce, _amount, _remainingGasTo);
     }
 
-    function onPendingWithdrawAccepted(uint64 _nonce,address user) override external onlyAccount(user) {
+    function onPendingWithdrawAccepted(uint64 _nonce, address _user, address remainingGasTo) override external onlyAccount(_user) {
        tvm.rawReserve(_reserve(), 0);
 
        PendingWithdraw pendingWithdraw = pendingWithdrawals[_nonce];
        emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, _nonce);
        delete pendingWithdrawals[_nonce];
 
-       pendingWithdraw.user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce:false});
+       remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function onPendingWithdrawRejected(uint64 _nonce, address user, uint128 _amount) override external onlyAccount(user) {
+    function onPendingWithdrawRejected(uint64 _nonce, address _user, uint128 _amount, address _remainingGasTo) override external onlyAccount(_user) {
         tvm.rawReserve(_reserveWithValue(StEverVaultGas.WITHDRAW_FEE), 0);
 
         delete pendingWithdrawals[_nonce];
@@ -465,9 +467,9 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             bounce:false
         }(
             _amount,
-            user,
+            _user,
             0,
-            user,
+            _remainingGasTo,
             false,
             payload
         );

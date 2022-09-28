@@ -23,7 +23,8 @@
 			"name": "addPendingValue",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"},
-				{"name":"_amount","type":"uint128"}
+				{"name":"_amount","type":"uint128"},
+				{"name":"_remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -113,7 +114,6 @@
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"vault","type":"address"},
 		{"name":"user","type":"address"},
-		{"name":"platformCode","type":"cell"},
 		{"name":"currentVersion","type":"uint32"},
 		{"components":[{"name":"amount","type":"uint128"},{"name":"timestamp","type":"uint64"}],"name":"withdrawRequests","type":"map(uint64,tuple)"}
 	]

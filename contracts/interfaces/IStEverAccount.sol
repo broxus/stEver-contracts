@@ -17,7 +17,7 @@ interface IStEverAccount {
     }
 
     function getDetails() external responsible view returns (AccountDetails);
-    function addPendingValue(uint64 _nonce, uint128 amount) external;
+    function addPendingValue(uint64 _nonce, uint128 amount, address remainingGasTo) external;
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) external;
     function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) external;
     function removePendingWithdraw(uint64 _nonce) external;

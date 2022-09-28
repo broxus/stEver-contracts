@@ -39,7 +39,7 @@ interface IStEverVault {
 
     // Upgrade
     event NewAccountCodeSet(uint32 newVersion);
-    event AccountUpdated(address user);
+    event AccountUpgraded(address user, uint32 newVersion);
     // Emergency
     event EmergencyProcessStarted(address emitter);
     event EmergencyProcessRejectedByAccount(address emitter, uint16 errcode);
@@ -84,6 +84,7 @@ interface IStEverVault {
     struct PendingWithdraw {
         uint128 amount;
         address user;
+        address remainingGasTo;
     }
 
     struct WithdrawConfig {
@@ -159,8 +160,8 @@ interface IStEverVault {
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
 
     // account
-    function onPendingWithdrawAccepted(uint64 nonce, address user) external;
-    function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount) external;
+    function onPendingWithdrawAccepted(uint64 nonce,address user, address remainingGasTo) external;
+    function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount, address remainingGasTo) external;
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
 
     // utils
@@ -188,8 +189,9 @@ interface IStEverVault {
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
     function setNewAccountCode(TvmCell _newAccountCode) external;
+    function upgradeStEverAccount() external;
     function upgradeStEverAccounts(address _sendGasTo, address[] _users) external;
     function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) external;
-    function onAccountUpdated(address user, address sendGasTo) external;
+    function onAccountUpgraded(address user, address sendGasTo, uint32 newVersion) external;
 }
 

@@ -142,15 +142,10 @@ export class User {
 
   getUpgradedUserData = async (): Promise<UpgradedUser> => {
     await locklift.tracing.trace(
-      this.vault.vaultContract.methods
-        .upgradeStEverAccounts({
-          _sendGasTo: this.account.address,
-          _users: [this.account.address],
-        })
-        .send({
-          from: this.account.address,
-          amount: toNano(2),
-        }),
+      this.vault.vaultContract.methods.upgradeStEverAccount().send({
+        from: this.account.address,
+        amount: toNano(2),
+      }),
     );
     return new UpgradedUser(
       this.account,
@@ -173,10 +168,11 @@ export class User {
         }),
     );
     const upgradeEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "AccountUpdated",
+      eventName: "AccountUpgraded",
       parentTransaction: upgradeTransaction,
     });
     expect(upgradeEvents.length).to.be.eq(users.length);
+    expect(upgradeEvents[0].data.newVersion).to.be.equals("1");
   };
 
   getUpgradedUser = () => {

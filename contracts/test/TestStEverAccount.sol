@@ -15,7 +15,6 @@ import "locklift/src/console.sol";
 contract TestStEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
-    TvmCell platformCode; // setup from initData
     uint32 currentVersion; //setup from _init
 
     // mappings
@@ -24,12 +23,11 @@ contract TestStEverAccount is IStEverAccount {
     //constant
     uint128 constant MAX_PENDING_COUNT = 50;
 
-    // TODO: revert! не даем возможности деплоя не через платформу
-    // TODO res: добавил
+
     constructor() public {
         revert();
     }
-    // TODO: не вижу использования
+
     // should be called in onCodeUpgrade on platform initialization
     function _init(uint32 _version) internal {
         currentVersion = _version;
@@ -61,7 +59,7 @@ contract TestStEverAccount is IStEverAccount {
 	}
 
 
-    function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {
+    function addPendingValue(uint64 _nonce, uint128 _amount, address _remainingGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
@@ -70,10 +68,10 @@ contract TestStEverAccount is IStEverAccount {
                 timestamp: now
             });
 
-            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user);
+            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _remainingGasTo);
             return;
         }
-        IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount);
+        IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);
     }
 
     function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) override external onlyVault {
@@ -174,7 +172,8 @@ contract TestStEverAccount is IStEverAccount {
         mainBuilder.store(uint8(0));
         mainBuilder.store(_sendGasTo);
 
-        mainBuilder.store(platformCode);
+        TvmCell dummyPlatformCode;
+        mainBuilder.store(dummyPlatformCode);
 
         TvmBuilder initialData;
         initialData.store(user);
@@ -208,7 +207,7 @@ contract TestStEverAccount is IStEverAccount {
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
 
-        (address root_, , address sendGasTo, TvmCell _platformCode) = s.decode(address, uint8, address,TvmCell);
+        (address root_, , address sendGasTo,) = s.decode(address, uint8, address,TvmCell);
 
         TvmSlice initialData = s.loadRefAsSlice();
 
@@ -221,7 +220,6 @@ contract TestStEverAccount is IStEverAccount {
             // deploy
             vault = root_;
             user = initialData.decode(address);
-            platformCode = _platformCode;
             _init(_currentVersion);
             sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
             return;
@@ -230,7 +228,7 @@ contract TestStEverAccount is IStEverAccount {
         TvmCell prevStoreData = s.loadRef();
         (vault, user, , withdrawRequests) = abi.decode(prevStoreData, (address, address, uint32, mapping(uint64 => WithdrawRequest)));
         currentVersion = _currentVersion;
-        IStEverVault(vault).onAccountUpdated{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, sendGasTo);
+        IStEverVault(vault).onAccountUpgraded{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, sendGasTo, currentVersion);
     }
 
 }

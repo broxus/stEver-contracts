@@ -15,8 +15,6 @@ import "locklift/src/console.sol";
 contract StEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
-    // TODO: ты не забираешь его в onCodeUpgrade
-    TvmCell platformCode; // setup from initData
     uint32 currentVersion; //setup from _init
 
     // mappings
@@ -60,7 +58,7 @@ contract StEverAccount is IStEverAccount {
 	}
 
 
-    function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {
+    function addPendingValue(uint64 _nonce, uint128 _amount, address _remainingGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
@@ -69,20 +67,20 @@ contract StEverAccount is IStEverAccount {
                 timestamp: now
             });
 
-            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user);
+            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _remainingGasTo);
             return;
         }
-        IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount);
+        IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);
     }
 
-    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address _sendGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
         for ((uint64 nonce, WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
             withdrawRequests[nonce] = rejectedWithdrawRequest;
         }
 
-        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function removePendingWithdraw(uint64 _nonce) override external onlyVault {
@@ -169,7 +167,8 @@ contract StEverAccount is IStEverAccount {
         mainBuilder.store(uint8(0));
         mainBuilder.store(_sendGasTo);
 
-        mainBuilder.store(platformCode);
+        TvmCell dummyPlatformCode;
+        mainBuilder.store(dummyPlatformCode);
 
         TvmBuilder initialData;
         initialData.store(user);

@@ -133,7 +133,7 @@
 				{"name":"_amount","type":"uint128"},
 				{"name":"_sender","type":"address"},
 				{"name":"value3","type":"address"},
-				{"name":"value4","type":"address"},
+				{"name":"_remainingGasTo","type":"address"},
 				{"name":"_payload","type":"cell"}
 			],
 			"outputs": [
@@ -143,7 +143,8 @@
 			"name": "onPendingWithdrawAccepted",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"},
-				{"name":"user","type":"address"}
+				{"name":"_user","type":"address"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -152,8 +153,9 @@
 			"name": "onPendingWithdrawRejected",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"},
-				{"name":"user","type":"address"},
-				{"name":"_amount","type":"uint128"}
+				{"name":"_user","type":"address"},
+				{"name":"_amount","type":"uint128"},
+				{"name":"_remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -434,6 +436,13 @@
 			]
 		},
 		{
+			"name": "upgradeStEverAccount",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "upgradeStEverAccounts",
 			"inputs": [
 				{"name":"_sendGasTo","type":"address"},
@@ -453,10 +462,11 @@
 			]
 		},
 		{
-			"name": "onAccountUpdated",
+			"name": "onAccountUpgraded",
 			"inputs": [
 				{"name":"_user","type":"address"},
-				{"name":"_sendGasTo","type":"address"}
+				{"name":"_sendGasTo","type":"address"},
+				{"name":"_newVersion","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -694,9 +704,10 @@
 			]
 		},
 		{
-			"name": "AccountUpdated",
+			"name": "AccountUpgraded",
 			"inputs": [
-				{"name":"user","type":"address"}
+				{"name":"user","type":"address"},
+				{"name":"newVersion","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -771,7 +782,7 @@
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
 		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
-		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
+		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"},{"name":"remainingGasTo","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
 		{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]
 }
