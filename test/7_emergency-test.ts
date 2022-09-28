@@ -6,13 +6,12 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { concatMap, filter, first, from, lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
+import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
-import { getAddressEverBalance, isT, toNanoBn } from "../utils";
-import _ from "lodash/fp";
+import { isT, toNanoBn } from "../utils";
 
 let signer: Signer;
 let admin: User;

@@ -626,7 +626,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         emit WithdrawFee(_amount);
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    
+
     // withdraw extra
     function withdrawExtraEver() override external onlyOwner {
 
@@ -636,7 +636,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         );
 
         uint128 extraAvailableAssets = availableAssets - totalAssets - totalStEverFee;
-        uint128 extraPureBalance = address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE;
+        uint128 extraPureBalance = math.min(address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE - msg.value, extraAvailableAssets);
         uint128 totalExtraEver = extraAvailableAssets + extraPureBalance;
 
         // remove extra ever from availableAssets

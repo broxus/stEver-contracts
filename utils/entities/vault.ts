@@ -167,6 +167,15 @@ export class Vault {
       }),
     );
   };
+
+  withdrawExtraEver = async () => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.withdrawExtraEver().send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+  };
 }
 
 export const creteVault = async ({
