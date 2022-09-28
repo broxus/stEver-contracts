@@ -133,15 +133,29 @@ describe("Strategy base", function () {
   });
 
   it("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
-    await strategy.setDePoolWithdrawalState({ isClosed: true });
-    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+    const ATTACHED_FEE = toNanoBn(0.6);
     const WITHDRAW_AMOUNT = toNanoBn(100);
+
+    await strategy.setDePoolWithdrawalState({ isClosed: true });
+
+    const vaultDetailsBefore = await vault.getDetails();
+
     const { errorEvent } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
-        [strategy.strategy.address, { amount: WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
+        [strategy.strategy.address, { amount: WITHDRAW_AMOUNT.toString(), fee: ATTACHED_FEE.toString() }],
       ],
     });
-    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+    const vaultDetailsAfter = await vault.getDetails();
+    expect(vaultDetailsBefore.totalAssets.toNumber()).to.be.gt(
+      vaultDetailsAfter.totalAssets.toNumber(),
+      "some fee should payed from total assets",
+    );
+
+    expect(vaultDetailsAfter.totalAssets.toNumber()).to.be.gt(
+      vaultDetailsBefore.totalAssets.minus(ATTACHED_FEE).toNumber(),
+      "some fee should returned after failed withdraw",
+    );
+
     expect(errorEvent.length).to.be.equal(1);
     expect(errorEvent[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
     await strategy.setDePoolWithdrawalState({ isClosed: false });

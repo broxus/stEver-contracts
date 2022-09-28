@@ -31,6 +31,7 @@ library ErrorCodes {
     uint16 constant NOT_EMERGENCY_STATE = 1025;
     uint16 constant NOT_SELF = 1026;
     uint16 constant AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS = 1027;
+    uint16 constant NOT_ENOUGH_TOTAL_ASSETS = 1028;
 
 
     // StEverAccount

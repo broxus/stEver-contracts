@@ -62,27 +62,33 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         ValidationResult[] validationResults;
 
         uint128 totalRequiredBalance;
+        uint128 totalFee;
 
         for (uint256 i = 0; !_depositConfigs.empty(); i++) {
 
             (address strategy, DepositConfig depositConfig) = _depositConfigs.delMin().get();
 
-            if(!strategies.exists(strategy)) {
+            if (!strategies.exists(strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
             }
 
-            if(depositConfig.amount < minStrategyDepositValue) {
+            if (depositConfig.amount < minStrategyDepositValue) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE));
             }
 
+            totalFee += depositConfig.fee;
             uint128 valueToSend = depositConfig.amount + depositConfig.fee;
             totalRequiredBalance += valueToSend;
 
-            if(!isCanTransferValue(totalRequiredBalance)) {
+            if (!isCanTransferValue(totalRequiredBalance)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT));
             }
 
-            if(!isStrategyInInitialState(strategy)) {
+            if (totalAssets < totalFee) {
+                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
+            }
+
+            if (!isStrategyInInitialState(strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
             }
         }
@@ -102,25 +108,27 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
                 continue;
             }
-            // require(isCanTransferValue(valueToSend), ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
 
             if (!strategies.exists(strategy)) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
                 continue;
             }
-            // require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
 
             if (depositConfig.amount < minStrategyDepositValue) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
                 continue;
             }
-            // require (depositConfig.amount >= minStrategyDepositValue, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
+
+            if (totalAssets < depositConfig.fee) {
+                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
+                continue;
+            }
 
             if (!isStrategyInInitialState(strategy)) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
                 continue;
             }
-            // require (isStrategyInInitialState(strategy), ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+
 
             // change depositing strategy state
             strategies[strategy].depositingAmount = depositConfig.amount;
@@ -129,7 +137,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             availableAssets -= valueToSend;
 
             // grab fee from total assets, then add it back after receiving response from strategy
-            // TODO! check total assets!!
             totalAssets -= depositConfig.fee;
 
             IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
@@ -220,6 +227,10 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW));
             }
 
+            if (totalAssets < totalRequiredBalance) {
+                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
+            }
+
             if(!isStrategyInInitialState(strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
             }
@@ -233,34 +244,34 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
 
-            // require (config.amount >= minStrategyWithdrawValue, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
             if (config.amount < minStrategyWithdrawValue) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
                 continue;
             }
 
-            // require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
             if (!strategies.exists(strategy)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
                 continue;
             }
 
-            // require (isCanTransferValue(config.fee), ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
             if (!isCanTransferValue(config.fee)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
                 continue;
             }
 
-            // require (isStrategyInInitialState(strategy), ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
             if (!isStrategyInInitialState(strategy)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+                continue;
+            }
+
+            if (totalAssets < config.fee) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
                 continue;
             }
 
             // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
 
-            // TODO! check total assets!!
             totalAssets -= config.fee;
 
             // change withdrawing strategy state
@@ -322,8 +333,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         // set remaining gas
         availableAssets += notUsedFee;
-        // TODO why not reset to the totalAssets ?
-
+        totalAssets += notUsedFee;
     }
     // deposit
     function deposit(uint128 _amount, uint64 _nonce) override external {
@@ -571,6 +581,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 			handleAddPendingValueError(_slice);
 		}
 	}
+
     // extra money from strategies
     function processWithdrawExtraMoneyFromStrategies(address[] _strategies) override external onlyGovernanceOrSelfAndAccept {
 
@@ -615,6 +626,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         emit WithdrawFee(_amount);
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+    
     // withdraw extra
     function withdrawExtraEver() override external onlyOwner {
 
