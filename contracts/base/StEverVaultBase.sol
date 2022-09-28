@@ -52,6 +52,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         _;
     }
 
+    modifier notPaused() {
+        require(!isPaused, ErrorCodes.ST_EVER_VAULT_PAUSED);
+        _;
+    }
+
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
@@ -68,9 +73,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
-    // TODO: можно из конструктора звать, укоротить процесс
-    // TODO res: убрал лишний метод, теперь рут сетится через статик поле
 
 
     function receiveTokenWalletAddress(address _wallet) external virtual {
@@ -102,16 +104,26 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    // TODO: маленькая точность, я бы брал от 1 до 1000
-    function setStEverFeePercent(uint8 _stEverFeePercent) override external onlyOwner {
-        require(_stEverFeePercent <= 100,ErrorCodes.BAD_FEE_PERCENT);
+     
+    function setStEverFeePercent(uint32 _stEverFeePercent) override external onlyOwner {
+        require (_stEverFeePercent <= Constants.ONE_HUNDRED_PERCENT, ErrorCodes.BAD_FEE_PERCENT);
+
         tvm.rawReserve(_reserve(), 0);
+
         stEverFeePercent = _stEverFeePercent;
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
     }
 
-    // TODO: isCan звучит вообще странно))
-    // TODO res: переименовал
+    function setIsPaused(bool _isPaused) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        isPaused = _isPaused;
+
+        emit PausedStateChanged(_isPaused);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
@@ -241,6 +253,50 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 				tvm.hash(_buildInitAccount(_buildAccountParams(_user)))
 			);
 	}
+    function setNewAccountCode(TvmCell _newAccountCode) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        accountCode = _newAccountCode;
+        accountVersion += 1;
+
+        emit NewAccountCodeSet(accountVersion);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function upgradeStEverAccounts(address _sendGasTo, address[] _users) override external minCallValue {
+        require(msg.value >= _users.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
+        tvm.rawReserve(_reserve(), 0);
+        this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, 0);
+    }
+
+    function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) override external onlySelf {
+
+        tvm.rawReserve(_reserve(), 0);
+        uint128 batchSize = 50;
+        for (; _startIdx < _users.length && batchSize != 0; _startIdx++) {
+            address user = _users[_startIdx];
+            batchSize--;
+
+            address userData = getAccountAddress(user);
+
+            IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, _sendGasTo);
+        }
+
+        if (_users.length < _startIdx) {
+            this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, _startIdx);
+            return;
+        }
+
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onAccountUpdated(address _user, address _sendGasTo) override external onlyAccount(_user) {
+
+        tvm.rawReserve(_reserve(), 0);
+        emit AccountUpdated(_user);
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
 
     function getDetails() override external responsible view returns(Details) {
         return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
@@ -256,6 +312,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 stEverVaultVersion,
                 minStrategyDepositValue,
                 minStrategyWithdrawValue,
+                isPaused,
                 stEverFeePercent,
                 totalStEverFee,
                 emergencyState

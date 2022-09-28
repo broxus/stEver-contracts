@@ -1,7 +1,7 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
-import "./interfaces/IDePool.sol";
-import "./interfaces/IParticipant.sol";
+import "../interfaces/IDePool.sol";
+import "../interfaces/IParticipant.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
@@ -45,7 +45,7 @@ contract TestDepool is IDePool {
 
     mapping(address => Depositor) depositors;
     function addOrdinaryStake(uint64 stake) override external {
-        
+
         if(closed) {
             return _sendError(STATUS_DEPOOL_CLOSED, 0);
         }

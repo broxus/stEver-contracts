@@ -31,42 +31,29 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         return emergencyState.isEmergency && !emergencyState.isPaused;
     }
 
-    function startEmergencyProcess(uint64 _poofNonce) override external {
+    function startEmergencyProcess(uint64 _poofNonce) override external minCallValue notPaused {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
+        uint128 countOfStrategies = uint128(strategies.keys().length);
+        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPEREMENTAL_FEE;
+        uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy;
+
+        require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address accountAddress = getAccountAddress(msg.sender);
         IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_poofNonce);
     }
 
-    function changeEmergencyPauseState(bool _isPaused) override external onlyOwner minCallValue {
-        require(emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
-
-        tvm.rawReserve(_reserve(), 0);
-
-        emergencyState.isPaused = _isPaused;
-        if (_isPaused) {
-            emit EmergencyStatePaused();
-        } else {
-            emit EmergencyStateContinued();
-        }
-        
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
     function stopEmergencyProcess() override external onlyOwner minCallValue {
         require (emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
         tvm.rawReserve(_reserve(), 0);
-
-        // TODO: можно просто зачистить через delete
-        // TODO res: сделал
 
         // set initial emergencyState
         delete emergencyState;
 
         emit EmergencyStopped();
-        
+
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -80,12 +67,6 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
 
     function emergencyWithdrawFromStrategiesProcess(address _user) override external onlyAccount(_user){
         require (!isEmergencyProcess(), ErrorCodes.EMERGENCY_ALREADY_RUN);
-
-        uint128 countOfStrategies = uint128(strategies.keys().length);
-        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPEREMENTAL_FEE;
-        uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy;
-
-        require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
 
         tvm.rawReserve(_reserve(), 0);
         emit EmergencyProcessStarted(_user);
@@ -125,6 +106,21 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         _user.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function changeEmergencyPauseState(bool _isPaused) override external onlyOwner minCallValue {
+        require(emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emergencyState.isPaused = _isPaused;
+        if (_isPaused) {
+            emit EmergencyStatePaused();
+        } else {
+            emit EmergencyStateContinued();
+        }
+
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+    
     function emergencyWithdrawToUser() override external onlyEmergencyState minCallValue {
         tvm.rawReserve(_reserve(), 0);
         address accountAddress = getAccountAddress(msg.sender);

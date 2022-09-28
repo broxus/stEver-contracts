@@ -38,9 +38,9 @@
 			]
 		},
 		{
-			"name": "upgradeStrategy",
+			"name": "upgradeStrategies",
 			"inputs": [
-				{"name":"_strategy","type":"address"}
+				{"name":"_strategies","type":"address[]"}
 			],
 			"outputs": [
 			]

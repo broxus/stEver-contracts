@@ -121,7 +121,7 @@ describe("Strategy base", function () {
     const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
     expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
 
-    const expectedAccumulatedFee = ROUND_REWARD.multipliedBy(vaultStateBefore.stEverFeePercent).dividedBy(100);
+    const expectedAccumulatedFee = ROUND_REWARD.multipliedBy(vaultStateBefore.stEverFeePercent).dividedBy(1000);
     expect(vaultStateAfter.totalStEverFee.toNumber()).to.be.equals(expectedAccumulatedFee.toNumber());
 
     const expectedAvailableBalance = vaultStateBefore.totalAssets.plus(

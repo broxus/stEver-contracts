@@ -19,3 +19,7 @@ library StEverVaultGas {
 library StEverAccountGas {
     uint128 constant CONTRACT_MIN_BALANCE = 0.1 ton;
 }
+
+library DePoolStrategyFactoryGas {
+    uint128 constant MIN_CALL_MSG_VALUE = 1 ton;
+}

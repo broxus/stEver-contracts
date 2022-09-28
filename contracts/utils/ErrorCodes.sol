@@ -32,6 +32,7 @@ library ErrorCodes {
     uint16 constant NOT_SELF = 1026;
     uint16 constant AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS = 1027;
     uint16 constant NOT_ENOUGH_TOTAL_ASSETS = 1028;
+    uint16 constant ST_EVER_VAULT_PAUSED = 1029;
 
 
     // StEverAccount
@@ -46,4 +47,9 @@ library ErrorCodes {
     uint16 constant NOT_DEPOOL_OR_VAULT = 3003;
     uint16 constant BAD_DEPOSIT_VALUE = 3004;
     uint16 constant NOT_FABRIC = 3005;
+
+    // DePoolStrategyFactory
+    uint16 constant MAX_STRATEGY_THAN_ALLOWED = 4001;
+    uint16 constant NOT_ENOUGH_VALUE_FACTORY = 4002;
+
 }

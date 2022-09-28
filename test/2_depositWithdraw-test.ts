@@ -65,7 +65,7 @@ describe("Deposit withdraw test", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(1),
+          amount: toNano(1.1),
         }),
       { allowedCodes: { compute: [null] } },
     );
@@ -98,7 +98,7 @@ describe("Deposit withdraw test", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(1),
+          amount: toNano(1.1),
         }),
       { allowedCodes: { compute: [null] } },
     );

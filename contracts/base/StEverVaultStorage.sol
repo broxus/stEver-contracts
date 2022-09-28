@@ -15,17 +15,16 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint128 stEverSupply;
     uint128 totalAssets;
     uint128 availableAssets;
-//    TODO rename to totalStEverVaultFee
     uint128 totalStEverFee;
     // tokens
     address stEverWallet;
 
     // modifiable field
     uint128 gainFee;
-//    TODO rename to stEverVaultFeePercent
-    uint8 stEverFeePercent;
+    uint32 stEverFeePercent;
     uint128 minStrategyDepositValue = 100 ever;
     uint128 minStrategyWithdrawValue = 100 ever;
+    bool isPaused;
 
 
     address owner;

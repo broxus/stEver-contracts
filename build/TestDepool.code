@@ -25,10 +25,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 37
+.loc ../contracts/test/TestDepool.sol, 37
 LDI 1
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $setClosed_04288dba_internal_macro$
 }
@@ -39,11 +39,11 @@ CALLREF {
 THROW 0
 
 .macro setClosed_04288dba_internal_macro
-.loc ../contracts/TestDepool.sol, 38
+.loc ../contracts/test/TestDepool.sol, 38
 ACCEPT
-.loc ../contracts/TestDepool.sol, 39
+.loc ../contracts/test/TestDepool.sol, 39
 SETGLOB 11
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro setWithdrawalsClosed
 DROP
@@ -54,10 +54,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 41
+.loc ../contracts/test/TestDepool.sol, 41
 LDI 1
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $setWithdrawalsClosed_572194d5_internal_macro$
 }
@@ -68,11 +68,11 @@ CALLREF {
 THROW 0
 
 .macro setWithdrawalsClosed_572194d5_internal_macro
-.loc ../contracts/TestDepool.sol, 42
+.loc ../contracts/test/TestDepool.sol, 42
 ACCEPT
-.loc ../contracts/TestDepool.sol, 43
+.loc ../contracts/test/TestDepool.sol, 43
 SETGLOB 13
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro addOrdinaryStake
 DROP
@@ -83,10 +83,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 47
+.loc ../contracts/test/TestDepool.sol, 47
 LDU 64
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $addOrdinaryStake_52cda513_internal_macro$
 }
@@ -97,20 +97,20 @@ CALLREF {
 THROW 0
 
 .macro addOrdinaryStake_52cda513_internal_macro
-.loc ../contracts/TestDepool.sol, 49
+.loc ../contracts/test/TestDepool.sol, 49
 GETGLOB 11
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 50
+	.loc ../contracts/test/TestDepool.sol, 50
 	PUSHINT 3
 	PUSHINT 0
 	CALLREF {
 		CALL $_sendError_96842984_internal_macro$
 	}
 	DROP
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFJMP
-.loc ../contracts/TestDepool.sol, 53
+.loc ../contracts/test/TestDepool.sol, 53
 DEPTH
 ADDCONST -2
 PICK
@@ -120,39 +120,39 @@ ADD
 UFITS 64
 LESS
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 54
+	.loc ../contracts/test/TestDepool.sol, 54
 	PUSHINT 21
 	PUSHINT 500000000
 	CALLREF {
 		CALL $_sendError_96842984_internal_macro$
 	}
 	DROP
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFJMP
-.loc ../contracts/TestDepool.sol, 57
+.loc ../contracts/test/TestDepool.sol, 57
 DUP
 GETGLOB 12
 LESS
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 58
+	.loc ../contracts/test/TestDepool.sol, 58
 	PUSHINT 1
 	GETGLOB 12
 	CALLREF {
 		CALL $_sendError_96842984_internal_macro$
 	}
 	DROP
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFJMP
-.loc ../contracts/TestDepool.sol, 61
+.loc ../contracts/test/TestDepool.sol, 61
 DEPTH
 ADDCONST -2
 PICK
 OVER
 SUB
 UFITS 128
-.loc ../contracts/TestDepool.sol, 62
+.loc ../contracts/test/TestDepool.sol, 62
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
@@ -160,7 +160,7 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 63
+	.loc ../contracts/test/TestDepool.sol, 63
 	PUSHINT 0
 	DUP
 	PAIR
@@ -178,13 +178,13 @@ PUSHCONT {
 	PUSHINT 267
 	DICTSETB
 	SETGLOB 16
-	.loc ../contracts/TestDepool.sol, 64
+	.loc ../contracts/test/TestDepool.sol, 64
 	GETGLOB 9
 	SETGLOB 15
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFNOT
-.loc ../contracts/TestDepool.sol, 66
+.loc ../contracts/test/TestDepool.sol, 66
 SWAP
 GETGLOB 9
 GETGLOB 16
@@ -220,12 +220,12 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 16
-.loc ../contracts/TestDepool.sol, 67
+.loc ../contracts/test/TestDepool.sol, 67
 UFITS 64
 CALLREF {
 	CALL $sendAcceptAndReturnChange128_97c1eb12_internal_macro$
 }
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro withdrawFromPoolingRound
 DROP
@@ -236,10 +236,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 70
+.loc ../contracts/test/TestDepool.sol, 70
 LDU 64
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $withdrawFromPoolingRound_829c0f38_internal_macro$
 }
@@ -250,7 +250,7 @@ CALLREF {
 THROW 0
 
 .macro withdrawFromPoolingRound_829c0f38_internal_macro
-.loc ../contracts/TestDepool.sol, 71
+.loc ../contracts/test/TestDepool.sol, 71
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
@@ -271,20 +271,20 @@ FIRST
 OVER
 GEQ
 THROWIFNOT 101
-.loc ../contracts/TestDepool.sol, 73
+.loc ../contracts/test/TestDepool.sol, 73
 GETGLOB 13
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 74
+	.loc ../contracts/test/TestDepool.sol, 74
 	PUSHINT 27
 	PUSHINT 0
 	CALLREF {
 		CALL $_sendError_96842984_internal_macro$
 	}
 	DROP
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFJMP
-.loc ../contracts/TestDepool.sol, 76
+.loc ../contracts/test/TestDepool.sol, 76
 DUP
 GETGLOB 9
 GETGLOB 16
@@ -320,7 +320,7 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 16
-.loc ../contracts/TestDepool.sol, 77
+.loc ../contracts/test/TestDepool.sol, 77
 GETGLOB 9
 NEWC
 STSLICECONST x42_
@@ -332,7 +332,7 @@ STZEROES
 ENDC
 PUSHINT 64
 SENDRAWMSG
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro withdrawPart
 DROP
@@ -343,10 +343,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 80
+.loc ../contracts/test/TestDepool.sol, 80
 LDU 64
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $withdrawPart_65bb0d95_internal_macro$
 }
@@ -357,20 +357,20 @@ CALLREF {
 THROW 0
 
 .macro withdrawPart_65bb0d95_internal_macro
-.loc ../contracts/TestDepool.sol, 82
+.loc ../contracts/test/TestDepool.sol, 82
 GETGLOB 13
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 83
+	.loc ../contracts/test/TestDepool.sol, 83
 	PUSHINT 27
 	PUSHINT 0
 	CALLREF {
 		CALL $_sendError_96842984_internal_macro$
 	}
 	DROP
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 }
 IFJMP
-.loc ../contracts/TestDepool.sol, 85
+.loc ../contracts/test/TestDepool.sol, 85
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
@@ -389,7 +389,7 @@ IFREFELSEREF
 }
 FIRST
 MIN
-.loc ../contracts/TestDepool.sol, 86
+.loc ../contracts/test/TestDepool.sol, 86
 DUP
 GETGLOB 9
 GETGLOB 16
@@ -426,7 +426,7 @@ PUSHINT 267
 DICTSETB
 DUP
 SETGLOB 16
-.loc ../contracts/TestDepool.sol, 87
+.loc ../contracts/test/TestDepool.sol, 87
 GETGLOB 9
 TUCK
 OVER
@@ -457,11 +457,11 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 16
-.loc ../contracts/TestDepool.sol, 88
+.loc ../contracts/test/TestDepool.sol, 88
 CALLREF {
 	CALL $sendAcceptAndReturnChange_facfbc02_internal_macro$
 }
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro withdrawAll
 DROP
@@ -472,9 +472,9 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 91
+.loc ../contracts/test/TestDepool.sol, 91
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $withdrawAll_853828b6_internal_macro$
 }
@@ -485,7 +485,7 @@ CALLREF {
 THROW 0
 
 .macro withdrawAll_853828b6_internal_macro
-.loc ../contracts/TestDepool.sol, 92
+.loc ../contracts/test/TestDepool.sol, 92
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
@@ -505,7 +505,7 @@ IFREFELSEREF
 FIRST
 GTINT 0
 THROWIFNOT 101
-.loc ../contracts/TestDepool.sol, 93
+.loc ../contracts/test/TestDepool.sol, 93
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
@@ -523,14 +523,14 @@ IFREFELSEREF
 	PAIR
 }
 FIRST
-.loc ../contracts/TestDepool.sol, 94
+.loc ../contracts/test/TestDepool.sol, 94
 GETGLOB 9
 GETGLOB 16
 PUSHINT 267
 DICTDEL
 DROP
 SETGLOB 16
-.loc ../contracts/TestDepool.sol, 95
+.loc ../contracts/test/TestDepool.sol, 95
 GETGLOB 9
 NEWC
 STSLICECONST x42_
@@ -542,7 +542,7 @@ STZEROES
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro roundComplete
 DROP
@@ -553,11 +553,11 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/TestDepool.sol, 98
+.loc ../contracts/test/TestDepool.sol, 98
 LDU 64
 LDI 1
 ENDS
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 CALLREF {
 	CALL $roundComplete_f2964dda_internal_macro$
 }
@@ -568,14 +568,14 @@ CALLREF {
 THROW 0
 
 .macro roundComplete_f2964dda_internal_macro
-.loc ../contracts/TestDepool.sol, 99
+.loc ../contracts/test/TestDepool.sol, 99
 ACCEPT
-.loc ../contracts/TestDepool.sol, 100
+.loc ../contracts/test/TestDepool.sol, 100
 GETGLOB 10
 INC
 UFITS 64
 SETGLOB 10
-.loc ../contracts/TestDepool.sol, 101
+.loc ../contracts/test/TestDepool.sol, 101
 GETGLOB 16
 DUP
 PUSHINT 267
@@ -598,7 +598,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/TestDepool.sol, 102
+	.loc ../contracts/test/TestDepool.sol, 102
 	PUSH2 S5, S1
 	GETGLOB 16
 	DUP2
@@ -633,12 +633,12 @@ IFREFELSEREF
 	PUSHINT 267
 	DICTSETB
 	SETGLOB 16
-	.loc ../contracts/TestDepool.sol, 103
+	.loc ../contracts/test/TestDepool.sol, 103
 	PUSHINT 10000000
-	.loc ../contracts/TestDepool.sol, 104
+	.loc ../contracts/test/TestDepool.sol, 104
 	PUSH S5
 	PUSHCONT {
-		.loc ../contracts/TestDepool.sol, 105
+		.loc ../contracts/test/TestDepool.sol, 105
 		GETGLOB 15
 		GETGLOB 16
 		PUSHINT 267
@@ -657,7 +657,7 @@ IFREFELSEREF
 }
 		SECOND
 		NIP
-		.loc ../contracts/TestDepool.sol, 106
+		.loc ../contracts/test/TestDepool.sol, 106
 		GETGLOB 15
 		GETGLOB 16
 		DUP2
@@ -688,10 +688,10 @@ IFREFELSEREF
 		PUSHINT 267
 		DICTSETB
 		SETGLOB 16
-		.loc ../contracts/TestDepool.sol, 0
+		.loc ../contracts/test/TestDepool.sol, 0
 	}
 	IF
-	.loc ../contracts/TestDepool.sol, 108
+	.loc ../contracts/test/TestDepool.sol, 108
 	PUSHINT 1
 	TRUE
 	PUSHINT 0
@@ -741,7 +741,7 @@ IFREFELSEREF
 	ENDC
 	PUSHINT 1
 	SENDRAWMSG
-	.loc ../contracts/TestDepool.sol, 0
+	.loc ../contracts/test/TestDepool.sol, 0
 	PUSH2 S1, S2
 	PUSHINT 267
 	DICTGETNEXT
@@ -761,14 +761,14 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 6
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .globl	_sendError_96842984_internal
 .type	_sendError_96842984_internal, @function
 CALL $_sendError_96842984_internal_macro$
 
 .macro _sendError_96842984_internal_macro
-.loc ../contracts/TestDepool.sol, 121
+.loc ../contracts/test/TestDepool.sol, 121
 SWAP
 GETGLOB 9
 FALSE
@@ -784,21 +784,21 @@ STU 64
 ENDC
 PUSHINT 64
 SENDRAWMSG
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .globl	sendAcceptAndReturnChange128_97c1eb12_internal
 .type	sendAcceptAndReturnChange128_97c1eb12_internal, @function
 CALL $sendAcceptAndReturnChange128_97c1eb12_internal_macro$
 
 .macro sendAcceptAndReturnChange128_97c1eb12_internal_macro
-.loc ../contracts/TestDepool.sol, 125
+.loc ../contracts/test/TestDepool.sol, 125
 GETPARAM 7
 FIRST
 SUBR
 UFITS 128
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/TestDepool.sol, 126
+.loc ../contracts/test/TestDepool.sol, 126
 PUSHINT 0
 DUP
 GETGLOB 9
@@ -815,14 +815,14 @@ STU 64
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .globl	sendAcceptAndReturnChange_facfbc02_internal
 .type	sendAcceptAndReturnChange_facfbc02_internal, @function
 CALL $sendAcceptAndReturnChange_facfbc02_internal_macro$
 
 .macro sendAcceptAndReturnChange_facfbc02_internal_macro
-.loc ../contracts/TestDepool.sol, 130
+.loc ../contracts/test/TestDepool.sol, 130
 PUSHINT 0
 DUP
 GETGLOB 9
@@ -839,7 +839,7 @@ STU 64
 ENDC
 PUSHINT 64
 SENDRAWMSG
-.loc ../contracts/TestDepool.sol, 0
+.loc ../contracts/test/TestDepool.sol, 0
 
 .macro c4_to_c7
 PUSHROOT

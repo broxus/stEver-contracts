@@ -162,6 +162,26 @@ export class Vault {
       }),
     );
   };
+
+  setNewAccountCode = async () => {
+    const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
+    const transaction = await locklift.tracing.trace(
+      this.vaultContract.methods.setNewAccountCode({ _newAccountCode: testAccountCode }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+    const installEvents = await this.getEventsAfterTransaction({
+      eventName: "NewAccountCodeSet",
+      parentTransaction: transaction,
+    });
+    expect(installEvents.length).to.be.eq(1);
+    expect(installEvents[0].data.newVersion).to.be.equals("1");
+    return {
+      transaction,
+      installEvent: installEvents[0],
+    };
+  };
 }
 
 export const creteVault = async ({

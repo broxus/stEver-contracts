@@ -100,7 +100,7 @@ describe("Multi flow", async function () {
     const ROUND_REWARD = toNanoBn(123);
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
-      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(100));
+      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
     await lastValueFrom(
       from(strategiesWithPool).pipe(concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString()))),
     );

@@ -6,6 +6,11 @@ import "./interfaces/IDepoolStrategyFactory.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "./StrategyDePool.sol";
 import "./interfaces/IStrategy.sol";
+import "./utils/Constants.sol";
+import "./utils/ErrorCodes.sol";
+import "./utils/Gas.sol";
+
+
 
 
 
@@ -50,7 +55,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 		return
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
-    
+
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
 
@@ -94,9 +99,20 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         emit NewStrategyDeployed(strategy, strategyVersion);
     }
 
-    function upgradeStrategy(address _strategy) override external onlyOwner {
+    function upgradeStrategies(address[] _strategies) override external onlyOwner {
+        require (_strategies.length <= Constants.MAX_STRATEGY_PER_UPGRADE, ErrorCodes.MAX_STRATEGY_THAN_ALLOWED);
+        require (
+            msg.value >= DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE * _strategies.length + DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE,
+            ErrorCodes.NOT_ENOUGH_VALUE_FACTORY
+        );
+
         tvm.rawReserve(_reserve(),0);
-        IStrategy(_strategy).upgrade(dePoolStrategyCode, strategyVersion, msg.sender);
+
+        for (address strategy : _strategies) {
+            IStrategy(strategy).upgrade{value: DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE, bounce: false}(dePoolStrategyCode, strategyVersion, msg.sender);
+        }
+
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
@@ -115,10 +131,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             strategyVersion,
             strategyCount,
             factoryVersion
-            // TODO: упаковал не все данные!
-            // TODO res: допаковал
         );
-        
+
         // set code after complete this method
         tvm.setcode(_newCode);
         // run onCodeUpgrade from new code

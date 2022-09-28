@@ -1,18 +1,19 @@
-import { StEverAccountAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
+import { StEverAccountAbi, TestStEverAccountAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
-import { Contract, fromNano, toNano } from "locklift";
+import { Address, Contract, fromNano, toNano } from "locklift";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-standalone-client";
 
 import { Vault } from "./vault";
+import { concatMap, from, lastValueFrom } from "rxjs";
 
 export class User {
   constructor(
     public readonly account: Account,
     public readonly wallet: TokenWallet,
     protected readonly vault: Vault,
-    public readonly withdrawUserData: Contract<StEverAccountAbi>,
+    public readonly withdrawUserData: Contract<StEverAccountAbi> | Contract<TestStEverAccountAbi>,
   ) {}
 
   makeWithdrawRequest = async (amount: string) => {
@@ -137,6 +138,68 @@ export class User {
   getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {
     const { withdrawRequests } = await this.withdrawUserData.methods.withdrawRequests({}).call();
     return withdrawRequests.map(([nonce, { amount }]) => ({ nonce, amount }));
+  };
+
+  getUpgradedUserData = async (): Promise<UpgradedUser> => {
+    await locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .upgradeStEverAccounts({
+          _sendGasTo: this.account.address,
+          _users: [this.account.address],
+        })
+        .send({
+          from: this.account.address,
+          amount: toNano(2),
+        }),
+    );
+    return new UpgradedUser(
+      this.account,
+      this.wallet,
+      this.vault,
+      locklift.factory.getDeployedContract("TestStEverAccount", this.withdrawUserData.address),
+    );
+  };
+
+  upgradeAccounts = async (users: Array<Address>) => {
+    const upgradeTransaction = await locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .upgradeStEverAccounts({
+          _sendGasTo: this.account.address,
+          _users: users,
+        })
+        .send({
+          from: this.account.address,
+          amount: toNano(5),
+        }),
+    );
+    const upgradeEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "AccountUpdated",
+      parentTransaction: upgradeTransaction,
+    });
+    expect(upgradeEvents.length).to.be.eq(users.length);
+  };
+
+  getUpgradedUser = () => {
+    return new UpgradedUser(
+      this.account,
+      this.wallet,
+      this.vault,
+      locklift.factory.getDeployedContract("TestStEverAccount", this.withdrawUserData.address),
+    );
+  };
+}
+
+export class UpgradedUser extends User {
+  constructor(
+    public readonly account: Account,
+    public readonly wallet: TokenWallet,
+    protected readonly vault: Vault,
+    public readonly withdrawUserData: Contract<TestStEverAccountAbi>,
+  ) {
+    super(account, wallet, vault, withdrawUserData);
+  }
+  checkIsUpdateApplied = async () => {
+    return this.withdrawUserData.methods.checkIsUpdateApplied().call();
   };
 }
 

@@ -1,4 +1,4 @@
-import { Contract, fromNano, Signer, toNano } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -7,10 +7,8 @@ import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import BigNumber from "bignumber.js";
-import { isT, toNanoBn } from "../utils";
 
 let signer: Signer;
 let admin: User;

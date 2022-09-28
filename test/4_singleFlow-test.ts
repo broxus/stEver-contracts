@@ -82,7 +82,7 @@ describe("Single flow", async function () {
     const ROUND_REWARD = toNanoBn(3);
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
-      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(100));
+      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
     const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
 
     const events = await vault.getEventsAfterTransaction({

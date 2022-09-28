@@ -64,12 +64,6 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     address public static factory;
     uint32 public static strategyVersion;
     constructor(address _vault,address _dePool) public onlyFactory {
-        // TODO: убрать accept, это же деплой интернал сообщением
-        // TODO res: убрал
-        
-
-        // TODO: где проверка, что msg.sender == factory? Кто угодно может задеплоить этот депул, сказав, что это сделала фабрика
-        // TODO res: добавил
         vault = _vault;
         dePool = _dePool;
     }
@@ -129,7 +123,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             return depositNotHandled(STRATEGY_NOT_IN_INITIAL_STATE);
         }
         state = State.WITHDRAWING;
-        
+
         withdrawFromDePool(_amount);
     }
 
@@ -196,7 +190,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     receive() external view onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
-        
+
         if(msg.sender == dePool) {
             IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
@@ -214,14 +208,14 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         tvm.accept();
         /*
         making free 0.11 ever for evaluating report also full msg.value if report has attached withdraw value
-        */ 
+        */
         tvm.rawReserve(address(this).balance - 0.11 ever - msg.value, 0);
 
         uint128 requestedBalance;
         if (address(this).balance < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
-        
+
         IStEverVault(vault).strategyReport{
             value: 0.1 ever,
             bounce: false
@@ -250,7 +244,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     function withdrawExtraMoney() override external onlyVault {
         uint128 balance = address(this).balance;
-        
+
         if (balance > MAX_BALANCE) {
             tvm.rawReserve(MAX_BALANCE, 0);
 
@@ -281,7 +275,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             state,
             nonce,
             factory,
-            strategyVersion  // TODO: потерял strategyVersion
+            strategyVersion
         );
         // set code after complete this method
         tvm.setcode(_newCode);

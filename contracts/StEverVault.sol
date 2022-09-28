@@ -195,8 +195,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         totalStEverFee += stEverFee;
         uint128 gainWithoutStEverFee = _gain - stEverFee;
 
-        // TODO: так это gain fee или gas fee
-        // TODO res: да тут ошибка в нейминге
+
         // if gain less than the fee, therefore, we shouldn't increase total assets
         uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ?
             gainWithoutStEverFee - gainFee :
@@ -205,8 +204,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         totalAssets += gainWithoutGainFee;
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
 
-        // TODO: не должны ли мы забирать stEverFee сразу в копилку? Мы дальше отдаем его стратегии и учитываем в available assets?
-        // TODO res: нужны пояснения не совсем понятно :)
+
         uint128 sendValueToStrategy;
         if (_requestedBalance > 0 && canTransferValue(_requestedBalance)) {
             totalAssets -= _requestedBalance;
@@ -300,8 +298,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         if (isEmergencyProcess()) {
             tvm.rawReserve(_reserve(), 0);
-            // TODO: мы отдаем человеку, включевшему эмердженси все бабки со стратегии?
-            // TODO res: нет, стратеги сообщает о том что успешна обработала заявку и отдаёт сдачу
+
             emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
             return;
         }
@@ -337,8 +334,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         if (isEmergencyProcess()) {
             tvm.rawReserve(_reserve(), 0);
-            // TODO: снова какое-то подозрительное место
-            // TODO res: расскажу логику
+
             emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
             return;
         }
@@ -349,8 +345,9 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         availableAssets += notUsedFee;
         totalAssets += notUsedFee;
     }
+
     // deposit
-    function deposit(uint128 _amount, uint64 _nonce) override external {
+    function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
         require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
 
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
@@ -388,7 +385,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         address,
         address,
         TvmCell _payload
-    ) override external {
+    ) override external minCallValue notPaused {
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
         (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
@@ -520,8 +517,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals
     ) override external onlyAccount(_user) {
 
-        // TODO: зачем аккаунт вообще отправил такой вызов?
-        // TODO res: чисто чтобы отдать сдачу волту
         if(_withdrawals.empty()) {
             return;
         }
@@ -586,9 +581,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
         mapping(uint64 => WithdrawToUserInfo) withdrawals = slice.decode(mapping(uint64 => WithdrawToUserInfo));
-
-        // TODO: может ли из за асинхронности такое произойти, что мы попадем сюда в момент, когда everAmount на счету не окажется?
-        // TODO res: теперь value прикаладывается перед вызовом burn
 
         emit WithdrawSuccess(user, everAmount, withdrawals);
         user.transfer({value: 0, flag :MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -695,6 +687,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             stEverFeePercent,
             minStrategyDepositValue,
             minStrategyWithdrawValue,
+            isPaused,
             owner,
             accountVersion,
             stEverVaultVersion,

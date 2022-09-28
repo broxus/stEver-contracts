@@ -8,6 +8,7 @@ interface IStEverAccount {
     struct AccountDetails {
         address user;
         address vault;
+        uint32 version;
     }
 
     struct WithdrawRequest {
@@ -23,4 +24,6 @@ interface IStEverAccount {
     // emergency
     function onStartEmergency(uint64 _proofNonce) external;
     function onEmergencyWithdrawToUser() external;
+    // upgrade
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

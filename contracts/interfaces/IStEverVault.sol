@@ -4,7 +4,9 @@ import "./IStEverAccount.sol";
 
 
 interface IStEverVault {
-    // Strategy 
+    // common
+    event PausedStateChanged(bool pauseState);
+    // Strategy
     event StrategyAdded(address strategy);
     event StrategyRemoved(address strategy);
     event StrategyReported(address strategy, StrategyReport report);
@@ -32,8 +34,12 @@ interface IStEverVault {
     event WithdrawRequest(address user, uint128 amount, uint64 nonce);
     event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
-    event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount); 
+    event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount);
     event WithdrawSuccess(address user, uint128 amount, mapping(uint64 => WithdrawToUserInfo) withdrawInfo);
+
+    // Upgrade
+    event NewAccountCodeSet(uint32 newVersion);
+    event AccountUpdated(address user);
     // Emergency
     event EmergencyProcessStarted(address emitter);
     event EmergencyProcessRejectedByAccount(address emitter, uint16 errcode);
@@ -46,21 +52,22 @@ interface IStEverVault {
     event WithdrawFee(uint128 amount);
 
     struct Details {
-       address stTokenRoot;
-       address stEverWallet;
-       uint128 stEverSupply;
-       uint128 totalAssets;
-       uint128 availableAssets;
-       address owner;
-       uint256 governance;
-       uint128 gainFee;
-       uint32 accountVersion;
-       uint32 stEverVaultVersion;
-       uint128 minStrategyDepositValue;
-       uint128 minStrategyWithdrawValue;
-       uint8 stEverFeePercent;
-       uint128 totalStEverFee;
-       EmergencyState emergencyState;
+        address stTokenRoot;
+        address stEverWallet;
+        uint128 stEverSupply;
+        uint128 totalAssets;
+        uint128 availableAssets;
+        address owner;
+        uint256 governance;
+        uint128 gainFee;
+        uint32 accountVersion;
+        uint32 stEverVaultVersion;
+        uint128 minStrategyDepositValue;
+        uint128 minStrategyWithdrawValue;
+        bool isPaused;
+        uint32 stEverFeePercent;
+        uint128 totalStEverFee;
+        EmergencyState emergencyState;
     }
     struct StrategyReport {
         uint128 gain;
@@ -70,7 +77,7 @@ interface IStEverVault {
     struct StrategyParams {
         uint128 lastReport;
         uint128 totalGain;
-        uint128 depositingAmount;    
+        uint128 depositingAmount;
         uint128 withdrawingAmount;
     }
 
@@ -163,7 +170,8 @@ interface IStEverVault {
     function setGainFee(uint128 _gainFee) external;
     function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
-    function setStEverFeePercent(uint8 _stEverFeePercent) external;
+    function setStEverFeePercent(uint32 _stEverFeePercent) external;
+    function setIsPaused(bool isPaused) external;
 
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;
@@ -179,5 +187,9 @@ interface IStEverVault {
     function emergencyWithdrawToUser() external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
+    function setNewAccountCode(TvmCell _newAccountCode) external;
+    function upgradeStEverAccounts(address _sendGasTo, address[] _users) external;
+    function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) external;
+    function onAccountUpdated(address user, address sendGasTo) external;
 }
 

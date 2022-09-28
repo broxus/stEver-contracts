@@ -263,14 +263,6 @@
 			]
 		},
 		{
-			"name": "changeEmergencyPauseState",
-			"inputs": [
-				{"name":"_isPaused","type":"bool"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "stopEmergencyProcess",
 			"inputs": [
 			],
@@ -299,6 +291,14 @@
 			"inputs": [
 				{"name":"_user","type":"address"},
 				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "changeEmergencyPauseState",
+			"inputs": [
+				{"name":"_isPaused","type":"bool"}
 			],
 			"outputs": [
 			]
@@ -363,7 +363,15 @@
 		{
 			"name": "setStEverFeePercent",
 			"inputs": [
-				{"name":"_stEverFeePercent","type":"uint8"}
+				{"name":"_stEverFeePercent","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setIsPaused",
+			"inputs": [
+				{"name":"_isPaused","type":"bool"}
 			],
 			"outputs": [
 			]
@@ -418,12 +426,48 @@
 			]
 		},
 		{
+			"name": "setNewAccountCode",
+			"inputs": [
+				{"name":"_newAccountCode","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgradeStEverAccounts",
+			"inputs": [
+				{"name":"_sendGasTo","type":"address"},
+				{"name":"_users","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_upgradeStEverAccounts",
+			"inputs": [
+				{"name":"_sendGasTo","type":"address"},
+				{"name":"_users","type":"address[]"},
+				{"name":"_startIdx","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onAccountUpdated",
+			"inputs": [
+				{"name":"_user","type":"address"},
+				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "getDetails",
 			"inputs": [
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"stEverFeePercent","type":"uint8"},{"name":"totalStEverFee","type":"uint128"},{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"isPaused","type":"bool"},{"name":"stEverFeePercent","type":"uint32"},{"name":"totalStEverFee","type":"uint128"},{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -451,6 +495,14 @@
 		{"key":5,"name":"accountCode","type":"cell"}
 	],
 	"events": [
+		{
+			"name": "PausedStateChanged",
+			"inputs": [
+				{"name":"pauseState","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
 		{
 			"name": "StrategyAdded",
 			"inputs": [
@@ -634,6 +686,22 @@
 			]
 		},
 		{
+			"name": "NewAccountCodeSet",
+			"inputs": [
+				{"name":"newVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AccountUpdated",
+			"inputs": [
+				{"name":"user","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "EmergencyProcessStarted",
 			"inputs": [
 				{"name":"emitter","type":"address"}
@@ -695,9 +763,10 @@
 		{"name":"totalStEverFee","type":"uint128"},
 		{"name":"stEverWallet","type":"address"},
 		{"name":"gainFee","type":"uint128"},
-		{"name":"stEverFeePercent","type":"uint8"},
+		{"name":"stEverFeePercent","type":"uint32"},
 		{"name":"minStrategyDepositValue","type":"uint128"},
 		{"name":"minStrategyWithdrawValue","type":"uint128"},
+		{"name":"isPaused","type":"bool"},
 		{"name":"owner","type":"address"},
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},

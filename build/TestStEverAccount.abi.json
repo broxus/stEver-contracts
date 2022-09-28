@@ -69,6 +69,14 @@
 			]
 		},
 		{
+			"name": "checkIsUpdateApplied",
+			"inputs": [
+			],
+			"outputs": [
+				{"components":[{"name":"user","type":"address"},{"name":"vault","type":"address"},{"name":"version","type":"uint32"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
 			"name": "upgrade",
 			"inputs": [
 				{"name":"_newCode","type":"cell"},
