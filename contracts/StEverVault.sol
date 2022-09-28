@@ -642,7 +642,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         );
 
         uint128 extraAvailableAssets = availableAssets - totalAssets - totalStEverFee;
-        uint128 extraPureBalance = address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE;
+        uint128 extraPureBalance = math.min(address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE - msg.value, extraAvailableAssets);
         uint128 totalExtraEver = extraAvailableAssets + extraPureBalance;
 
         // remove extra ever from availableAssets
