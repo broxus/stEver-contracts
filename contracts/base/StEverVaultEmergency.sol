@@ -60,8 +60,10 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         tvm.rawReserve(_reserve(), 0);
 
         // TODO: можно просто зачистить через delete
-        EmergencyState initialEmergencyState;
-        emergencyState = initialEmergencyState;
+        // TODO res: сделал
+
+        // set initial emergencyState
+        delete emergencyState;
 
         emit EmergencyStopped();
         

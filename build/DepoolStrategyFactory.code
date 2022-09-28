@@ -512,10 +512,10 @@ PUSHCONT {
 	STU 32
 	STBREFR
 	ENDC
-	.loc ../contracts/DepoolStrategyFactory.sol, 116
+	.loc ../contracts/DepoolStrategyFactory.sol, 117
 	OVER
 	SETCODE
-	.loc ../contracts/DepoolStrategyFactory.sol, 118
+	.loc ../contracts/DepoolStrategyFactory.sol, 119
 	SWAP
 	CTOS
 	DUP
@@ -530,7 +530,7 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/DepoolStrategyFactory.sol, 120
+	.loc ../contracts/DepoolStrategyFactory.sol, 121
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}

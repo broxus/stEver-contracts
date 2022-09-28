@@ -22,6 +22,5 @@ interface IStEverAccount {
     function removePendingWithdraw(uint64 _nonce) external;
     // emergency
     function onStartEmergency(uint64 _proofNonce) external;
-    function onEmergencyWithdrawStart() external;
     function onEmergencyWithdrawToUser() external;
 }

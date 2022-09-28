@@ -32,9 +32,7 @@ describe("Deposit withdraw test", function () {
     user2 = u2;
     tokenRoot = tr;
   });
-  it("Vault should be initialized", async () => {
-    await vault.initialize();
-  });
+
   it("user should successfully deposited", async () => {
     const DEPOSIT_AMOUNT = toNanoBn(20);
     await user1.depositToVault(DEPOSIT_AMOUNT.toString());

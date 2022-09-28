@@ -70,15 +70,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     // TODO: можно из конструктора звать, укоротить процесс
-    // init
-    function initVault(address _stTokenRoot) override external onlyOwner {
-        stTokenRoot = _stTokenRoot;
-        ITokenRoot(stTokenRoot).deployWallet{
-			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
-			callback: StEverVaultBase.receiveTokenWalletAddress,
-            bounce: false
-		}(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
-    }
+    // TODO res: убрал лишний метод, теперь рут сетится через статик поле
+
 
     function receiveTokenWalletAddress(address _wallet) external virtual {
         require (msg.sender == stTokenRoot, ErrorCodes.NOT_ROOT_WALLET);
@@ -106,7 +99,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         tvm.rawReserve(_reserve(), 0);
 
         minStrategyWithdrawValue = _minStrategyWithdrawValue;
-        
+
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
     // TODO: маленькая точность, я бы брал от 1 до 1000
@@ -118,12 +111,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     // TODO: isCan звучит вообще странно))
+    // TODO res: переименовал
     // predicates
-    function isCanTransferValue(uint128 _amount) internal view returns (bool) {
+    function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
          availableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE >= _amount;
     }
-    
+
     function isStrategyInInitialState(address _strategy) internal view returns (bool) {
         StrategyParams strategy = strategies[_strategy];
         return strategy.depositingAmount == 0 &&  strategy.withdrawingAmount == 0;

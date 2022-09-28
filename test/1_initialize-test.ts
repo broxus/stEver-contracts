@@ -32,8 +32,6 @@ describe("Initialize testing", function () {
     tokenRoot = tr;
   });
   it("Vault should be initialized", async () => {
-    await vault.initialize();
-
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
   });
 });

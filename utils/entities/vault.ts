@@ -18,20 +18,6 @@ export class Vault {
     public readonly tokenWallet: TokenWallet,
   ) {}
 
-  initialize = async () => {
-    await locklift.tracing.trace(
-      this.vaultContract.methods
-        .initVault({
-          _stTokenRoot: this.tokenRootContract.address,
-        })
-        .send({
-          from: this.adminAccount.address,
-          amount: toNano(2),
-        }),
-    );
-    expect((await this.getDetails()).stTokenRoot.equals(this.tokenRootContract.address)).to.be.true;
-  };
-
   setMinDepositToStrategyValue = async ({ minDepositToStrategyValue }: { minDepositToStrategyValue: string }) => {
     await locklift.tracing.trace(
       this.vaultContract.methods

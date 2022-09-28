@@ -43,7 +43,6 @@ describe("Strategy base", function () {
     strategyFactory = st;
   });
   it("Vault should be initialized", async () => {
-    await vault.initialize();
     await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
   });

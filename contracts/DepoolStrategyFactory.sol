@@ -14,15 +14,18 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     uint128 public static nonce;
     TvmCell public static dePoolStrategyCode;
     address public static stEverVault;
+
+    // state
+    address owner;
+    uint32 public strategyVersion;
+    uint32 public strategyCount;
+    uint32 public factoryVersion;
+
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant UPGRADE_VALUE = 1 ever;
     uint128 constant STRATEGY_DEPLOY_VALUE = 2 ever;
 
-    address owner;
-    uint32 public strategyVersion;
-    uint32 public strategyCount;
-    uint32 public factoryVersion;
     // errors
     uint8 constant NOT_OWNER = 101;
     uint8 constant LOW_MSG_VALUE = 102;
@@ -109,8 +112,11 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             dePoolStrategyCode,
             stEverVault,
             owner,
-            strategyCount
+            strategyVersion,
+            strategyCount,
+            factoryVersion
             // TODO: упаковал не все данные!
+            // TODO res: допаковал
         );
         
         // set code after complete this method

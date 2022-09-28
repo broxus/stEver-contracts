@@ -20,13 +20,6 @@
 			]
 		},
 		{
-			"name": "onEmergencyWithdrawStart",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "addPendingValue",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"},

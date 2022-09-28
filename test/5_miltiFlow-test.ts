@@ -48,7 +48,6 @@ describe("Multi flow", async function () {
     strategyFactory = st;
   });
   it("Vault should be initialized", async () => {
-    await vault.initialize();
     await vault.setStEverFeePercent({
       percentFee: 12,
     });

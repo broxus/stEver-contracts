@@ -45,7 +45,6 @@ describe("Multi flow", async function () {
     strategyFactory = st;
   });
   it("Vault should be initialized", async () => {
-    await vault.initialize();
     await vault.setMinWithdrawFromStrategyValue({ minWithdrawFromStrategyValue: locklift.utils.toNano(1) });
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: locklift.utils.toNano(1) });
     await vault.setGainFee({ ginFee: GAIN_FEE });

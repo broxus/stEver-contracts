@@ -109,7 +109,6 @@ interface IStEverVault {
         uint64 emitTimestamp;
     }
 
-    function initVault(address stTokenRoot) external;
     function getDetails() external responsible view returns(Details);
     // strategy
     function addStrategy(address strategy) external;

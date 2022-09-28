@@ -21,7 +21,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
 let strategies: DePoolStrategyWithPool[] = [];
-describe("Emergency testing", function () {
+describe("Withdraw extra testing", function () {
   before(async () => {
     const {
       vault: v,
@@ -41,8 +41,6 @@ describe("Emergency testing", function () {
     strategyFactory = sf;
   });
   it("Vault should be initialized", async () => {
-    await vault.initialize();
-
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
     await user1.depositToVault(toNano(1100));
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNano(101);

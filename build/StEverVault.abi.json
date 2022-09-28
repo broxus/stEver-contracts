@@ -329,14 +329,6 @@
 			]
 		},
 		{
-			"name": "initVault",
-			"inputs": [
-				{"name":"_stTokenRoot","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "receiveTokenWalletAddress",
 			"inputs": [
 				{"name":"_wallet","type":"address"}
@@ -453,9 +445,10 @@
 	],
 	"data": [
 		{"key":1,"name":"nonce","type":"uint128"},
-		{"key":2,"name":"governance","type":"uint256"},
-		{"key":3,"name":"platformCode","type":"cell"},
-		{"key":4,"name":"accountCode","type":"cell"}
+		{"key":2,"name":"stTokenRoot","type":"address"},
+		{"key":3,"name":"governance","type":"uint256"},
+		{"key":4,"name":"platformCode","type":"cell"},
+		{"key":5,"name":"accountCode","type":"cell"}
 	],
 	"events": [
 		{
@@ -692,6 +685,7 @@
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"nonce","type":"uint128"},
+		{"name":"stTokenRoot","type":"address"},
 		{"name":"governance","type":"uint256"},
 		{"name":"platformCode","type":"cell"},
 		{"name":"accountCode","type":"cell"},
@@ -700,7 +694,6 @@
 		{"name":"availableAssets","type":"uint128"},
 		{"name":"totalStEverFee","type":"uint128"},
 		{"name":"stEverWallet","type":"address"},
-		{"name":"stTokenRoot","type":"address"},
 		{"name":"gainFee","type":"uint128"},
 		{"name":"stEverFeePercent","type":"uint8"},
 		{"name":"minStrategyDepositValue","type":"uint128"},

@@ -63,11 +63,13 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     uint128 public static nonce;
     address public static factory;
     uint32 public static strategyVersion;
-    constructor(address _vault,address _dePool) public {
+    constructor(address _vault,address _dePool) public onlyFactory {
         // TODO: убрать accept, это же деплой интернал сообщением
-        tvm.accept();
+        // TODO res: убрал
+        
 
         // TODO: где проверка, что msg.sender == factory? Кто угодно может задеплоить этот депул, сказав, что это сделала фабрика
+        // TODO res: добавил
         vault = _vault;
         dePool = _dePool;
     }
@@ -278,8 +280,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             dePool,
             state,
             nonce,
-            factory
-            // TODO: потерял strategyVersion
+            factory,
+            strategyVersion  // TODO: потерял strategyVersion
         );
         // set code after complete this method
         tvm.setcode(_newCode);

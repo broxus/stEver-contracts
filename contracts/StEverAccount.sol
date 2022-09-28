@@ -26,7 +26,9 @@ contract StEverAccount is IStEverAccount {
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
     // TODO: revert! не даем возможности деплоя не через платформу
+    // TODO res: добавил
     constructor() public {
+        revert();
     }
 
     // TODO: не вижу использования
@@ -61,9 +63,7 @@ contract StEverAccount is IStEverAccount {
 	}
 
     // TODO: для чего же эта красота )))
-    function onEmergencyWithdrawStart() override external onlyVault {
-
-    }
+    // TODO res: упс)
 
     function addPendingValue(uint64 _nonce, uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
@@ -171,6 +171,7 @@ contract StEverAccount is IStEverAccount {
         user = initialData.decode(address);
 
         // TODO: а как же достать последний сел с параметрами конструктора?(
+        // TODO res: нужны пояснения
 
         send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }

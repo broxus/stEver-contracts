@@ -1,5 +1,5 @@
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
-import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
 import { Address, Contract, getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
 import { expect } from "chai";
 import { createUserEntity, User } from "../utils/entities/user";
@@ -138,11 +138,10 @@ const deployVault = async ({
 }) => {
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
-
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "StEverVault",
-      value: locklift.utils.toNano(2),
+      value: locklift.utils.toNano(10),
       constructorParams: {
         _owner: owner.address,
         _gainFee: GAIN_FEE,
@@ -153,6 +152,7 @@ const deployVault = async ({
         governance: `0x${governance.publicKey}`,
         platformCode,
         accountCode,
+        stTokenRoot: tokenRoot.address,
       },
     }),
   );
