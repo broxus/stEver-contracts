@@ -189,6 +189,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         totalStEverFee += stEverFee;
         uint128 gainWithoutStEverFee = _gain - stEverFee;
 
+        // TODO: так это gain fee или gas fee
         // if gain less than the fee, therefore, we shouldn't increase total assets
         uint128 gainWithoutGasFee = gainWithoutStEverFee > gainFee ?
             gainWithoutStEverFee - gainFee :
@@ -197,6 +198,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         totalAssets += gainWithoutGasFee;
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGasFee, _loss, _totalAssets));
 
+        // TODO: не должны ли мы забирать stEverFee сразу в копилку? Мы дальше отдаем его стратегии и учитываем в available assets?
         uint128 sendValueToStrategy;
         if (_requestedBalance > 0 && isCanTransferValue(_requestedBalance)) {
             totalAssets -= _requestedBalance;
@@ -290,6 +292,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         if (isEmergencyProcess()) {
             tvm.rawReserve(_reserve(), 0);
+            // TODO: мы отдаем человеку, включевшему эмердженси все бабки со стратегии?
             emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
             return;
         }
@@ -325,6 +328,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         if (isEmergencyProcess()) {
             tvm.rawReserve(_reserve(), 0);
+            // TODO: снова какое-то подозрительное место
             emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
             return;
         }
@@ -507,6 +511,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     ) override external onlyAccount(_user) {
         tvm.rawReserve(_reserve(), 0);
 
+        // TODO: зачем аккаунт вообще отправил такой вызов?
         if(_withdrawals.empty()) {
             return;
         }
@@ -567,6 +572,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         uint128 everAmount = slice.decode(uint128);
         mapping(uint64 => WithdrawToUserInfo) withdrawals = slice.decode(mapping(uint64 => WithdrawToUserInfo));
 
+        // TODO: может ли из за асинхронности такое произойти, что мы попадем сюда в момент, когда everAmount на счету не окажется?
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
 
         emit WithdrawSuccess(user, everAmount, withdrawals);
@@ -626,7 +632,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         emit WithdrawFee(_amount);
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    
     // withdraw extra
     function withdrawExtraEver() override external onlyOwner {
 
@@ -636,7 +642,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         );
 
         uint128 extraAvailableAssets = availableAssets - totalAssets - totalStEverFee;
-        uint128 extraPureBalance = math.min(address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE - msg.value, extraAvailableAssets);
+        uint128 extraPureBalance = address(this).balance - extraAvailableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE;
         uint128 totalExtraEver = extraAvailableAssets + extraPureBalance;
 
         // remove extra ever from availableAssets
@@ -676,6 +682,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             minStrategyWithdrawValue,
             owner,
             accountVersion,
+            // TODO: посеял stEverVaultVersion, проверь весь список еще раз
             strategies,
             pendingWithdrawals,
             emergencyState

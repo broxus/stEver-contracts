@@ -110,6 +110,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             stEverVault,
             owner,
             strategyCount
+            // TODO: упаковал не все данные!
         );
         
         // set code after complete this method

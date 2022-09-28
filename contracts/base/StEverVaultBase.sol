@@ -69,6 +69,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    // TODO: можно из конструктора звать, укоротить процесс
     // init
     function initVault(address _stTokenRoot) override external onlyOwner {
         stTokenRoot = _stTokenRoot;
@@ -108,12 +109,15 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+    // TODO: маленькая точность, я бы брал от 1 до 1000
     function setStEverFeePercent(uint8 _stEverFeePercent) override external onlyOwner {
         require(_stEverFeePercent <= 100,ErrorCodes.BAD_FEE_PERCENT);
         tvm.rawReserve(_reserve(), 0);
         stEverFeePercent = _stEverFeePercent;
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
     }
+
+    // TODO: isCan звучит вообще странно))
     // predicates
     function isCanTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&

@@ -59,6 +59,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         require (emergencyState.isEmergency, ErrorCodes.NOT_EMERGENCY_STATE);
         tvm.rawReserve(_reserve(), 0);
 
+        // TODO: можно просто зачистить через delete
         EmergencyState initialEmergencyState;
         emergencyState = initialEmergencyState;
 

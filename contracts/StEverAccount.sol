@@ -25,13 +25,16 @@ contract StEverAccount is IStEverAccount {
     // mappings
     mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
+    // TODO: revert! не даем возможности деплоя не через платформу
     constructor() public {
     }
 
+    // TODO: не вижу использования
     // should be called in onCodeUpgrade on platform initialization
     function _init() internal {
 
     }
+
     modifier onlyVault() {
         require (msg.sender == vault, ErrorCodes.ONLY_VAULT);
         _;
@@ -57,6 +60,7 @@ contract StEverAccount is IStEverAccount {
 			} AccountDetails(user, vault);
 	}
 
+    // TODO: для чего же эта красота )))
     function onEmergencyWithdrawStart() override external onlyVault {
 
     }
@@ -120,7 +124,7 @@ contract StEverAccount is IStEverAccount {
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED,
             bounce: false
-            }(
+        }(
             totalAmount, user, withdrawals
         );
     }
@@ -159,11 +163,14 @@ contract StEverAccount is IStEverAccount {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
+
         (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 
         TvmSlice initialData = s.loadRefAsSlice();
         user = initialData.decode(address);
+
+        // TODO: а как же достать последний сел с параметрами конструктора?(
 
         send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
