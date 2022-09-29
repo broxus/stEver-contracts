@@ -5,6 +5,16 @@
   "scripts": {
     "build": "npx locklift build",
     "test": "npx locklift test --network local",
+    "test-initialize": "npx locklift test --network local --tests test/1_initialize-test.ts",
+    "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
+    "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
+    "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
+    "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
+    "test-miltiFlow-main": "npx locklift test --network local --tests test/6_miltiFlow-main-test.ts",
+    "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
+    "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
+    "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",
+
     "main-flow-local": "npx locklift run --network local -s scripts/demo-script.ts",
     "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
     "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",

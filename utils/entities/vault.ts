@@ -1,9 +1,10 @@
-import { StEverVaultAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
+import { StEverVaultAbi, TestStEverVaultAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
 import { AbiEventName, Address, Contract, DecodedEventWithTransaction, toNano, Transaction } from "locklift";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-standalone-client";
+import { ConstructorParams } from "locklift/build/types";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
@@ -12,9 +13,9 @@ type ExtractEvent<T extends VaultEvents> = Extract<
 >;
 export class Vault {
   constructor(
-    private readonly adminAccount: Account,
-    public readonly vaultContract: Contract<StEverVaultAbi>,
-    private readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
+    protected readonly adminAccount: Account,
+    public readonly vaultContract: Contract<StEverVaultAbi> | Contract<TestStEverVaultAbi>,
+    protected readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
     public readonly tokenWallet: TokenWallet,
   ) {}
 
@@ -181,6 +182,43 @@ export class Vault {
       transaction,
       installEvent: installEvents[0],
     };
+  };
+
+  upgradeVault = async (newVersion: number): Promise<UpgradedVault> => {
+    const { tvc, abi, code } = locklift.factory.getContractArtifacts("TestStEverVault");
+    await locklift.tracing.trace(
+      this.vaultContract.methods
+        .upgrade({
+          _newCode: code,
+          _sendGasTo: this.adminAccount.address,
+          _newVersion: newVersion,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(2),
+        }),
+    );
+    return new UpgradedVault(
+      this.adminAccount,
+      locklift.factory.getDeployedContract("TestStEverVault", this.vaultContract.address),
+      this.tokenRootContract,
+      this.tokenWallet,
+    );
+  };
+}
+
+export class UpgradedVault extends Vault {
+  constructor(
+    protected readonly adminAccount: Account,
+    public readonly vaultContract: Contract<TestStEverVaultAbi>,
+    protected readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
+    public readonly tokenWallet: TokenWallet,
+  ) {
+    super(adminAccount, vaultContract, tokenRootContract, tokenWallet);
+  }
+
+  checkIsUpdateApplied = () => {
+    return this.vaultContract.methods.checkIsUpdateApplied().call();
   };
 }
 

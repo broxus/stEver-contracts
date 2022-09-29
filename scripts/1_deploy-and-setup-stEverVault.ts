@@ -32,21 +32,22 @@ const deployAndSetupStEverVault = async ({
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
   const { tvc: stEverTvc, abi: stEverAbi } = locklift.factory.getContractArtifacts("StEverVault");
   logger.startStep("Obtaining StEverVault Address");
+  const deployVaultParams = {
+    publicKey: signer.publicKey,
+    initParams: {
+      nonce: locklift.utils.getRandomNonce(),
+      governance: `0x${governanceKeys.publicKey}`,
+      platformCode: platformCode,
+      accountCode: accountCode,
+    },
+    tvc: stEverTvc,
+  };
   const stEverVaultAddress = await locklift.provider.getExpectedAddress(
     locklift.factory.getContractArtifacts("StEverVault").abi,
-    {
-      publicKey: signer.publicKey,
-      initParams: {
-        nonce: locklift.utils.getRandomNonce(),
-        governance: `0x${governanceKeys.publicKey}`,
-        platformCode: platformCode,
-        accountCode: accountCode,
-      },
-      tvc: stEverTvc,
-    },
+    deployVaultParams,
   );
   logger.successStep(`Expected stEver address is ${stEverVaultAddress.toString()}`);
-  logger.startStep("SteEverRoot are deploying...");
+  logger.startStep("SteEverRoot is deploying...");
   const TOKEN_ROOT_NAME = "StEver";
   const TOKEN_ROOT_SYMBOL = "StEver";
   const { code: tokenWalletCode } = locklift.factory.getContractArtifacts("TokenWalletUpgradeable");
@@ -78,18 +79,13 @@ const deployAndSetupStEverVault = async ({
     }),
   );
 
-  logger.startStep("SteEver are deploying...");
+  logger.startStep("SteEver is deploying...");
   const { contract: vaultContract } = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "StEverVault",
       value: deployVaultValue,
-      initParams: {
-        nonce: locklift.utils.getRandomNonce(),
-        governance: `0x${governanceKeys.publicKey}`,
-        platformCode: platformCode,
-        accountCode: accountCode,
-      },
-      publicKey: signer.publicKey,
+      initParams: deployVaultParams.initParams,
+      publicKey: deployVaultParams.publicKey,
       constructorParams: {
         _owner: new Address(adminAddress),
         _gainFee: locklift.utils.toNano(1),

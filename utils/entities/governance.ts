@@ -1,16 +1,20 @@
 import { Contract, Signer } from "locklift";
 import { StEverVaultAbi } from "../../build/factorySource";
 
-import { Vault } from "./vault";
+import { UpgradedVault, Vault } from "./vault";
 
 export class Governance {
-  constructor(public readonly keyPair: Signer, private readonly vault: Vault) {}
+  constructor(public readonly keyPair: Signer, private vault: Vault) {}
   emitWithdraw = async (...params: Parameters<Contract<StEverVaultAbi>["methods"]["processSendToUsers"]>) => {
     return await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .processSendToUsers(...params)
         .sendExternal({ publicKey: this.keyPair.publicKey }),
     );
+  };
+
+  setUpgradedVault = (upgradedVault: UpgradedVault) => {
+    this.vault = upgradedVault;
   };
 
   depositToStrategies = async (...params: Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>) => {

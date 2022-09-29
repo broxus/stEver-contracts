@@ -50,11 +50,26 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         require(msg.sender == owner,NOT_OWNER);
         _;
     }
+
+    modifier minCallValue() {
+        require (msg.value >= DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE_FACTORY);
+        _;
+    }
         // utils
     function _reserve() internal pure returns (uint128) {
 		return
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
+
+    function getDetails() override external responsible view returns (FactoryDetails) {
+        return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} FactoryDetails({
+            stEverVault: stEverVault,
+            owner: owner,
+            strategyVersion: strategyVersion,
+            strategyCount: strategyCount,
+            factoryVersion: factoryVersion
+        });
+    }
 
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
@@ -115,6 +130,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
         if (_newVersion == factoryVersion) {
             tvm.rawReserve(_reserve(), 0);
@@ -124,13 +140,14 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 
         // should be unpacked in the same order!
         TvmCell data = abi.encode(
-            _newVersion,
-            dePoolStrategyCode,
-            stEverVault,
-            owner,
-            strategyVersion,
-            strategyCount,
-            factoryVersion
+            _sendGasTo, // address
+            _newVersion, // uint32
+            dePoolStrategyCode, // TvmCell
+            stEverVault, // address
+            owner, // address
+            strategyVersion, // uint32
+            strategyCount, // uint32
+            factoryVersion // uint32
         );
 
         // set code after complete this method

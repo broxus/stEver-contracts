@@ -46,16 +46,19 @@ export class DePoolStrategyWithPool {
   };
 
   getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);
+  getStrategyDetails = () =>
+    this.strategy.methods
+      .getDetails({ answerId: 0 })
+      .call()
+      .then(res => res.value0);
 }
 
 export const createStrategy = async ({
-  vaultContract,
   signer,
   poolDeployValue,
   strategyDeployValue,
   strategyFactory,
 }: {
-  vaultContract: Contract<StEverVaultAbi>;
   signer: Signer;
   poolDeployValue: string;
   strategyDeployValue: string;

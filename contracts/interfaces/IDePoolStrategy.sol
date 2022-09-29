@@ -5,6 +5,7 @@ interface IDePoolStrategy {
     struct Details {
         address vault;
         address dePool;
+        uint32 strategyVersion;
     }
     function getDetails() external responsible view returns(Details);
 

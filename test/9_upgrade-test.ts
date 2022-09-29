@@ -6,7 +6,9 @@ import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, mergeMap, switchMap, timer, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
+import _ from "lodash/fp";
+import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 
 let signer: Signer;
 let admin: User;
@@ -77,5 +79,81 @@ describe("Upgrade testing", function () {
     upgradedUsersData.forEach(({ value0: { version } }) => {
       expect(version).to.be.eq("1");
     });
+  });
+
+  it("should vault be upgraded", async () => {
+    const NEW_VERSION = 1;
+    const upgradedVault = await vault.upgradeVault(NEW_VERSION);
+    expect(await upgradedVault.checkIsUpdateApplied().then(res => res.value0.stEverVaultVersion)).to.be.eq(
+      NEW_VERSION.toString(),
+    );
+    vault = upgradedVault;
+    governance.setUpgradedVault(upgradedVault);
+  });
+  it("should governance withdraw all pending", async () => {
+    const users = [user1, user2, user3];
+    const withdrawals = await lastValueFrom(
+      from(users).pipe(
+        mergeMap(user =>
+          from(user.getWithdrawRequests()).pipe(
+            map(pendingWithdrawals => ({ pendingWithdrawals, userAddress: user.account.address })),
+          ),
+        ),
+        toArray(),
+      ),
+    );
+    const { transaction } = await governance.emitWithdraw({
+      sendConfig: withdrawals.map(({ pendingWithdrawals, userAddress }) => [
+        userAddress,
+        { nonces: pendingWithdrawals.map(({ nonce }) => nonce) },
+      ]),
+    });
+    const withdrawEvents = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawSuccess",
+      parentTransaction: transaction,
+    });
+    expect(withdrawEvents.length).to.be.eq(3);
+  });
+
+  it("strategy factory should be upgraded", async () => {
+    const NEW_STRATEGY_FACTORY_VERSION = 1;
+    const upgradedStrategyFactory = await strategyFactory.upgradeStrategyFactory(NEW_STRATEGY_FACTORY_VERSION);
+    expect(await upgradedStrategyFactory.checkIsUpdateApplied().then(res => res.value0.factoryVersion)).to.be.eq(
+      NEW_STRATEGY_FACTORY_VERSION.toString(),
+    );
+    strategyFactory = upgradedStrategyFactory;
+  });
+
+  it("should strategy factory upgrade strategies", async () => {
+    const strategies = await lastValueFrom(
+      range(3).pipe(
+        concatMap(() =>
+          createAndRegisterStrategy({
+            admin: admin.account,
+            vault,
+            poolDeployValue: toNano(100),
+            strategyFactory,
+            signer,
+            strategyDeployValue: toNano(10),
+          }),
+        ),
+        concatMap(({ strategy }) =>
+          from(strategy.getStrategyDetails()).pipe(map(strategyDetails => ({ strategyDetails, strategy }))),
+        ),
+        toArray(),
+      ),
+    );
+
+    strategies.forEach(({ strategyDetails }) => expect(strategyDetails.strategyVersion).to.be.eq("0"));
+    await strategyFactory.installNewStrategyCode();
+    await strategyFactory.upgradeStrategies(strategies.map(({ strategy }) => strategy.strategy.address));
+
+    const strategiesDetailsAfterUpgrade = await lastValueFrom(
+      from(strategies).pipe(
+        mergeMap(({ strategy }) => strategy.getStrategyDetails()),
+        toArray(),
+      ),
+    );
+    strategiesDetailsAfterUpgrade.forEach(({ strategyVersion }) => expect(strategyVersion).to.be.eq("1"));
   });
 });

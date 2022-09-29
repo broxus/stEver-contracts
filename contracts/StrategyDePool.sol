@@ -98,7 +98,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 	}
 
     function getDetails() override external responsible view returns(Details){
-        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool);
+        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion);
     }
 
     function deposit(uint128 _amount) override external onlyVault {
@@ -268,14 +268,15 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
         // should be unpacked in the same order!
         TvmCell data = abi.encode(
-            _newVersion,
-            minStake,
-            vault,
-            dePool,
-            state,
-            nonce,
-            factory,
-            strategyVersion
+            _sendGasTo, // address
+            _newVersion, // uint32
+            minStake, // uint128
+            vault, // address
+            dePool, // address
+            state, // State
+            nonce, // uint128
+            factory, // address
+            strategyVersion // uint32
         );
         // set code after complete this method
         tvm.setcode(_newCode);

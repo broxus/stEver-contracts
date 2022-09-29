@@ -1,4 +1,4 @@
-import { TokenRootUpgradeableAbi } from "../build/factorySource";
+import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
 import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
 import { Address, Contract, getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
 import { expect } from "chai";
@@ -8,6 +8,8 @@ import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Account } from "locklift/everscale-standalone-client";
+import { GetExpectedAddressParams } from "everscale-inpage-provider";
+import { FactoryType } from "locklift/build/factory";
 
 export const preparation = async ({
   deployUserValue,
@@ -32,8 +34,13 @@ export const preparation = async ({
   );
   const accounts = await deployAccounts([adminSigner, ...signers], deployUserValue);
   const [adminUser] = accounts;
-  const tokenRoot = await deployTokenRoot({ signer: adminSigner, owner: adminUser.address });
-  const vault = await deployVault({ owner: adminUser, signer: adminSigner, governance: governanceSigner, tokenRoot });
+  const { vaultAddress, deployArgs } = await getVaultExpectedAddressAndInitialParams({
+    signer: adminSigner,
+    governance: governanceSigner,
+  });
+  const tokenRoot = await deployTokenRoot({ signer: adminSigner, owner: vaultAddress });
+
+  const vault = await deployVault({ owner: adminUser, deployArgs, tokenRoot });
 
   const vaultInstance = await creteVault({
     adminAccount: accounts[0],
@@ -125,19 +132,42 @@ const deployTokenRoot = async ({ signer, owner }: DeployRootParams): Promise<Con
   });
   return contract;
 };
-const deployVault = async ({
-  owner,
+
+const getVaultExpectedAddressAndInitialParams = async ({
   signer,
   governance,
-  tokenRoot,
 }: {
-  owner: Account;
   signer: Signer;
   governance: Signer;
-  tokenRoot: Contract<TokenRootUpgradeableAbi>;
-}) => {
+}): Promise<{ vaultAddress: Address; deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> }> => {
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
+  const { tvc, abi } = locklift.factory.getContractArtifacts("StEverVault");
+  const deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> = {
+    tvc,
+    initParams: {
+      nonce: locklift.utils.getRandomNonce(),
+      governance: `0x${governance.publicKey}`,
+      platformCode,
+      accountCode,
+    },
+    publicKey: signer.publicKey,
+  };
+  const vaultAddress = await locklift.provider.getExpectedAddress(abi, deployArgs);
+  return {
+    deployArgs,
+    vaultAddress,
+  };
+};
+const deployVault = async ({
+  owner,
+  tokenRoot,
+  deployArgs,
+}: {
+  owner: Account;
+  tokenRoot: Contract<TokenRootUpgradeableAbi>;
+  deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]>;
+}) => {
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "StEverVault",
@@ -145,30 +175,25 @@ const deployVault = async ({
       constructorParams: {
         _owner: owner.address,
         _gainFee: GAIN_FEE,
+        _stTokenRoot: tokenRoot.address,
       },
-      publicKey: signer.publicKey,
-      initParams: {
-        nonce: locklift.utils.getRandomNonce(),
-        governance: `0x${governance.publicKey}`,
-        platformCode,
-        accountCode,
-        stTokenRoot: tokenRoot.address,
-      },
+      publicKey: deployArgs.publicKey!,
+      initParams: deployArgs.initParams,
     }),
   );
   console.log(`Vault contract deployed: ${vaultContract.address.toString()}`);
   expect(await locklift.provider.getBalance(vaultContract.address).then(Number)).to.be.above(0);
 
-  await tokenRoot.methods
-    .transferOwnership({
-      remainingGasTo: owner.address,
-      newOwner: vaultContract.address,
-      callbacks: [],
-    })
-    .send({
-      from: owner.address,
-      amount: toNano(2),
-    });
+  // await tokenRoot.methods
+  //   .transferOwnership({
+  //     remainingGasTo: owner.address,
+  //     newOwner: vaultContract.address,
+  //     callbacks: [],
+  //   })
+  //   .send({
+  //     from: owner.address,
+  //     amount: toNano(2),
+  //   });
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
   const vaultSubscriber = new locklift.provider.Subscriber();

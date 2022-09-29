@@ -31,7 +31,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         owner = _owner;
         gainFee = _gainFee;
         stTokenRoot = _stTokenRoot;
-        
+
         ITokenRoot(stTokenRoot).deployWallet{
 			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
@@ -669,7 +669,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     // upgrade
-    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external minCallValue onlyOwner {
         if (_newVersion == stEverVaultVersion) {
             tvm.rawReserve(_reserve(), 0);
             _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
@@ -678,28 +678,28 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         // should be unpacked in the same order!
         TvmCell data = abi.encode(
-            _newVersion,
-            _sendGasTo,
-            governance,
-            platformCode,
-            accountCode,
-            stEverSupply,
-            totalAssets,
-            availableAssets,
-            totalStEverFee,
-            stEverWallet,
-            stTokenRoot,
-            gainFee,
-            stEverFeePercent,
-            minStrategyDepositValue,
-            minStrategyWithdrawValue,
-            isPaused,
-            owner,
-            accountVersion,
-            stEverVaultVersion,
-            strategies,
-            pendingWithdrawals,
-            emergencyState
+            _newVersion, // uint32
+            _sendGasTo, // address
+            governance, // uint256
+            platformCode, // TvmCell
+            accountCode, // TvmCell
+            stEverSupply, // uint128
+            totalAssets, // uint128
+            availableAssets, // uint128
+            totalStEverFee, // uint128
+            stEverWallet, // address
+            stTokenRoot, // address
+            gainFee, // uint128
+            stEverFeePercent, // uint32
+            minStrategyDepositValue, // uint128
+            minStrategyWithdrawValue, // uint128
+            isPaused, // bool
+            owner, // address
+            accountVersion, // uint32
+            stEverVaultVersion, // uint32
+            strategies, // mapping(address => StrategyParams)
+            pendingWithdrawals, // mapping(uint64 => PendingWithdraw)
+            emergencyState // EmergencyState
         );
 
         // set code after complete this method
