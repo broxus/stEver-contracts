@@ -163,7 +163,23 @@ export class Vault {
       }),
     );
   };
-
+  setPaused = async (isPaused: boolean) => {
+    const transaction = await locklift.tracing.trace(
+      this.vaultContract.methods.setIsPaused({ _isPaused: isPaused }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+    const pausedEvent = await this.getEventsAfterTransaction({
+      eventName: "PausedStateChanged",
+      parentTransaction: transaction,
+    });
+    if (isPaused) {
+      expect(pausedEvent[0].data.pauseState).to.be.true;
+    } else {
+      expect(pausedEvent[0].data.pauseState).to.be.false;
+    }
+  };
   setNewAccountCode = async () => {
     const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
     const transaction = await locklift.tracing.trace(

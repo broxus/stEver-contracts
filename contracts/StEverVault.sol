@@ -387,13 +387,13 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         address,
         address _remainingGasTo,
         TvmCell _payload
-    ) override external minCallValue notPaused {
+    ) override external {
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
         (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
-        // if not enough value, resend tokens to sender
-        if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct) {
+        // if something went wrong, resend tokens to sender
+        if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct || isPaused) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
             ITokenWallet(stEverWallet).transfer{

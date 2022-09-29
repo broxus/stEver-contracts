@@ -7,6 +7,7 @@ import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
+import { lastValueFrom, timer } from "rxjs";
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -113,6 +114,46 @@ describe("Deposit withdraw test", function () {
       await user1.wallet.getBalance().then(res => res.toString()),
       "user stEver balance shouldn't change",
     );
+  });
+  it("user shouldn't withdraw when vault is paused", async () => {
+    await lastValueFrom(timer(1000));
+    await vault.setPaused(true);
+    const WITHDRAW_AMOUNT = toNanoBn(20);
+    const tokenBalanceBeforeWithdraw = await user1.wallet.getBalance();
+    const nonce = locklift.utils.getRandomNonce();
+    const withdrawPayload = await vault.vaultContract.methods
+      .encodeDepositPayload({
+        _nonce: nonce,
+        _deposit_owner: user1.account.address,
+      })
+      .call();
+
+    const transaction = await locklift.tracing.trace(
+      user1.wallet.walletContract.methods
+        .transfer({
+          remainingGasTo: user1.account.address,
+          deployWalletValue: 0,
+          amount: WITHDRAW_AMOUNT.toString(),
+          notify: true,
+          recipient: vault.vaultContract.address,
+          payload: withdrawPayload.depositPayload,
+        })
+        .send({
+          from: user1.account.address,
+          amount: toNano(1.1),
+          bounce: true,
+        }),
+      { allowedCodes: { compute: [null] } },
+    );
+
+    const badWithdrawRequestEvents = await vault.getEventsAfterTransaction({
+      eventName: "BadWithdrawRequest",
+      parentTransaction: transaction,
+    });
+    expect(badWithdrawRequestEvents.length).to.be.equals(1);
+    const tokenBalanceAfterWithdraw = await user1.wallet.getBalance();
+    expect(tokenBalanceBeforeWithdraw.toString()).to.be.equals(tokenBalanceAfterWithdraw.toString());
+    await vault.setPaused(false);
   });
   it("user should successfully withdraw", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
