@@ -30,36 +30,22 @@ const deployAndSetupStEverVault = async ({
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
-
-  logger.startStep("SteEver are deploying...");
-  const { contract: vaultContract } = await locklift.tracing.trace(
-    locklift.factory.deployContract({
-      contract: "StEverVault",
-      value: deployVaultValue,
+  const { tvc: stEverTvc, abi: stEverAbi } = locklift.factory.getContractArtifacts("StEverVault");
+  logger.startStep("Obtaining StEverVault Address");
+  const stEverVaultAddress = await locklift.provider.getExpectedAddress(
+    locklift.factory.getContractArtifacts("StEverVault").abi,
+    {
+      publicKey: signer.publicKey,
       initParams: {
         nonce: locklift.utils.getRandomNonce(),
         governance: `0x${governanceKeys.publicKey}`,
         platformCode: platformCode,
         accountCode: accountCode,
       },
-      publicKey: signer.publicKey,
-      constructorParams: {
-        _owner: new Address(adminAddress),
-        _gainFee: locklift.utils.toNano(1),
-      },
-    }),
+      tvc: stEverTvc,
+    },
   );
-
-  await locklift.transactions.waitFinalized(
-    vaultContract.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minStrategyWithdrawValue }).send({
-      from: adminAccount.address,
-      amount: toNano(2),
-    }),
-  );
-
-  logger.info(`Vault details ${JSON.stringify(await getVaultInfo(vaultContract), null, 4)}`);
-  logger.successStep(`Vault deployed: ${vaultContract.address.toString()}`);
-
+  logger.successStep(`Expected stEver address is ${stEverVaultAddress.toString()}`);
   logger.startStep("SteEverRoot are deploying...");
   const TOKEN_ROOT_NAME = "StEver";
   const TOKEN_ROOT_SYMBOL = "StEver";
@@ -73,7 +59,7 @@ const deployAndSetupStEverVault = async ({
         name_: TOKEN_ROOT_NAME,
         symbol_: TOKEN_ROOT_SYMBOL,
         decimals_: 9,
-        rootOwner_: vaultContract.address,
+        rootOwner_: stEverVaultAddress,
         walletCode_: tokenWalletCode,
         randomNonce_: locklift.utils.getRandomNonce(),
         deployer_: zeroAddress,
@@ -92,16 +78,38 @@ const deployAndSetupStEverVault = async ({
     }),
   );
 
-  logger.successStep(`StEverTokenRoot deployed: ${stEverTokenRootContract.address.toString()}`);
-
-  logger.startStep("Initializing StEverVault...");
+  logger.startStep("SteEver are deploying...");
+  const { contract: vaultContract } = await locklift.tracing.trace(
+    locklift.factory.deployContract({
+      contract: "StEverVault",
+      value: deployVaultValue,
+      initParams: {
+        nonce: locklift.utils.getRandomNonce(),
+        governance: `0x${governanceKeys.publicKey}`,
+        platformCode: platformCode,
+        accountCode: accountCode,
+      },
+      publicKey: signer.publicKey,
+      constructorParams: {
+        _owner: new Address(adminAddress),
+        _gainFee: locklift.utils.toNano(1),
+        _stTokenRoot: stEverTokenRootContract.address,
+      },
+    }),
+  );
 
   await locklift.transactions.waitFinalized(
-    vaultContract.methods.initVault({ _stTokenRoot: stEverTokenRootContract.address }).send({
+    vaultContract.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minStrategyWithdrawValue }).send({
       from: adminAccount.address,
       amount: toNano(2),
     }),
   );
+
+  logger.info(`Vault details ${JSON.stringify(await getVaultInfo(vaultContract), null, 4)}`);
+  logger.successStep(`Vault deployed: ${vaultContract.address.toString()}`);
+
+  logger.successStep(`StEverTokenRoot deployed: ${stEverTokenRootContract.address.toString()}`);
+
   logger.info(`Vault details ${JSON.stringify(await getVaultInfo(vaultContract), null, 4)}`);
   logger.successStep(`Vault initialized`);
 

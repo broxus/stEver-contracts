@@ -21,7 +21,8 @@ import "locklift/src/console.sol";
 contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
     constructor(
         address _owner,
-        uint128 _gainFee
+        uint128 _gainFee,
+        address _stTokenRoot
     ) public {
         require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUB_KEY);
         require (tvm.pubkey() == msg.pubkey(), ErrorCodes.WRONG_PUB_KEY);
@@ -29,7 +30,8 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         tvm.accept();
         owner = _owner;
         gainFee = _gainFee;
-
+        stTokenRoot = _stTokenRoot;
+        
         ITokenRoot(stTokenRoot).deployWallet{
 			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
 			callback: StEverVaultBase.receiveTokenWalletAddress,

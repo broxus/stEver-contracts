@@ -7,7 +7,6 @@ abstract contract StEverVaultStorage is IStEverVault {
 
     // static
     uint128 public static nonce;
-    address static stTokenRoot;
     uint256 static governance;
     TvmCell static platformCode;
     TvmCell static accountCode;
@@ -18,6 +17,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint128 totalStEverFee;
     // tokens
     address stEverWallet;
+    address stTokenRoot;
 
     // modifiable field
     uint128 gainFee;
