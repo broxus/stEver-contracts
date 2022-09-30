@@ -56,7 +56,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     function removeStrategy(address _strategy) override external onlyOwner minCallValue {
-        require (strategies.exists(_strategy)); // TODO: потерял код ошибки
+        require (strategies.exists(_strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
 
         tvm.rawReserve(_reserve(),0);
 
@@ -388,11 +388,16 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     ) override external {
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
-        // TODO: у нас тут как бы происходит виздро, но метод decodeDepositPayload)) +deposit_owner в структуре, который не юзается
-        (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
+
+        (address depositOwner, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
         // if something went wrong, resend tokens to sender
-        if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct || isPaused) {
+        if (
+            msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA ||
+            !_correct ||
+            isPaused ||
+            depositOwner != _sender
+        ) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
             ITokenWallet(stEverWallet).transfer{

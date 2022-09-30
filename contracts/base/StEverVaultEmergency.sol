@@ -35,7 +35,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         uint128 countOfStrategies = uint128(strategies.keys().length);
-        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPEREMENTAL_FEE; // TODO: зафикси грамматику ))))
+        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPERIMENTAL_FEE; // TODO: зафикси грамматику ))))
         uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy;
 
         require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
@@ -120,7 +120,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
 
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    
+
     function emergencyWithdrawToUser() override external onlyEmergencyState minCallValue {
         tvm.rawReserve(_reserve(), 0);
         address accountAddress = getAccountAddress(msg.sender);
