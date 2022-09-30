@@ -185,7 +185,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     }
 
     function onTransfer(address source, uint128 amount) override external {
-
+     // TODO: what is this
     }
 
     receive() external view onlyDepoolOrVault {
