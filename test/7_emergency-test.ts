@@ -97,7 +97,7 @@ describe("Emergency testing", function () {
       "emergency can't be activated without expired pending withdraw",
     );
 
-    await locklift.testing.increaseTime(60 * 60 * 91);
+    await locklift.testing.increaseTime(60 * 60 * 169);
 
     const userBalanceBeforeActivatingEmergency = await locklift.provider.getBalance(user1.account.address);
 

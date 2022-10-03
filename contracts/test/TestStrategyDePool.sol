@@ -10,11 +10,7 @@ import "../utils/ErrorCodes.sol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "locklift/src/console.sol";
 
-enum State {
-    INITIAL,
-    DEPOSITING,
-    WITHDRAWING
-}
+
 contract TestStrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
@@ -98,7 +94,7 @@ contract TestStrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 	}
 
     function getDetails() override external responsible view returns(Details){
-        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion);
+        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion, state);
     }
 
     function deposit(uint128 _amount) override external onlyVault {
@@ -187,11 +183,23 @@ contract TestStrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     function onTransfer(address source, uint128 amount) override external {
 
     }
+        // Withdraw from pooling round
+    function withdrawForce(uint64 _amount) override external onlyVault {
+        tvm.rawReserve(_reserve(), 0);
 
-    receive() external view onlyDepoolOrVault {
+        state = State.WITHDRAWING_FROM_POOLING_ROUND;
+        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_amount);
+    }
+
+    receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
 
         if(msg.sender == dePool) {
+
+            if (state == State.WITHDRAWING_FROM_POOLING_ROUND) {
+                state = State.INITIAL;
+            }
+
             IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
     }

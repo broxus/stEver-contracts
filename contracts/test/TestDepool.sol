@@ -68,22 +68,22 @@ contract TestDepool is IDePool {
     }
 
     function withdrawFromPoolingRound(uint64 withdrawValue) override external {
-        require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
+        uint128 withdrawingValue = math.min(withdrawValue, depositors[msg.sender].amount);
 
-        if(withdrawalsClosed) {
+
+        if (withdrawalsClosed) {
            return _sendError(STATUS_NO_POOLING_STAKE, 0);
         }
         depositors[msg.sender].amount -= withdrawValue;
-        msg.sender.transfer({value: withdrawValue, flag: MsgFlag.REMAINING_GAS, bounce: false});
+        msg.sender.transfer({value: withdrawingValue, flag: MsgFlag.REMAINING_GAS, bounce: false});
     }
 
     function withdrawPart(uint64 withdrawValue) override external {
-        // require (depositors[msg.sender].amount >= withdrawValue,DEPOSITOR_NOT_EXISTS);
         if(withdrawalsClosed) {
            return _sendError(STATUS_NO_POOLING_STAKE, 0);
         }
         uint128 withdrawingValue = math.min(withdrawValue, depositors[msg.sender].amount);
-        depositors[msg.sender].amount -= withdrawingValue;
+
         depositors[msg.sender].withdrawValue = withdrawingValue;
         sendAcceptAndReturnChange();
     }
@@ -102,7 +102,9 @@ contract TestDepool is IDePool {
             depositors[key].amount += _reward;
             uint128 attachedValue = 0.01 ever;
             if (includesWithdraw) {
-                attachedValue = depositors[depositor].withdrawValue;
+                uint128 withdrawValue = depositors[depositor].withdrawValue;
+                attachedValue = math.min(withdrawValue, depositors[key].amount);
+                depositors[depositor].amount -= attachedValue;
                 depositors[depositor].withdrawValue = 0;
             }
             IParticipant(key).onRoundComplete{value: attachedValue, bounce: false, flag: 1}(

@@ -71,6 +71,34 @@ export class Governance {
     };
   };
 
+  forceWithdrawFromStrategies = async (
+    ...params: Parameters<Contract<StEverVaultAbi>["methods"]["forceWithdrawFromStrategies"]>
+  ) => {
+    const { transaction } = await locklift.tracing.trace(
+      this.vault.vaultContract.methods
+        .forceWithdrawFromStrategies(...params)
+        .sendExternal({ publicKey: this.keyPair.publicKey }),
+    );
+    const successEvents = await this.vault.getEventsAfterTransaction({
+      eventName: "StrategyWithdrawSuccess",
+      parentTransaction: transaction,
+    });
+    const errorEvent = await this.vault.getEventsAfterTransaction({
+      eventName: "StrategyWithdrawError",
+      parentTransaction: transaction,
+    });
+    const processingErrorEvent = await this.vault.getEventsAfterTransaction({
+      eventName: "ProcessWithdrawFromStrategyError",
+      parentTransaction: transaction,
+    });
+    return {
+      successEvents,
+      errorEvent,
+      transaction,
+      processingErrorEvent,
+    };
+  };
+
   withdrawFee = ({ amount }: { amount: number }) => {
     return locklift.tracing.trace(
       this.vault.vaultContract.methods

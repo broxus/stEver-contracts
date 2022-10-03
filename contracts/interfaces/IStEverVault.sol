@@ -136,6 +136,7 @@ interface IStEverVault {
     function receiveFromStrategy() external;
     function receiveAdditionalTransferFromStrategy() external;
     function withdrawFromStrategyError(uint32 errcode) external;
+    function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) external;
 
     // User interactions
     function withdrawToUser(uint128 amount, address user, mapping(uint64 => IStEverAccount.WithdrawRequest) withdrawals) external;

@@ -300,6 +300,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function onAccountUpgraded(address _user, address _sendGasTo, uint32 _newVersion) override external onlyAccount(_user) {
 
         tvm.rawReserve(_reserve(), 0);
+
         emit AccountUpgraded(_user, _newVersion);
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

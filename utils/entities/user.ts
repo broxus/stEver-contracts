@@ -6,7 +6,7 @@ import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-standalone-client";
 
 import { Vault } from "./vault";
-import { concatMap, from, lastValueFrom } from "rxjs";
+import { concatMap, from, lastValueFrom, timer } from "rxjs";
 
 export class User {
   constructor(
@@ -167,10 +167,13 @@ export class User {
           amount: toNano(5),
         }),
     );
+    await lastValueFrom(timer(500));
+
     const upgradeEvents = await this.vault.getEventsAfterTransaction({
       eventName: "AccountUpgraded",
       parentTransaction: upgradeTransaction,
     });
+    debugger;
     expect(upgradeEvents.length).to.be.eq(users.length);
     expect(upgradeEvents[0].data.newVersion).to.be.equals("1");
   };

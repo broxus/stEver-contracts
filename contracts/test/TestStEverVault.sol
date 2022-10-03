@@ -331,6 +331,48 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         totalAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
     }
 
+    
+    function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
+        uint256 chunkSize = 50;
+
+        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
+            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
+
+            if (config.amount < minStrategyWithdrawValue) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
+                continue;
+            }
+
+            if (!strategies.exists(strategy)) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
+                continue;
+            }
+
+            if (!canTransferValue(config.fee)) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
+                continue;
+            }
+
+            if (totalAssets < config.fee) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
+                continue;
+            }
+
+            // grab fee, then add it back after receiving response from strategy
+            availableAssets -= config.fee;
+
+            totalAssets -= config.fee;
+
+            // change withdrawing strategy state
+            strategies[strategy].withdrawingAmount = config.amount;
+
+            IStrategy(strategy).withdrawForce{value:config.fee, bounce: false}(uint64(config.amount));
+        }
+        if (!_withdrawConfig.empty()) {
+            this.forceWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce:false}(_withdrawConfig);
+        }
+    }
+
     function receiveFromStrategy() override external onlyStrategy {
         // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;

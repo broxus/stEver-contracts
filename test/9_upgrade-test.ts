@@ -65,11 +65,12 @@ describe("Upgrade testing", function () {
     );
   });
 
-  it("two users should deposit to vault and make withdraw requests", async () => {
+  it("two users should be upgraded by the admin", async () => {
     await lastValueFrom(timer(1000));
     const users = [user2, user3];
     const upgradedUsersData = await lastValueFrom(
       from(users).pipe(
+        toArray(),
         concatMap(() => admin.upgradeAccounts(users.map(user => user.account.address))),
         switchMap(() => from(users.map(user => user.getUpgradedUser()))),
         mergeMap(user => user.checkIsUpdateApplied()),
