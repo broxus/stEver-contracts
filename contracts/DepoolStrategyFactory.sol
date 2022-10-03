@@ -112,7 +112,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             wid: address(this).wid
         }(stEverVault, _dePool);
 
-        emit NewStrategyDeployed(strategy, strategyVersion);
+        emit NewStrategyDeployed(strategy,_dePool, strategyVersion);
 
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

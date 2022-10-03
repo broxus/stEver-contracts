@@ -119,7 +119,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             wid: address(this).wid,
             flag: MsgFlag.ALL_NOT_RESERVED
         }(stEverVault, _dePool);
-        emit NewStrategyDeployed(strategy, strategyVersion);
+        emit NewStrategyDeployed(strategy, _dePool, strategyVersion);
     }
 
     function upgradeStrategies(address[] _strategies) override external onlyOwner {

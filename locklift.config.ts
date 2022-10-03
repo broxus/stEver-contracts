@@ -119,6 +119,7 @@ const config: LockliftConfig = {
         // !!! Never commit it in your repos !!!
         // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
         phrase: "expire caution sausage spot monkey prefer dad rib vicious pepper mimic armed",
+
         amount: 20,
       },
     },

@@ -2,7 +2,7 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
 interface IDepoolStrategyFactory {
-    event NewStrategyDeployed(address strategy, uint32 version);
+    event NewStrategyDeployed(address strategy,address dePool, uint32 version);
     event StrategyCodeUpdated(uint32 prevStrategyVersion, uint32 newStrategyVersion);
 
     struct FactoryDetails {

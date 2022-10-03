@@ -123,6 +123,7 @@
 			"name": "NewStrategyDeployed",
 			"inputs": [
 				{"name":"strategy","type":"address"},
+				{"name":"dePool","type":"address"},
 				{"name":"version","type":"uint32"}
 			],
 			"outputs": [

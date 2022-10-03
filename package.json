@@ -19,7 +19,9 @@
     "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",
     "main-flow-deployed-broxus-testnet": "cross-env npx locklift run --disable-build --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
     "testnet-send-ever-to-account": "npx locklift run --network testnet -s scripts/0_giver_send_to_account.ts",
-    "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts"
+    "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts",
+
+    "create-and-register-strategy": "npx locklift run --disable-build --network broxusTestnet -s scripts/validator/1_create_and_add_strategy_to_dePool.ts"
   },
   "author": "",
   "license": "ISC",
