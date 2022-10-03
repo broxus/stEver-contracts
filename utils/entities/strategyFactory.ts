@@ -3,6 +3,7 @@ import { Account } from "locklift/everscale-standalone-client";
 import { DepoolStrategyFactoryAbi, TestDepoolStrategyFactoryAbi } from "../../build/factorySource";
 import { Address, Contract, toNano } from "locklift";
 import { Vault } from "./vault";
+import { lastValueFrom, timer } from "rxjs";
 
 export class StrategyFactory {
   constructor(
@@ -27,6 +28,7 @@ export class StrategyFactory {
           }),
       )
       .then(async () => {
+        await lastValueFrom(timer(500));
         const events = await this.factoryContract.getPastEvents({
           filter: ({ event }) => event === "NewStrategyDeployed",
         });

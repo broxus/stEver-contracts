@@ -176,6 +176,7 @@ const deployVault = async ({
         _owner: owner.address,
         _gainFee: GAIN_FEE,
         _stTokenRoot: tokenRoot.address,
+        _stEverFeePercent: 100,
       },
       publicKey: deployArgs.publicKey!,
       initParams: deployArgs.initParams,

@@ -53,7 +53,7 @@ describe("Emergency testing", function () {
               signer,
               vault,
               admin: admin.account,
-              strategyDeployValue: locklift.utils.toNano(12),
+              strategyDeployValue: locklift.utils.toNano(22),
               poolDeployValue: locklift.utils.toNano(200),
               strategyFactory,
             }),

@@ -40,6 +40,7 @@ describe("Withdraw extra testing", function () {
   });
   it("Vault should be initialized", async () => {
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
+    await vault.setStEverFeePercent({ percentFee: 0 });
     await user1.depositToVault(toNano(1100));
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNano(101);
     strategies = await lastValueFrom(
@@ -50,7 +51,7 @@ describe("Withdraw extra testing", function () {
               signer,
               vault,
               admin: admin.account,
-              strategyDeployValue: locklift.utils.toNano(12),
+              strategyDeployValue: locklift.utils.toNano(22),
               poolDeployValue: locklift.utils.toNano(200000),
               strategyFactory,
             }),

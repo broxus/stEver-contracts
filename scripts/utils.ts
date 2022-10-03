@@ -1,23 +1,6 @@
-import { Address, Contract, Transaction } from "locklift";
-import { StEverVaultAbi, TokenRootUpgradeableAbi, TokenWalletUpgradeableAbi } from "../build/factorySource";
+import { Contract } from "locklift";
+import { StEverVaultAbi } from "../build/factorySource";
 import chalk from "chalk";
-
-export const printEvents = async ({
-  eventName,
-  parentTransaction,
-  contract,
-}: {
-  contract: Contract<any>;
-  eventName: string;
-  parentTransaction: Transaction;
-}) => {
-  const pastEvents = await contract.getPastEvents({
-    filter: ({ event, transaction }) => event === eventName && transaction.createdAt >= parentTransaction.createdAt,
-  });
-  pastEvents.events.forEach(({ event, data }) => {
-    logger.event(`Event: ${event}, data: ${JSON.stringify(data, null, 4)}`);
-  });
-};
 
 export const getVaultInfo = (vaultContract: Contract<StEverVaultAbi>) =>
   vaultContract.methods
@@ -27,34 +10,7 @@ export const getVaultInfo = (vaultContract: Contract<StEverVaultAbi>) =>
       locklift.provider.getBalance(vaultContract.address).then(vaultBalance => ({ ...value0, vaultBalance })),
     );
 
-export const getStrategiesInfo = (vaultContract: Contract<StEverVaultAbi>) =>
-  vaultContract.methods.strategies({}).call();
-export const getBalanceInfo = ({
-  userAddress,
-  tokenRootContract,
-}: {
-  userAddress: Address;
-  tokenRootContract: Contract<TokenRootUpgradeableAbi>;
-}): Promise<{ userAddress: string; balance: string }> => {
-  return getSteEverWallet({ userAddress, tokenRootContract })
-    .then(wallet => wallet.methods.balance({ answerId: 0 }).call())
-    .then(({ value0: balance }) => ({
-      userAddress: userAddress.toString(),
-      balance,
-    }));
-};
-export const getSteEverWallet = async ({
-  userAddress,
-  tokenRootContract,
-}: {
-  userAddress: Address;
-  tokenRootContract: Contract<TokenRootUpgradeableAbi>;
-}): Promise<Contract<TokenWalletUpgradeableAbi>> => {
-  const { value0: stTokenWalletAddress } = await tokenRootContract.methods
-    .walletOf({ walletOwner: userAddress, answerId: 1 })
-    .call();
-  return locklift.factory.getDeployedContract("TokenWalletUpgradeable", stTokenWalletAddress);
-};
+export const isValidAddress = (address: string) => /^(?:-1|0):[0-9a-fA-F]{64}$/.test(address);
 
 class Logger {
   private stepCounter = 1;

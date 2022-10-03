@@ -8,6 +8,7 @@
 			"inputs": [
 				{"name":"_owner","type":"address"},
 				{"name":"_gainFee","type":"uint128"},
+				{"name":"_stEverFeePercent","type":"uint32"},
 				{"name":"_stTokenRoot","type":"address"}
 			],
 			"outputs": [

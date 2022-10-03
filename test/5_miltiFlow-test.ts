@@ -62,7 +62,7 @@ describe("Multi flow", async function () {
               vault,
               signer,
               poolDeployValue: locklift.utils.toNano(200),
-              strategyDeployValue: locklift.utils.toNano(12),
+              strategyDeployValue: locklift.utils.toNano(22),
               strategyFactory,
             }),
           ),

@@ -14,11 +14,10 @@
     "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
     "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
     "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",
-
     "main-flow-local": "npx locklift run --network local -s scripts/demo-script.ts",
     "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
     "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",
-    "main-flow-deployed-broxus-testnet": "npx locklift run --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
+    "main-flow-deployed-broxus-testnet": "cross-env npx locklift run --disable-build --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
     "testnet-send-ever-to-account": "npx locklift run --network testnet -s scripts/0_giver_send_to_account.ts",
     "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts"
   },
@@ -37,12 +36,16 @@
   "dependencies": {
     "@broxus/contracts": "^1.1.0",
     "@types/lodash": "^4.14.182",
+    "@types/prompts": "^2.0.14",
     "bignumber.js": "^9.0.2",
     "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#d3c1cd920c0320ffaab03b54c878dd0e06fed3c7",
     "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
     "everscale-standalone-client": "^2.0.31",
     "locklift": "^2.2.3",
     "lodash": "^4.17.21",
+    "ora": "^6.1.2",
+    "prompts": "^2.4.2",
     "rxjs": "^7.5.6"
   }
 }

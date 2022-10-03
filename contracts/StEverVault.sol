@@ -22,6 +22,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     constructor(
         address _owner,
         uint128 _gainFee,
+        uint32 _stEverFeePercent,
         address _stTokenRoot
     ) public {
         require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUB_KEY);
@@ -31,7 +32,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         owner = _owner;
         gainFee = _gainFee;
         stTokenRoot = _stTokenRoot;
-
+        stEverFeePercent = _stEverFeePercent;
         ITokenRoot(stTokenRoot).deployWallet{
 			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
@@ -41,7 +42,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
 
     function addStrategy(address _strategy) override external onlyOwner minCallValue {
-        tvm.rawReserve(_reserve(),0);
+        tvm.rawReserve(_reserve(), 0);
 
         strategies[_strategy] = StrategyParams({
             lastReport: 0,

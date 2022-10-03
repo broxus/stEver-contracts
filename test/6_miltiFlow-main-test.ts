@@ -1,4 +1,4 @@
-import { Address, Contract, Signer, Transaction } from "locklift";
+import { Address, Contract, Signer, toNano, Transaction } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { assertEvent, getAddressEverBalance, getBalances, toNanoBn } from "../utils";
@@ -33,7 +33,7 @@ describe("Multi flow", async function () {
       users: [adminUser, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(20), countOfUsers: 4 });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(200), countOfUsers: 4 });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -59,8 +59,8 @@ describe("Multi flow", async function () {
               admin: admin.account,
               vault,
               signer,
-              poolDeployValue: locklift.utils.toNano(10),
-              strategyDeployValue: locklift.utils.toNano(6),
+              poolDeployValue: toNano(22),
+              strategyDeployValue: toNano(22),
               strategyFactory,
             }),
           ),

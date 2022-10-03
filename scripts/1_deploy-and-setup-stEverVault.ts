@@ -1,42 +1,42 @@
-import { Address, toNano, WalletTypes, zeroAddress } from "locklift";
-import { getVaultInfo, logger } from "./utils";
-const governanceKeys = {
-  publicKey: "2ada2e65ab8eeab09490e3521415f45b6e42df9c760a639bcf53957550b25a16",
-  secretKey: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
-};
+import { Address, fromNano, Signer, toNano, WalletTypes, zeroAddress } from "locklift";
+import { getVaultInfo, isValidAddress, logger } from "./utils";
+import prompts from "prompts";
+import { Account } from "locklift/everscale-standalone-client";
+import BigNumber from "bignumber.js";
+
 const deployAndSetupStEverVault = async ({
-  adminAddress,
-  deployVaultValue = locklift.utils.toNano(100),
+  signer,
+  adminAccount,
+  governancePublicKey,
+  deployVaultValue,
+  gainFee,
+  stEverFeePercent,
   minStrategyWithdrawValue = locklift.utils.toNano(100),
   minStrategyDepositValue = locklift.utils.toNano(100),
 }: {
-  adminAddress: string;
-  deployVaultValue?: string;
+  adminAccount: Account;
+  signer: Signer;
+  governancePublicKey: string;
+  deployVaultValue: string;
+  gainFee: string;
+  stEverFeePercent: number;
   minStrategyDepositValue?: string;
   minStrategyWithdrawValue?: string;
 }) => {
-  const signer = await locklift.keystore.getSigner("0");
-
   if (!signer) {
     throw new Error("Admin signer not found");
   }
 
-  const adminAccountAddress = new Address(adminAddress);
-  const adminAccount = await locklift.factory.accounts.addExistingAccount({
-    publicKey: signer.publicKey,
-    address: adminAccountAddress,
-    type: WalletTypes.MsigAccount,
-  });
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
-  const { tvc: stEverTvc, abi: stEverAbi } = locklift.factory.getContractArtifacts("StEverVault");
+  const { tvc: stEverTvc } = locklift.factory.getContractArtifacts("StEverVault");
   logger.startStep("Obtaining StEverVault Address");
   const deployVaultParams = {
     publicKey: signer.publicKey,
     initParams: {
       nonce: locklift.utils.getRandomNonce(),
-      governance: `0x${governanceKeys.publicKey}`,
+      governance: `0x${governancePublicKey}`,
       platformCode: platformCode,
       accountCode: accountCode,
     },
@@ -47,12 +47,12 @@ const deployAndSetupStEverVault = async ({
     deployVaultParams,
   );
   logger.successStep(`Expected stEver address is ${stEverVaultAddress.toString()}`);
-  logger.startStep("SteEverRoot is deploying...");
+  logger.startStep("StEverRoot is deploying...");
   const TOKEN_ROOT_NAME = "StEver";
   const TOKEN_ROOT_SYMBOL = "StEver";
   const { code: tokenWalletCode } = locklift.factory.getContractArtifacts("TokenWalletUpgradeable");
   const { code: tokenWalletPlatformCode } = locklift.factory.getContractArtifacts("TokenWalletPlatform");
-  const { contract: stEverTokenRootContract } = await locklift.tracing.trace(
+  const { contract: stEverTokenRootContract } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "TokenRootUpgradeable",
       value: locklift.utils.toNano(2),
@@ -79,16 +79,17 @@ const deployAndSetupStEverVault = async ({
     }),
   );
 
-  logger.startStep("SteEver is deploying...");
-  const { contract: vaultContract } = await locklift.tracing.trace(
+  logger.startStep("StEverVault is deploying...");
+  const { contract: vaultContract } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "StEverVault",
       value: deployVaultValue,
       initParams: deployVaultParams.initParams,
       publicKey: deployVaultParams.publicKey,
       constructorParams: {
-        _owner: new Address(adminAddress),
-        _gainFee: locklift.utils.toNano(1),
+        _owner: adminAccount.address,
+        _gainFee: gainFee,
+        _stEverFeePercent: stEverFeePercent,
         _stTokenRoot: stEverTokenRootContract.address,
       },
     }),
@@ -110,7 +111,7 @@ const deployAndSetupStEverVault = async ({
   logger.successStep(`Vault initialized`);
 
   logger.startStep("Deploying DePoolStrategyFactory");
-  const { contract: dePoolStrategyFactoryContract } = await locklift.tracing.trace(
+  const { contract: dePoolStrategyFactoryContract } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "DepoolStrategyFactory",
       value: locklift.utils.toNano(2),
@@ -126,15 +127,104 @@ const deployAndSetupStEverVault = async ({
     }),
   );
   logger.successStep(`DePoolStrategyFactory deployed ${dePoolStrategyFactoryContract.address.toString()}`);
-};
 
-deployAndSetupStEverVault({
-  // adminPubKey: "",
-  // governancePubKey: "",
-  adminAddress: "0:a1c67f9d2fac7de14e3bfd0d454b9ecf4a10b683e532bf85585c7f96634fd160",
-  minStrategyDepositValue: locklift.utils.toNano(100),
-  minStrategyWithdrawValue: locklift.utils.toNano(100),
-})
+  logger.info("Summary");
+  logger.info(
+    `${JSON.stringify(
+      {
+        stEverVaultAddress: vaultContract.address.toString(),
+        stEverTokenRoot: stEverTokenRootContract.address.toString(),
+        strategyFactory: dePoolStrategyFactoryContract.address.toString(),
+      },
+      null,
+      4,
+    )}`,
+  );
+};
+const main = async () => {
+  const MIN_DEPLOY_VAULT_VALUE_IN_EVER = 100;
+  const ONE_HANDED_PERCENT = 1000;
+  const MIN_GAIN_FEE = 1;
+
+  const signer = await locklift.keystore.getSigner("0");
+
+  if (!process.env.SEED || !process.env.MAIN_GIVER_KEY) {
+    throw new Error("SEED phrase and MAIN_GIVER_KEY should be provided as env parameters");
+  }
+  if (!signer) {
+    throw new Error("Bad SEED phrase");
+  }
+
+  console.log("\x1b[1m", "\n\nSetting StEverVault params:");
+
+  const response = await prompts([
+    {
+      type: "text",
+      name: "mSigWallet",
+      message: "MultiSig admin(owner) wallet address",
+      validate: (value: string) => (isValidAddress(value) ? true : "Invalid Everscale address"),
+    },
+    {
+      type: "text",
+      name: "governancePK",
+      message: "Governance PUBLIC key",
+    },
+    {
+      type: "number",
+      name: "deployVaultValue",
+      message: "StEverVault deploy value (ever), min 100 ever",
+      validate: (value: number) => value >= MIN_DEPLOY_VAULT_VALUE_IN_EVER,
+    },
+    {
+      type: "number",
+      name: "gainFee",
+      message: "GainFee (ever) ,min 1 ever",
+      validate: (value: number) => value >= MIN_GAIN_FEE,
+    },
+    {
+      type: "number",
+      name: "stEverPercentFee",
+      message: "StEver platform fee (0..100%)",
+      validate: (value: number) => value >= 0 && value <= 100,
+    },
+  ]);
+
+  if (!response.mSigWallet || !response.governancePK) {
+    throw new Error("You need to provide required fields");
+  }
+
+  console.log("\x1b[1m", "\nSetup complete! ✔ ");
+
+  const { deployVaultValue, gainFee, stEverFeePercent } = {
+    deployVaultValue: toNano(response.deployVaultValue),
+    gainFee: toNano(response.gainFee),
+    stEverFeePercent: response.stEverPercentFee * ONE_HANDED_PERCENT,
+  };
+
+  const adminAccount = await locklift.factory.accounts.addExistingAccount({
+    publicKey: signer.publicKey,
+    address: new Address(response.mSigWallet),
+    type: WalletTypes.MsigAccount,
+  });
+  const giverBalance = await locklift.provider.getBalance(new Address(locklift.context.network.config.giver.address));
+  console.log(`giver balance is ${fromNano(giverBalance)} ever`);
+
+  if (new BigNumber(giverBalance).lt(deployVaultValue)) {
+    throw new Error(`Giver balance should gt ${fromNano(deployVaultValue)} ever`);
+  }
+
+  await deployAndSetupStEverVault({
+    adminAccount,
+    signer,
+    deployVaultValue,
+    gainFee,
+    stEverFeePercent,
+    governancePublicKey: response.governancePK,
+    minStrategyDepositValue: locklift.utils.toNano(100),
+    minStrategyWithdrawValue: locklift.utils.toNano(100),
+  });
+};
+main()
   .then(() => process.exit(0))
   .catch(e => {
     console.log(e);

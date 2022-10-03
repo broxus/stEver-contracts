@@ -135,7 +135,7 @@ describe("Upgrade testing", function () {
             poolDeployValue: toNano(100),
             strategyFactory,
             signer,
-            strategyDeployValue: toNano(10),
+            strategyDeployValue: toNano(22),
           }),
         ),
         concatMap(({ strategy }) =>
