@@ -144,8 +144,9 @@ const deployAndSetupStEverVault = async ({
 const main = async () => {
   const MIN_DEPLOY_VAULT_VALUE_IN_EVER = 100;
   const ONE_HANDED_PERCENT = 1000;
-  const MIN_GAIN_FEE = 1;
 
+  const MIN_GAIN_FEE = 1;
+  const onePercentMultiplier = ONE_HANDED_PERCENT / 100;
   const signer = await locklift.keystore.getSigner("0");
 
   if (!process.env.SEED || !process.env.MAIN_GIVER_KEY) {
@@ -182,10 +183,10 @@ const main = async () => {
       validate: (value: number) => value >= MIN_GAIN_FEE,
     },
     {
-      type: "number",
+      type: "text",
       name: "stEverPercentFee",
       message: "StEver platform fee (0..100%)",
-      validate: (value: number) => value >= 0 && value <= 100,
+      validate: (value: string) => new BigNumber(value).gte(0) && new BigNumber(value).lte(100),
     },
   ]);
 
@@ -198,7 +199,7 @@ const main = async () => {
   const { deployVaultValue, gainFee, stEverFeePercent } = {
     deployVaultValue: toNano(response.deployVaultValue),
     gainFee: toNano(response.gainFee),
-    stEverFeePercent: response.stEverPercentFee * ONE_HANDED_PERCENT,
+    stEverFeePercent: new BigNumber(response.stEverPercentFee).multipliedBy(onePercentMultiplier).toNumber(),
   };
 
   const adminAccount = await locklift.factory.accounts.addExistingAccount({
