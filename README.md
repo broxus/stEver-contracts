@@ -13,7 +13,7 @@ has the ability to automatically balance between validators.
 npm i
 ```
 ```shell
-SEED="{{seed phrase of MultiSig admin(owner) wallet}}" \
+SEED="{{seed phrase}}" \
 MAIN_GIVER_KEY={{giver secret key}} \
 npx locklift run --disable-build --network mainnet -s scripts/1_deploy-and-setup-stEverVault.ts
 ```

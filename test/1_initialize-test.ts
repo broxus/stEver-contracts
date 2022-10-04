@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Contract, Signer } from "locklift";
+import { Address, Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
