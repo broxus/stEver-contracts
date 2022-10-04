@@ -22,17 +22,17 @@
 			]
 		},
 		{
-			"name": "addStrategy",
+			"name": "addStrategies",
 			"inputs": [
-				{"name":"_strategy","type":"address"}
+				{"name":"_strategies","type":"address[]"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "removeStrategy",
+			"name": "removeStrategies",
 			"inputs": [
-				{"name":"_strategy","type":"address"}
+				{"name":"_strategies","type":"address[]"}
 			],
 			"outputs": [
 			]
@@ -530,17 +530,17 @@
 			]
 		},
 		{
-			"name": "StrategyAdded",
+			"name": "StrategiesAdded",
 			"inputs": [
-				{"name":"strategy","type":"address"}
+				{"name":"strategy","type":"address[]"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "StrategyRemoved",
+			"name": "StrategiesRemoved",
 			"inputs": [
-				{"name":"strategy","type":"address"}
+				{"name":"strategy","type":"address[]"}
 			],
 			"outputs": [
 			]

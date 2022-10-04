@@ -60,10 +60,10 @@ describe("Strategy base", function () {
     });
 
     const strategyAddedEvents = await vault.getEventsAfterTransaction({
-      eventName: "StrategyAdded",
+      eventName: "StrategiesAdded",
       parentTransaction: transaction,
     });
-    expect(strategyAddedEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
+    expect(strategyAddedEvents[0].data.strategy[0].equals(strategy.strategy.address)).to.be.true;
   });
   it("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);

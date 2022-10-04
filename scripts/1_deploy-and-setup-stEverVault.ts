@@ -6,22 +6,18 @@ import BigNumber from "bignumber.js";
 
 const deployAndSetupStEverVault = async ({
   signer,
-  adminAccount,
+  adminAddress,
   governancePublicKey,
   deployVaultValue,
   gainFee,
   stEverFeePercent,
-  minStrategyWithdrawValue = locklift.utils.toNano(100),
-  minStrategyDepositValue = locklift.utils.toNano(100),
 }: {
-  adminAccount: Account;
+  adminAddress: Address;
   signer: Signer;
   governancePublicKey: string;
   deployVaultValue: string;
   gainFee: string;
   stEverFeePercent: number;
-  minStrategyDepositValue?: string;
-  minStrategyWithdrawValue?: string;
 }) => {
   if (!signer) {
     throw new Error("Admin signer not found");
@@ -74,7 +70,7 @@ const deployAndSetupStEverVault = async ({
         mintDisabled: false,
         burnByRootDisabled: false,
         burnPaused: false,
-        remainingGasTo: adminAccount.address,
+        remainingGasTo: adminAddress,
       },
     }),
   );
@@ -87,18 +83,11 @@ const deployAndSetupStEverVault = async ({
       initParams: deployVaultParams.initParams,
       publicKey: deployVaultParams.publicKey,
       constructorParams: {
-        _owner: adminAccount.address,
+        _owner: adminAddress,
         _gainFee: gainFee,
         _stEverFeePercent: stEverFeePercent,
         _stTokenRoot: stEverTokenRootContract.address,
       },
-    }),
-  );
-
-  await locklift.transactions.waitFinalized(
-    vaultContract.methods.setMinStrategyWithdrawValue({ _minStrategyWithdrawValue: minStrategyWithdrawValue }).send({
-      from: adminAccount.address,
-      amount: toNano(2),
     }),
   );
 
@@ -122,7 +111,7 @@ const deployAndSetupStEverVault = async ({
         dePoolStrategyCode: strategyDePoolCode,
       },
       constructorParams: {
-        _owner: adminAccount.address,
+        _owner: adminAddress,
       },
     }),
   );
@@ -196,17 +185,13 @@ const main = async () => {
 
   console.log("\x1b[1m", "\nSetup complete! ✔ ");
 
-  const { deployVaultValue, gainFee, stEverFeePercent } = {
+  const { deployVaultValue, gainFee, stEverFeePercent, adminAddress } = {
     deployVaultValue: toNano(response.deployVaultValue),
     gainFee: toNano(response.gainFee),
+    adminAddress: new Address(response.mSigWallet),
     stEverFeePercent: new BigNumber(response.stEverPercentFee).multipliedBy(onePercentMultiplier).toNumber(),
   };
 
-  const adminAccount = await locklift.factory.accounts.addExistingAccount({
-    publicKey: signer.publicKey,
-    address: new Address(response.mSigWallet),
-    type: WalletTypes.MsigAccount,
-  });
   const giverBalance = await locklift.provider.getBalance(new Address(locklift.context.network.config.giver.address));
   console.log(`giver balance is ${fromNano(giverBalance)} ever`);
 
@@ -215,14 +200,12 @@ const main = async () => {
   }
 
   await deployAndSetupStEverVault({
-    adminAccount,
+    adminAddress,
     signer,
     deployVaultValue,
     gainFee,
     stEverFeePercent,
     governancePublicKey: response.governancePK,
-    minStrategyDepositValue: locklift.utils.toNano(100),
-    minStrategyWithdrawValue: locklift.utils.toNano(100),
   });
 };
 main()

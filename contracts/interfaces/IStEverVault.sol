@@ -7,8 +7,8 @@ interface IStEverVault {
     // common
     event PausedStateChanged(bool pauseState);
     // Strategy
-    event StrategyAdded(address strategy);
-    event StrategyRemoved(address strategy);
+    event StrategiesAdded(address[] strategy);
+    event StrategiesRemoved(address[] strategy);
     event StrategyReported(address strategy, StrategyReport report);
 
     // Strategy deposit
@@ -119,8 +119,8 @@ interface IStEverVault {
 
     function getDetails() external responsible view returns(Details);
     // strategy
-    function addStrategy(address strategy) external;
-    function removeStrategy(address _strategy) external;
+    function addStrategies(address[] _strategies) external;
+    function removeStrategies(address[] _strategy) external;
 
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
 

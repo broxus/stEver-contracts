@@ -15,7 +15,6 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensBurnCallback.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.sol";
 import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.sol";
-import "locklift/src/console.sol";
 
 
 contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
@@ -41,28 +40,48 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
 
-    function addStrategy(address _strategy) override external onlyOwner minCallValue {
+    function addStrategies(address[] _strategies) override external onlyOwner  {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+
+        for (address strategy : _strategies) {
+            require (!strategies.exists(strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
+
+            strategies[strategy] = StrategyParams({
+                lastReport: 0,
+                totalGain: 0,
+                depositingAmount: 0,
+                withdrawingAmount: 0
+            });
+        }
+
         tvm.rawReserve(_reserve(), 0);
 
-        strategies[_strategy] = StrategyParams({
-            lastReport: 0,
-            totalGain: 0,
-            depositingAmount: 0,
-            withdrawingAmount: 0
-        });
-
-        emit StrategyAdded(_strategy);
+        emit StrategiesAdded(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function removeStrategy(address _strategy) override external onlyOwner minCallValue {
-        require (strategies.exists(_strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+    function removeStrategies(address[] _strategies) override external onlyOwner {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+        for (address strategy : _strategies) {
+            require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+
+            delete strategies[strategy];
+        }
 
         tvm.rawReserve(_reserve(),0);
-
-        emit StrategyRemoved(_strategy);
-        delete strategies[_strategy];
+        
+        emit StrategiesRemoved(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -201,7 +220,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ?
             gainWithoutStEverFee - gainFee :
             0;
-
         totalAssets += gainWithoutGainFee;
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
 
@@ -431,9 +449,18 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         (address depositOwner, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
+        /*
+        StEverVaultGas.WITHDRAW_FEE: reserved as gas that will be used in IStEverAccount.processWithdraw in processSendToUsers method
+        StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION: reserved for gas that will be used for iteration through users
+        StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA: will be used for creating(if needed) and adding pending withdrawal to account
+        */
+        uint128 requiredAttachedValue = StEverVaultGas.WITHDRAW_FEE +
+            StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
+            StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA;
+
         // if something went wrong, resend tokens to sender
         if (
-            msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA ||
+            msg.value < requiredAttachedValue ||
             !_correct ||
             isPaused ||
             depositOwner != _sender
@@ -458,7 +485,8 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     function requestWithdraw(address _user, uint128 _amount, uint64 _nonce, address _remainingGasTo) internal {
-        tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE), 0);
+        // making StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA free
+        tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE - StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION), 0);
 
         address accountAddr = getAccountAddress(_user);
 
@@ -553,7 +581,10 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         for (uint256 i = 0; i < chunkSize && !sendConfig.empty(); i++) {
             (address user, SendToUserConfig config) = sendConfig.delMin().get();
             address account = getAccountAddress(user);
-            IStEverAccount(account).processWithdraw{value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length), bounce: false}(config.nonces);
+
+            uint128 unusedIterationFee = (uint128(config.nonces.length) - 1) * StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION;
+
+            IStEverAccount(account).processWithdraw{value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length) + unusedIterationFee, bounce: false}(config.nonces);
         }
 
         if (!sendConfig.empty()) {

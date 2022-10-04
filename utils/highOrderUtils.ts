@@ -1,7 +1,7 @@
 import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { Signer, toNano, Transaction } from "locklift";
+import { fromNano, Signer, toNano, Transaction } from "locklift";
 import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
@@ -24,7 +24,7 @@ export const makeWithdrawToUsers = async ({
       toArray(),
     ),
   );
-
+  debugger;
   const { transaction } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });
@@ -66,7 +66,7 @@ export const createAndRegisterStrategy = async ({
     strategyFactory,
   });
   const transaction = await locklift.tracing.trace(
-    vault.vaultContract.methods.addStrategy({ _strategy: strategy.strategy.address }).send({
+    vault.vaultContract.methods.addStrategies({ _strategies: [strategy.strategy.address] }).send({
       from: admin.address,
       amount: toNano(2),
     }),

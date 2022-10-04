@@ -62,28 +62,41 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
     }
 
 
-    function addStrategy(address _strategy) override external onlyOwner minCallValue {
-        tvm.rawReserve(_reserve(),0);
+    function addStrategies(address[] _strategies) override external onlyOwner  {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
 
-        strategies[_strategy] = StrategyParams({
-            lastReport: 0,
-            totalGain: 0,
-            depositingAmount: 0,
-            withdrawingAmount: 0
-        });
+        uint8 batchSize = 50;
 
-        emit StrategyAdded(_strategy);
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        for (address strategy : _strategies) {
+            strategies[strategy] = StrategyParams({
+                lastReport: 0,
+                totalGain: 0,
+                depositingAmount: 0,
+                withdrawingAmount: 0
+            });
+        }
+
+        emit StrategiesAdded(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function removeStrategy(address _strategy) override external onlyOwner minCallValue {
-        require (strategies.exists(_strategy));
+    function removeStrategies(address[] _strategies) override external onlyOwner {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        for (address strategy : _strategies) {
+            require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+
+            delete strategies[strategy];
+        }
 
         tvm.rawReserve(_reserve(),0);
-
-        emit StrategyRemoved(_strategy);
-        delete strategies[_strategy];
+        
+        emit StrategiesRemoved(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

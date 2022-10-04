@@ -33,6 +33,8 @@ library ErrorCodes {
     uint16 constant AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS = 1027;
     uint16 constant NOT_ENOUGH_TOTAL_ASSETS = 1028;
     uint16 constant ST_EVER_VAULT_PAUSED = 1029;
+    uint16 constant MAX_BATCH_SIZE_REACHED = 1030;
+    uint16 constant STRATEGY_ALREADY_EXISTS = 1031;
 
 
     // StEverAccount

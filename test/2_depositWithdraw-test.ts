@@ -2,13 +2,14 @@ import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Contract, Signer, toNano, TraceType } from "locklift";
+import { Contract, fromNano, Signer, toNano, TraceType } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
-import { lastValueFrom, timer } from "rxjs";
+import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
 import { AbiEventName, DecodedEventWithTransaction } from "../../ever-locklift";
+import { ITERATION_FEE } from "../utils/constants";
 
 let signer: Signer;
 let admin: User;
@@ -159,14 +160,38 @@ describe("Deposit withdraw test", function () {
   });
   it("user should successfully withdraw", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
+    const vaultBalanceBefore = await vault.getDetails();
+
     const { availableAssets: availableAssetsBeforeWithdraw } = await vault.getDetails();
     const userStBalanceBeforeWithdraw = await user1.wallet.getBalance();
-    const { successEvents } = await makeWithdrawToUsers({
-      vault: vault,
-      users: [user1],
-      governance,
-      amount: WITHDRAW_AMOUNT.toString(),
+    const withdrawToUserConfig = await lastValueFrom(
+      range(2).pipe(
+        concatMap(() => user1.makeWithdrawRequest(WITHDRAW_AMOUNT.dividedBy(2).toString())),
+        toArray(),
+        map(requests => [user1.account.address, { nonces: requests.map(({ nonce }) => nonce) }] as const),
+      ),
+    );
+
+    const { transaction } = await governance.emitWithdraw({
+      sendConfig: [withdrawToUserConfig],
     });
+    const successEvents = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawSuccess",
+      parentTransaction: transaction,
+    });
+    const vaultBalanceAfter = await vault.getDetails();
+    const additionalBalanceAfterWithdraw = vaultBalanceAfter.contractBalance.minus(
+      vaultBalanceBefore.contractBalance.minus(WITHDRAW_AMOUNT),
+    );
+    expect(additionalBalanceAfterWithdraw.toNumber())
+      .to.be.gt(0, "vault balance should rise")
+      .and.lt(Number(ITERATION_FEE), "rise should be lt iteration FEE");
+
+    console.log(
+      `${fromNano(vaultBalanceBefore.contractBalance.toNumber())} -> ${fromNano(
+        vaultBalanceAfter.contractBalance.toNumber(),
+      )}`,
+    );
     successEvents.forEach(event => {
       expect(event.data.user.equals(user1.account.address)).to.be.true;
       expect(event.data.amount).to.equal(WITHDRAW_AMOUNT.toString(), "user should receive evers by rate 1:1");

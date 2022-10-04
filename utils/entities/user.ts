@@ -85,6 +85,7 @@ export class User {
           amount: amountBn.plus(feeBn).toString(),
         }),
     );
+    debugger;
 
     const depositEvents = await this.vault.getEventsAfterTransaction({
       eventName: "Deposit",

@@ -126,8 +126,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
-        return availableAssets > StEverVaultGas.CONTRACT_MIN_BALANCE &&
-         availableAssets - StEverVaultGas.CONTRACT_MIN_BALANCE >= _amount;
+        return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
+         availableAssets - StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE >= _amount;
     }
 
     function isStrategyInInitialState(address _strategy) internal view returns (bool) {

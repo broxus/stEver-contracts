@@ -8,7 +8,6 @@ import "./interfaces/IStEverVault.sol";
 import "./utils/ErrorCodes.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
-import "locklift/src/console.sol";
 
 
 contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
@@ -212,7 +211,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         bool,
         uint8
     ) override external onlyDepool {
-        tvm.accept();
+        tvm.accept();        
         /*
         making free 0.11 ever for evaluating report also full msg.value if report has attached withdraw value
         */

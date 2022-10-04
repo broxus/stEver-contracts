@@ -65,7 +65,7 @@ describe("Single flow", async function () {
   it("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
     const DEPOSIT_FEE = toNanoBn(0.6);
-    await governance.depositToStrategies({
+    const { successEvents } = await governance.depositToStrategies({
       _depositConfigs: [
         [
           strategiesWithPool[0].strategy.address,
@@ -76,6 +76,7 @@ describe("Single flow", async function () {
         ],
       ],
     });
+    expect(successEvents.length).to.be.eq(1);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
@@ -84,7 +85,7 @@ describe("Single flow", async function () {
       .minus(stateBefore.gainFee)
       .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
     const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
-
+    console.log(JSON.stringify(stateBefore, null, 4));
     const events = await vault.getEventsAfterTransaction({
       eventName: "StrategyReported",
       parentTransaction: transaction,
