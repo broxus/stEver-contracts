@@ -6218,7 +6218,7 @@ CALL $decodeDepositPayload_94b131d7_internal_macro$
 CTOS
 .loc ../contracts/base/StEverVaultBase.sol, 162
 DUP
-PUSHINT 32
+PUSHINT 64
 PUSHINT 0
 SCHKBITREFSQ
 PUSHCONT {

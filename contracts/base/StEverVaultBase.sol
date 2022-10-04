@@ -159,7 +159,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         // check if payload assembled correctly
         TvmSlice slice = _payload.toSlice();
         // 1 cell
-        if (!slice.hasNBitsAndRefs(32, 0)) {
+        if (!slice.hasNBitsAndRefs(64, 0)) {
             return (0, false);
         }
 
