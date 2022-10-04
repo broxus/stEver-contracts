@@ -130,10 +130,10 @@ const main = async () => {
       validate: (value: number) => value >= MIN_GAIN_FEE,
     },
     {
-      type: "text",
+      type: "number",
       name: "stEverPercentFee",
       message: "StEver platform fee (0..1000), 1% == 10",
-      validate: (value: string) => new BigNumber(value).gte(0) && new BigNumber(value).lte(ONE_HANDED_PERCENT),
+      validate: (value: number) => value >= 0 && value <= 1000,
     },
   ]);
 
