@@ -84,10 +84,10 @@ const deployAndSetupStEverVault = async ({
   );
 };
 const main = async () => {
-  const MIN_DEPLOY_VAULT_VALUE_IN_EVER = 100;
+  const MIN_DEPLOY_VAULT_VALUE_IN_EVER = toNano(100);
   const ONE_HANDED_PERCENT = 1000;
 
-  const MIN_GAIN_FEE = 1;
+  const MIN_GAIN_FEE = toNano(1);
   const signer = await locklift.keystore.getSigner("0");
 
   if (!process.env.SEED || !process.env.MAIN_GIVER_KEY) {
@@ -120,20 +120,20 @@ const main = async () => {
     {
       type: "number",
       name: "deployVaultValue",
-      message: "StEverVault deploy value (ever), min 100 ever",
-      validate: (value: number) => value >= MIN_DEPLOY_VAULT_VALUE_IN_EVER,
+      message: "StEverVault deploy value (nano ever), min 100 ever",
+      validate: (value: number) => value >= Number(MIN_DEPLOY_VAULT_VALUE_IN_EVER),
     },
     {
       type: "number",
       name: "gainFee",
-      message: "GainFee (ever) ,min 1 ever",
-      validate: (value: number) => value >= MIN_GAIN_FEE,
+      message: "GainFee (nano ever), min 1 ever",
+      validate: (value: number) => value >= Number(MIN_GAIN_FEE),
     },
     {
       type: "number",
       name: "stEverPercentFee",
-      message: "StEver platform fee (0..1000), 1% == 10",
-      validate: (value: number) => value >= 0 && value <= 1000,
+      message: `StEver platform fee (0..${ONE_HANDED_PERCENT}), 1% == ${ONE_HANDED_PERCENT / 100}`,
+      validate: (value: number) => value >= 0 && value <= ONE_HANDED_PERCENT,
     },
   ]);
 
@@ -144,8 +144,8 @@ const main = async () => {
   console.log("\x1b[1m", "\nSetup complete! ✔ ");
 
   const { deployVaultValue, gainFee, stEverFeePercent, adminAddress, tokenRoot } = {
-    deployVaultValue: toNano(response.deployVaultValue),
-    gainFee: toNano(response.gainFee),
+    deployVaultValue: response.deployVaultValue,
+    gainFee: response.gainFee,
     adminAddress: new Address(response.mSigWallet),
     stEverFeePercent: response.stEverPercentFee,
     tokenRoot: new Address(response.tokenRoot),
