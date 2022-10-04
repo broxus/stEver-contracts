@@ -1,14 +1,12 @@
-import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { toNanoBn } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano, TraceType } from "locklift";
+import { Contract, fromNano, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
-import { AbiEventName, DecodedEventWithTransaction } from "../../ever-locklift";
 import { ITERATION_FEE } from "../utils/constants";
 
 let signer: Signer;
