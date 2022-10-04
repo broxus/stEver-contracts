@@ -22,7 +22,6 @@ export class User {
     const withdrawPayload = await this.vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
-        _deposit_owner: this.account.address,
       })
       .call();
     const txWithNonce = await locklift.tracing

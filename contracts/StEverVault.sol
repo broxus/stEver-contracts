@@ -447,7 +447,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
 
-        (address depositOwner, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
+        (uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
         /*
         StEverVaultGas.WITHDRAW_FEE: reserved as gas that will be used in IStEverAccount.processWithdraw in processSendToUsers method
@@ -462,8 +462,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         if (
             msg.value < requiredAttachedValue ||
             !_correct ||
-            isPaused ||
-            depositOwner != _sender
+            isPaused
         ) {
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);

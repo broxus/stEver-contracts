@@ -467,7 +467,7 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
     ) override external minCallValue notPaused {
         require (msg.sender == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
 
-        (, uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
+        (uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
         // if not enough value, resend tokens to sender
         if (msg.value < StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA || !_correct) {

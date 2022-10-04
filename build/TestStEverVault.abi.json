@@ -398,7 +398,6 @@
 		{
 			"name": "encodeDepositPayload",
 			"inputs": [
-				{"name":"_deposit_owner","type":"address"},
 				{"name":"_nonce","type":"uint64"}
 			],
 			"outputs": [
@@ -411,7 +410,6 @@
 				{"name":"_payload","type":"cell"}
 			],
 			"outputs": [
-				{"name":"deposit_owner","type":"address"},
 				{"name":"nonce","type":"uint64"},
 				{"name":"correct","type":"bool"}
 			]

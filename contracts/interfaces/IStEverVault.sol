@@ -166,7 +166,7 @@ interface IStEverVault {
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
 
     // utils
-    function encodeDepositPayload(address deposit_owner, uint64 nonce) external pure returns (TvmCell deposit_payload);
+    function encodeDepositPayload(uint64 nonce) external pure returns (TvmCell deposit_payload);
 
     // setters
     function setGainFee(uint128 _gainFee) external;

@@ -149,25 +149,23 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 		return math.max(address(this).balance - (msg.value - _fee), StEverVaultGas.CONTRACT_MIN_BALANCE);
 	}
 
-    function encodeDepositPayload(address _deposit_owner, uint64 _nonce) external override pure returns (TvmCell depositPayload) {
+    function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
         TvmBuilder builder;
-        builder.store(_deposit_owner);
         builder.store(_nonce);
         return builder.toCell();
     }
 
-    function decodeDepositPayload(TvmCell _payload) public virtual pure returns (address deposit_owner, uint64 nonce, bool correct) {
+    function decodeDepositPayload(TvmCell _payload) public virtual pure returns (uint64 nonce, bool correct) {
         // check if payload assembled correctly
         TvmSlice slice = _payload.toSlice();
-        // 1 address and 1 cell
-        if (!slice.hasNBitsAndRefs(267 + 32, 0)) {
-            return (address.makeAddrNone(), 0, false);
+        // 1 cell
+        if (!slice.hasNBitsAndRefs(32, 0)) {
+            return (0, false);
         }
 
-        deposit_owner = slice.decode(address);
         nonce = slice.decode(uint64);
 
-        return (deposit_owner, nonce, true);
+        return (nonce, true);
     }
         // when the user deposits we should calculate the amount of stEver to send
     function getDepositStEverAmount(uint128 _amount) public view returns(uint128) {

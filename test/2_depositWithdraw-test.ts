@@ -53,7 +53,6 @@ describe("Deposit withdraw test", function () {
     const withdrawPayload = await vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
-        _deposit_owner: user1.account.address,
       })
       .call();
 
@@ -127,7 +126,6 @@ describe("Deposit withdraw test", function () {
     const withdrawPayload = await vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
-        _deposit_owner: user1.account.address,
       })
       .call();
 
