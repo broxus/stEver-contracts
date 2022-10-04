@@ -30,7 +30,7 @@ const createAndAddStrategyToDePool = async ({
       }),
   );
   logger.successStep(`Transaction successfully sent, tx: ${transaction.id.hash}`);
-  logger.startStep("Waiting strategy address");
+  logger.startStep("Waiting for strategy address");
   const deployStrategyEvent = (
     await strategyFactoryContract.getPastEvents({
       filter: "NewStrategyDeployed",
@@ -64,7 +64,7 @@ const createAndAddStrategyToDePool = async ({
 const main = async () => {
   const REQUIRED_BALANCE = toNano(23);
 
-  const signer = await locklift.keystore.getSigner("15");
+  const signer = await locklift.keystore.getSigner("0");
 
   if (!process.env.SEED) {
     throw new Error("SEED phrase should be provided as env parameters");
