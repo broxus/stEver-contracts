@@ -58,7 +58,7 @@ export const createAndRegisterStrategy = async ({
   poolDeployValue: string;
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
-}): Promise<{ strategy: DePoolStrategyWithPool; transaction: Transaction }> => {
+}) => {
   const strategy = await createStrategy({
     signer,
     strategyDeployValue,

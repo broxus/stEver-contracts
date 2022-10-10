@@ -36,12 +36,26 @@ describe("Deposit withdraw test", function () {
   });
 
   it("user should successfully deposited", async () => {
+    const valurBalanceBefore = await vault.getDetails();
     const DEPOSIT_AMOUNT = toNanoBn(20);
-    await user1.depositToVault(DEPOSIT_AMOUNT.toString());
+    const { traceTree } = await user1.depositToVault(DEPOSIT_AMOUNT.toString());
     const balance = await user1.wallet.getBalance();
     const { availableAssets } = await vault.getDetails();
     expect(balance.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "user should receive stEvers by rate 1:1");
     expect(availableAssets.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "vault should have availableAssets");
+    const valurBalanceAfter = await vault.getDetails();
+    console.log(await traceTree!.beautyPrint());
+    console.log(`total gas Used ${fromNano(traceTree!.gasUsed())}`);
+    console.log(`StEverVault address ${vault.vaultContract.address.toString()}`);
+    console.log(
+      `${valurBalanceBefore.contractBalance.toString()} -> ${valurBalanceAfter.contractBalance.toString()} -> ${valurBalanceAfter.contractBalance
+        .minus(valurBalanceBefore.contractBalance)
+        .toString()}`,
+    );
+    console.log(
+      `Diff ${JSON.stringify(traceTree?.getBalanceDiff([vault.vaultContract, user1.account.address]), null, 4)}`,
+    );
+    // console.log(JSON.stringify(traceTree!.balanceChangeInfo, null, 4));
   });
 
   it("user shouldn't withdraw with bad value", async () => {
@@ -160,17 +174,25 @@ describe("Deposit withdraw test", function () {
 
     const { availableAssets: availableAssetsBeforeWithdraw } = await vault.getDetails();
     const userStBalanceBeforeWithdraw = await user1.wallet.getBalance();
-    const withdrawToUserConfig = await lastValueFrom(
+    const { withdrawToUserConfig, traceTree } = await lastValueFrom(
       range(2).pipe(
         concatMap(() => user1.makeWithdrawRequest(WITHDRAW_AMOUNT.dividedBy(2).toString())),
         toArray(),
-        map(requests => [user1.account.address, { nonces: requests.map(({ nonce }) => nonce) }] as const),
+        map(requests => ({
+          withdrawToUserConfig: [user1.account.address, { nonces: requests.map(({ nonce }) => nonce) }] as const,
+          traceTree: requests.map(el => el.traceTree),
+        })),
       ),
     );
+    console.log(await traceTree![0]!.beautyPrint());
+    console.log(`total gas Used ${fromNano(traceTree![0]!.gasUsed())}`);
+    console.log(`StEverVault address ${vault.vaultContract.address.toString()}`);
+    console.log(JSON.stringify(traceTree[0]!.balanceChangeInfo, null, 4));
 
     const { transaction } = await governance.emitWithdraw({
       sendConfig: [withdrawToUserConfig],
     });
+
     const successEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawSuccess",
       parentTransaction: transaction,

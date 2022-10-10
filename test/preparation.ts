@@ -8,7 +8,7 @@ import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Account } from "locklift/everscale-standalone-client";
-import { GetExpectedAddressParams } from "everscale-inpage-provider";
+import { GetExpectedAddressParams } from "locklift/everscale-inpage-provider";
 import { FactoryType } from "locklift/build/factory";
 
 export const preparation = async ({

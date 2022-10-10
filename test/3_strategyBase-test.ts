@@ -1,9 +1,10 @@
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano } from "locklift";
+import { Contract, fromNano, lockliftChai, Signer, toNano, TraceType } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
+import * as chai from "chai";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
@@ -12,6 +13,8 @@ import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
+
+chai.use(lockliftChai);
 
 let signer: Signer;
 let admin: User;
@@ -73,7 +76,7 @@ describe("Strategy base", function () {
     const vaultStateBefore = await vault.getDetails();
 
     console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
-    const { successEvents } = await governance.depositToStrategies({
+    const { successEvents, traceTree } = await governance.depositToStrategies({
       _depositConfigs: [
         [
           strategy.strategy.address,
@@ -84,7 +87,11 @@ describe("Strategy base", function () {
         ],
       ],
     });
-
+    expect(traceTree).to.emit("StrategyHandledDeposit").count(1).withNamedArgs({
+      depositValue: "119400000000",
+      strategy: strategy.strategy.address,
+    });
+    debugger;
     expect(successEvents.length).to.be.equal(1);
     const vaultStateAfter = await vault.getDetails();
 
@@ -320,7 +327,7 @@ describe("Strategy base", function () {
     await user1.depositToVault(locklift.utils.toNano(1000));
     console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
-    await governance.depositToStrategies({
+    const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: strategies.map(({ strategy }) => [
         strategy.address,
         {
@@ -329,6 +336,8 @@ describe("Strategy base", function () {
         },
       ]),
     });
+    console.log(await traceTree!.beautyPrint());
+    console.log(`total gas Used ${fromNano(traceTree!.gasUsed())}`);
 
     console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });

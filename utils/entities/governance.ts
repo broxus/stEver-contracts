@@ -18,7 +18,7 @@ export class Governance {
   };
 
   depositToStrategies = async (...params: Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>) => {
-    const { transaction } = await locklift.tracing.trace(
+    const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .depositToStrategies(...params)
         .sendExternal({ publicKey: this.keyPair.publicKey }),
@@ -40,6 +40,7 @@ export class Governance {
       errorEvents: depositToStrategyErrorEvents,
       processingErrorEvent,
       transaction,
+      traceTree,
     };
   };
 

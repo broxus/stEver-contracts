@@ -66,7 +66,7 @@ export class User {
       }),
     );
   };
-  depositToVault = async (amount: string, fee: string = locklift.utils.toNano(2)): Promise<any> => {
+  depositToVault = async (amount: string, fee: string = locklift.utils.toNano(2)) => {
     const feeBn = new BigNumber(fee);
     const amountBn = new BigNumber(amount);
     const { value0: stateBeforeWithdraw } = await this.vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
@@ -84,7 +84,6 @@ export class User {
           amount: amountBn.plus(feeBn).toString(),
         }),
     );
-    debugger;
 
     const depositEvents = await this.vault.getEventsAfterTransaction({
       eventName: "Deposit",
@@ -101,6 +100,7 @@ export class User {
       expectedStEverAmount.toFixed(0, BigNumber.ROUND_DOWN).toString(),
       "user should receive the correct amount of stEvers",
     );
+    return transaction;
   };
   startEmergency = async ({ attachedValue, proofNonce }: { proofNonce: number; attachedValue: string }) => {
     const transaction = await locklift.tracing.trace(
