@@ -1,4 +1,4 @@
-import { Address, Contract, Signer } from "locklift";
+import { Contract, Signer } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { assertEvent, getAddressEverBalance, getBalance, getBalances, toNanoBn } from "../utils";
@@ -9,7 +9,6 @@ import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
-import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { intersectionWith } from "lodash";
@@ -101,23 +100,22 @@ describe("Multi flow", async function () {
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
       .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
-    await lastValueFrom(
-      from(strategiesWithPool).pipe(concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString()))),
+    const traces = await lastValueFrom(
+      from(strategiesWithPool).pipe(
+        concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString())),
+        map(({ traceTree }) => traceTree),
+        toArray(),
+      ),
     );
-
-    const { events } = await vault.vaultContract.getPastEvents({ filter: ({ event }) => event === "StrategyReported" });
-    assertEvent(events, "StrategyReported");
-    expect(events.length).to.equal(strategiesWithPool.length);
-    expect(
-      intersectionWith(
-        events.map(event => event.data.strategy),
-        strategiesWithPool.map(({ strategy }) => strategy.address),
-        (address1, address2) => address1.equals(address2),
-      ).length,
-    ).to.be.equals(strategiesWithPool.length, "All strategies should be reported");
-
-    events.forEach(event => {
-      expect(event.data.report.gain).to.be.equals(EXPECTED_REWARD.toString(), "Gain should be correct");
+    strategiesWithPool.forEach(({ strategy }, idx) => {
+      expect(traces[idx])
+        .to.emit("StrategyReported")
+        .withNamedArgs({
+          strategy: strategy.address,
+          report: {
+            gain: EXPECTED_REWARD.toString(),
+          },
+        });
     });
 
     const stateAfter = await vault.getDetails();
@@ -135,7 +133,7 @@ describe("Multi flow", async function () {
     const WITHDRAW_AMOUNT = toNanoBn(250);
     const FEE_AMOUNT = toNanoBn(0.1);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    const withdrawSuccessEvents = await governance.withdrawFromStrategiesRequest({
+    await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
         strategy.address,
         {
@@ -196,7 +194,6 @@ describe("Multi flow", async function () {
     } = await governance.emitWithdraw({
       sendConfig: withdrawNonces.map(({ nonces, user }) => [user.account.address, { nonces }]),
     });
-    debugger;
     console.log(await traceTree!.beautyPrint());
 
     const balancesAfterWithdraw = await getBalances(users.map(user => user.account.address));

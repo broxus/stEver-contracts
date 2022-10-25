@@ -103,7 +103,7 @@ export class User {
     return transaction;
   };
   startEmergency = async ({ attachedValue, proofNonce }: { proofNonce: number; attachedValue: string }) => {
-    const transaction = await locklift.tracing.trace(
+    const { traceTree, ...transaction } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .startEmergencyProcess({
           _poofNonce: proofNonce,
@@ -112,6 +112,7 @@ export class User {
           from: this.account.address,
           amount: attachedValue,
         }),
+      { rise: false },
     );
     const successEvents = await this.vault.getEventsAfterTransaction({
       eventName: "EmergencyProcessStarted",
@@ -124,6 +125,7 @@ export class User {
     return {
       successEvents,
       errorEvents,
+      traceTree,
     };
   };
   emergencyWithdraw = () => {
@@ -132,6 +134,7 @@ export class User {
         from: this.account.address,
         amount: toNano(2),
       }),
+      { rise: false },
     );
   };
 

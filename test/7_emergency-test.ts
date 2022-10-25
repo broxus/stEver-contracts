@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano } from "locklift";
+import { Contract, fromNano, lockliftChai, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -12,6 +12,8 @@ import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
 import { isT, toNanoBn } from "../utils";
+import chai from "chai";
+chai.use(lockliftChai);
 
 let signer: Signer;
 let admin: User;
@@ -86,47 +88,36 @@ describe("Emergency testing", function () {
     const ATTACHED_VALUE = new BigNumber(toNano(1.3)).multipliedBy(strategies.length);
 
     expect(emergencyBefore.isEmergency).to.be.equals(false, "by default vault should be in initial state");
-    const { errorEvents } = await user1.startEmergency({
+    const { traceTree } = await user1.startEmergency({
       proofNonce: Number(nonce),
       attachedValue: ATTACHED_VALUE.toString(),
     });
-    expect(errorEvents.length).to.be.equals(1);
-    expect(errorEvents[0].data.emitter.equals(user1.account.address)).to.be.equals(true, "emitter should be the user");
-    expect(errorEvents[0].data.errcode).to.be.equals(
-      "2004",
-      "emergency can't be activated without expired pending withdraw",
-    );
+    expect(traceTree).to.emit("EmergencyProcessRejectedByAccount").count(1).withNamedArgs({
+      emitter: user1.account.address,
+      errcode: "2004",
+    });
 
     await locklift.testing.increaseTime(60 * 60 * 169);
 
     const userBalanceBeforeActivatingEmergency = await locklift.provider.getBalance(user1.account.address);
 
-    const { successEvents } = await user1.startEmergency({
+    const { traceTree: successTraceTree } = await user1.startEmergency({
       proofNonce: Number(nonce),
       attachedValue: ATTACHED_VALUE.toString(),
     });
-
-    expect(successEvents.length).to.be.equals(1, "emergency should activated after expired pending withdraw");
-    expect(successEvents[0].data.emitter.equals(user1.account.address)).to.be.equals(
-      true,
-      "emitter of emergency should be sender",
-    );
-
+    expect(successTraceTree).to.emit("EmergencyProcessStarted").count(1).withNamedArgs({
+      emitter: user1.account.address,
+    });
+    const balanceChange = successTraceTree!.getBalanceDiff(user1.account.address);
     const userBalanceAfterActivatingEmergency = await locklift.provider.getBalance(user1.account.address);
 
     const MAX_WASTED_FEE_PER_STRATEGY = toNanoBn(0.2);
     const maxWastedFee = MAX_WASTED_FEE_PER_STRATEGY.multipliedBy(strategies.length);
+    // expect(new BigNumber(balanceChange)).to.be.lt(maxWastedFee.toNumber(), "user should spent less than max fee");
 
-    expect(Number(userBalanceAfterActivatingEmergency)).to.be.gt(
-      new BigNumber(userBalanceBeforeActivatingEmergency).minus(maxWastedFee).toNumber(),
-      "user should spent less than max fee",
-    );
-    console.log(
-      `user balance ${fromNano(userBalanceBeforeActivatingEmergency)} -> ${fromNano(
-        userBalanceAfterActivatingEmergency,
-      )}`,
-    );
-
+    console.log(await traceTree?.beautyPrint());
+    console.log(balanceChange);
+    console.log(`user balance ${userBalanceBeforeActivatingEmergency} -> ${userBalanceAfterActivatingEmergency}`);
     const { emergencyState: emergencyAfter } = await vault.getDetails();
 
     expect(emergencyAfter.isEmergency).to.be.equals(true, "state should be switched to the emergency state");
@@ -171,14 +162,9 @@ describe("Emergency testing", function () {
     expect(emergencyState.isPaused).to.be.equals(true);
   });
   it("user shouldn't make emergency withdraw request when emergency is paused", async () => {
-    const result = await user1
-      .emergencyWithdraw()
-      .then(() => "success")
-      .catch(e => e.message);
-    expect(result).to.be.equals(
-      "Reverted with 1025 code on compute phase",
-      "transaction should reverted cause emergency state paused",
-    );
+    const result = await user1.emergencyWithdraw();
+
+    expect(result.traceTree).to.have.error(1025);
   });
   it("admin should remove paused state from emergency", async () => {
     const turnEmergencyPausedOffTx = await vault.changeEmergencyPausedState({ isPaused: false });

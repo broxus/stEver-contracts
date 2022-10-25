@@ -9,7 +9,6 @@ import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
-import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 
 let signer: Signer;
@@ -76,7 +75,7 @@ describe("Single flow", async function () {
         ],
       ],
     });
-    expect(successEvents.length).to.be.eq(1);
+    expect(successEvents?.length).to.be.eq(1);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
@@ -84,18 +83,20 @@ describe("Single flow", async function () {
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
       .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
-    const { transaction } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
+    const { transaction, traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
     console.log(JSON.stringify(stateBefore, null, 4));
-    const events = await vault.getEventsAfterTransaction({
-      eventName: "StrategyReported",
-      parentTransaction: transaction,
-    });
 
-    expect(events[0].data.strategy.equals(strategiesWithPool[0].strategy.address)).to.be.true;
-    expect(events[0].data.report.gain).to.be.equals(
-      EXPECTED_REWARD.toString(),
-      "reported gain should be reduced by fee",
-    );
+    expect(traceTree)
+      .to.emit("StrategyReported")
+      .withNamedArgs(
+        {
+          strategy: strategiesWithPool[0].strategy.address,
+          report: {
+            gain: EXPECTED_REWARD.toString(),
+          },
+        },
+        "reported gain should be reduced by fee",
+      );
 
     const stateAfter = await vault.getDetails();
     expect(stateAfter.totalAssets.toString()).equals(
@@ -115,11 +116,11 @@ describe("Single flow", async function () {
       governance,
       amount: locklift.utils.toNano(WITHDRAW_AMOUNT),
     });
-    expect(errorEvents[0].data.user.equals(user1.account.address)).to.be.true;
-    expect(errorEvents[0].data.amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
+    expect(errorEvents[0].user.equals(user1.account.address)).to.be.true;
+    expect(errorEvents[0].amount).to.equal(locklift.utils.toNano(WITHDRAW_AMOUNT));
 
     const { amount, nonce } = (await user1.getWithdrawRequests())[0];
-    expect(nonce).to.be.equals(errorEvents[0].data.withdrawInfo[0][0]);
+    expect(nonce).to.be.equals(errorEvents[0].withdrawInfo[0][0]);
     expect(amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
   });
   it("should successfully withdraw from strategy", async () => {
@@ -137,7 +138,7 @@ describe("Single flow", async function () {
       ],
     });
     expect(successEvents.length).to.be.equals(1);
-    expect(successEvents[0].data.amount).equals(WITHDRAW_AMOUNT.toString());
+    expect(successEvents[0].amount).equals(WITHDRAW_AMOUNT.toString());
     await strategiesWithPool[0].emitWithdrawByRequests();
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
@@ -154,27 +155,25 @@ describe("Single flow", async function () {
 
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
     const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
-    const { transaction } = await governance.emitWithdraw({
+    const { traceTree } = await governance.emitWithdraw({
       sendConfig: [[user1.account.address, { nonces: [nonce] }]],
     });
-    const success = await vault.getEventsAfterTransaction({
-      eventName: "WithdrawSuccess",
-      parentTransaction: transaction,
+
+    expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
+      user: user1.account.address,
+      amount: expectedEverAmountWithReward,
     });
 
     const { value0: stateAfterWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    expect(success[0].data.user.equals(user1.account.address)).to.be.true;
-
-    expect(success[0].data.amount).to.equal(expectedEverAmountWithReward);
 
     expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(expectedEverAmountWithReward).toString()).to.be.equals(
       stateAfterWithdraw.totalAssets,
       "totalAssets should be reduced by the amount withdrawn",
     );
 
-    expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(success[0].data.amount).toString()).to.be.equals(
-      stateAfterWithdraw.totalAssets,
-    );
+    // expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(success[0].data.amount).toString()).to.be.equals(
+    //   stateAfterWithdraw.totalAssets,
+    // );
 
     expect(new BigNumber(stateBeforeWithdraw.stEverSupply).minus(withdrawAmount).toString()).to.be.equals(
       stateAfterWithdraw.stEverSupply,
