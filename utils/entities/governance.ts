@@ -18,63 +18,67 @@ export class Governance {
   };
 
   depositToStrategies = async (...params: Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>) => {
-    const { transaction } = await locklift.tracing.trace(
+    const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .depositToStrategies(...params)
         .sendExternal({ publicKey: this.keyPair.publicKey }),
     );
-    const depositSuccessEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "StrategyHandledDeposit",
-      parentTransaction: transaction,
+
+    const depositSuccessEvents = traceTree?.findEventsForContract({
+      contract: this.vault.vaultContract,
+      name: "StrategyHandledDeposit" as const,
     });
-    const depositToStrategyErrorEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "StrategyDidntHandleDeposit",
-      parentTransaction: transaction,
+    const depositToStrategyErrorEvents = traceTree?.findEventsForContract({
+      name: "StrategyDidntHandleDeposit" as const,
+      contract: this.vault.vaultContract,
     });
-    const processingErrorEvent = await this.vault.getEventsAfterTransaction({
-      eventName: "ProcessDepositToStrategyError",
-      parentTransaction: transaction,
+    const processingErrorEvent = traceTree?.findEventsForContract({
+      name: "ProcessDepositToStrategyError" as const,
+      contract: this.vault.vaultContract,
     });
     return {
       successEvents: depositSuccessEvents,
       errorEvents: depositToStrategyErrorEvents,
       processingErrorEvent,
       transaction,
+      traceTree,
     };
   };
 
   withdrawFromStrategiesRequest = async (
     ...params: Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawFromStrategies"]>
   ) => {
-    const { transaction } = await locklift.tracing.trace(
+    const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .processWithdrawFromStrategies(...params)
         .sendExternal({ publicKey: this.keyPair.publicKey }),
     );
-    const successEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "StrategyHandledWithdrawRequest",
-      parentTransaction: transaction,
+
+    const successEvents = traceTree!.findEventsForContract({
+      contract: this.vault.vaultContract,
+      name: "StrategyHandledWithdrawRequest" as const,
     });
-    const errorEvent = await this.vault.getEventsAfterTransaction({
-      eventName: "StrategyWithdrawError",
-      parentTransaction: transaction,
+    const errorEvent = traceTree!.findEventsForContract({
+      contract: this.vault.vaultContract,
+      name: "StrategyWithdrawError" as const,
     });
-    const processingErrorEvent = await this.vault.getEventsAfterTransaction({
-      eventName: "ProcessWithdrawFromStrategyError",
-      parentTransaction: transaction,
+    const processingErrorEvent = traceTree!.findEventsForContract({
+      contract: this.vault.vaultContract,
+      name: "ProcessWithdrawFromStrategyError" as const,
     });
     return {
       successEvents,
       errorEvent,
       transaction,
       processingErrorEvent,
+      traceTree,
     };
   };
 
   forceWithdrawFromStrategies = async (
     ...params: Parameters<Contract<StEverVaultAbi>["methods"]["forceWithdrawFromStrategies"]>
   ) => {
-    const { transaction } = await locklift.tracing.trace(
+    const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .forceWithdrawFromStrategies(...params)
         .sendExternal({ publicKey: this.keyPair.publicKey }),
@@ -96,6 +100,7 @@ export class Governance {
       errorEvent,
       transaction,
       processingErrorEvent,
+      traceTree,
     };
   };
 
@@ -114,17 +119,22 @@ export class Governance {
   withdrawExtraMoneyFromStrategy = async (
     ...params: Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawExtraMoneyFromStrategies"]>
   ) => {
-    const { transaction } = await locklift.tracing.trace(
+    const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods.processWithdrawExtraMoneyFromStrategies(...params).sendExternal({
         publicKey: this.keyPair.publicKey,
       }),
     );
-    const successEvents = await this.vault.getEventsAfterTransaction({
-      eventName: "ReceiveExtraMoneyFromStrategy",
-      parentTransaction: transaction,
+    // const successEvents = await this.vault.getEventsAfterTransaction({
+    //   eventName: "ReceiveExtraMoneyFromStrategy",
+    //   parentTransaction: transaction,
+    // });
+    const successEvents = traceTree!.findEventsForContract({
+      contract: this.vault.vaultContract,
+      name: "ReceiveExtraMoneyFromStrategy" as const,
     });
     return {
       successEvents,
+      traceTree,
     };
   };
 }

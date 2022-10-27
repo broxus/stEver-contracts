@@ -25,18 +25,18 @@ export const makeWithdrawToUsers = async ({
     ),
   );
   debugger;
-  const { transaction } = await governance.emitWithdraw({
+  const { transaction, traceTree } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });
 
-  const withdrawSuccessEvents = await vault.getEventsAfterTransaction({
-    eventName: "WithdrawSuccess",
-    parentTransaction: transaction,
+  const withdrawSuccessEvents = traceTree?.findEventsForContract({
+    contract: vault.vaultContract,
+    name: "WithdrawSuccess" as const,
   });
-  const withdrawErrorEvents = await vault.getEventsAfterTransaction({
-    eventName: "WithdrawError",
-    parentTransaction: transaction,
-  });
+  const withdrawErrorEvents = traceTree?.findEventsForContract({
+    contract: vault.vaultContract,
+    name: "WithdrawError" as const,
+  })!;
 
   return {
     successEvents: withdrawSuccessEvents,
@@ -58,7 +58,7 @@ export const createAndRegisterStrategy = async ({
   poolDeployValue: string;
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
-}): Promise<{ strategy: DePoolStrategyWithPool; transaction: Transaction }> => {
+}) => {
   const strategy = await createStrategy({
     signer,
     strategyDeployValue,
