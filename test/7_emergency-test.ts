@@ -115,7 +115,7 @@ describe("Emergency testing", function () {
     const maxWastedFee = MAX_WASTED_FEE_PER_STRATEGY.multipliedBy(strategies.length);
     // expect(new BigNumber(balanceChange)).to.be.lt(maxWastedFee.toNumber(), "user should spent less than max fee");
 
-    console.log(await traceTree?.beautyPrint());
+    await traceTree?.beautyPrint();
     console.log(balanceChange);
     console.log(`user balance ${userBalanceBeforeActivatingEmergency} -> ${userBalanceAfterActivatingEmergency}`);
     const { emergencyState: emergencyAfter } = await vault.getDetails();

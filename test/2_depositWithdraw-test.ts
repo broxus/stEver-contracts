@@ -8,7 +8,6 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
 import { ITERATION_FEE } from "../utils/constants";
-
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -71,7 +70,7 @@ describe("Deposit withdraw test", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    console.log(await transaction.traceTree?.beautyPrint());
+    await transaction.traceTree?.beautyPrint();
     transaction.traceTree?.findEventsForContract({
       contract: vault.vaultContract,
       name: "StrategiesAdded",
@@ -105,7 +104,7 @@ describe("Deposit withdraw test", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    console.log(await transaction.traceTree!.beautyPrint());
+    await transaction.traceTree!.beautyPrint();
 
     console.log(transaction.traceTree?.tokens.getTokenBalanceChange(user1.wallet.walletContract));
 
@@ -169,7 +168,7 @@ describe("Deposit withdraw test", function () {
       sendConfig: [withdrawToUserConfig],
     });
 
-    console.log(await withdrawTraceTree[0]?.beautyPrint());
+    await withdrawTraceTree[0]?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess");
     const vaultBalanceAfter = await vault.getDetails();
     const additionalBalanceAfterWithdraw = vaultBalanceAfter.contractBalance.minus(

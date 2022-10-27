@@ -344,7 +344,7 @@ describe("Strategy base", function () {
         },
       ]),
     });
-    console.log(await traceTree!.beautyPrint());
+    await traceTree!.beautyPrint();
     console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
 
     console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);

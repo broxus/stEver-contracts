@@ -1,17 +1,18 @@
 import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
-import { NETWORK_PRESETS } from "everscale-standalone-client/nodejs";
-import _ from "lodash";
+
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
   const locklift: import("locklift").Locklift<FactorySource>;
 }
+import "sample-plugin";
 
 const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
 
 const config: LockliftConfig = {
+  greetingPhrase: "HI!",
   compiler: {
     // Specify path to your TON-Solidity-Compiler
     // path: "/mnt/o/projects/broxus/TON-Solidity-Compiler/build/solc/solc",
