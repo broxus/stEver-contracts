@@ -1,7 +1,6 @@
-import { Address, fromNano, Signer, toNano, WalletTypes, zeroAddress } from "locklift";
+import { Address, fromNano, Signer, toNano } from "locklift";
 import { getVaultInfo, isValidAddress, logger } from "./utils";
 import prompts from "prompts";
-import { Account } from "locklift/everscale-standalone-client";
 import BigNumber from "bignumber.js";
 
 const deployAndSetupStEverVault = async ({
@@ -84,7 +83,7 @@ const deployAndSetupStEverVault = async ({
   );
 };
 const main = async () => {
-  const MIN_DEPLOY_VAULT_VALUE_IN_EVER = toNano(100);
+  const MIN_DEPLOY_VAULT_VALUE_IN_EVER = toNano(1);
   const ONE_HANDED_PERCENT = 1000;
 
   const MIN_GAIN_FEE = toNano(1);

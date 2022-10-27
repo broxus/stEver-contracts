@@ -3,11 +3,11 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 
-import "./interfaces/IStrategy.sol";
-import "./StEverAccount.sol";
-import "./base/StEverVaultEmergency.sol";
-import "./utils/ErrorCodes.sol";
-import "./utils/Constants.sol";
+import "../interfaces/IStrategy.sol";
+import "../StEverAccount.sol";
+import "../base/StEverVaultEmergency.sol";
+import "../utils/ErrorCodes.sol";
+import "../utils/Constants.sol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.sol";
@@ -17,7 +17,7 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCa
 import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.sol";
 
 
-contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
+contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
     constructor(
         address _owner,
         uint128 _gainFee,
@@ -80,7 +80,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         }
 
         tvm.rawReserve(_reserve(),0);
-
+        
         emit StrategiesRemoved(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -654,7 +654,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         TvmCell payload
     ) override external {
         require (wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
-        require (msg.sender == stTokenRoot, ErrorCodes.NOT_TOKEN_ROOT);
+
         tvm.rawReserve(_reserve(), 0);
 
         TvmSlice slice = payload.toSlice();

@@ -3,7 +3,7 @@ import { TokenWallet } from "./tokenWallet";
 import { Address, Contract, fromNano, toNano } from "locklift";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
-import { Account } from "locklift/everscale-standalone-client";
+import { Account } from "everscale-standalone-client";
 
 import { Vault } from "./vault";
 import { concatMap, from, lastValueFrom, timer } from "rxjs";

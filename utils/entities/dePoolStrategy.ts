@@ -64,6 +64,7 @@ export const createStrategy = async ({
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
 }): Promise<DePoolStrategyWithPool> => {
+  debugger;
   const dePool = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "TestDepool",

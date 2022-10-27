@@ -200,8 +200,11 @@ export class Vault {
     };
   };
 
-  upgradeVault = async (newVersion: number): Promise<UpgradedVault> => {
-    const { tvc, abi, code } = locklift.factory.getContractArtifacts("TestStEverVault");
+  upgradeVault = async (
+    newVersion: number,
+    vaultName: "TestStEverVault" | "StEverVault" | undefined = "TestStEverVault",
+  ): Promise<UpgradedVault> => {
+    const { tvc, abi, code } = locklift.factory.getContractArtifacts(vaultName);
     await locklift.tracing.trace(
       this.vaultContract.methods
         .upgrade({
@@ -216,7 +219,7 @@ export class Vault {
     );
     return new UpgradedVault(
       this.adminAccount,
-      locklift.factory.getDeployedContract("TestStEverVault", this.vaultContract.address),
+      locklift.factory.getDeployedContract(vaultName as "TestStEverVault", this.vaultContract.address),
       this.tokenRootContract,
       this.tokenWallet,
     );
