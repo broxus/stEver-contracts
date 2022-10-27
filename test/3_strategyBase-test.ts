@@ -58,12 +58,11 @@ describe("Strategy base", function () {
       strategy = newStrategy;
       return transaction;
     });
-
-    const strategyAddedEvents = await vault.getEventsAfterTransaction({
-      eventName: "StrategiesAdded",
-      parentTransaction: transaction,
-    });
-    expect(strategyAddedEvents[0].data.strategy[0].equals(strategy.strategy.address)).to.be.true;
+    expect(transaction.traceTree)
+      .to.emit("StrategiesAdded")
+      .withNamedArgs({
+        strategy: [strategy.strategy.address],
+      });
   });
   it("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
@@ -73,7 +72,7 @@ describe("Strategy base", function () {
     const vaultStateBefore = await vault.getDetails();
 
     console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
-    const { successEvents } = await governance.depositToStrategies({
+    const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: [
         [
           strategy.strategy.address,
@@ -85,11 +84,18 @@ describe("Strategy base", function () {
       ],
     });
 
-    expect(successEvents.length).to.be.equal(1);
+    expect(traceTree)
+      .to.call("depositToStrategies")
+      .count(1)
+      .and.emit("StrategyHandledDeposit")
+      .count(1)
+      .withNamedArgs({
+        strategy: strategy.strategy.address,
+        depositValue: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
+      });
+
     const vaultStateAfter = await vault.getDetails();
 
-    expect(successEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
-    expect(Number(successEvents[0].data.depositValue)).to.be.eq(DEPOSIT_TO_STRATEGIES_AMOUNT.toNumber());
     expect(vaultStateBefore.totalAssets.toNumber()).to.be.gt(
       vaultStateAfter.totalAssets.toNumber(),
       "total assets should be reduced by fee",
@@ -139,7 +145,7 @@ describe("Strategy base", function () {
 
     const vaultDetailsBefore = await vault.getDetails();
 
-    const { errorEvent } = await governance.withdrawFromStrategiesRequest({
+    const { traceTree } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [strategy.strategy.address, { amount: WITHDRAW_AMOUNT.toString(), fee: ATTACHED_FEE.toString() }],
       ],
@@ -154,9 +160,10 @@ describe("Strategy base", function () {
       vaultDetailsBefore.totalAssets.minus(ATTACHED_FEE).toNumber(),
       "some fee should returned after failed withdraw",
     );
+    expect(traceTree).to.emit("StrategyWithdrawError").count(1).withNamedArgs({
+      strategy: strategy.strategy.address,
+    });
 
-    expect(errorEvent.length).to.be.equal(1);
-    expect(errorEvent[0].data.strategy.equals(strategy.strategy.address)).to.be.true;
     await strategy.setDePoolWithdrawalState({ isClosed: false });
   });
 
@@ -167,7 +174,7 @@ describe("Strategy base", function () {
 
     const vaultStateBefore = await vault.getDetails();
     await strategy.setDePoolDepositsState({ isClosed: true });
-    const { errorEvents } = await governance.depositToStrategies({
+    const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: [
         [
           strategy.strategy.address,
@@ -180,7 +187,8 @@ describe("Strategy base", function () {
     });
 
     const vaultStateAfter = await vault.getDetails();
-    expect(errorEvents.length).to.be.equal(1);
+    expect(traceTree).to.emit("StrategyDidntHandleDeposit").count(1);
+
     expect(vaultStateAfter.availableAssets.toNumber()).to.be.gt(
       vaultStateBefore.availableAssets.minus(DEPOSIT_FEE).toNumber(),
       "some fee should be returned to vault, also full deposit amount should be returned",
@@ -197,7 +205,6 @@ describe("Strategy base", function () {
       poolDeployValue: locklift.utils.toNano(200),
       strategyFactory,
     });
-    const strategyBalanceBeforeReport = await strategyWithDePool.getStrategyBalance();
     await user1.depositToVault(locklift.utils.toNano(100));
     await governance.depositToStrategies({
       _depositConfigs: [
@@ -211,7 +218,6 @@ describe("Strategy base", function () {
       ],
     });
     await strategyWithDePool.emitDePoolRoundComplete(locklift.utils.toNano(10));
-    const strategyBalanceAfterReport = await strategyWithDePool.getStrategyBalance();
   });
   it("should validate deposit request", async () => {
     const result = await vault.vaultContract.methods
@@ -233,30 +239,32 @@ describe("Strategy base", function () {
     await lastValueFrom(timer(500));
     const FIRST_WITHDRAW_AMOUNT = toNanoBn(100);
     await user1.depositToVault(toNano(500));
-    const { successEvents } = await governance.withdrawFromStrategiesRequest({
+    const { traceTree } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [strategy.strategy.address, { amount: FIRST_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
       ],
     });
-    expect(successEvents.length).to.be.equals(1);
+    expect(traceTree).to.emit("StrategyHandledWithdrawRequest").count(1);
     const SECOND_WITHDRAW_AMOUNT = toNanoBn(201);
-    const { processingErrorEvent: withdrawingErrorEvents } = await governance.withdrawFromStrategiesRequest({
+    const { traceTree: withdrawTraceTree } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: [
         [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
       ],
     });
-    expect(withdrawingErrorEvents.length).to.be.equals(1);
-    expect(withdrawingErrorEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.equals(true);
-    expect(withdrawingErrorEvents[0].data.errcode).to.be.equals("1013", "strategy should not to be in initial state");
+    expect(withdrawTraceTree).to.emit("ProcessWithdrawFromStrategyError").count(1).withNamedArgs({
+      strategy: strategy.strategy.address,
+      errcode: "1013",
+    });
 
-    const { processingErrorEvent: depositingErrorEvents } = await governance.depositToStrategies({
+    const { traceTree: depositTraceTree } = await governance.depositToStrategies({
       _depositConfigs: [
         [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
       ],
     });
-    expect(depositingErrorEvents.length).to.be.equals(1);
-    expect(depositingErrorEvents[0].data.strategy.equals(strategy.strategy.address)).to.be.equals(true);
-    expect(depositingErrorEvents[0].data.errcode).to.be.equals("1013", "strategy should not to be in initial state");
+    expect(depositTraceTree).to.emit("ProcessDepositToStrategyError").count(1).withNamedArgs({
+      strategy: strategy.strategy.address,
+      errcode: "1013",
+    });
   });
   it("governance should make force withdraw from strategies", async () => {
     expect(
@@ -264,11 +272,12 @@ describe("Strategy base", function () {
     ).to.be.above(0, "strategy should in withdrawing state");
     const WITHDRAW_FROM_POOLING_ROUND_VALUE = toNanoBn(101);
     const ATTACHED_FEE = toNanoBn(0.6);
-    const { successEvents } = await governance.forceWithdrawFromStrategies({
+    const { traceTree, successEvents } = await governance.forceWithdrawFromStrategies({
       _withdrawConfig: [
         [strategy.strategy.address, { fee: toNano(0.6), amount: WITHDRAW_FROM_POOLING_ROUND_VALUE.toString() }],
       ],
     });
+    expect(traceTree).to.emit("StrategyWithdrawSuccess").count(1);
     expect(successEvents.length).to.be.equals(1);
     expect(Number(successEvents[0].data.amount)).to.be.gt(WITHDRAW_FROM_POOLING_ROUND_VALUE.toNumber());
     expect(Number(successEvents[0].data.amount)).to.be.lt(
@@ -276,24 +285,30 @@ describe("Strategy base", function () {
     );
   });
   it("report with low gain than the gain fee should be 0", async () => {
-    const { transaction } = await strategy.emitDePoolRoundComplete(toNano(0.9));
+    const { transaction, traceTree } = await strategy.emitDePoolRoundComplete(toNano(0.9));
     const events = await vault.getEventsAfterTransaction({
       eventName: "StrategyReported",
       parentTransaction: transaction,
     });
-    expect(events[0].data.report.gain).to.be.equals("0", "report less than the gain fee should be equals to 0");
+    expect(traceTree)
+      .to.emit("StrategyReported")
+      .count(1)
+      .withNamedArgs({
+        report: {
+          gain: "0",
+        },
+      });
   });
 
   it("governance should withdraw extra money from strategy", async () => {
     const vaultStateBefore = await vault.getDetails();
     console.log(`strategy balance ${await getAddressEverBalance(strategy.strategy.address)}`);
-    const { successEvents } = await governance.withdrawExtraMoneyFromStrategy({
+    const { traceTree, successEvents } = await governance.withdrawExtraMoneyFromStrategy({
       _strategies: [strategy.strategy.address],
     });
     const vaultStateAfter = await vault.getDetails();
-
-    expect(successEvents.length).to.be.equals(1);
-    expect(vaultStateBefore.availableAssets.plus(successEvents[0].data.value).toNumber()).to.be.eq(
+    expect(traceTree).to.emit("ReceiveExtraMoneyFromStrategy").count(1);
+    expect(vaultStateBefore.availableAssets.plus(successEvents[0]?.value || 0).toNumber()).to.be.eq(
       vaultStateAfter.availableAssets.toNumber(),
     );
   });
@@ -320,7 +335,7 @@ describe("Strategy base", function () {
     await user1.depositToVault(locklift.utils.toNano(1000));
     console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
-    await governance.depositToStrategies({
+    const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: strategies.map(({ strategy }) => [
         strategy.address,
         {
@@ -329,6 +344,8 @@ describe("Strategy base", function () {
         },
       ]),
     });
+    console.log(await traceTree!.beautyPrint());
+    console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
 
     console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
