@@ -35,6 +35,7 @@ library ErrorCodes {
     uint16 constant ST_EVER_VAULT_PAUSED = 1029;
     uint16 constant MAX_BATCH_SIZE_REACHED = 1030;
     uint16 constant STRATEGY_ALREADY_EXISTS = 1031;
+    uint16 constant NOT_TOKEN_ROOT = 1032;
 
 
     // StEverAccount

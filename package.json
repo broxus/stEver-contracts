@@ -14,7 +14,9 @@
     "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
     "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
     "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",
-    "main-flow-local": "npx locklift run --network local -s scripts/demo-script.ts",
+    "test-fix_upgrade": "npx locklift test --network local --tests test/10_fix_upgrade-test.ts",
+
+    "main-flow-local": "npx locklift run --disable-build --network local -s scripts/demo-script.ts",
     "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
     "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",
     "main-flow-deployed-broxus-testnet": "cross-env npx locklift run --disable-build --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
