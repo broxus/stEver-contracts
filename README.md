@@ -25,6 +25,17 @@ npx locklift run --disable-build --network mainnet -s scripts/1_deploy-and-setup
 5. **GainFee (nano ever), min 1 ever**: StEverVault will take gainFee from each strategy report to maintain the required gas level **(1 ever is recommended)**
 6. **StEver platform fee (0..1000), 1% == 10**: This fee will aggregate (as a platform fee) for future withdrawal to the admin
 
+## Upgrade
+
+```shell
+SEED="{{multisig seed phrase}}" \
+MAIN_GIVER_KEY={{giver secret key}} \
+npx locklift run --disable-build --network mainnet -s scripts/2_fix_upgrade.ts
+```
+### Upgrade params:
+1. **MultiSig admin(owner) wallet address**: StEverVault owner
+2. **StEverVault address**: StEver token root address
+
 
 
 
