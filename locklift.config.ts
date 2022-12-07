@@ -9,7 +9,7 @@ declare global {
   const locklift: import("locklift").Locklift<FactorySource>;
 }
 
-const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
+const LOCAL_NETWORK_ENDPOINT = "http://localhost/graphql";
 
 const config: LockliftConfig = {
   compiler: {
