@@ -71,7 +71,15 @@ describe("Deposit withdraw test", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    console.log(await transaction.traceTree?.beautyPrint());
+    await transaction.traceTree?.beautyPrint();
+    expect(transaction.traceTree)
+      .to.emit("BadWithdrawRequest")
+      .and.to.call("acceptTransfer")
+      .count(2)
+      .withNamedArgs({})
+      .and.to.call("onAcceptTokensTransfer")
+      .and.to.call("transfer");
+    debugger;
     transaction.traceTree?.findEventsForContract({
       contract: vault.vaultContract,
       name: "StrategiesAdded",
@@ -105,7 +113,7 @@ describe("Deposit withdraw test", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    console.log(await transaction.traceTree!.beautyPrint());
+    await transaction.traceTree!.beautyPrint();
 
     console.log(transaction.traceTree?.tokens.getTokenBalanceChange(user1.wallet.walletContract));
 
@@ -169,7 +177,7 @@ describe("Deposit withdraw test", function () {
       sendConfig: [withdrawToUserConfig],
     });
 
-    console.log(await withdrawTraceTree[0]?.beautyPrint());
+    await withdrawTraceTree[0]?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess");
     const vaultBalanceAfter = await vault.getDetails();
     const additionalBalanceAfterWithdraw = vaultBalanceAfter.contractBalance.minus(

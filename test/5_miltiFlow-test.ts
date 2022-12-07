@@ -194,7 +194,7 @@ describe("Multi flow", async function () {
     } = await governance.emitWithdraw({
       sendConfig: withdrawNonces.map(({ nonces, user }) => [user.account.address, { nonces }]),
     });
-    console.log(await traceTree!.beautyPrint());
+    await traceTree!.beautyPrint();
 
     const balancesAfterWithdraw = await getBalances(users.map(user => user.account.address));
 
