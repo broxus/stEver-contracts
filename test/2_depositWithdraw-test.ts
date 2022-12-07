@@ -8,6 +8,7 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
 import { ITERATION_FEE } from "../utils/constants";
+
 let signer: Signer;
 let admin: User;
 let governance: Governance;
@@ -71,6 +72,14 @@ describe("Deposit withdraw test", function () {
       { allowedCodes: { compute: [null] } },
     );
     await transaction.traceTree?.beautyPrint();
+    expect(transaction.traceTree)
+      .to.emit("BadWithdrawRequest")
+      .and.to.call("acceptTransfer")
+      .count(2)
+      .withNamedArgs({})
+      .and.to.call("onAcceptTokensTransfer")
+      .and.to.call("transfer");
+    debugger;
     transaction.traceTree?.findEventsForContract({
       contract: vault.vaultContract,
       name: "StrategiesAdded",

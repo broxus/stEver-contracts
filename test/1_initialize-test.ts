@@ -3,7 +3,7 @@ import { Address, Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
-import "sample-plugin";
+
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 
@@ -32,7 +32,6 @@ describe("Initialize testing", function () {
     tokenRoot = tr;
   });
   it("Vault should be initialized", async () => {
-    console.log(locklift.samplePlugin.getGreeting());
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
   });
 });

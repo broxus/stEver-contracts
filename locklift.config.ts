@@ -1,18 +1,17 @@
 import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
-
+import { NETWORK_PRESETS } from "everscale-standalone-client/nodejs";
+import _ from "lodash";
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
   const locklift: import("locklift").Locklift<FactorySource>;
 }
-import "sample-plugin";
 
 const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
 
 const config: LockliftConfig = {
-  greetingPhrase: "HI!",
   compiler: {
     // Specify path to your TON-Solidity-Compiler
     // path: "/mnt/o/projects/broxus/TON-Solidity-Compiler/build/solc/solc",
@@ -133,13 +132,13 @@ const config: LockliftConfig = {
         // Check if you need provide custom giver
         giverFactory: (ever, keyPair, address) => new TestnetGiver(ever, keyPair, address),
         address: "0:3bcef54ea5fe3e68ac31b17799cdea8b7cffd4da75b0b1a70b93a18b5c87f723",
-        key: process.env.MAIN_GIVER_KEY ?? "",
+        key: process.env.MAIN_GIVER_KEY ?? "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
       },
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
         // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
-        phrase: process.env.SEED ?? "",
+        phrase: process.env.SEED ?? "expire caution sausage spot monkey prefer dad rib vicious pepper mimic armed",
         amount: 500,
       },
     },

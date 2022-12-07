@@ -7,16 +7,17 @@ import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { Account } from "locklift/everscale-standalone-client";
-import { GetExpectedAddressParams } from "locklift/everscale-inpage-provider";
-import { FactoryType } from "locklift/build/factory";
+import { Account } from "everscale-standalone-client";
+import { GetExpectedAddressParams } from "everscale-inpage-provider";
 
 export const preparation = async ({
   deployUserValue,
   countOfUsers = 6,
+  vaultVersion = "StEverVault",
 }: {
   deployUserValue: string;
   countOfUsers?: number;
+  vaultVersion?: "OldVaultVersion" | "StEverVault";
 }): Promise<{
   signer: Signer;
   vault: Vault;
@@ -37,10 +38,11 @@ export const preparation = async ({
   const { vaultAddress, deployArgs } = await getVaultExpectedAddressAndInitialParams({
     signer: adminSigner,
     governance: governanceSigner,
+    vaultType: vaultVersion,
   });
   const tokenRoot = await deployTokenRoot({ signer: adminSigner, owner: vaultAddress });
 
-  const vault = await deployVault({ owner: adminUser, deployArgs, tokenRoot });
+  const vault = await deployVault({ owner: adminUser, deployArgs, tokenRoot, vaultType: vaultVersion });
 
   const vaultInstance = await creteVault({
     adminAccount: accounts[0],
@@ -136,13 +138,15 @@ const deployTokenRoot = async ({ signer, owner }: DeployRootParams): Promise<Con
 const getVaultExpectedAddressAndInitialParams = async ({
   signer,
   governance,
+  vaultType = "StEverVault",
 }: {
   signer: Signer;
   governance: Signer;
+  vaultType?: "OldVaultVersion" | "StEverVault";
 }): Promise<{ vaultAddress: Address; deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> }> => {
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
-  const { tvc, abi } = locklift.factory.getContractArtifacts("StEverVault");
+  const { tvc, abi } = locklift.factory.getContractArtifacts(vaultType);
   const deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> = {
     tvc,
     initParams: {
@@ -163,14 +167,16 @@ const deployVault = async ({
   owner,
   tokenRoot,
   deployArgs,
+  vaultType = "StEverVault",
 }: {
   owner: Account;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]>;
+  vaultType?: "OldVaultVersion" | "StEverVault";
 }) => {
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
-      contract: "StEverVault",
+      contract: vaultType,
       value: locklift.utils.toNano(10),
       constructorParams: {
         _owner: owner.address,

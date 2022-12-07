@@ -27,7 +27,7 @@ describe("Upgrade testing", function () {
       users: [adminUser, _, u1, u2, u3],
       governance: g,
       strategyFactory: sf,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(2000), vaultVersion: "OldVaultVersion" });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -80,15 +80,47 @@ describe("Upgrade testing", function () {
       expect(version).to.be.eq("1");
     });
   });
-
+  it("should have error 9, deserialization error", async () => {
+    const { traceTree } = await locklift.tracing.trace(
+      vault.vaultContract.methods
+        .onAcceptTokensBurn({
+          value0: 0,
+          payload: "",
+          wallet: vault.tokenWallet.walletContract.address,
+          value1: vault.vaultContract.address,
+          value3: vault.vaultContract.address,
+        })
+        .send({
+          from: user1.account.address,
+          amount: toNano(1),
+        }),
+      { rise: false },
+    );
+    expect(traceTree).to.be.error(9);
+  });
   it("should vault be upgraded", async () => {
     const NEW_VERSION = 1;
-    const upgradedVault = await vault.upgradeVault(NEW_VERSION);
-    expect(await upgradedVault.checkIsUpdateApplied().then(res => res.value0.stEverVaultVersion)).to.be.eq(
-      NEW_VERSION.toString(),
-    );
+    const upgradedVault = await vault.upgradeVault(NEW_VERSION, "StEverVault");
     vault = upgradedVault;
     governance.setUpgradedVault(upgradedVault);
+  });
+  it("should have error 1032, not token root", async () => {
+    const { traceTree } = await locklift.tracing.trace(
+      vault.vaultContract.methods
+        .onAcceptTokensBurn({
+          value0: 0,
+          payload: "",
+          wallet: vault.tokenWallet.walletContract.address,
+          value1: vault.vaultContract.address,
+          value3: vault.vaultContract.address,
+        })
+        .send({
+          from: user1.account.address,
+          amount: toNano(1),
+        }),
+      { rise: false },
+    );
+    expect(traceTree).to.be.error(1032);
   });
   it("should governance withdraw all pending", async () => {
     const users = [user1, user2, user3];
@@ -113,47 +145,5 @@ describe("Upgrade testing", function () {
       parentTransaction: transaction,
     });
     expect(withdrawEvents.length).to.be.eq(3);
-  });
-
-  it("strategy factory should be upgraded", async () => {
-    const NEW_STRATEGY_FACTORY_VERSION = 1;
-    const upgradedStrategyFactory = await strategyFactory.upgradeStrategyFactory(NEW_STRATEGY_FACTORY_VERSION);
-    expect(await upgradedStrategyFactory.checkIsUpdateApplied().then(res => res.value0.factoryVersion)).to.be.eq(
-      NEW_STRATEGY_FACTORY_VERSION.toString(),
-    );
-    strategyFactory = upgradedStrategyFactory;
-  });
-
-  it("should strategy factory upgrade strategies", async () => {
-    const strategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          createAndRegisterStrategy({
-            admin: admin.account,
-            vault,
-            poolDeployValue: toNano(100),
-            strategyFactory,
-            signer,
-            strategyDeployValue: toNano(22),
-          }),
-        ),
-        concatMap(({ strategy }) =>
-          from(strategy.getStrategyDetails()).pipe(map(strategyDetails => ({ strategyDetails, strategy }))),
-        ),
-        toArray(),
-      ),
-    );
-
-    strategies.forEach(({ strategyDetails }) => expect(strategyDetails.strategyVersion).to.be.eq("0"));
-    await strategyFactory.installNewStrategyCode();
-    await strategyFactory.upgradeStrategies(strategies.map(({ strategy }) => strategy.strategy.address));
-
-    const strategiesDetailsAfterUpgrade = await lastValueFrom(
-      from(strategies).pipe(
-        mergeMap(({ strategy }) => strategy.getStrategyDetails()),
-        toArray(),
-      ),
-    );
-    strategiesDetailsAfterUpgrade.forEach(({ strategyVersion }) => expect(strategyVersion).to.be.eq("1"));
   });
 });
