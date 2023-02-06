@@ -1,0 +1,10 @@
+pragma ever-solidity ^0.62.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "@broxus/contracts/contracts/wallets/Account.tsol";
+import "broxus-ton-tokens-contracts/contracts/TokenRoot.tsol";
+
+
+
+contract Wallet is Account {}

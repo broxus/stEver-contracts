@@ -1,0 +1,83 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\Nikita\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js
+
+PATH: 
+  C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Nikita\bin;C:\Python310\Scripts;C:\Python310;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Go\bin;C:\protoc-3.5.0-win32\bin;C:\Program Files\dotnet;C:\Program Files\Docker\Docker\resources\bin;C:\Users\Nikita\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\Nikita\scoop\shims;C:\Users\Nikita\.cargo\bin;C:\Users\Nikita\AppData\Local\Microsoft\WindowsApps;C:\Users\Nikita\AppData\Roaming\npm;C:\Program Files\JetBrains\GoLand 2021.3.4\bin;C:\Users\Nikita\go\bin;C:\Users\Nikita\AppData\Local\Programs\Microsoft VS Code\bin;C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin;C:\Exercism;C:\Users\Nikita\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files (x86)\MongoDB Atlas CLI;C:\Users\Nikita\AppData\Local\Programs\mongosh;O:\projects\broxus\st-ever\node_modules\.bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  16.14.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  SyntaxError: O:\projects\broxus\st-ever\package.json: Unexpected token } in JSON at position 2769
+      at JSON.parse (<anonymous>)
+      at C:\Users\Nikita\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:1629:59
+      at Generator.next (<anonymous>)
+      at step (C:\Users\Nikita\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:310:30)
+      at C:\Users\Nikita\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "locklift-project",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+      "build": "npx locklift build",
+      "test": "npx locklift test --network local",
+      "test-initialize": "npx locklift test --network local --tests test/1_initialize-test.ts",
+      "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
+      "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
+      "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
+      "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
+      "test-miltiFlow-main": "npx locklift test --network local --tests test/6_miltiFlow-main-test.ts",
+      "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
+      "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
+      "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",
+      "test-fix_upgrade": "npx locklift test --network local --tests test/10_fix_upgrade-test.ts",
+      "main-flow-local": "npx locklift run --disable-build --network local -s scripts/demo-script.ts",
+      "local-checks": "npx locklift run --network local-80 -s scripts/local-checks.ts",
+      "main-flow-deployed-local-80": "npx locklift run --network local-80 -s scripts/1_deploy-and-setup-stEverVault.ts",
+      "main-flow-deployed-broxus-testnet": "cross-env npx locklift run --disable-build --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
+      "testnet-send-ever-to-account": "npx locklift run --network testnet -s scripts/0_giver_send_to_account.ts",
+      "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts",
+      "create-and-register-strategy": "npx locklift run --disable-build --network broxusTestnet -s scripts/validator/1_create_and_add_strategy_to_dePool.ts"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+      "@types/chai": "^4.3.1",
+      "@types/mocha": "^9.1.1",
+      "@types/node": "^18.6.1",
+      "chai": "^4.3.6",
+      "chai-bignumber": "^3.0.0",
+      "prettier": "^2.7.1",
+      "ts-mocha": "^10.0.0",
+      "typescript": "^4.8.2"
+    },
+    "dependencies": {
+      "@broxus/contracts": "^1.1.0",
+      "@types/lodash": "^4.14.182",
+      "@types/prompts": "^2.0.14",
+      "bignumber.js": "^9.0.2",
+      "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#d3c1cd920c0320ffaab03b54c878dd0e06fed3c7",
+      "chalk": "^4.1.2",
+      "cross-env": "^7.0.3",
+      "everscale-standalone-client": "^2.0.31",
+      "locklift": "^2.4.5",
+      "lodash": "^4.17.21",
+      "ora": "^6.1.2",
+      "prompts": "^2.4.2",
+      "rxjs": "^7.5.6",
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
