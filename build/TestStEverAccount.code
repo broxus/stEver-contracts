@@ -10,25 +10,25 @@ IFREF {
 GETGLOB 6
 THROWIF 51
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 28
+.loc ../contracts/test/TestStEverAccount.tsol, 28
 THROW 100
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .globl	_init_8fd55bfc_internal
 .type	_init_8fd55bfc_internal, @function
 CALL $_init_8fd55bfc_internal_macro$
 
 .macro _init_8fd55bfc_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 33
+.loc ../contracts/test/TestStEverAccount.tsol, 33
 SETGLOB 12
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .globl	_reserve_413ab4a8_internal
 .type	_reserve_413ab4a8_internal, @function
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 43
+.loc ../contracts/test/TestStEverAccount.tsol, 43
 GETPARAM 7
 FIRST
 DEPTH
@@ -38,7 +38,7 @@ SUB
 UFITS 128
 PUSHINT 100000000
 MAX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro getDetails
 DROP
@@ -49,14 +49,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 46
+.loc ../contracts/test/TestStEverAccount.tsol, 46
 LDU 32
 GETGLOB 4
 ROT
 SETINDEXQ 5
 SETGLOB 4
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $getDetails_fbbf93a0_internal_macro$
 }
@@ -135,7 +135,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 58
+.loc ../contracts/test/TestStEverAccount.tsol, 58
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -148,7 +148,7 @@ GETGLOB 11
 GETGLOB 10
 GETGLOB 12
 TRIPLE
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro addPendingValue
 DROP
@@ -159,7 +159,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 62
+.loc ../contracts/test/TestStEverAccount.tsol, 62
 OVER
 PUSHCONT {
 	LDU 64
@@ -175,7 +175,7 @@ PUSHCONT {
 IFELSE
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $addPendingValue_2747f0fd_internal_macro$
 }
@@ -186,20 +186,20 @@ CALLREF {
 THROW 0
 
 .macro addPendingValue_2747f0fd_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 38
+.loc ../contracts/test/TestStEverAccount.tsol, 38
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 63
+	.loc ../contracts/test/TestStEverAccount.tsol, 63
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStEverAccount.sol, 64
+	.loc ../contracts/test/TestStEverAccount.tsol, 64
 	PUSHINT 0
 	NEWDICT
 	PAIR
@@ -266,7 +266,7 @@ PUSHCONT {
 	}
 	IF
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 66
+		.loc ../contracts/test/TestStEverAccount.tsol, 66
 		SWAP
 		NOW
 		PAIR
@@ -284,7 +284,7 @@ PUSHCONT {
 		PUSHINT 64
 		DICTUSETB
 		SETGLOB 13
-		.loc ../contracts/test/TestStEverAccount.sol, 71
+		.loc ../contracts/test/TestStEverAccount.tsol, 71
 		GETGLOB 11
 		ROT
 		GETGLOB 10
@@ -309,10 +309,10 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 74
+	.loc ../contracts/test/TestStEverAccount.tsol, 74
 	SWAP
 	GETGLOB 11
 	ROLL 3
@@ -339,10 +339,10 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/test/TestStEverAccount.sol, 62
+	.loc ../contracts/test/TestStEverAccount.tsol, 62
 }
 CALLX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro resetPendingValues
 DROP
@@ -353,7 +353,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 77
+.loc ../contracts/test/TestStEverAccount.tsol, 77
 OVER
 PUSHCONT {
 	LDDICT
@@ -367,7 +367,7 @@ PUSHCONT {
 IFELSE
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $resetPendingValues_01795a06_internal_macro$
 }
@@ -378,18 +378,18 @@ CALLREF {
 THROW 0
 
 .macro resetPendingValues_01795a06_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 78
+.loc ../contracts/test/TestStEverAccount.tsol, 78
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStEverAccount.sol, 80
+.loc ../contracts/test/TestStEverAccount.tsol, 80
 XCPU S1, S0
 PUSHINT 64
 DICTUMIN
@@ -411,7 +411,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 81
+	.loc ../contracts/test/TestStEverAccount.tsol, 81
 	SWAP
 	GETGLOB 13
 	ROT
@@ -426,7 +426,7 @@ PUSHCONT {
 	PUSHINT 64
 	DICTUSETB
 	SETGLOB 13
-	.loc ../contracts/test/TestStEverAccount.sol, 0
+	.loc ../contracts/test/TestStEverAccount.tsol, 0
 	PUSH2 S0, S1
 	PUSHINT 64
 	DICTUGETNEXT
@@ -446,7 +446,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/test/TestStEverAccount.sol, 84
+.loc ../contracts/test/TestStEverAccount.tsol, 84
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -455,7 +455,7 @@ STZEROES
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro removePendingWithdraw
 DROP
@@ -466,10 +466,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 87
+.loc ../contracts/test/TestStEverAccount.tsol, 87
 LDU 64
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $removePendingWithdraw_cd5e4686_internal_macro$
 }
@@ -480,20 +480,20 @@ CALLREF {
 THROW 0
 
 .macro removePendingWithdraw_cd5e4686_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 38
+.loc ../contracts/test/TestStEverAccount.tsol, 38
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 88
+	.loc ../contracts/test/TestStEverAccount.tsol, 88
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStEverAccount.sol, 89
+	.loc ../contracts/test/TestStEverAccount.tsol, 89
 	DUP
 	GETGLOB 13
 	PUSHINT 64
@@ -501,7 +501,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 90
+		.loc ../contracts/test/TestStEverAccount.tsol, 90
 		DUP
 		GETGLOB 13
 		PUSHINT 64
@@ -518,14 +518,14 @@ IFREFELSEREF
 			DUP
 			PAIR
 }
-		.loc ../contracts/test/TestStEverAccount.sol, 91
+		.loc ../contracts/test/TestStEverAccount.tsol, 91
 		OVER
 		GETGLOB 13
 		PUSHINT 64
 		DICTUDEL
 		DROP
 		SETGLOB 13
-		.loc ../contracts/test/TestStEverAccount.sol, 92
+		.loc ../contracts/test/TestStEverAccount.tsol, 92
 		FIRST
 		SWAP
 		GETGLOB 11
@@ -548,10 +548,10 @@ IFREFELSEREF
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 99
+	.loc ../contracts/test/TestStEverAccount.tsol, 99
 	DROP
 	GETGLOB 11
 	NEWC
@@ -562,21 +562,21 @@ IFREFELSEREF
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/test/TestStEverAccount.sol, 87
+	.loc ../contracts/test/TestStEverAccount.tsol, 87
 }
 CALLX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .globl	createAndSendWithdrawToUserRequest_46388ea0_internal
 .type	createAndSendWithdrawToUserRequest_46388ea0_internal, @function
 CALL $createAndSendWithdrawToUserRequest_46388ea0_internal_macro$
 
 .macro createAndSendWithdrawToUserRequest_46388ea0_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 104
+.loc ../contracts/test/TestStEverAccount.tsol, 104
 PUSHINT 0
-.loc ../contracts/test/TestStEverAccount.sol, 105
+.loc ../contracts/test/TestStEverAccount.tsol, 105
 NEWDICT
-.loc ../contracts/test/TestStEverAccount.sol, 107
+.loc ../contracts/test/TestStEverAccount.tsol, 107
 PUSHINT 0
 PUSHCONT {
 	PUSH2 S0, S3
@@ -584,14 +584,14 @@ PUSHCONT {
 	LESS
 }
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 108
+	.loc ../contracts/test/TestStEverAccount.tsol, 108
 	PUSH2 S0, S3
 	SECOND
 	PUSHINT 32
 	DICTUGET
 	THROWIFNOT 50
 	PLDU 64
-	.loc ../contracts/test/TestStEverAccount.sol, 109
+	.loc ../contracts/test/TestStEverAccount.tsol, 109
 	DUP
 	GETGLOB 13
 	PUSHINT 64
@@ -599,7 +599,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 110
+		.loc ../contracts/test/TestStEverAccount.tsol, 110
 		DUP
 		GETGLOB 13
 		PUSHINT 64
@@ -616,7 +616,7 @@ IFREFELSEREF
 			DUP
 			PAIR
 }
-		.loc ../contracts/test/TestStEverAccount.sol, 111
+		.loc ../contracts/test/TestStEverAccount.tsol, 111
 		PUSH3 S1, S3, S0
 		CALLREF {
 			UNPAIR
@@ -629,31 +629,31 @@ IFREFELSEREF
 		PUSHINT 64
 		DICTUSETB
 		POP S4
-		.loc ../contracts/test/TestStEverAccount.sol, 112
+		.loc ../contracts/test/TestStEverAccount.tsol, 112
 		OVER
 		GETGLOB 13
 		PUSHINT 64
 		DICTUDEL
 		DROP
 		SETGLOB 13
-		.loc ../contracts/test/TestStEverAccount.sol, 113
+		.loc ../contracts/test/TestStEverAccount.tsol, 113
 		FIRST
 		PUSH S4
 		ADD
 		UFITS 128
 		POP S4
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IF
-	.loc ../contracts/test/TestStEverAccount.sol, 0
+	.loc ../contracts/test/TestStEverAccount.tsol, 0
 	DROP
-	.loc ../contracts/test/TestStEverAccount.sol, 107
+	.loc ../contracts/test/TestStEverAccount.tsol, 107
 	INC
-	.loc ../contracts/test/TestStEverAccount.sol, 0
+	.loc ../contracts/test/TestStEverAccount.tsol, 0
 }
 WHILE
 DROP
-.loc ../contracts/test/TestStEverAccount.sol, 117
+.loc ../contracts/test/TestStEverAccount.tsol, 117
 GETGLOB 11
 ROT
 GETGLOB 10
@@ -675,7 +675,7 @@ STBREFR
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 DROP
 
 .macro processWithdraw
@@ -687,14 +687,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 126
+.loc ../contracts/test/TestStEverAccount.tsol, 126
 LDU 32
 LDDICT
 ROTREV
 PAIR
 SWAP
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $processWithdraw_c0fbda78_internal_macro$
 }
@@ -705,22 +705,22 @@ CALLREF {
 THROW 0
 
 .macro processWithdraw_c0fbda78_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 127
+.loc ../contracts/test/TestStEverAccount.tsol, 127
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStEverAccount.sol, 128
+.loc ../contracts/test/TestStEverAccount.tsol, 128
 CALLREF {
 	CALL $createAndSendWithdrawToUserRequest_46388ea0_internal_macro$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro onEmergencyWithdrawToUser
 DROP
@@ -731,9 +731,9 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 131
+.loc ../contracts/test/TestStEverAccount.tsol, 131
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $onEmergencyWithdrawToUser_c3410c7b_internal_macro$
 }
@@ -744,22 +744,22 @@ CALLREF {
 THROW 0
 
 .macro onEmergencyWithdrawToUser_c3410c7b_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 132
+.loc ../contracts/test/TestStEverAccount.tsol, 132
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStEverAccount.sol, 133
+.loc ../contracts/test/TestStEverAccount.tsol, 133
 PUSHINT 0
 NEWDICT
 PAIR
-.loc ../contracts/test/TestStEverAccount.sol, 134
+.loc ../contracts/test/TestStEverAccount.tsol, 134
 GETGLOB 13
 DUP
 PUSHINT 64
@@ -782,7 +782,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 135
+	.loc ../contracts/test/TestStEverAccount.tsol, 135
 	PUSH2 S4, S1
 	NEWC
 	STU 64
@@ -795,7 +795,7 @@ PUSHCONT {
 	DICTUSETB
 	PAIR
 	POP S5
-	.loc ../contracts/test/TestStEverAccount.sol, 0
+	.loc ../contracts/test/TestStEverAccount.tsol, 0
 	PUSH2 S2, S3
 	PUSHINT 64
 	DICTUGETNEXT
@@ -815,11 +815,11 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/test/TestStEverAccount.sol, 137
+.loc ../contracts/test/TestStEverAccount.tsol, 137
 CALLREF {
 	CALL $createAndSendWithdrawToUserRequest_46388ea0_internal_macro$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro onStartEmergency
 DROP
@@ -830,10 +830,10 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 140
+.loc ../contracts/test/TestStEverAccount.tsol, 140
 LDU 64
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $onStartEmergency_ea20263b_internal_macro$
 }
@@ -844,20 +844,20 @@ CALLREF {
 THROW 0
 
 .macro onStartEmergency_ea20263b_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 38
+.loc ../contracts/test/TestStEverAccount.tsol, 38
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 141
+	.loc ../contracts/test/TestStEverAccount.tsol, 141
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStEverAccount.sol, 142
+	.loc ../contracts/test/TestStEverAccount.tsol, 142
 	DUP
 	GETGLOB 13
 	PUSHINT 64
@@ -865,7 +865,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 143
+		.loc ../contracts/test/TestStEverAccount.tsol, 143
 		PUSHINT 2003
 		GETGLOB 11
 		GETGLOB 10
@@ -886,12 +886,12 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 144
+		.loc ../contracts/test/TestStEverAccount.tsol, 144
 		DROP
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFNOTJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 147
+	.loc ../contracts/test/TestStEverAccount.tsol, 147
 	GETGLOB 13
 	PUSHINT 64
 	DICTUGET
@@ -907,7 +907,7 @@ IFREFELSEREF
 		DUP
 		PAIR
 }
-	.loc ../contracts/test/TestStEverAccount.sol, 148
+	.loc ../contracts/test/TestStEverAccount.tsol, 148
 	SECOND
 	PUSHINT 604800
 	ADD
@@ -915,7 +915,7 @@ IFREFELSEREF
 	NOW
 	GREATER
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 149
+		.loc ../contracts/test/TestStEverAccount.tsol, 149
 		PUSHINT 2004
 		GETGLOB 11
 		GETGLOB 10
@@ -936,10 +936,10 @@ IFREFELSEREF
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 153
+	.loc ../contracts/test/TestStEverAccount.tsol, 153
 	GETGLOB 10
 	FALSE
 	NEWC
@@ -957,10 +957,10 @@ IFREFELSEREF
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/test/TestStEverAccount.sol, 140
+	.loc ../contracts/test/TestStEverAccount.tsol, 140
 }
 CALLX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro checkIsUpdateApplied
 DROP
@@ -971,9 +971,9 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 157
+.loc ../contracts/test/TestStEverAccount.tsol, 157
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $checkIsUpdateApplied_3d0d5f0b_internal_macro$
 }
@@ -1021,12 +1021,12 @@ THROW 0
 CALL $checkIsUpdateApplied_3d0d5f0b_internal_macro$
 
 .macro checkIsUpdateApplied_3d0d5f0b_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 158
+.loc ../contracts/test/TestStEverAccount.tsol, 158
 GETGLOB 11
 GETGLOB 10
 GETGLOB 12
 TRIPLE
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .macro upgrade
 DROP
@@ -1037,7 +1037,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStEverAccount.sol, 162
+.loc ../contracts/test/TestStEverAccount.tsol, 162
 OVER
 PUSHCONT {
 	LDREF
@@ -1053,7 +1053,7 @@ PUSHCONT {
 IFELSE
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $upgrade_fb9d1513_internal_macro$
 }
@@ -1064,25 +1064,25 @@ CALLREF {
 THROW 0
 
 .macro upgrade_fb9d1513_internal_macro
-.loc ../contracts/test/TestStEverAccount.sol, 37
+.loc ../contracts/test/TestStEverAccount.tsol, 37
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 2001
-.loc ../contracts/test/TestStEverAccount.sol, 38
+.loc ../contracts/test/TestStEverAccount.tsol, 38
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 163
+	.loc ../contracts/test/TestStEverAccount.tsol, 163
 	OVER
 	GETGLOB 12
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 164
+		.loc ../contracts/test/TestStEverAccount.tsol, 164
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/test/TestStEverAccount.sol, 165
+		.loc ../contracts/test/TestStEverAccount.tsol, 165
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -1091,43 +1091,43 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 166
+		.loc ../contracts/test/TestStEverAccount.tsol, 166
 		DROP2
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 171
+	.loc ../contracts/test/TestStEverAccount.tsol, 171
 	GETGLOB 10
 	NEWC
 	STSLICE
-	.loc ../contracts/test/TestStEverAccount.sol, 172
+	.loc ../contracts/test/TestStEverAccount.tsol, 172
 	STSLICECONST x00
-	.loc ../contracts/test/TestStEverAccount.sol, 173
+	.loc ../contracts/test/TestStEverAccount.tsol, 173
 	STSLICE
-	.loc ../contracts/test/TestStEverAccount.sol, 176
+	.loc ../contracts/test/TestStEverAccount.tsol, 176
 	PUSHREF {
 	}
 	SWAP
 	STREF
-	.loc ../contracts/test/TestStEverAccount.sol, 179
+	.loc ../contracts/test/TestStEverAccount.tsol, 179
 	GETGLOB 11
 	NEWC
 	STSLICE
-	.loc ../contracts/test/TestStEverAccount.sol, 182
+	.loc ../contracts/test/TestStEverAccount.tsol, 182
 	ROT
 	NEWC
 	STU 32
-	.loc ../contracts/test/TestStEverAccount.sol, 183
+	.loc ../contracts/test/TestStEverAccount.tsol, 183
 	GETGLOB 12
 	STUR 32
-	.loc ../contracts/test/TestStEverAccount.sol, 185
+	.loc ../contracts/test/TestStEverAccount.tsol, 185
 	PUSH S2
 	ROT
 	STBREFR
 	POP S2
-	.loc ../contracts/test/TestStEverAccount.sol, 186
+	.loc ../contracts/test/TestStEverAccount.tsol, 186
 	STBREFR
-	.loc ../contracts/test/TestStEverAccount.sol, 188
+	.loc ../contracts/test/TestStEverAccount.tsol, 188
 	GETGLOB 13
 	GETGLOB 12
 	GETGLOB 11
@@ -1141,10 +1141,10 @@ PUSHCONT {
 	STDICT
 	STBREFR
 	STBREFR
-	.loc ../contracts/test/TestStEverAccount.sol, 199
+	.loc ../contracts/test/TestStEverAccount.tsol, 199
 	OVER
 	SETCODE
-	.loc ../contracts/test/TestStEverAccount.sol, 201
+	.loc ../contracts/test/TestStEverAccount.tsol, 201
 	SWAP
 	CTOS
 	DUP
@@ -1159,28 +1159,28 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/test/TestStEverAccount.sol, 203
+	.loc ../contracts/test/TestStEverAccount.tsol, 203
 	ENDC
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
-	.loc ../contracts/test/TestStEverAccount.sol, 162
+	.loc ../contracts/test/TestStEverAccount.tsol, 162
 }
 CALLX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
 PUSHCONT {
-	.loc ../contracts/test/TestStEverAccount.sol, 207
+	.loc ../contracts/test/TestStEverAccount.tsol, 207
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStEverAccount.sol, 208
+	.loc ../contracts/test/TestStEverAccount.tsol, 208
 	CTOS
-	.loc ../contracts/test/TestStEverAccount.sol, 210
+	.loc ../contracts/test/TestStEverAccount.tsol, 210
 	DUP
 	LDMSGADDR
 	LDU 8
@@ -1189,20 +1189,20 @@ PUSHCONT {
 	POP S5
 	DROP
 	NIP
-	.loc ../contracts/test/TestStEverAccount.sol, 212
+	.loc ../contracts/test/TestStEverAccount.tsol, 212
 	PUSH S2
 	LDREFRTOS
 	SWAP
 	POP S4
-	.loc ../contracts/test/TestStEverAccount.sol, 214
+	.loc ../contracts/test/TestStEverAccount.tsol, 214
 	PUSH S3
 	LDREFRTOS
 	SWAP
 	POP S5
-	.loc ../contracts/test/TestStEverAccount.sol, 215
+	.loc ../contracts/test/TestStEverAccount.tsol, 215
 	LDU 32
 	PLDU 32
-	.loc ../contracts/test/TestStEverAccount.sol, 217
+	.loc ../contracts/test/TestStEverAccount.tsol, 217
 	PUSHREFSLICE {
 		.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 	}
@@ -1215,23 +1215,23 @@ PUSHCONT {
 	SETGLOB 12
 	NEWDICT
 	SETGLOB 13
-	.loc ../contracts/test/TestStEverAccount.sol, 219
+	.loc ../contracts/test/TestStEverAccount.tsol, 219
 	OVER
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/test/TestStEverAccount.sol, 221
+		.loc ../contracts/test/TestStEverAccount.tsol, 221
 		ROLL 3
 		SETGLOB 10
-		.loc ../contracts/test/TestStEverAccount.sol, 222
+		.loc ../contracts/test/TestStEverAccount.tsol, 222
 		SWAP
 		LDMSGADDR
 		DROP
 		SETGLOB 11
-		.loc ../contracts/test/TestStEverAccount.sol, 223
+		.loc ../contracts/test/TestStEverAccount.tsol, 223
 		CALLREF {
 			CALL $_init_8fd55bfc_internal_macro$
 		}
-		.loc ../contracts/test/TestStEverAccount.sol, 224
+		.loc ../contracts/test/TestStEverAccount.tsol, 224
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -1240,15 +1240,15 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStEverAccount.sol, 225
+		.loc ../contracts/test/TestStEverAccount.tsol, 225
 		DROP
-		.loc ../contracts/test/TestStEverAccount.sol, 0
+		.loc ../contracts/test/TestStEverAccount.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStEverAccount.sol, 228
+	.loc ../contracts/test/TestStEverAccount.tsol, 228
 	ROLL 4
 	PLDREF
-	.loc ../contracts/test/TestStEverAccount.sol, 229
+	.loc ../contracts/test/TestStEverAccount.tsol, 229
 	CTOS
 	LDMSGADDR
 	LDREF
@@ -1263,9 +1263,9 @@ PUSHCONT {
 	SETGLOB 11
 	DROP
 	SETGLOB 13
-	.loc ../contracts/test/TestStEverAccount.sol, 230
+	.loc ../contracts/test/TestStEverAccount.tsol, 230
 	SETGLOB 12
-	.loc ../contracts/test/TestStEverAccount.sol, 231
+	.loc ../contracts/test/TestStEverAccount.tsol, 231
 	DROP
 	GETGLOB 12
 	SWAP
@@ -1292,12 +1292,12 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/test/TestStEverAccount.sol, 0
+	.loc ../contracts/test/TestStEverAccount.tsol, 0
 	DROP
-	.loc ../contracts/test/TestStEverAccount.sol, 206
+	.loc ../contracts/test/TestStEverAccount.tsol, 206
 }
 CALLX
-.loc ../contracts/test/TestStEverAccount.sol, 0
+.loc ../contracts/test/TestStEverAccount.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }

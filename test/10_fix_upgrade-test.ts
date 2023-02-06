@@ -94,7 +94,7 @@ describe("Upgrade testing", function () {
           from: user1.account.address,
           amount: toNano(1),
         }),
-      { rise: false },
+      { raise: false },
     );
     expect(traceTree).to.be.error(9);
   });
@@ -118,7 +118,7 @@ describe("Upgrade testing", function () {
           from: user1.account.address,
           amount: toNano(1),
         }),
-      { rise: false },
+      { raise: false },
     );
     expect(traceTree).to.be.error(1032);
   });

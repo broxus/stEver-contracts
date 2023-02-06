@@ -112,7 +112,7 @@ export class User {
           from: this.account.address,
           amount: attachedValue,
         }),
-      { rise: false },
+      { raise: false },
     );
     const successEvents = await this.vault.getEventsAfterTransaction({
       eventName: "EmergencyProcessStarted",
@@ -134,7 +134,7 @@ export class User {
         from: this.account.address,
         amount: toNano(2),
       }),
-      { rise: false },
+      { raise: false },
     );
   };
 

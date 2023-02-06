@@ -18,10 +18,10 @@ PUSHCONT {
 IF
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 39
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 39
 GETGLOB 2
 THROWIFNOT 103
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 40
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 40
 GETGLOB 2
 GETGLOB 5
 DUP
@@ -33,11 +33,11 @@ PUSHCONT {
 IF
 EQUAL
 THROWIFNOT 103
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 42
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 42
 ACCEPT
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 44
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 44
 SETGLOB 13
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }
@@ -48,7 +48,7 @@ THROW 0
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 59
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 59
 GETPARAM 7
 FIRST
 DEPTH
@@ -58,7 +58,7 @@ SUB
 UFITS 128
 PUSHINT 1000000000
 MAX
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro transferOwnership
 DROP
@@ -69,7 +69,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 62
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 62
 OVER
 PUSHCONT {
 	LDREF
@@ -83,7 +83,7 @@ ENDS
 CTOS
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $transferOwnership_6d435421_internal_macro$
 }
@@ -94,21 +94,21 @@ CALLREF {
 THROW 0
 
 .macro transferOwnership_6d435421_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 48
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 48
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 63
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 63
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 65
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 65
 SWAP
 SETGLOB 13
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 67
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 67
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -117,7 +117,7 @@ STZEROES
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro getDetails
 DROP
@@ -128,14 +128,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 70
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 70
 LDU 32
 GETGLOB 4
 ROT
 SETINDEXQ 5
 SETGLOB 4
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $getDetails_fbbf93a0_internal_macro$
 }
@@ -218,7 +218,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 71
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 71
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -233,7 +233,7 @@ GETGLOB 14
 GETGLOB 15
 GETGLOB 16
 TUPLE 5
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro checkIsUpdateApplied
 DROP
@@ -244,9 +244,9 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 81
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 81
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $checkIsUpdateApplied_3d0d5f0b_internal_macro$
 }
@@ -296,14 +296,14 @@ THROW 0
 CALL $checkIsUpdateApplied_3d0d5f0b_internal_macro$
 
 .macro checkIsUpdateApplied_3d0d5f0b_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 82
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 82
 GETGLOB 12
 GETGLOB 13
 GETGLOB 14
 GETGLOB 15
 GETGLOB 16
 TUPLE 5
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro installNewStrategyCode
 DROP
@@ -314,7 +314,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 90
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 90
 OVER
 PUSHCONT {
 	LDREF
@@ -328,7 +328,7 @@ PUSHCONT {
 IFELSE
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $installNewStrategyCode_a6c11296_internal_macro$
 }
@@ -339,34 +339,34 @@ CALLREF {
 THROW 0
 
 .macro installNewStrategyCode_a6c11296_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 48
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 48
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 91
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 91
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 102
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 92
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 92
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 94
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 94
 SWAP
 SETGLOB 11
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 95
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 95
 GETGLOB 14
 INC
 UFITS 32
 BLKPUSH 2, 0
 SETGLOB 14
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 96
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 96
 DEC
 UFITS 32
 PUSHSLICE xc000000000000000000000000026f11cea
@@ -377,7 +377,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 98
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 98
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -386,7 +386,7 @@ STZEROES
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro deployStrategy
 DROP
@@ -397,7 +397,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 101
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 101
 OVER
 PUSHCONT {
 	LDREF
@@ -407,7 +407,7 @@ PUSHCONT {
 IF
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $deployStrategy_7b28b931_internal_macro$
 }
@@ -418,25 +418,25 @@ CALLREF {
 THROW 0
 
 .macro deployStrategy_7b28b931_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 48
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 48
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 102
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 102
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 2000000000
 GEQ
 THROWIFNOT 102
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 103
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 103
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 105
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 105
 GETGLOB 2
 NEWC
 STU 256
@@ -473,12 +473,12 @@ STOPTREF
 STOPTREF
 STZERO
 ENDC
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 115
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 115
 GETGLOB 15
 INC
 UFITS 32
 SETGLOB 15
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 116
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 116
 OVER
 GETGLOB 12
 ROT
@@ -537,7 +537,7 @@ STBREFR
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 122
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 122
 GETGLOB 14
 ROTREV
 PUSHSLICE xc0000000000000000000000001
@@ -556,7 +556,7 @@ STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro upgradeStrategies
 DROP
@@ -567,14 +567,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 125
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 125
 LDU 32
 LDDICT
 ROTREV
 PAIR
 SWAP
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $upgradeStrategies_8e9b7316_internal_macro$
 }
@@ -585,18 +585,18 @@ CALLREF {
 THROW 0
 
 .macro upgradeStrategies_8e9b7316_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 48
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 48
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 126
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 126
 PUSHINT 4001
 OVER
 FIRST
 LESSINT 51
 THROWANYIFNOT
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 127
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 127
 PUSHINT 4002
 DEPTH
 ADDCONST -2
@@ -609,13 +609,13 @@ PUSHINT 1000000000
 ADD
 GEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 132
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 132
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 134
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 134
 SECOND
 PUSHINT 0
 NULL
@@ -631,7 +631,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 135
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 135
 	GETGLOB 9
 	GETGLOB 14
 	GETGLOB 11
@@ -654,14 +654,14 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 	OVER
 	INC
 	POP S2
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 138
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 138
 GETGLOB 9
 NEWC
 STSLICECONST x42_
@@ -671,7 +671,7 @@ STZEROES
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .macro upgrade
 DROP
@@ -682,7 +682,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 142
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 142
 OVER
 PUSHCONT {
 	LDREF
@@ -698,7 +698,7 @@ PUSHCONT {
 IFELSE
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $upgrade_fb9d1513_internal_macro$
 }
@@ -709,7 +709,7 @@ CALLREF {
 THROW 0
 
 .macro upgrade_fb9d1513_internal_macro
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 53
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 53
 PUSHINT 4002
 DEPTH
 ADDCONST -2
@@ -717,25 +717,25 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 48
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 48
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWIFNOT 101
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 49
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 49
 PUSHCONT {
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 143
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 143
 	OVER
 	GETGLOB 16
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/test/TestDepoolStrategyFactory.sol, 144
+		.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 144
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/test/TestDepoolStrategyFactory.sol, 145
+		.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 145
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -744,12 +744,12 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestDepoolStrategyFactory.sol, 146
+		.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 146
 		DROP2
-		.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+		.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 150
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 150
 	GETGLOB 16
 	GETGLOB 15
 	GETGLOB 14
@@ -773,10 +773,10 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	ENDC
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 162
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 162
 	OVER
 	SETCODE
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 164
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 164
 	SWAP
 	CTOS
 	DUP
@@ -791,24 +791,24 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 166
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 166
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
-	.loc ../contracts/test/TestDepoolStrategyFactory.sol, 142
+	.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 142
 }
 CALLX
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 170
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 170
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 171
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 171
 PUSHINT 0
 SETGLOB 10
 PUSHREF {
@@ -828,11 +828,11 @@ PUSHINT 0
 SETGLOB 15
 PUSHINT 0
 SETGLOB 16
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 172
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 172
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 173
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 173
 SWAP
 CTOS
 LDMSGADDR
@@ -859,7 +859,7 @@ SETGLOB 13
 SETGLOB 14
 SETGLOB 15
 DROP
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 184
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 184
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -868,7 +868,7 @@ STZEROES
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/test/TestDepoolStrategyFactory.sol, 0
+.loc ../contracts/test/TestDepoolStrategyFactory.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }

@@ -184,8 +184,8 @@ describe("Deposit withdraw test", function () {
       vaultBalanceBefore.contractBalance.minus(WITHDRAW_AMOUNT),
     );
     expect(Number(additionalBalanceAfterWithdraw))
-      .to.be.gt(0, "vault balance should rise")
-      .and.lt(Number(ITERATION_FEE), "rise should be lt iteration FEE");
+      .to.be.gt(0, "vault balance should raise")
+      .and.lt(Number(ITERATION_FEE), "raise should be lt iteration FEE");
 
     console.log(
       `${fromNano(vaultBalanceBefore.contractBalance.toNumber())} -> ${fromNano(

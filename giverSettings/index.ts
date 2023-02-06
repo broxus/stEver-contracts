@@ -61,7 +61,6 @@ const giverAbi = {
   ],
   events: [],
 } as const;
-
 export class GiverWallet implements Giver {
   public giverContract: Contract<typeof giverWallet>;
 
