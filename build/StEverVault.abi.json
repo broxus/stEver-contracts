@@ -15,119 +15,6 @@
 			]
 		},
 		{
-			"name": "addStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "removeStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "validateDepositRequest",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "depositToStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledDeposit",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyDidntHandleDeposit",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "strategyReport",
-			"inputs": [
-				{"name":"_gain","type":"uint128"},
-				{"name":"_loss","type":"uint128"},
-				{"name":"_totalAssets","type":"uint128"},
-				{"name":"_requestedBalance","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "validateWithdrawFromStrategiesRequest",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "processWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledWithdrawRequest",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "forceWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveAdditionalTransferFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "withdrawFromStrategyError",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "deposit",
 			"inputs": [
 				{"name":"_amount","type":"uint128"},
@@ -219,21 +106,6 @@
 			]
 		},
 		{
-			"name": "processWithdrawExtraMoneyFromStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveExtraMoneyFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "withdrawStEverFee",
 			"inputs": [
 				{"name":"_amount","type":"uint128"}
@@ -254,6 +126,134 @@
 				{"name":"_newCode","type":"cell"},
 				{"name":"_newVersion","type":"uint32"},
 				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "validateDepositRequest",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
+			],
+			"outputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
+			]
+		},
+		{
+			"name": "validateWithdrawFromStrategiesRequest",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
+			]
+		},
+		{
+			"name": "depositToStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyHandledDeposit",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyDidntHandleDeposit",
+			"inputs": [
+				{"name":"_errcode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "strategyReport",
+			"inputs": [
+				{"name":"_gain","type":"uint128"},
+				{"name":"_loss","type":"uint128"},
+				{"name":"_totalAssets","type":"uint128"},
+				{"name":"_requestedBalance","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyHandledWithdrawRequest",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "forceWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveAdditionalTransferFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "withdrawFromStrategyError",
+			"inputs": [
+				{"name":"_errcode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawExtraMoneyFromStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveExtraMoneyFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
 			],
 			"outputs": [
 			]
@@ -789,6 +789,7 @@
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
 		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
+		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"clusters","type":"map(address,map(address,tuple))"},
 		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"},{"name":"remainingGasTo","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
 		{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]

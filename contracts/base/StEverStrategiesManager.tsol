@@ -1,0 +1,53 @@
+pragma ever-solidity >=0.62.0;
+import "./StEverVaultBase.tsol";
+
+
+abstract contract StEverStrategiesManager is StEverVaultBase {
+
+    function addStrategies(address[] _strategies) override external onlyOwner  {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+
+        for (address strategy : _strategies) {
+            require (!strategies.exists(strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
+
+            strategies[strategy] = StrategyParams({
+                    lastReport: 0,
+                    totalGain: 0,
+                    depositingAmount: 0,
+                    withdrawingAmount: 0,
+                    totalAssets: 0
+            });
+        }
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emit StrategiesAdded(_strategies);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function removeStrategies(address[] _strategies) override external onlyOwner {
+        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+        for (address strategy : _strategies) {
+            require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
+
+            delete strategies[strategy];
+        }
+
+        tvm.rawReserve(_reserve(),0);
+
+        emit StrategiesRemoved(_strategies);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+}
