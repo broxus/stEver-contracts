@@ -32,6 +32,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint32 stEverVaultVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
+    mapping(address => mapping(address => StrategyParams)) clusters;
     mapping(uint64 => PendingWithdraw) pendingWithdrawals;
     // emergency
     EmergencyState emergencyState;

@@ -55,7 +55,8 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
                 lastReport: 0,
                 totalGain: 0,
                 depositingAmount: 0,
-                withdrawingAmount: 0
+                withdrawingAmount: 0,
+                totalAssets: 0
             });
         }
 
@@ -181,7 +182,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         // calculate remaining gas
         uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-
+        updateTotalAssetsForStrategy(msg.sender, depositingAmount, true);
         // add fee back
         availableAssets += returnedFee;
         totalAssets += returnedFee;
@@ -210,6 +211,9 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 
         strategies[msg.sender].lastReport = now;
         strategies[msg.sender].totalGain += _gain;
+        strategies[msg.sender].totalAssets = _totalAssets >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
+            _totalAssets - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
+            0;
 
         uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
         totalStEverFee += stEverFee;
@@ -370,7 +374,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         strategies[msg.sender].withdrawingAmount = 0;
 
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
         availableAssets += receivedAmount;
 
         emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
@@ -381,8 +385,31 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
         availableAssets += receivedAmount;
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
 
         emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
+    }
+
+    function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
+
+        if (_isIncrease) {
+            uint128 correctedAmount = _amount >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
+                _amount - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
+                0;
+
+            strategies[_strategy].totalAssets += correctedAmount;
+            return;
+        }
+
+        uint128 currentStrategyAssets = strategies[_strategy].totalAssets;
+
+        if (_amount >= currentStrategyAssets) {
+            strategies[_strategy].totalAssets = 0;
+            return;
+        }
+
+        strategies[_strategy].totalAssets -= _amount;
+
     }
 
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {

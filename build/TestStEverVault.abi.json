@@ -309,7 +309,7 @@
 			"name": "_processEmergencyWithdrawFromStrategy",
 			"inputs": [
 				{"name":"_user","type":"address"},
-				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
+				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
 			],
 			"outputs": [
 			]
@@ -508,7 +508,7 @@
 			"inputs": [
 			],
 			"outputs": [
-				{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"}
+				{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"}
 			]
 		}
 	],
@@ -795,7 +795,7 @@
 		{"name":"owner","type":"address"},
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
-		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
+		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
 		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"},{"name":"remainingGasTo","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
 		{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]

@@ -17,7 +17,7 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCa
 import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.tsol";
 
 
-contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
+contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
     constructor(
         address _owner,
         uint128 _gainFee,
@@ -33,10 +33,10 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         stTokenRoot = _stTokenRoot;
         stEverFeePercent = _stEverFeePercent;
         ITokenRoot(stTokenRoot).deployWallet{
-			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
-			callback: StEverVaultBase.receiveTokenWalletAddress,
-            bounce: false
-		}(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
+                value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
+                callback: StEverVaultBase.receiveTokenWalletAddress,
+                bounce: false
+        }(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
 
@@ -52,10 +52,11 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
             require (!strategies.exists(strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
 
             strategies[strategy] = StrategyParams({
-                lastReport: 0,
-                totalGain: 0,
-                depositingAmount: 0,
-                withdrawingAmount: 0
+                    lastReport: 0,
+                    totalGain: 0,
+                    depositingAmount: 0,
+                    withdrawingAmount: 0,
+                    totalAssets: 0
             });
         }
 
@@ -80,7 +81,7 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         }
 
         tvm.rawReserve(_reserve(),0);
-        
+
         emit StrategiesRemoved(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -181,7 +182,7 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         // calculate remaining gas
         uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-
+        updateTotalAssetsForStrategy(msg.sender, depositingAmount, true);
         // add fee back
         availableAssets += returnedFee;
         totalAssets += returnedFee;
@@ -197,7 +198,7 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         // add fee back to total assets
         if (depositingAmount > msg.value) {
-        // if depositing amount gt msg.value therefore we spent more than attached fee
+            // if depositing amount gt msg.value therefore we spent more than attached fee
             totalAssets -= depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
         }
         if (msg.value > depositingAmount) {
@@ -210,6 +211,9 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         strategies[msg.sender].lastReport = now;
         strategies[msg.sender].totalGain += _gain;
+        strategies[msg.sender].totalAssets = _totalAssets >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
+        _totalAssets - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
+        0;
 
         uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
         totalStEverFee += stEverFee;
@@ -218,8 +222,8 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         // if gain less than the fee, therefore, we shouldn't increase total assets
         uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ?
-            gainWithoutStEverFee - gainFee :
-            0;
+        gainWithoutStEverFee - gainFee :
+        0;
         totalAssets += gainWithoutGainFee;
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
 
@@ -370,7 +374,7 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         strategies[msg.sender].withdrawingAmount = 0;
 
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
         availableAssets += receivedAmount;
 
         emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
@@ -381,8 +385,31 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
         availableAssets += receivedAmount;
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
 
         emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
+    }
+
+    function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
+
+        if (_isIncrease) {
+            uint128 correctedAmount = _amount >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
+            _amount - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
+            0;
+
+            strategies[_strategy].totalAssets += correctedAmount;
+            return;
+        }
+
+        uint128 currentStrategyAssets = strategies[_strategy].totalAssets;
+
+        if (_amount >= currentStrategyAssets) {
+            strategies[_strategy].totalAssets = 0;
+            return;
+        }
+
+        strategies[_strategy].totalAssets -= _amount;
+
     }
 
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
@@ -417,13 +444,13 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         stEverSupply += amountToSend;
 
         TvmBuilder builder;
-		builder.store(_nonce);
+        builder.store(_nonce);
 
         emit Deposit(msg.sender, _amount, amountToSend);
         ITokenRoot(stTokenRoot).mint{
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED,
-            bounce: false
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
         }(
             amountToSend,
             msg.sender,
@@ -455,8 +482,8 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA: will be used for creating(if needed) and adding pending withdrawal to account
         */
         uint128 requiredAttachedValue = StEverVaultGas.WITHDRAW_FEE +
-            StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
-            StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA;
+        StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
+        StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA;
 
         // if something went wrong, resend tokens to sender
         if (
@@ -467,9 +494,9 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
             tvm.rawReserve(_reserve(), 0);
             emit BadWithdrawRequest(_sender, _amount, msg.value);
             ITokenWallet(stEverWallet).transfer{
-                value: 0,
-                flag: MsgFlag.ALL_NOT_RESERVED,
-                bounce: false
+                    value: 0,
+                    flag: MsgFlag.ALL_NOT_RESERVED,
+                    bounce: false
             }(
                 _amount,
                 _sender,
@@ -490,9 +517,9 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         address accountAddr = getAccountAddress(_user);
 
         pendingWithdrawals[_nonce] = PendingWithdraw({
-            amount: _amount,
-            user: _user,
-            remainingGasTo: _remainingGasTo
+                amount: _amount,
+                user: _user,
+                remainingGasTo: _remainingGasTo
         });
 
         addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
@@ -512,20 +539,20 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
     function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 _amount, address account, uint128 _value, uint8 _flag, address _remainingGasTo) internal pure {
         IStEverAccount(account).addPendingValue{
-            value:_value,
-            flag: _flag,
-            bounce: true
+                value:_value,
+                flag: _flag,
+                bounce: true
         }(_withdraw_nonce, _amount, _remainingGasTo);
     }
 
     function onPendingWithdrawAccepted(uint64 _nonce, address _user, address remainingGasTo) override external onlyAccount(_user) {
-       tvm.rawReserve(_reserve(), 0);
+        tvm.rawReserve(_reserve(), 0);
 
-       PendingWithdraw pendingWithdraw = pendingWithdrawals[_nonce];
-       emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, _nonce);
-       delete pendingWithdrawals[_nonce];
+        PendingWithdraw pendingWithdraw = pendingWithdrawals[_nonce];
+        emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, _nonce);
+        delete pendingWithdrawals[_nonce];
 
-       remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function onPendingWithdrawRejected(uint64 _nonce, address _user, uint128 _amount, address _remainingGasTo) override external onlyAccount(_user) {
@@ -535,9 +562,9 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
-            value:0,
-            flag:MsgFlag.ALL_NOT_RESERVED,
-            bounce:false
+                value:0,
+                flag:MsgFlag.ALL_NOT_RESERVED,
+                bounce:false
         }(
             _amount,
             _user,
@@ -561,9 +588,9 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
-            value:0,
-            flag:MsgFlag.ALL_NOT_RESERVED,
-            bounce:false
+                value:0,
+                flag:MsgFlag.ALL_NOT_RESERVED,
+                bounce:false
         }(
             _amount,
             user,
@@ -613,17 +640,17 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
 
             if (isEmergencyProcess()) {
                 IStEverAccount(msg.sender).resetPendingValues{
-                    value:0,
-                    flag:MsgFlag.ALL_NOT_RESERVED,
-                    bounce: false
+                        value:0,
+                        flag:MsgFlag.ALL_NOT_RESERVED,
+                        bounce: false
                 }(_withdrawals, _user);
                 return;
             }
 
             IStEverAccount(msg.sender).resetPendingValues{
-                value:0,
-                flag:MsgFlag.ALL_NOT_RESERVED,
-                bounce: false
+                    value:0,
+                    flag:MsgFlag.ALL_NOT_RESERVED,
+                    bounce: false
             }(_withdrawals, address(this));
             return;
         }
@@ -654,7 +681,7 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         TvmCell payload
     ) override external {
         require (wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
-
+        require (msg.sender == stTokenRoot, ErrorCodes.NOT_TOKEN_ROOT);
         tvm.rawReserve(_reserve(), 0);
 
         TvmSlice slice = payload.toSlice();
@@ -667,26 +694,26 @@ contract OldVaultVersion is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
     }
 
     onBounce(TvmSlice _slice) external view {
-		tvm.accept();
+        tvm.accept();
 
-		uint32 functionId = _slice.decode(uint32);
-		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
-			handleAddPendingValueError(_slice);
-		}
-	}
+        uint32 functionId = _slice.decode(uint32);
+        if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
+            handleAddPendingValueError(_slice);
+        }
+    }
 
     // extra money from strategies
     function processWithdrawExtraMoneyFromStrategies(address[] _strategies) override external onlyGovernanceOrSelfAndAccept {
 
         for (address strategy : _strategies) {
             if (!strategies.exists(strategy)) {
-               emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-               continue;
+                emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
+                continue;
             }
 
             if (!canTransferValue(Constants.MIN_TRANSACTION_VALUE)) {
-               emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE);
-               continue;
+                emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE);
+                continue;
             }
 
             availableAssets -= Constants.MIN_TRANSACTION_VALUE;

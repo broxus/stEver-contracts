@@ -31,7 +31,7 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         owner = _owner;
         gainFee = _gainFee;
         stTokenRoot = _stTokenRoot;
-        
+
         ITokenRoot(stTokenRoot).deployWallet{
 			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
@@ -58,7 +58,7 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
                 stEverFeePercent,
                 totalStEverFee,
                 emergencyState
-            ); 
+            );
     }
 
 
@@ -76,7 +76,8 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
                 lastReport: 0,
                 totalGain: 0,
                 depositingAmount: 0,
-                withdrawingAmount: 0
+                withdrawingAmount: 0,
+                totalAssets: 0
             });
         }
 
@@ -95,7 +96,7 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         }
 
         tvm.rawReserve(_reserve(),0);
-        
+
         emit StrategiesRemoved(_strategies);
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -344,7 +345,7 @@ contract TestStEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAc
         totalAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
     }
 
-    
+
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 

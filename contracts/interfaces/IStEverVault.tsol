@@ -79,6 +79,7 @@ interface IStEverVault {
         uint128 totalGain;
         uint128 depositingAmount;
         uint128 withdrawingAmount;
+        uint128 totalAssets;
     }
 
     struct PendingWithdraw {
