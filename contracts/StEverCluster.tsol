@@ -1,0 +1,207 @@
+pragma ever-solidity >=0.62.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "./interfaces/IStEverCluster.tsol";
+import "./interfaces/IStEverVault.tsol";
+import "./utils/Gas.tsol";
+import "./utils/ErrorCodes.tsol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+
+contract StEverCluster is IStEverCluster {
+
+    uint32 static _nonce;
+    address static stEverVault;
+    address static stEverOwner;
+    address static clusterOwner;
+
+    uint128 assurance;
+    uint32 maxStrategiesCount;
+    uint32 currentVersion;
+
+    uint128 currentAssurance;
+    uint32 currentStrategiesCount;
+
+    constructor() public {revert();}
+
+    function _init(uint32 _version, uint128 _assurance, uint32 _maxStrategiesCount) internal {
+        assurance = _assurance;
+        maxStrategiesCount = _maxStrategiesCount;
+        currentVersion = _version;
+    }
+
+    function _reserve() internal pure returns (uint128) {
+        return
+        math.max(address(this).balance - msg.value, StEverAccountGas.CONTRACT_MIN_BALANCE);
+    }
+
+    modifier onlyStEverVault() {
+        require(msg.sender == stEverVault,9001);
+        _;
+    }
+    modifier onlyStEverOwner() {
+        require(msg.sender == stEverOwner,9002);
+        _;
+    }
+    modifier onyClusterOwner() {
+        require(msg.sender == clusterOwner, 9003);
+        _;
+    }
+    modifier stEverOwnerOrClusterOwner() {
+        require(msg.sender == stEverOwner || msg.sender == clusterOwner, 9004);
+        _;
+    }
+    mapping(address => Strategy) strategies;
+    function addStrategies(address[] _strategies) public onyClusterOwner {
+        tvm.rawReserve(_reserve(), 0);
+        if (currentAssurance < assurance) {
+            // return
+        }
+
+        if (currentStrategiesCount + _strategies.length >= maxStrategiesCount) {
+            // return
+        }
+        require (msg.value > _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
+        for (address strategy : _strategies) {
+
+            if (_strategies.exists(strategy)) {
+                revert(9007);
+            }
+
+            strategies[strategy] = Strategy({
+                state: StrategyState.INITIAL,
+                isLockedByAdmin: false
+            });
+            currentStrategiesCount++;
+        }
+        IStEverVault(stEverVault).addStrategies{
+            value: uint128(_strategies.length) * StEverVaultGas.EXPERIMENTAL_FEE,
+            flag: 1,
+            bounce: false
+        }(_strategies, clusterOwner, _nonce);
+
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onStrategiesAdded(address[] _strategies) override external onlyStEverVault {
+        tvm.rawReserve(_reserve(), 0);
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+        for (address strategy : _strategies) {
+            strategies[strategy].state = StrategyState.ACTIVE;
+        }
+
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        require (
+            msg.value > _strategies.length * StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE,
+            ErrorCodes.NOT_ENOUGH_VALUE
+        );
+
+        for (address strategy : _strategies) {
+            require(strategies.exists(strategy), 9008);
+            require(strategies[strategy].state == StrategyState.ACTIVE, 9009);
+            strategies[strategy].state = StrategyState.REMOVING;
+        }
+
+        IStEverVault(stEverVault).removeStrategies{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_strategies, clusterOwner, _nonce);
+    }
+
+    function onPendingStrategyRemove(address[] _strategies) override external onlyStEverVault {
+        tvm.rawReserve(_reserve(), 0);
+
+        for (address strategy : _strategies) {
+            strategies[strategy].state = StrategyState.PENDING_REMOVE;
+        }
+
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onStrategyRemoved(address _strategy) override external onlyStEverVault {
+        tvm.rawReserve(_reserve(), 0);
+
+        delete strategies[_strategy];
+
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external virtual override onlyStEverVault {
+
+
+        if (_newVersion == currentVersion) {
+            tvm.rawReserve(_reserve(), 0);
+            _sendGasTo.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
+            return;
+        }
+
+
+        TvmBuilder mainBuilder;
+        mainBuilder.store(_sendGasTo);
+
+        TvmCell dummyPlatformCode;
+        mainBuilder.store(dummyPlatformCode);
+
+        TvmBuilder initialData;
+        initialData.store(_nonce);
+        initialData.store(stEverVault);
+        initialData.store(stEverOwner);
+        initialData.store(clusterOwner);
+
+
+
+        TvmBuilder constructorParams;
+        constructorParams.store(_newVersion);
+        constructorParams.store(currentVersion);
+        constructorParams.store(assurance);
+        constructorParams.store(maxStrategiesCount);
+
+
+
+
+        mainBuilder.storeRef(initialData);
+        mainBuilder.storeRef(constructorParams);
+
+        TvmCell storageData = abi.encode(
+            _nonce,             // uint32
+            stEverVault,        // address
+            stEverOwner,        // address
+            clusterOwner        //address
+        );
+
+        mainBuilder.storeRef(storageData);
+
+
+        // set code after complete this method
+        tvm.setcode(_newCode);
+        // run onCodeUpgrade from new code
+        tvm.setCurrentCode(_newCode);
+
+        onCodeUpgrade(mainBuilder.toCell());
+    }
+
+    function onCodeUpgrade(TvmCell _upgrade_data) private {
+        tvm.resetStorage();
+        tvm.rawReserve(_reserve(), 0);
+        TvmSlice s = _upgrade_data.toSlice();
+
+        (address send_gas_to,) = s.decode(address, TvmCell);
+
+        TvmSlice initialData = s.loadRefAsSlice();
+        (_nonce, stEverVault, stEverOwner, clusterOwner) = initialData.decode(uint32, address, address, address);
+
+        TvmSlice constructorParams = s.loadRefAsSlice();
+        (uint32 _current_version,, uint128 _assurance, uint32 _maxStrategiesCount) = constructorParams.decode(uint32, uint32, uint128, uint32);
+        _init(_current_version, _assurance, _maxStrategiesCount);
+
+        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+    }
+}

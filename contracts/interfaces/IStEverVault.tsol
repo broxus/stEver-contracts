@@ -8,9 +8,15 @@ interface IStEverVault {
     event PausedStateChanged(bool pauseState);
     // Strategy
     event StrategiesAdded(address[] strategy);
-    event StrategiesRemoved(address[] strategy);
+    event StrategyRemoved(address strategy);
     event StrategyReported(address strategy, StrategyReport report);
-
+    // Cluster
+    event ClusterCreated(
+        address clusterOwner,
+        uint128 assurance,
+        uint32 maxStrategiesCount,
+        address cluster
+    );
     // Strategy deposit
     event StrategyHandledDeposit(address strategy, uint128 depositValue);
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
@@ -40,6 +46,8 @@ interface IStEverVault {
     // Upgrade
     event NewAccountCodeSet(uint32 newVersion);
     event AccountUpgraded(address user, uint32 newVersion);
+    event NewClusterCodeSet(uint32 newVersion);
+    event ClusterUpgraded(address clusterOwner, uint32 clusterNonce, uint32 newVersion);
     // Emergency
     event EmergencyProcessStarted(address emitter);
     event EmergencyProcessRejectedByAccount(address emitter, uint16 errcode);
@@ -74,13 +82,22 @@ interface IStEverVault {
         uint128 loss;
         uint128 totalAssets;
     }
+    enum StrategyState {
+        ACTIVE,
+        PAUSED,
+        REMOVING
+    }
     struct StrategyParams {
         uint128 lastReport;
         uint128 totalGain;
         uint128 depositingAmount;
         uint128 withdrawingAmount;
         uint128 totalAssets;
+        address cluster;
+        StrategyState state;
     }
+
+
 
     struct PendingWithdraw {
         uint128 amount;
@@ -118,13 +135,24 @@ interface IStEverVault {
         uint64 emitTimestamp;
     }
 
+    struct ClusterStatic {
+        address clusterOwner;
+        uint32 clusterNonce;
+    }
+
+    struct ClustersPool {
+        uint32 currentClusterNonce;
+        mapping(uint32 => bool) clusters;
+    }
+
     function getDetails() external responsible view returns(Details);
     // strategy
-    function addStrategies(address[] _strategies) external;
-    function removeStrategies(address[] _strategy) external;
-
+    function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
+    function _removeStrategy(address _strategy) external;
+    function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
-
+    // clusters
+    function createCluster(address _clusterOwner, uint128 _assurance, uint32 _maxStrategiesCount) external;
 
     // Deposit to strategy
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
@@ -190,10 +218,18 @@ interface IStEverVault {
     function emergencyWithdrawToUser() external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
+    // upgrade
+    // account
     function setNewAccountCode(TvmCell _newAccountCode) external;
     function upgradeStEverAccount() external;
     function upgradeStEverAccounts(address _sendGasTo, address[] _users) external;
     function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) external;
     function onAccountUpgraded(address user, address sendGasTo, uint32 newVersion) external;
+    // upgrade cluster
+    function setNewClusterCode(TvmCell _newClusterCode) external;
+    function upgradeStEverCluster(uint32 _clusterNonce) external;
+    function upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters) external;
+    function _upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters, uint128 _startIdx) external;
+    function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) external;
 }
 

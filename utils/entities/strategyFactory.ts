@@ -1,4 +1,4 @@
-import { Account } from "locklift/everscale-standalone-client";
+import { Account } from "locklift/everscale-client";
 
 import { DepoolStrategyFactoryAbi, TestDepoolStrategyFactoryAbi } from "../../build/factorySource";
 import { Address, Contract, toNano } from "locklift";

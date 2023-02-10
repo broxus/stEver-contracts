@@ -2,12 +2,14 @@ pragma ever-solidity >=0.62.0;
 
 import "./StEverVaultBase.tsol";
 import "./StEverVaultEmergency.tsol";
+import "./StEverStrategiesManager.tsol";
+
 import "../interfaces/IStrategy.tsol";
 
 
 
 
-abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaultEmergency {
+abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaultEmergency, StEverStrategiesManager  {
     function depositToStrategies(mapping (address => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 
@@ -239,7 +241,11 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         availableAssets += receivedAmount;
         updateTotalAssetsForStrategy(msg.sender, msg.value, false);
-
+        StrategyParams strategy = strategies[msg.sender];
+        bool isStrategyReadyToRemove = strategy.state == StrategyState.REMOVING && strategy.totalAssets == 0;
+        if (isStrategyReadyToRemove) {
+            removeStrategy(msg.sender);
+        }
         emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
     }
 

@@ -1,0 +1,29 @@
+pragma ever-solidity >=0.62.0;
+pragma AbiHeader expire;
+
+import "../interfaces/IStEverVault.tsol";
+import "../utils/ClusterLib.tsol";
+
+interface IStEverCluster {
+    enum StrategyState {
+        INITIAL,
+        ACTIVE,
+        REMOVING,
+        PENDING_REMOVE,
+        REMOVED
+    }
+
+    struct Strategy {
+        bool isLockedByAdmin;
+        StrategyState state;
+    }
+
+    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
+
+    function onStrategiesAdded(address[] _strategies) external;
+
+    function onPendingStrategyRemove(address[] _strategies) external;
+    function onStrategyRemoved(address _strategy) external;
+    // upgrade
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
+}

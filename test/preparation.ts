@@ -1,14 +1,14 @@
 import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
-import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
-import { Address, Contract, getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
+import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { Address, Contract, getRandomNonce, Signer, WalletTypes } from "locklift";
 import { expect } from "chai";
 import { createUserEntity, User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { Account } from "everscale-standalone-client";
-import { GetExpectedAddressParams } from "everscale-inpage-provider";
+import { Account } from "locklift/everscale-client";
+import { GetExpectedAddressParams } from "locklift/everscale-provider";
 
 export const preparation = async ({
   deployUserValue,
@@ -88,6 +88,7 @@ const deployAccounts = async (signers: Array<Signer>, deployAccountValue: string
       concatMap(signer =>
         locklift.factory.accounts.addNewAccount({
           type: WalletTypes.MsigAccount,
+          mSigType: "SafeMultisig",
           contract: "Wallet",
           initParams: { _randomNonce: getRandomNonce() },
           publicKey: signer.publicKey,
@@ -146,10 +147,14 @@ const getVaultExpectedAddressAndInitialParams = async ({
 }): Promise<{ vaultAddress: Address; deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> }> => {
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
-  const { tvc, abi } = locklift.factory.getContractArtifacts(vaultType);
+  const { code: clusterCode } = locklift.factory.getContractArtifacts("StEverCluster");
+
+  const { tvc, abi } = locklift.factory.getContractArtifacts("StEverVault");
+
   const deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]> = {
     tvc,
     initParams: {
+      clusterCode,
       nonce: locklift.utils.getRandomNonce(),
       governance: `0x${governance.publicKey}`,
       platformCode,
@@ -172,7 +177,7 @@ const deployVault = async ({
   owner: Account;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]>;
-  vaultType?: "OldVaultVersion" | "StEverVault";
+  vaultType?: "StEverVault";
 }) => {
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({

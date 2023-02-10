@@ -1,11 +1,11 @@
 import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
-import { fromNano, Signer, toNano, Transaction } from "locklift";
-import { createStrategy, DePoolStrategyWithPool } from "./entities/dePoolStrategy";
+import { getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
+import { createStrategy } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
-import { Account } from "locklift/everscale-standalone-client";
+import { Account } from "locklift/everscale-client";
 
 export const makeWithdrawToUsers = async ({
   amount,
@@ -43,7 +43,7 @@ export const makeWithdrawToUsers = async ({
     errorEvents: withdrawErrorEvents,
   };
 };
-
+export const createCluster = async ({ vault }: { vault: Vault }) => {};
 export const createAndRegisterStrategy = async ({
   admin,
   vault,
@@ -74,3 +74,26 @@ export const createAndRegisterStrategy = async ({
 
   return { strategy, transaction };
 };
+
+export class SignerWithAccount {
+  constructor(public readonly signer: Signer, public readonly account: Account) {}
+  static from = ({ account, signer }: { signer: Signer; account: Account }): SignerWithAccount =>
+    new SignerWithAccount(signer, account);
+
+  static create = async ({
+    signer,
+    initialBalance,
+  }: {
+    signer: Signer;
+    initialBalance: string;
+  }): Promise<SignerWithAccount> => {
+    return locklift.factory.accounts
+      .addNewAccount({
+        type: WalletTypes.EverWallet,
+        nonce: getRandomNonce(),
+        value: initialBalance,
+        publicKey: signer.publicKey,
+      })
+      .then(({ account }) => new SignerWithAccount(signer, account));
+  };
+}

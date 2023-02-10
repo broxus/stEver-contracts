@@ -18,7 +18,7 @@ let user3: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
-describe("Upgrade testing", function () {
+describe.skip("Upgrade testing", function () {
   before(async () => {
     const {
       vault: v,

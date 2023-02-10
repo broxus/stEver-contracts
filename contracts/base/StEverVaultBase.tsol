@@ -3,6 +3,8 @@ pragma ever-solidity >=0.62.0;
 
 import "./StEverVaultStorage.tsol";
 import "../interfaces/IStEverVault.tsol";
+import "../interfaces/IStEverCluster.tsol";
+
 import "../StEverAccount.tsol";
 import "../Platform.tsol";
 import "../utils/ErrorCodes.tsol";
@@ -35,10 +37,23 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         _;
     }
 
+    modifier adminOrClusterOwner(uint32 _clusterId) {
+        bool isAdmin = msg.sender == owner;
+        bool isClusterOwner = clusters[msg.sender].clusters.exists(_clusterId);
+        require (isAdmin || isClusterOwner,ErrorCodes.NOT_OWNER);
+        _;
+    }
+
     modifier onlyAccount(address _user) {
         address account = getAccountAddress(_user);
 
         require (msg.sender == account, ErrorCodes.NOT_USER_DATA);
+        _;
+    }
+
+    modifier onlyCluster(address _clusterOwner, uint32 _clusterNonce) {
+        address cluster = getClusterAddress(_clusterOwner, _clusterNonce);
+        require(msg.sender == cluster, ErrorCodes.NOT_CLUSTER_ACCOUNT);
         _;
     }
 
@@ -104,7 +119,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-     
+
     function setStEverFeePercent(uint32 _stEverFeePercent) override external onlyOwner {
         require (_stEverFeePercent <= Constants.ONE_HUNDRED_PERCENT, ErrorCodes.BAD_FEE_PERCENT);
 
@@ -300,6 +315,119 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         tvm.rawReserve(_reserve(), 0);
 
         emit AccountUpgraded(_user, _newVersion);
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    // Cluster
+    function _buildClusterParams(address _clusterOwner, uint32 _clusterNonce) internal virtual pure returns (TvmCell) {
+        TvmBuilder builder;
+        builder.store(_clusterOwner);
+        builder.store(_clusterNonce);
+        return builder.toCell();
+    }
+
+    function _buildInitCluster(TvmCell _initialData)
+        internal
+        view
+        virtual
+        returns (TvmCell)
+    {
+        return
+        tvm.buildStateInit({
+                contr: Platform,
+                varInit: {
+                    root: address(this),
+                    platformType: 0,
+                    initialData: _initialData,
+                    platformCode: platformCode
+                },
+                pubkey: 0,
+                code: platformCode
+        });
+    }
+
+    function deployCluster(
+        address _clusterOwner,
+        uint32 _clusterNonce,
+        uint128 _assurance,
+        uint32 _maxStrategiesCount
+    )
+        internal
+        view
+        returns (address)
+    {
+        TvmBuilder constructor_params;
+        constructor_params.store(clusterVersion);
+        constructor_params.store(clusterVersion);
+        constructor_params.store(_assurance);
+        constructor_params.store(_maxStrategiesCount);
+        return new Platform{
+                stateInit: _buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)),
+                value: StEverVaultGas.DEPLOY_CLUSTER_VALUE
+        }(clusterCode, constructor_params.toCell(), _clusterOwner);
+    }
+
+    function getClusterAddress(address _clusterOwner, uint32 _clusterNonce)
+        public
+        view
+        virtual
+        responsible
+        returns (address)
+    {
+        return
+            {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
+            tvm.hash(_buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)))
+        );
+    }
+    function setNewClusterCode(TvmCell _newClusterCode) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        clusterCode = _newClusterCode;
+        clusterVersion += 1;
+
+        emit NewClusterCodeSet(clusterVersion);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function upgradeStEverCluster(uint32 _clusterNonce) override external minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        address cluster = getClusterAddress(msg.sender, _clusterNonce);
+        IStEverCluster(cluster).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, msg.sender);
+    }
+
+    function upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters) override external minCallValue onlyOwner {
+        require(msg.value >= _clusters.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
+        tvm.rawReserve(_reserve(), 0);
+        this._upgradeStEverClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusters, 0);
+    }
+
+    function _upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters, uint128 _startIdx) override external onlySelf {
+        tvm.rawReserve(_reserve(), 0);
+        uint128 batchSize = 50;
+        for (; _startIdx < _clusters.length && batchSize != 0; _startIdx++) {
+            ClusterStatic cluster = _clusters[_startIdx];
+            batchSize--;
+
+            address userData = getClusterAddress(cluster.clusterOwner, cluster.clusterNonce);
+
+            IStEverCluster(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, _sendGasTo);
+        }
+
+        if (_startIdx < _clusters.length) {
+            this._upgradeStEverClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusters, _startIdx);
+            return;
+        }
+
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) override external onlyCluster(_clusterOwner, _clusterNonce) {
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emit ClusterUpgraded(_clusterOwner, _clusterNonce, _newVersion);
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 

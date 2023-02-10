@@ -1,5 +1,5 @@
 import { Address, fromNano, toNano, WalletTypes } from "locklift";
-import { Account } from "locklift/everscale-standalone-client";
+import { Account } from "locklift/everscale-client";
 import { isValidAddress, logger } from "../utils";
 import { DE_POOL_ABI } from "./misc/DePool";
 import prompts from "prompts";
@@ -99,6 +99,7 @@ const main = async () => {
     .mapValues(address => new Address(address))
     .value();
   const validatorMSigAccount = await locklift.factory.accounts.addExistingAccount({
+    mSigType: "SafeMultisig",
     publicKey: signer.publicKey,
     type: WalletTypes.MsigAccount,
     address: validatorMSigWalletAddress,

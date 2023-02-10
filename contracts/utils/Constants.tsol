@@ -15,4 +15,6 @@ library Constants {
     uint64 constant TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED = 168 hours;
     // DePooLStrategyFactory
     uint128 constant MAX_STRATEGY_PER_UPGRADE = 50;
+
+
 }
