@@ -7,6 +7,7 @@ import "./interfaces/IStEverVault.tsol";
 import "./utils/Gas.tsol";
 import "./utils/ErrorCodes.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "locklift/src/console.tsol";
 
 contract StEverCluster is IStEverCluster {
 
@@ -21,6 +22,7 @@ contract StEverCluster is IStEverCluster {
 
     uint128 currentAssurance;
     uint32 currentStrategiesCount;
+    mapping(address => Strategy) strategies;
 
     constructor() public {revert();}
 
@@ -31,8 +33,7 @@ contract StEverCluster is IStEverCluster {
     }
 
     function _reserve() internal pure returns (uint128) {
-        return
-        math.max(address(this).balance - msg.value, StEverAccountGas.CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - msg.value, StEverAccountGas.CONTRACT_MIN_BALANCE);
     }
 
     modifier onlyStEverVault() {
@@ -48,13 +49,13 @@ contract StEverCluster is IStEverCluster {
         _;
     }
     modifier stEverOwnerOrClusterOwner() {
-        require(msg.sender == stEverOwner || msg.sender == clusterOwner, 9004);
-        _;
+    require(msg.sender == stEverOwner || msg.sender == clusterOwner, 9004);
+    _;
     }
-    mapping(address => Strategy) strategies;
     function addStrategies(address[] _strategies) public onyClusterOwner {
         tvm.rawReserve(_reserve(), 0);
         if (currentAssurance < assurance) {
+
             // return
         }
 
@@ -64,7 +65,7 @@ contract StEverCluster is IStEverCluster {
         require (msg.value > _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
         for (address strategy : _strategies) {
 
-            if (_strategies.exists(strategy)) {
+            if (strategies.exists(strategy)) {
                 revert(9007);
             }
 
@@ -100,7 +101,7 @@ contract StEverCluster is IStEverCluster {
 
         require (
             msg.value > _strategies.length * StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE,
-            ErrorCodes.NOT_ENOUGH_VALUE
+            ErrorCodes.NOT_ENOUGH_VALUE__CLUSTER
         );
 
         for (address strategy : _strategies) {
@@ -132,6 +133,25 @@ contract StEverCluster is IStEverCluster {
         delete strategies[_strategy];
 
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+//    TODO add deposit st-ever tokens
+//    TODO add handling of delegating strategy from vault
+//    TODO add possibility to control cluster by admin
+//    TODO removing cluster
+    function getDetails() override external responsible returns (Details) {
+        return {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(
+            _nonce,
+            stEverVault,
+            stEverOwner,
+            clusterOwner,
+            assurance,
+            maxStrategiesCount,
+            currentVersion,
+
+            currentAssurance,
+            currentStrategiesCount,
+            strategies
+        );
     }
 
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external virtual override onlyStEverVault {
@@ -193,15 +213,18 @@ contract StEverCluster is IStEverCluster {
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
 
-        (address send_gas_to,) = s.decode(address, TvmCell);
-
+        (address _stEverVault,, address sendGasTo,) = s.decode(address,uint8,address, TvmCell);
+        stEverVault = _stEverVault;
         TvmSlice initialData = s.loadRefAsSlice();
-        (_nonce, stEverVault, stEverOwner, clusterOwner) = initialData.decode(uint32, address, address, address);
+
+        (clusterOwner,_nonce) = initialData.decode(address, uint32);
 
         TvmSlice constructorParams = s.loadRefAsSlice();
+
         (uint32 _current_version,, uint128 _assurance, uint32 _maxStrategiesCount) = constructorParams.decode(uint32, uint32, uint128, uint32);
+
         _init(_current_version, _assurance, _maxStrategiesCount);
 
-        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 }

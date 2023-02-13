@@ -197,7 +197,6 @@ const deployVault = async ({
   expect(await locklift.provider.getBalance(vaultContract.address).then(Number)).to.be.above(0);
 
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
-  debugger;
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
   const vaultSubscriber = new locklift.provider.Subscriber();
   vaultSubscriber.transactions(vaultContract.address).on(transaction => {

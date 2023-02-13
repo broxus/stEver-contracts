@@ -6,13 +6,14 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, switchMap, toArray } from "rxjs";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
 import { isT, toNanoBn } from "../utils";
 import chai from "chai";
+import { Cluster } from "../utils/entities/cluster";
 chai.use(lockliftChai);
 
 let signer: Signer;
@@ -44,25 +45,32 @@ describe("Emergency testing", function () {
     strategyFactory = sf;
   });
   it("Vault should be initialized", async () => {
+    const cluster = await Cluster.create({
+      vault,
+      clusterOwner: admin.account,
+      assurance: toNano(0),
+      maxStrategiesCount: 100,
+      strategyFactory,
+    });
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
     await user1.depositToVault(toNano(1100));
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNano(101);
     strategies = await lastValueFrom(
       range(3).pipe(
-        mergeMap(
-          () =>
-            createAndRegisterStrategy({
-              signer,
-              vault,
-              admin: admin.account,
-              strategyDeployValue: locklift.utils.toNano(22),
-              poolDeployValue: locklift.utils.toNano(200),
-              strategyFactory,
-            }),
-          1,
+        concatMap(() =>
+          createStrategy({
+            signer,
+            strategyFactory,
+            strategyDeployValue: locklift.utils.toNano(22),
+            poolDeployValue: locklift.utils.toNano(200),
+          }),
         ),
-        map(({ strategy }) => strategy),
         toArray(),
+        switchMap(strategies =>
+          from(cluster.addStrategies(strategies.map(strategyWithDePool => strategyWithDePool.strategy.address))).pipe(
+            map(() => strategies),
+          ),
+        ),
       ),
     );
     await governance.depositToStrategies({

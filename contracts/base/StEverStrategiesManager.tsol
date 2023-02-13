@@ -16,19 +16,19 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         require(msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
-        if (!clusters.exists(_clusterOwner)) {
+        if (!clusterPools.exists(_clusterOwner)) {
             mapping(uint32 => bool) emptyClusters;
-            clusters[_clusterOwner] = ClustersPool({
+            clusterPools[_clusterOwner] = ClustersPool({
                 currentClusterNonce: 0,
                 clusters: emptyClusters
             });
         } else {
-            clusters[_clusterOwner].currentClusterNonce++;
+            clusterPools[_clusterOwner].currentClusterNonce++;
         }
 
         address cluster = deployCluster(
             _clusterOwner,
-            clusters[_clusterOwner].currentClusterNonce,
+            clusterPools[_clusterOwner].currentClusterNonce,
             _assurance,
             _maxStrategiesCount
         );
@@ -95,6 +95,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint128 minimalRemoveStrategyValue = uint128(pendingDeleteStrategies.length) * StEverVaultGas.REMOVE_STRATEGY_RESERVE;
 
         tvm.rawReserve(address(this).balance - (msg.value - minimalRemoveStrategyValue), 0);
+        emit StrategiesPendingRemove(pendingDeleteStrategies);
 
         IStEverCluster(msg.sender).onPendingStrategyRemove{
             value: 0,

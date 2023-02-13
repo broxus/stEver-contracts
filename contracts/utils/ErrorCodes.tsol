@@ -56,4 +56,6 @@ library ErrorCodes {
     uint16 constant MAX_STRATEGY_THAN_ALLOWED = 4001;
     uint16 constant NOT_ENOUGH_VALUE_FACTORY = 4002;
 
+    // Cluster
+    uint16 constant NOT_ENOUGH_VALUE__CLUSTER = 5004;
 }

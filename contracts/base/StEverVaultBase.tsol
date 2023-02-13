@@ -39,7 +39,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     modifier adminOrClusterOwner(uint32 _clusterId) {
         bool isAdmin = msg.sender == owner;
-        bool isClusterOwner = clusters[msg.sender].clusters.exists(_clusterId);
+        bool isClusterOwner = clusterPools[msg.sender].clusters.exists(_clusterId);
         require (isAdmin || isClusterOwner,ErrorCodes.NOT_OWNER);
         _;
     }
@@ -145,9 +145,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
          availableAssets - StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE >= _amount;
     }
 
-    function isStrategyInInitialState(address _strategy) internal view returns (bool) {
+    function isStrategyInInitialState(address _strategy, bool isAllowedNotActiveState) internal view returns (bool) {
         StrategyParams strategy = strategies[_strategy];
-        return strategy.depositingAmount == 0 &&  strategy.withdrawingAmount == 0;
+        return strategy.depositingAmount == 0 &&
+            strategy.withdrawingAmount == 0 &&
+            (isAllowedNotActiveState || strategy.state == StrategyState.ACTIVE);
     }
 
     // utils
@@ -323,6 +325,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         TvmBuilder builder;
         builder.store(_clusterOwner);
         builder.store(_clusterNonce);
+
         return builder.toCell();
     }
 
@@ -363,7 +366,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         constructor_params.store(_maxStrategiesCount);
         return new Platform{
                 stateInit: _buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)),
-                value: StEverVaultGas.DEPLOY_CLUSTER_VALUE
+                value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
+                bounce: false
         }(clusterCode, constructor_params.toCell(), _clusterOwner);
     }
 

@@ -99,7 +99,7 @@ export class Vault {
 
   getStrategiesInfo = () =>
     this.vaultContract.methods
-      .strategies({})
+      .strategies()
       .call()
       .then(res =>
         res.strategies.reduce(
@@ -204,7 +204,7 @@ export class Vault {
     expect(traceTree).to.emit("ClusterCreated").withNamedArgs({
       clusterOwner,
       assurance,
-      maxStrategiesCount,
+      maxStrategiesCount: maxStrategiesCount.toString(),
     });
     const events = traceTree?.findForContract({ contract: this.vaultContract, name: "ClusterCreated" })!;
     return locklift.factory.getDeployedContract("StEverCluster", events[0]!.params!.cluster);

@@ -18,12 +18,30 @@ interface IStEverCluster {
         StrategyState state;
     }
 
+    struct Details {
+        uint32 _nonce;
+        address stEverVault;
+        address stEverOwner;
+        address clusterOwner;
+
+        uint128 assurance;
+        uint32 maxStrategiesCount;
+        uint32 currentVersion;
+
+        uint128 currentAssurance;
+        uint32 currentStrategiesCount;
+        mapping(address => Strategy) strategies;
+    }
+
     event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
 
     function onStrategiesAdded(address[] _strategies) external;
 
     function onPendingStrategyRemove(address[] _strategies) external;
+
     function onStrategyRemoved(address _strategy) external;
+
+    function getDetails() external responsible returns (Details);
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

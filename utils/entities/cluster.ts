@@ -10,18 +10,40 @@ import { mergeMap, range, toArray } from "rxjs";
 
 export class Cluster {
   constructor(
-    private readonly clusterContract: Contract<StEverClusterAbi>,
+    public readonly clusterContract: Contract<StEverClusterAbi>,
     private readonly clusterOwner: Account,
     private readonly strategiesFactory: StrategyFactory,
   ) {}
+
   addStrategies = async (strategies: Array<Address>) => {
     return locklift.tracing.trace(
       this.clusterContract.methods.addStrategies({ _strategies: strategies }).send({
         from: this.clusterOwner.address,
-        amount: toNano(3),
+        amount: toNano(10),
       }),
+      { raise: false },
     );
   };
+
+  removeStrategies = (strategies: Array<Address>, value: string) => {
+    return locklift.tracing.trace(
+      this.clusterContract.methods
+        .removeStrategies({
+          _strategies: strategies,
+        })
+        .send({
+          from: this.clusterOwner.address,
+          amount: value,
+        }),
+      { raise: false },
+    );
+  };
+
+  getDetails = () =>
+    this.clusterContract.methods
+      .getDetails({ answerId: 0 })
+      .call()
+      .then(res => res.value0);
   static create = async ({
     vault,
     assurance,

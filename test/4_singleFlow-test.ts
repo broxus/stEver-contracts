@@ -1,15 +1,16 @@
-import { Contract, Signer } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
-import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
+import { Cluster } from "../utils/entities/cluster";
 
 let signer: Signer;
 let admin: User;
@@ -20,6 +21,7 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
+let cluster: Cluster;
 
 describe("Single flow", async function () {
   before(async () => {
@@ -44,18 +46,23 @@ describe("Single flow", async function () {
     await vault.setStEverFeePercent({
       percentFee: 11,
     });
+    cluster = await Cluster.create({
+      vault,
+      clusterOwner: admin.account,
+      assurance: toNano(0),
+      maxStrategiesCount: 10,
+      strategyFactory,
+    });
   });
   it("should strategy deployed", async () => {
-    strategiesWithPool.push(
-      await createAndRegisterStrategy({
-        admin: admin.account,
-        vault,
-        signer,
-        poolDeployValue: locklift.utils.toNano(200),
-        strategyDeployValue: locklift.utils.toNano(22),
-        strategyFactory,
-      }).then(({ strategy }) => strategy),
-    );
+    const strategy = await createStrategy({
+      signer,
+      strategyFactory,
+      strategyDeployValue: locklift.utils.toNano(22),
+      poolDeployValue: locklift.utils.toNano(200),
+    });
+    await cluster.addStrategies([strategy.strategy.address]);
+    strategiesWithPool.push(strategy);
   });
   it("user should deposit to vault", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = 122;

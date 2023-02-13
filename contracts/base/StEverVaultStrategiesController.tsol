@@ -39,7 +39,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (!isStrategyInInitialState(strategy)) {
+            if (!isStrategyInInitialState(strategy, false)) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
                 continue;
             }
@@ -145,7 +145,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (!isStrategyInInitialState(strategy)) {
+            if (!isStrategyInInitialState(strategy, true)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
                 continue;
             }
@@ -234,6 +234,9 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
 
+        if (isStrategyReadyToDelete(msg.sender)) {
+            removeStrategy(msg.sender);
+        }
     }
 
     function receiveAdditionalTransferFromStrategy() override external onlyStrategy {
@@ -242,13 +245,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         availableAssets += receivedAmount;
         updateTotalAssetsForStrategy(msg.sender, msg.value, false);
         StrategyParams strategy = strategies[msg.sender];
-        bool isStrategyReadyToRemove = strategy.state == StrategyState.REMOVING && strategy.totalAssets == 0;
-        if (isStrategyReadyToRemove) {
+
+        if (isStrategyReadyToDelete(msg.sender)) {
             removeStrategy(msg.sender);
         }
+
         emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
     }
 
+    function isStrategyReadyToDelete(address _strategy) internal returns(bool) {
+        StrategyParams strategy = strategies[_strategy];
+        return strategy.state == StrategyState.REMOVING && strategy.totalAssets == 0;
+    }
     function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
 
         if (_isIncrease) {

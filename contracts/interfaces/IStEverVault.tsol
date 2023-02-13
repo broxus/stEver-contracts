@@ -9,6 +9,7 @@ interface IStEverVault {
     // Strategy
     event StrategiesAdded(address[] strategy);
     event StrategyRemoved(address strategy);
+    event StrategiesPendingRemove(address[] strategies);
     event StrategyReported(address strategy, StrategyReport report);
     // Cluster
     event ClusterCreated(

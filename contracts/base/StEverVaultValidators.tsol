@@ -33,7 +33,7 @@ abstract contract StEverVaultValidators is StEverVaultBase {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
             }
 
-            if (!isStrategyInInitialState(strategy)) {
+            if (!isStrategyInInitialState(strategy, false)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
             }
         }
@@ -63,7 +63,7 @@ abstract contract StEverVaultValidators is StEverVaultBase {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
             }
 
-            if(!isStrategyInInitialState(strategy)) {
+            if(!isStrategyInInitialState(strategy, true)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
             }
         }
