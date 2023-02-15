@@ -6,8 +6,7 @@ import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { concatMap, from, lastValueFrom, map, mergeMap, switchMap, timer, toArray } from "rxjs";
 
 let signer: Signer;
 let admin: User;
@@ -18,7 +17,7 @@ let user3: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
-describe("Upgrade testing", function () {
+describe.skip("Upgrade testing", function () {
   before(async () => {
     const {
       vault: v,

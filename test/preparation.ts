@@ -1,6 +1,6 @@
 import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
 import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
-import { Address, Contract, getRandomNonce, Signer, WalletTypes } from "locklift";
+import { Address, Contract, getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
 import { expect } from "chai";
 import { createUserEntity, User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
@@ -69,6 +69,15 @@ export const preparation = async ({
       _owner: adminUser.address,
     },
   });
+
+  await vault.methods
+    .setStrategyFactory({
+      _strategyFactory: factoryContact.contract.address,
+    })
+    .send({
+      from: adminUser.address,
+      amount: toNano(2),
+    });
 
   const strategyFactory = new StrategyFactory(adminUser, factoryContact.contract, vaultInstance);
 

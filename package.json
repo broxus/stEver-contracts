@@ -8,6 +8,8 @@
     "test-initialize": "npx locklift test --network local --tests test/1_initialize-test.ts",
     "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
     "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
+    "test-clusters": "npx locklift test --network local --tests test/3_1_clusters.ts",
+
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
     "test-miltiFlow-main": "npx locklift test --network local --tests test/6_miltiFlow-main-test.ts",

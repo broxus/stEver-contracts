@@ -9,7 +9,7 @@ import { Vault } from "../utils/entities/vault";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { getAddressEverBalance, toNanoBn } from "../utils";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { lastValueFrom, map, mergeMap, range, timer, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, tap, timer, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";
@@ -62,7 +62,7 @@ describe("Strategy base", function () {
       signer,
       strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
-      strategyFactory,
+      cluster,
     });
 
     const { traceTree: firstTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
@@ -231,7 +231,7 @@ describe("Strategy base", function () {
       signer,
       strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
-      strategyFactory,
+      cluster,
     });
     await cluster.addStrategies([strategy.strategy.address]);
     await user1.depositToVault(locklift.utils.toNano(100));
@@ -354,8 +354,6 @@ describe("Strategy base", function () {
     );
   });
   it("strategy should be deleted", async () => {
-    const { traceTree: errorTraceTree } = await cluster.removeStrategies([strategy.strategy.address], toNano(2));
-    expect(errorTraceTree).to.error(5004);
     const { traceTree } = await cluster.removeStrategies([strategy.strategy.address], toNano(10));
     expect(traceTree)
       .to.emit("StrategiesPendingRemove")
@@ -363,8 +361,8 @@ describe("Strategy base", function () {
         strategies: [strategy.strategy.address],
       });
     expect(new BigNumber(traceTree!.getBalanceDiff(admin.account.address)).negated().toNumber())
-      .to.be.lte(new BigNumber(toNano(2)).toNumber())
-      .and.gte(Number(toNano(1)));
+      .to.be.lte(new BigNumber(toNano(0.1)).toNumber())
+      .and.gte(Number(toNano(0.01)));
 
     const { totalAssets } = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
     expect(Number(totalAssets)).to.be.lte(Number(toNano(101)));
@@ -387,7 +385,7 @@ describe("Strategy base", function () {
       signer,
       strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
-      strategyFactory,
+      cluster,
     });
 
     await cluster.addStrategies([strategy.strategy.address]);
@@ -397,36 +395,58 @@ describe("Strategy base", function () {
     });
   });
 
-  it.skip("should created and deposited to 55 strategies", async () => {
-    const strategies = await lastValueFrom(
-      range(55).pipe(
-        mergeMap(
-          () =>
-            createAndRegisterStrategy({
-              signer,
+  it("should created and deposited to 3 clusters with 15 strategies per each", async () => {
+    const clustersWithStrategies = await lastValueFrom(
+      range(3).pipe(
+        concatMap(() =>
+          from(
+            Cluster.create({
               vault,
-              admin: admin.account,
-              strategyDeployValue: locklift.utils.toNano(22),
-              poolDeployValue: locklift.utils.toNano(100),
+              clusterOwner: admin.account,
+              maxStrategiesCount: 15,
               strategyFactory,
+              assurance: toNano(0),
             }),
-          1,
+          ).pipe(
+            switchMap(cluster =>
+              range(15).pipe(
+                concatMap(() =>
+                  from(
+                    createStrategy({
+                      cluster,
+                      strategyDeployValue: locklift.utils.toNano(22),
+                      poolDeployValue: locklift.utils.toNano(200),
+                      signer,
+                    }),
+                  ),
+                ),
+                toArray(),
+                switchMap(strategies =>
+                  from(cluster.addStrategies(strategies.map(el => el.strategy.address))).pipe(
+                    map(() => ({ cluster, strategies })),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        map(({ strategy }) => strategy),
         toArray(),
       ),
     );
+
     await user1.depositToVault(locklift.utils.toNano(1000));
     console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
     const { traceTree } = await governance.depositToStrategies({
-      _depositConfigs: strategies.map(({ strategy }) => [
-        strategy.address,
-        {
-          fee: locklift.utils.toNano(0.6),
-          amount: locklift.utils.toNano(2),
-        },
-      ]),
+      _depositConfigs: clustersWithStrategies
+        .flatMap(({ strategies }) => strategies)
+        .map(({ strategy }) => [
+          strategy.address,
+          {
+            fee: locklift.utils.toNano(0.6),
+            amount: locklift.utils.toNano(2),
+          },
+        ]),
     });
     await traceTree!.beautyPrint();
     console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);

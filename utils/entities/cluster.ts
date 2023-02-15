@@ -7,6 +7,8 @@ import { StrategyFactory } from "./strategyFactory";
 import { createStrategy } from "./dePoolStrategy";
 import { SignerWithAccount } from "../highOrderUtils";
 import { mergeMap, range, toArray } from "rxjs";
+import { toNanoBn } from "../index";
+import { expect } from "chai";
 
 export class Cluster {
   constructor(
@@ -19,13 +21,13 @@ export class Cluster {
     return locklift.tracing.trace(
       this.clusterContract.methods.addStrategies({ _strategies: strategies }).send({
         from: this.clusterOwner.address,
-        amount: toNano(10),
+        amount: toNanoBn(1.5).multipliedBy(strategies.length).plus(toNano(1)).toString(),
       }),
       { raise: false },
     );
   };
 
-  removeStrategies = (strategies: Array<Address>, value: string) => {
+  removeStrategies = (strategies: Array<Address>) => {
     return locklift.tracing.trace(
       this.clusterContract.methods
         .removeStrategies({
@@ -33,10 +35,30 @@ export class Cluster {
         })
         .send({
           from: this.clusterOwner.address,
-          amount: value,
+          amount: toNano(1),
         }),
       { raise: false },
     );
+  };
+
+  deployStrategy = async ({ dePools }: { dePools: Array<Address> }): Promise<Address> => {
+    const { traceTree } = await locklift.tracing.trace(
+      this.clusterContract.methods
+        .deployStrategies({
+          _dePools: dePools,
+        })
+        .send({
+          from: this.clusterOwner.address,
+          amount: toNanoBn(23).multipliedBy(dePools.length).toString(),
+        }),
+      { raise: false },
+    );
+    expect(traceTree).to.emit("NewStrategyDeployed", this.clusterContract).count(dePools.length);
+
+    return traceTree!.findForContract({
+      contract: this.clusterContract,
+      name: "NewStrategyDeployed",
+    })[0]!.params!.strategy;
   };
 
   getDetails = () =>

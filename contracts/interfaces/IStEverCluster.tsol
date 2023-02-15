@@ -5,16 +5,23 @@ import "../interfaces/IStEverVault.tsol";
 import "../utils/ClusterLib.tsol";
 
 interface IStEverCluster {
+    event NewStrategyDeployed(address strategy);
+
     enum StrategyState {
         INITIAL,
         ACTIVE,
         REMOVING,
-        PENDING_REMOVE,
+        PENDING_REMOVE
+    }
+
+    enum ClusterState {
+        INITIAL,
+        PAUSED,
+        REMOVING,
         REMOVED
     }
 
     struct Strategy {
-        bool isLockedByAdmin;
         StrategyState state;
     }
 
@@ -33,15 +40,25 @@ interface IStEverCluster {
         mapping(address => Strategy) strategies;
     }
 
-    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
 
+
+    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
+    function setUnlockedAssuranceValue(uint128 newUnlockAssurance) external;
+    function withdrawAssurance(uint128 amount) external;
+
+    function deployStrategies(address[] dePools) external;
+    function onStrategyDeployed(address strategy) external;
     function onStrategiesAdded(address[] _strategies) external;
+
+    function handleDelegateStrategies(address[] _strategies) external;
 
     function onPendingStrategyRemove(address[] _strategies) external;
 
     function onStrategyRemoved(address _strategy) external;
 
     function getDetails() external responsible returns (Details);
+
+    function onRemove() external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

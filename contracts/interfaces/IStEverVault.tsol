@@ -6,6 +6,7 @@ import "./IStEverAccount.tsol";
 interface IStEverVault {
     // common
     event PausedStateChanged(bool pauseState);
+    event StrategyFactoryAddressUpdated(address _strategyFactory);
     // Strategy
     event StrategiesAdded(address[] strategy);
     event StrategyRemoved(address strategy);
@@ -17,6 +18,21 @@ interface IStEverVault {
         uint128 assurance,
         uint32 maxStrategiesCount,
         address cluster
+    );
+    event ClusterHandledStrategiesDelegation(
+        address cluster,
+        address clusterOwner,
+        uint32 clusterNonce,
+        address[] _strategies
+    );
+    event ClusterRemoving(
+        address cluster
+    );
+
+    event ClusterRemoved(
+        address cluster,
+        address clusterOwner,
+        uint32 clusterNonce
     );
     // Strategy deposit
     event StrategyHandledDeposit(address strategy, uint128 depositValue);
@@ -85,6 +101,7 @@ interface IStEverVault {
     }
     enum StrategyState {
         ACTIVE,
+        TRANSFERRING,
         PAUSED,
         REMOVING
     }
@@ -143,7 +160,7 @@ interface IStEverVault {
 
     struct ClustersPool {
         uint32 currentClusterNonce;
-        mapping(uint32 => bool) clusters;
+        mapping(uint32 => address) clusters;
     }
 
     function getDetails() external responsible view returns(Details);
@@ -152,9 +169,23 @@ interface IStEverVault {
     function _removeStrategy(address _strategy) external;
     function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
+    function setStrategyFactory(address _strategyFactory) external;
     // clusters
     function createCluster(address _clusterOwner, uint128 _assurance, uint32 _maxStrategiesCount) external;
-
+    function delegateStrategies(address[] strategies, address destinationCluster) external;
+    function onStrategiesDelegationHandled(
+        address _clusterOwner,
+        uint32 _clusterNonce,
+        address[] _strategies
+    ) external;
+    function onClusterRemoved(
+        address _clusterOwner,
+        uint32 _clusterNonce
+    ) external;
+    function removeCluster(
+        address _clusterOwner,
+        uint32 _clusterNonce
+    ) external;
     // Deposit to strategy
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;

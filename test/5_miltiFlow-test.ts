@@ -65,7 +65,7 @@ describe("Multi flow", async function () {
           concatMap(() =>
             createStrategy({
               signer,
-              strategyFactory,
+              cluster,
               strategyDeployValue: locklift.utils.toNano(22),
               poolDeployValue: locklift.utils.toNano(200),
             }),

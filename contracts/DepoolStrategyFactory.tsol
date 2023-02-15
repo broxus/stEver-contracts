@@ -3,6 +3,7 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 import "./interfaces/IDepoolStrategyFactory.tsol";
+import "./interfaces/IStEverCluster.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import "./StrategyDePool.tsol";
 import "./interfaces/IStrategy.tsol";
@@ -26,11 +27,6 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     uint32 public strategyCount;
     uint32 public factoryVersion;
 
-    // constant
-    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
-    uint128 constant UPGRADE_VALUE = 1 ever;
-    uint128 constant STRATEGY_DEPLOY_VALUE = 20 ever;
-    uint128 constant MIN_CALL_VALUE = 1 ever;
 
     // errors
     uint16 constant NOT_OWNER = 5001;
@@ -53,13 +49,13 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     }
 
     modifier minCallValue() {
-        require (msg.value >= DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE_FACTORY);
+        require (msg.value >= DePoolStrategyFactoryGas.MIN_CALL_VALUE, ErrorCodes.NOT_ENOUGH_VALUE_FACTORY);
         _;
     }
         // utils
     function _reserve() internal pure returns (uint128) {
 		return
-			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+			math.max(address(this).balance - msg.value, DePoolStrategyFactoryGas.CONTRACT_MIN_BALANCE);
 	}
 
     function getDetails() override external responsible view returns (FactoryDetails) {
@@ -81,7 +77,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     }
 
     function installNewStrategyCode(TvmCell _strategyCode, address _sendGasTo) override external onlyOwner {
-        require (msg.value >= UPGRADE_VALUE, LOW_MSG_VALUE);
+        require (msg.value >= DePoolStrategyFactoryGas.UPGRADE_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(),0);
 
         dePoolStrategyCode = _strategyCode;
@@ -92,7 +88,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     }
 
     function deployStrategy(address _dePool) override external {
-        require (msg.value >= STRATEGY_DEPLOY_VALUE + MIN_CALL_VALUE, LOW_MSG_VALUE);
+        require (msg.value >= DePoolStrategyFactoryGas.STRATEGY_DEPLOY_VALUE + DePoolStrategyFactoryGas.MIN_CALL_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         TvmCell stateInit = tvm.buildStateInit({
@@ -105,29 +101,37 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             pubkey: tvm.pubkey(),
             code: dePoolStrategyCode
         });
+
         strategyCount++;
         address strategy = new StrategyDePool{
             stateInit: stateInit,
-            value: STRATEGY_DEPLOY_VALUE,
+            value: DePoolStrategyFactoryGas.STRATEGY_DEPLOY_VALUE,
             wid: address(this).wid
         }(stEverVault, _dePool);
 
         emit NewStrategyDeployed(strategy,_dePool, strategyVersion);
 
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        IStEverCluster(msg.sender).onStrategyDeployed{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(strategy);
     }
 
     function upgradeStrategies(address[] _strategies) override external onlyOwner {
         require (_strategies.length <= Constants.MAX_STRATEGY_PER_UPGRADE, ErrorCodes.MAX_STRATEGY_THAN_ALLOWED);
         require (
-            msg.value >= DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE * _strategies.length + DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE,
+            msg.value >= DePoolStrategyFactoryGas.MIN_CALL_VALUE * _strategies.length + DePoolStrategyFactoryGas.MIN_CALL_VALUE,
             ErrorCodes.NOT_ENOUGH_VALUE_FACTORY
         );
 
         tvm.rawReserve(_reserve(),0);
 
         for (address strategy : _strategies) {
-            IStrategy(strategy).upgrade{value: DePoolStrategyFactoryGas.MIN_CALL_MSG_VALUE, bounce: false}(dePoolStrategyCode, strategyVersion, msg.sender);
+            IStrategy(strategy).upgrade{
+                    value: DePoolStrategyFactoryGas.MIN_CALL_VALUE,
+                    bounce: false
+            }(dePoolStrategyCode, strategyVersion, msg.sender);
         }
 
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});

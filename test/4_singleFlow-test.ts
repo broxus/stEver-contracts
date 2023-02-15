@@ -57,7 +57,7 @@ describe("Single flow", async function () {
   it("should strategy deployed", async () => {
     const strategy = await createStrategy({
       signer,
-      strategyFactory,
+      cluster,
       strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
     });

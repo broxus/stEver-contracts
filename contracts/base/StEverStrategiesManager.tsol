@@ -17,7 +17,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         tvm.rawReserve(_reserve(), 0);
 
         if (!clusterPools.exists(_clusterOwner)) {
-            mapping(uint32 => bool) emptyClusters;
+            mapping(uint32 => address) emptyClusters;
             clusterPools[_clusterOwner] = ClustersPool({
                 currentClusterNonce: 0,
                 clusters: emptyClusters
@@ -30,11 +30,36 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
             _clusterOwner,
             clusterPools[_clusterOwner].currentClusterNonce,
             _assurance,
-            _maxStrategiesCount
+            _maxStrategiesCount,
+            strategyFactory,
+            stTokenRoot
         );
+        clusterPools[_clusterOwner].clusters[clusterPools[_clusterOwner].currentClusterNonce] = cluster;
         emit ClusterCreated(_clusterOwner, _assurance, _maxStrategiesCount, cluster);
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+
+    function removeCluster(
+        address _clusterOwner,
+        uint32 _clusterNonce
+    ) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+        address clusterAddress = getClusterAddress(_clusterOwner, _clusterNonce);
+
+        IStEverCluster(clusterAddress).onRemove{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+    }
+
+    function onClusterRemoved(
+        address _clusterOwner,
+        uint32 _clusterNonce
+    ) override external onlyCluster(_clusterOwner, _clusterNonce) {
+        delete clusterPools[_clusterOwner].clusters[_clusterNonce];
+        if (clusterPools[_clusterOwner].clusters.keys().length == 0) {
+            delete clusterPools[_clusterOwner];
+        }
+        emit ClusterRemoved(msg.sender, _clusterOwner, _clusterNonce);
+    }
+
     function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) override external onlyCluster(_clusterOwner, _clusterId)  {
         require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
 
@@ -124,4 +149,38 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategy);
     }
 
+    function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+        address[] transferringStrategies;
+        for (address _strategy : _strategies) {
+            StrategyParams strategy = strategies[_strategy];
+            if (strategy.state == StrategyState.ACTIVE && strategy.cluster == address(0)) {
+                strategies[_strategy].state = StrategyState.TRANSFERRING;
+                transferringStrategies.push(_strategy);
+            }
+        }
+
+        IStEverCluster(_destinationCluster).handleDelegateStrategies{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+        }(transferringStrategies);
+    }
+
+    function onStrategiesDelegationHandled(
+        address _clusterOwner,
+        uint32 _clusterNonce,
+        address[] _strategies
+    ) override external onlyCluster(_clusterOwner, _clusterNonce) {
+        tvm.rawReserve(_reserve(), 0);
+
+        for (address strategy : _strategies) {
+            strategies[strategy].state = StrategyState.ACTIVE;
+            strategies[strategy].cluster = msg.sender;
+        }
+
+        emit ClusterHandledStrategiesDelegation(msg.sender, _clusterOwner, _clusterNonce, _strategies);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
 }

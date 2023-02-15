@@ -27,6 +27,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint128 minStrategyDepositValue = 100 ever;
     uint128 minStrategyWithdrawValue = 100 ever;
     bool isPaused;
+    address strategyFactory;
 
 
     address owner;
@@ -35,7 +36,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint32 clusterVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
-    mapping(address => ClustersPool) clusterPools;
+    mapping(address => ClustersPool) public clusterPools;
     mapping(uint64 => PendingWithdraw) pendingWithdrawals;
     // emergency
     EmergencyState emergencyState;

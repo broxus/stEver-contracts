@@ -139,6 +139,15 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function setStrategyFactory(address _strategyFactory) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        strategyFactory = _strategyFactory;
+        emit StrategyFactoryAddressUpdated(strategyFactory);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
@@ -353,7 +362,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         address _clusterOwner,
         uint32 _clusterNonce,
         uint128 _assurance,
-        uint32 _maxStrategiesCount
+        uint32 _maxStrategiesCount,
+        address _strategyFactory,
+        address _stEverTokenRoot
     )
         internal
         view
@@ -364,6 +375,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         constructor_params.store(clusterVersion);
         constructor_params.store(_assurance);
         constructor_params.store(_maxStrategiesCount);
+        constructor_params.store(_strategyFactory);
+        constructor_params.store(_stEverTokenRoot);
         return new Platform{
                 stateInit: _buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)),
                 value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
@@ -380,7 +393,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     {
         return
             {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
-            tvm.hash(_buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)))
+                tvm.hash(_buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)))
         );
     }
     function setNewClusterCode(TvmCell _newClusterCode) override external onlyOwner minCallValue {

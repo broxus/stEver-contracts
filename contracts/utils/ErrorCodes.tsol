@@ -56,6 +56,24 @@ library ErrorCodes {
     uint16 constant MAX_STRATEGY_THAN_ALLOWED = 4001;
     uint16 constant NOT_ENOUGH_VALUE_FACTORY = 4002;
 
-    // Cluster
-    uint16 constant NOT_ENOUGH_VALUE__CLUSTER = 5004;
+}
+
+library ErrorCodesCluster {
+    uint16 constant NOT_ST_EVER_VAULT = 5001;
+    uint16 constant NOT_ST_EVER_OWNER = 5002;
+    uint16 constant NOT_CLUSTER_OWNER = 5003;
+    uint16 constant NOT_ST_EVER_OWNER_OR_CLUSTER_OWNER = 5004;
+    uint16 constant NOT_STRATEGY_FACTORY = 5005;
+    uint16 constant NOT_ENOUGH_VALUE = 5006;
+    uint16 constant LOW_MSG_VALUE = 5007;
+    uint16 constant NOT_ST_EVER_ROOT = 5008;
+    uint16 constant ASSURANCE_NOT_ENOUGH = 5009;
+    uint16 constant STRATEGIES_LIMIT_REACHED = 5010;
+    uint16 constant STRATEGY_ALREADY_EXISTS = 5011;
+    uint16 constant STRATEGY_NOT_DEPLOYED_BY_CLUSTER = 5012;
+    uint16 constant STRATEGY_NOT_IN_ACTIVE_STATE = 5013;
+    uint16 constant STRATEGY_NOT_EXISTS = 5014;
+    uint16 constant NOT_ST_EVER_TOKEN_WALLET = 5015;
+    uint16 constant NOT_ENOUGH_UNLOCKED_ASSURANCE = 5016;
+
 }
