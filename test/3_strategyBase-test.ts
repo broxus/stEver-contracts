@@ -73,7 +73,7 @@ describe("Strategy base", function () {
       });
 
     const { traceTree: secondTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
-    expect(secondTraceTree).to.error(9007);
+    expect(secondTraceTree).to.error(5011);
     const clusterDetails = await cluster.getDetails();
     expect(clusterDetails.strategies.length).to.be.eq(1);
     const [strategyAddress, strategyParams] = clusterDetails.strategies[0];

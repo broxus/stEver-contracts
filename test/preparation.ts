@@ -111,7 +111,10 @@ const deployAccounts = async (signers: Array<Signer>, deployAccountValue: string
   );
 };
 type DeployRootParams = { signer: Signer; owner: Address };
-const deployTokenRoot = async ({ signer, owner }: DeployRootParams): Promise<Contract<TokenRootUpgradeableAbi>> => {
+export const deployTokenRoot = async ({
+  signer,
+  owner,
+}: DeployRootParams): Promise<Contract<TokenRootUpgradeableAbi>> => {
   const TOKEN_ROOT_NAME = "StEver";
   const TOKEN_ROOT_SYMBOL = "STE";
   const ZERO_ADDRESS = new Address("0:0000000000000000000000000000000000000000000000000000000000000000");

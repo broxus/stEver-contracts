@@ -150,6 +150,8 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
+        require(msg.value >= uint128(_strategies.length) * StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE);
+
         tvm.rawReserve(_reserve(), 0);
         address[] transferringStrategies;
         for (address _strategy : _strategies) {
