@@ -97,6 +97,17 @@ export class Vault {
         };
       });
 
+  delegateStrategies = async (strategies: Array<Address>, destinationCluster: Address, value: string) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods
+        .delegateStrategies({
+          _strategies: strategies,
+          _destinationCluster: destinationCluster,
+        })
+        .send({ from: this.adminAccount.address, amount: value }),
+      { raise: false },
+    );
+  };
   getStrategiesInfo = () =>
     this.vaultContract.methods
       .strategies()

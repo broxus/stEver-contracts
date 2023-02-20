@@ -11,11 +11,30 @@ import { concatMap, from, lastValueFrom, timer } from "rxjs";
 export class User {
   constructor(
     public readonly account: Account,
-    public readonly wallet: TokenWallet,
-    protected readonly vault: Vault,
-    public readonly withdrawUserData: Contract<StEverAccountAbi> | Contract<TestStEverAccountAbi>,
+    public wallet: TokenWallet,
+    protected vault: Vault,
+    public withdrawUserData: Contract<StEverAccountAbi> | Contract<TestStEverAccountAbi>,
   ) {}
-
+  connectStEverVault = async (vault: any) => {
+    this.vault = vault;
+    const withdrawUserData = await this.vault.vaultContract.methods
+      .getAccountAddress({
+        _user: this.account.address,
+        answerId: 0,
+      })
+      .call();
+    this.withdrawUserData = locklift.factory.getDeployedContract("StEverAccount", withdrawUserData.value0);
+  };
+  setWallet = async (tokenRoot: Contract<TokenRootUpgradeableAbi>) => {
+    const wallet = await TokenWallet.getWallet(locklift.provider, this.account.address, tokenRoot);
+    const withdrawUserData = await this.vault.vaultContract.methods
+      .getAccountAddress({
+        _user: this.account.address,
+        answerId: 0,
+      })
+      .call();
+    this.wallet = wallet;
+  };
   makeWithdrawRequest = async (amount: string) => {
     const vaultBalanceBefore = await this.vault.tokenWallet.getBalance();
     const nonce = locklift.utils.getRandomNonce();
@@ -139,6 +158,7 @@ export class User {
   };
 
   getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {
+    debugger;
     const { withdrawRequests } = await this.withdrawUserData.methods.withdrawRequests({}).call();
     return withdrawRequests.map(([nonce, { amount }]) => ({ nonce, amount }));
   };

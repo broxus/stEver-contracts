@@ -25,6 +25,7 @@ export const preparation = async ({
   users: Array<User>;
   governance: Governance;
   strategyFactory: StrategyFactory;
+  governanceSigner: Signer;
 }> => {
   const [adminSigner, governanceSigner, ...signers] = await lastValueFrom(
     range(countOfUsers).pipe(
@@ -87,6 +88,7 @@ export const preparation = async ({
     tokenRoot,
     vault: vaultInstance,
     governance: new Governance(governanceSigner, vaultInstance),
+    governanceSigner,
     strategyFactory,
   };
 };

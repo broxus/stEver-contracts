@@ -2,7 +2,7 @@ pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 import "../interfaces/IStEverCluster.tsol";
 import "../utils/ClusterLib.tsol";
-
+import "locklift/src/console.tsol";
 
 
 abstract contract StEverStrategiesManager is StEverVaultBase {
@@ -150,7 +150,10 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
-        require(msg.value >= uint128(_strategies.length) * StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE);
+        require(
+            msg.value >= uint128(_strategies.length) * (StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE),
+            ErrorCodes.NOT_ENOUGH_VALUE
+        );
 
         tvm.rawReserve(_reserve(), 0);
         address[] transferringStrategies;

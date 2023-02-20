@@ -435,7 +435,7 @@ contract StEverVault is
             isPaused,
             owner,
             accountVersion,
-            stEverVaultVersion,
+            ,
             oldStrategies,
             pendingWithdrawals,
             emergencyState

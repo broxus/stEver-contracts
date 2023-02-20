@@ -1,6 +1,6 @@
 import { Account } from "locklift/everscale-client";
 
-import { DepoolStrategyFactoryAbi, TestDepoolStrategyFactoryAbi } from "../../build/factorySource";
+import { DepoolStrategyFactoryAbi } from "../../build/factorySource";
 import { Address, Contract, toNano } from "locklift";
 import { Vault } from "./vault";
 import { lastValueFrom, timer } from "rxjs";
@@ -8,7 +8,7 @@ import { lastValueFrom, timer } from "rxjs";
 export class StrategyFactory {
   constructor(
     protected readonly owner: Account,
-    protected readonly factoryContract: Contract<DepoolStrategyFactoryAbi> | Contract<TestDepoolStrategyFactoryAbi>,
+    readonly factoryContract: Contract<DepoolStrategyFactoryAbi>,
     protected readonly vault: Vault,
   ) {}
 
