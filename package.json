@@ -12,7 +12,6 @@
 
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
-    "test-miltiFlow-main": "npx locklift test --network local --tests test/6_miltiFlow-main-test.ts",
     "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
     "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
     "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",

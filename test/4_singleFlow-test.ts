@@ -51,14 +51,12 @@ describe("Single flow", async function () {
       clusterOwner: admin.account,
       assurance: toNano(0),
       maxStrategiesCount: 10,
-      strategyFactory,
     });
   });
   it("should strategy deployed", async () => {
     const strategy = await createStrategy({
       signer,
       cluster,
-      strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
     });
     await cluster.addStrategies([strategy.strategy.address]);

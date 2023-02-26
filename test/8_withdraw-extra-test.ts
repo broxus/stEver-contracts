@@ -45,7 +45,6 @@ describe("Withdraw extra testing", function () {
       clusterOwner: admin.account,
       assurance: toNano(0),
       maxStrategiesCount: 100,
-      strategyFactory,
     });
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
     await vault.setStEverFeePercent({ percentFee: 0 });
@@ -57,7 +56,6 @@ describe("Withdraw extra testing", function () {
           createStrategy({
             signer,
             cluster,
-            strategyDeployValue: locklift.utils.toNano(22),
             poolDeployValue: locklift.utils.toNano(200000),
           }),
         ),

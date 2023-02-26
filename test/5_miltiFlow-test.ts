@@ -57,7 +57,6 @@ describe("Multi flow", async function () {
       clusterOwner: admin.account,
       assurance: toNano(0),
       maxStrategiesCount: 100,
-      strategyFactory,
     });
     strategiesWithPool.push(
       ...(await lastValueFrom(
@@ -66,7 +65,6 @@ describe("Multi flow", async function () {
             createStrategy({
               signer,
               cluster,
-              strategyDeployValue: locklift.utils.toNano(22),
               poolDeployValue: locklift.utils.toNano(200),
             }),
           ),

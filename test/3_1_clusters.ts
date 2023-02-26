@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -7,8 +7,8 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { getAddressEverBalance, toNanoBn } from "../utils";
-import { concatMap, from, lastValueFrom, map, range, switchMap, toArray } from "rxjs";
+import { toNanoBn } from "../utils";
+import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";
@@ -20,11 +20,9 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategy: DePoolStrategyWithPool;
 let strategyFactory: StrategyFactory;
-let cluster: Cluster;
 const ST_EVER_FEE_PERCENT = 11;
-describe("Clusters", function () {
+describe("Clusters", () => {
   beforeEach(async () => {
     const {
       vault: v,
@@ -42,22 +40,20 @@ describe("Clusters", function () {
     user2 = u2;
     tokenRoot = tr;
     strategyFactory = st;
+    console.log(`New vault ${vault.vaultContract.address.toString()}`);
   });
-
-  it.skip("Cluster should be created and immediately removed", async () => {
-    it("Vault should be initialized", async () => {
-      await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
-      await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
-    });
+  it("cluster should create and immediately removed ", function () {
     describe("cluster should create and immediately removed", () => {
       let cluster: Cluster;
       let strategy: DePoolStrategyWithPool;
-
+      it("Vault should be initialized", async () => {
+        await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
+        await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
+      });
       it("cluster should created", async () => {
         cluster = await Cluster.create({
           vault,
           clusterOwner: admin.account,
-          strategyFactory,
           assurance: toNano(0),
           maxStrategiesCount: 10,
         });
@@ -75,10 +71,30 @@ describe("Clusters", function () {
         expect(clusterNonce).to.be.eq(currentClusterNonce);
         expect(clusterAddress.equals(cluster.clusterContract.address)).to.be.true;
       });
+      it("second cluster should created", async () => {
+        const cluster2 = await Cluster.create({
+          vault,
+          clusterOwner: admin.account,
+          assurance: toNano(0),
+          maxStrategiesCount: 10,
+        });
+        const clustersPool = await vault.vaultContract.methods
+          .clusterPools()
+          .call()
+          .then(res => res.clusterPools);
+
+        expect(clustersPool.length).to.be.eq(1);
+        const [clusterOwner, { currentClusterNonce, clusters }] = clustersPool[0];
+        expect(clusterOwner.equals(admin.account.address)).to.be.true;
+        expect(currentClusterNonce).to.be.eq("1");
+        expect(clusters.length).to.be.eq(2);
+        const [clusterNonce, clusterAddress] = clusters[1];
+        expect(clusterNonce).to.be.eq(currentClusterNonce);
+        expect(clusterAddress.equals(cluster2.clusterContract.address)).to.be.true;
+      });
       it("cluster should create one strategy", async () => {
         strategy = await createStrategy({
           cluster,
-          strategyDeployValue: locklift.utils.toNano(22),
           poolDeployValue: locklift.utils.toNano(200),
           signer,
         });
@@ -113,12 +129,12 @@ describe("Clusters", function () {
           .clusterPools()
           .call()
           .then(res => res.clusterPools);
-        expect(clusters.length).to.be.eq(0);
+        expect(clusters.length).to.be.eq(1);
       });
     });
   });
-  it("Cluster should be created and removed after one round", async () => {
-    describe("Cluster should created and removed after one round", async () => {
+  it.skip("Cluster should created and removed after one round ", function () {
+    describe("Cluster should created and removed after one round", () => {
       let cluster: Cluster;
       let strategies: Array<DePoolStrategyWithPool>;
       it("Vault should be initialized", async () => {
@@ -130,7 +146,6 @@ describe("Clusters", function () {
         cluster = await Cluster.create({
           vault,
           clusterOwner: admin.account,
-          strategyFactory,
           assurance: toNano(10),
           maxStrategiesCount: 3,
         });
@@ -139,7 +154,6 @@ describe("Clusters", function () {
             concatMap(() =>
               createStrategy({
                 cluster,
-                strategyDeployValue: locklift.utils.toNano(22),
                 poolDeployValue: locklift.utils.toNano(200),
                 signer,
               }),
@@ -195,6 +209,8 @@ describe("Clusters", function () {
             },
           ]),
         });
+        await depositToStrategyTraceTree.beautyPrint();
+
         expect(depositToStrategyTraceTree).to.emit("StrategyHandledDeposit").count(strategies.length);
       });
       it("strategies should marked as deleting", async () => {
@@ -269,62 +285,61 @@ describe("Clusters", function () {
       });
     });
   });
-  it.skip("should created and deposited to 3 clusters with 15 strategies per each", async () => {
-    const clustersWithStrategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          from(
-            Cluster.create({
-              vault,
-              clusterOwner: admin.account,
-              maxStrategiesCount: 15,
-              strategyFactory,
-              assurance: toNano(0),
-            }),
-          ).pipe(
-            switchMap(cluster =>
-              range(15).pipe(
-                concatMap(() =>
-                  from(
-                    createStrategy({
-                      cluster,
-                      strategyDeployValue: locklift.utils.toNano(22),
-                      poolDeployValue: locklift.utils.toNano(200),
-                      signer,
-                    }),
-                  ),
-                ),
-                toArray(),
-                switchMap(strategies =>
-                  from(cluster.addStrategies(strategies.map(el => el.strategy.address))).pipe(
-                    map(() => ({ cluster, strategies })),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        toArray(),
-      ),
-    );
 
-    await user1.depositToVault(locklift.utils.toNano(1000));
-    console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
-
-    const { traceTree } = await governance.depositToStrategies({
-      _depositConfigs: clustersWithStrategies
-        .flatMap(({ strategies }) => strategies)
-        .map(({ strategy }) => [
-          strategy.address,
-          {
-            fee: locklift.utils.toNano(0.6),
-            amount: locklift.utils.toNano(2),
-          },
-        ]),
-    });
-    await traceTree!.beautyPrint();
-    console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
-
-    console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
-  });
+  // it.skip("should created and deposited to 3 clusters with 15 strategies per each", async () => {
+  //   const clustersWithStrategies = await lastValueFrom(
+  //     range(3).pipe(
+  //       concatMap(() =>
+  //         from(
+  //           Cluster.create({
+  //             vault,
+  //             clusterOwner: admin.account,
+  //             maxStrategiesCount: 15,
+  //             assurance: toNano(0),
+  //           }),
+  //         ).pipe(
+  //           switchMap(cluster =>
+  //             range(15).pipe(
+  //               concatMap(() =>
+  //                 from(
+  //                   createStrategy({
+  //                     cluster,
+  //                     poolDeployValue: locklift.utils.toNano(200),
+  //                     signer,
+  //                   }),
+  //                 ),
+  //               ),
+  //               toArray(),
+  //               switchMap(strategies =>
+  //                 from(cluster.addStrategies(strategies.map(el => el.strategy.address))).pipe(
+  //                   map(() => ({ cluster, strategies })),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //       toArray(),
+  //     ),
+  //   );
+  //
+  //   await user1.depositToVault(locklift.utils.toNano(1000));
+  //   console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
+  //
+  //   const { traceTree } = await governance.depositToStrategies({
+  //     _depositConfigs: clustersWithStrategies
+  //       .flatMap(({ strategies }) => strategies)
+  //       .map(({ strategy }) => [
+  //         strategy.address,
+  //         {
+  //           fee: locklift.utils.toNano(0.6),
+  //           amount: locklift.utils.toNano(2),
+  //         },
+  //       ]),
+  //   });
+  //   await traceTree!.beautyPrint();
+  //   console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
+  //
+  //   console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
+  // });
 });

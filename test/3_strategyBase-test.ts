@@ -52,7 +52,6 @@ describe("Strategy base", function () {
     cluster = await Cluster.create({
       vault,
       clusterOwner: admin.account,
-      strategyFactory,
       assurance: toNano(0),
       maxStrategiesCount: 10,
     });
@@ -60,7 +59,6 @@ describe("Strategy base", function () {
   it("should strategy deployed", async () => {
     strategy = await createStrategy({
       signer,
-      strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
       cluster,
     });
@@ -229,7 +227,6 @@ describe("Strategy base", function () {
   it("should strategy request value from vault", async () => {
     const newStrategy = await createStrategy({
       signer,
-      strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
       cluster,
     });
@@ -354,7 +351,7 @@ describe("Strategy base", function () {
     );
   });
   it("strategy should be deleted", async () => {
-    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address], toNano(10));
+    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address]);
     expect(traceTree)
       .to.emit("StrategiesPendingRemove")
       .withNamedArgs({
@@ -383,13 +380,12 @@ describe("Strategy base", function () {
   it("strategy should be immediately removed", async () => {
     const strategy = await createStrategy({
       signer,
-      strategyDeployValue: locklift.utils.toNano(22),
       poolDeployValue: locklift.utils.toNano(200),
       cluster,
     });
 
     await cluster.addStrategies([strategy.strategy.address]);
-    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address], toNano(3));
+    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address]);
     expect(traceTree).to.emit("StrategyRemoved").withNamedArgs({
       strategy: strategy.strategy.address,
     });
@@ -404,7 +400,6 @@ describe("Strategy base", function () {
               vault,
               clusterOwner: admin.account,
               maxStrategiesCount: 15,
-              strategyFactory,
               assurance: toNano(0),
             }),
           ).pipe(
@@ -414,7 +409,6 @@ describe("Strategy base", function () {
                   from(
                     createStrategy({
                       cluster,
-                      strategyDeployValue: locklift.utils.toNano(22),
                       poolDeployValue: locklift.utils.toNano(200),
                       signer,
                     }),

@@ -57,12 +57,10 @@ export class DePoolStrategyWithPool {
 export const createStrategy = async ({
   signer,
   poolDeployValue,
-  strategyDeployValue,
   cluster,
 }: {
   signer: Signer;
   poolDeployValue: string;
-  strategyDeployValue: string;
   cluster: Cluster;
 }): Promise<DePoolStrategyWithPool> => {
   const dePool = await locklift.tracing.trace(

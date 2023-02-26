@@ -14,7 +14,8 @@ import "./interfaces/IStEverVault.tsol";
 import "./interfaces/IDepoolStrategyFactory.tsol";
 import "./utils/Gas.tsol";
 import "./utils/ErrorCodes.tsol";
-import "locklift/src/console.tsol";
+
+
 
 contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
@@ -342,7 +343,11 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     }
 
-    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external virtual override onlyStEverVault {
+    function upgrade(
+        TvmCell _newCode,
+        uint32 _newVersion,
+        address _sendGasTo
+    ) external virtual override onlyStEverVault {
 
 
         if (_newVersion == currentVersion) {
@@ -353,17 +358,16 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
 
         TvmBuilder mainBuilder;
+        mainBuilder.store(stEverVault);
+        mainBuilder.store(uint8(0));
         mainBuilder.store(_sendGasTo);
 
         TvmCell dummyPlatformCode;
         mainBuilder.store(dummyPlatformCode);
 
         TvmBuilder initialData;
-        initialData.store(_nonce);
-        initialData.store(stEverVault);
-        initialData.store(stEverOwner);
         initialData.store(clusterOwner);
-
+        initialData.store(_nonce);
 
 
         TvmBuilder constructorParams;
@@ -371,7 +375,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         constructorParams.store(currentVersion);
         constructorParams.store(assurance);
         constructorParams.store(maxStrategiesCount);
-
+        constructorParams.store(strategyFactory);
+        constructorParams.store(stEverTokenRoot);
 
 
 
@@ -379,10 +384,26 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         mainBuilder.storeRef(constructorParams);
 
         TvmCell storageData = abi.encode(
-            _nonce,             // uint32
-            stEverVault,        // address
-            stEverOwner,        // address
-            clusterOwner        //address
+            _nonce, //uint32
+            stEverVault, //address
+            stEverOwner, //address
+            clusterOwner, //address
+
+            assurance, //uint128
+            maxStrategiesCount, //uint32
+            currentVersion, //uint32
+            strategyFactory, //address
+
+            currentAssurance, //uint128
+            unlockedAssurance, //uint128
+            currentStrategiesCount, //uint32
+            clusterState, //ClusterState
+
+            stEverTokenRoot, //address
+            stEverTokenWallet, //address
+
+            strategies, //mapping(address => Strategy)
+            deployedStrategies //mapping(address => bool)
         );
 
         mainBuilder.storeRef(storageData);

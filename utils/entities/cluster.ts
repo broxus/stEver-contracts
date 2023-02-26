@@ -11,11 +11,7 @@ import { toNanoBn } from "../index";
 import { expect } from "chai";
 
 export class Cluster {
-  constructor(
-    public readonly clusterContract: Contract<StEverClusterAbi>,
-    private readonly clusterOwner: Account,
-    private readonly strategiesFactory: StrategyFactory,
-  ) {}
+  constructor(public readonly clusterContract: Contract<StEverClusterAbi>, private readonly clusterOwner: Account) {}
 
   addStrategies = async (strategies: Array<Address>) => {
     return locklift.tracing.trace(
@@ -71,19 +67,17 @@ export class Cluster {
     assurance,
     clusterOwner,
     maxStrategiesCount,
-    strategyFactory,
   }: {
     vault: Vault;
     clusterOwner: Account;
     assurance: string;
     maxStrategiesCount: number;
-    strategyFactory: StrategyFactory;
   }): Promise<Cluster> => {
     const clusterContract = await vault.createCluster({
       maxStrategiesCount,
       assurance,
       clusterOwner: clusterOwner.address,
     });
-    return new Cluster(clusterContract, clusterOwner, strategyFactory);
+    return new Cluster(clusterContract, clusterOwner);
   };
 }

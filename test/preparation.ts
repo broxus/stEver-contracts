@@ -43,7 +43,7 @@ export const preparation = async ({
   });
   const tokenRoot = await deployTokenRoot({ signer: adminSigner, owner: vaultAddress });
 
-  const vault = await deployVault({ owner: adminUser, deployArgs, tokenRoot, vaultType: vaultVersion });
+  const vault = await deployVault({ owner: adminUser, deployArgs, tokenRoot });
 
   const vaultInstance = await creteVault({
     adminAccount: accounts[0],
@@ -186,16 +186,14 @@ const deployVault = async ({
   owner,
   tokenRoot,
   deployArgs,
-  vaultType = "StEverVault",
 }: {
   owner: Account;
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]>;
-  vaultType?: "StEverVault";
 }) => {
   const { contract: vaultContract, tx } = await locklift.tracing.trace(
     locklift.factory.deployContract({
-      contract: vaultType,
+      contract: "StEverVault",
       value: locklift.utils.toNano(10),
       constructorParams: {
         _owner: owner.address,

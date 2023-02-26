@@ -142,29 +142,20 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
             if (state == State.WITHDRAWING) {
                 IStEverVault(vault).onStrategyHandledWithdrawRequest{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
-                return;
             }
+            return;
         }
 
         //  if dePool respond with errors, set state as INITIAL
-        if (
-            _errcode == STATUS_DEPOOL_CLOSED ||
-            _errcode == STATUS_FEE_TOO_SMALL ||
-            _errcode == STATUS_STAKE_TOO_SMALL ||
-            _errcode == STATUS_NOT_ALLOWED_PARTICIPANT
-        ) {
+        if (state == State.DEPOSITING) {
+
             state = State.INITIAL;
             return depositNotHandled(_errcode);
         }
 
-        if (
-            _errcode == STATUS_DEPOOL_CLOSED ||
-            _errcode == STATUS_NO_PARTICIPANT ||
-            _errcode == STATUS_NO_POOLING_STAKE
-        ) {
-            state = State.INITIAL;
-            return withdrawError(_errcode);
-        }
+        state = State.INITIAL;
+        return withdrawError(_errcode);
+
     }
 
     function depositHandled() internal view {
