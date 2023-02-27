@@ -9,6 +9,8 @@
     "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
     "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
     "test-clusters": "npx locklift test --network local --tests test/3_1_clusters.ts",
+    "test-clusters-constraints": "npx locklift test --network local --tests test/3_3_clusters_constraints-test.ts",
+
 
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",

@@ -331,10 +331,17 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     // Cluster
-    function _buildClusterParams(address _clusterOwner, uint32 _clusterNonce) internal virtual pure returns (TvmCell) {
+    function _buildClusterParams(
+        uint32 _clusterNonce,
+        address _stEverVault,
+        address _stEverOwner,
+        address _clusterOwner
+    ) internal virtual pure returns (TvmCell) {
         TvmBuilder builder;
-        builder.store(_clusterOwner);
         builder.store(_clusterNonce);
+        builder.store(_stEverVault);
+        builder.store(_stEverOwner);
+        builder.store(_clusterOwner);
 
         return builder.toCell();
     }
@@ -379,7 +386,14 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         constructor_params.store(_strategyFactory);
         constructor_params.store(_stEverTokenRoot);
         return new Platform{
-                stateInit: _buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)),
+                stateInit: _buildInitCluster(
+                    _buildClusterParams(
+                        _clusterNonce,
+                        address(this),
+                        owner,
+                        _clusterOwner
+                    )
+                ),
                 value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
                 bounce: false
         }(clusterCode, constructor_params.toCell(), _clusterOwner);
@@ -394,7 +408,16 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     {
         return
             {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
-                tvm.hash(_buildInitCluster(_buildClusterParams(_clusterOwner, _clusterNonce)))
+                tvm.hash(
+                    _buildInitCluster(
+                        _buildClusterParams(
+                            _clusterNonce,
+                            address(this),
+                            owner,
+                            _clusterOwner
+                        )
+                    )
+                )
         );
     }
     function setNewClusterCode(TvmCell _newClusterCode) override external onlyOwner minCallValue {

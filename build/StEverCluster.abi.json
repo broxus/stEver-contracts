@@ -101,12 +101,12 @@
 		{
 			"name": "onAcceptTokensTransfer",
 			"inputs": [
-				{"name":"tokenRoot","type":"address"},
-				{"name":"amount","type":"uint128"},
-				{"name":"sender","type":"address"},
-				{"name":"senderWallet","type":"address"},
+				{"name":"value0","type":"address"},
+				{"name":"_amount","type":"uint128"},
+				{"name":"value2","type":"address"},
+				{"name":"value3","type":"address"},
 				{"name":"remainingGasTo","type":"address"},
-				{"name":"payload","type":"cell"}
+				{"name":"value5","type":"cell"}
 			],
 			"outputs": [
 			]
@@ -158,6 +158,23 @@
 			"inputs": [
 				{"name":"strategies","type":"address[]"},
 				{"name":"errorCode","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AssuranceReceived",
+			"inputs": [
+				{"name":"receivedAmount","type":"uint128"},
+				{"name":"totalAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "NewUnlockedAssuranceAmount",
+			"inputs": [
+				{"name":"unlockedAssuranceAmount","type":"uint128"}
 			],
 			"outputs": [
 			]

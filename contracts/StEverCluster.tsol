@@ -297,16 +297,19 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     function onAcceptTokensTransfer(
-        address tokenRoot,
-        uint128 amount,
-        address sender,
-        address senderWallet,
+        address,
+        uint128 _amount,
+        address,
+        address,
         address remainingGasTo,
-        TvmCell payload
+        TvmCell
     ) override external {
         require(msg.sender == stEverTokenWallet, ErrorCodesCluster.NOT_ST_EVER_TOKEN_WALLET);
         tvm.rawReserve(_reserve(), 0);
-        currentAssurance += amount;
+
+        currentAssurance += _amount;
+
+        emit AssuranceReceived(_amount, currentAssurance);
 
         remainingGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -315,6 +318,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         tvm.rawReserve(_reserve(), 0);
 
         unlockedAssurance = math.min(_newUnlockAssurance, currentAssurance);
+
+        emit NewUnlockedAssuranceAmount(unlockedAssurance);
 
         stEverOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -366,8 +371,11 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         mainBuilder.store(dummyPlatformCode);
 
         TvmBuilder initialData;
-        initialData.store(clusterOwner);
         initialData.store(_nonce);
+        initialData.store(stEverVault);
+        initialData.store(stEverOwner);
+        initialData.store(clusterOwner);
+
 
 
         TvmBuilder constructorParams;
@@ -422,11 +430,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
 
-        (address _stEverVault,, address sendGasTo,) = s.decode(address,uint8,address, TvmCell);
-        stEverVault = _stEverVault;
+        (,, address sendGasTo,) = s.decode(address,uint8,address, TvmCell);
         TvmSlice initialData = s.loadRefAsSlice();
 
-        (clusterOwner,_nonce) = initialData.decode(address, uint32);
+        (_nonce, stEverVault, stEverOwner, clusterOwner) = initialData.decode(uint32, address, address, address);
 
         TvmSlice constructorParams = s.loadRefAsSlice();
 

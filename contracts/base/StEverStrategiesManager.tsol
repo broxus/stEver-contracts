@@ -129,7 +129,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(pendingDeleteStrategies);
     }
 
-    function removeStrategy(address _strategy) internal {
+    function removeStrategy(address _strategy) internal pure {
         this._removeStrategy{
             value: StEverVaultGas.REMOVE_STRATEGY_RESERVE,
             bounce: false
