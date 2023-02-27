@@ -14,6 +14,7 @@ import "./interfaces/IStEverVault.tsol";
 import "./interfaces/IDepoolStrategyFactory.tsol";
 import "./utils/Gas.tsol";
 import "./utils/ErrorCodes.tsol";
+import "locklift/src/console.tsol";
 
 
 
@@ -222,7 +223,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
 
         delete strategies[_strategy];
-        if (clusterState == ClusterState.REMOVING && strategies.keys().length == 0) {
+        currentStrategiesCount--;
+        if (clusterState == ClusterState.REMOVING && currentStrategiesCount == 0) {
             IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
                 TvmCell empty;
@@ -289,10 +291,15 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             assurance,
             maxStrategiesCount,
             currentVersion,
-
+            strategyFactory,
             currentAssurance,
+            unlockedAssurance,
             currentStrategiesCount,
-            strategies
+            clusterState,
+            stEverTokenRoot,
+            stEverTokenWallet,
+            strategies,
+            deployedStrategies
         );
     }
 

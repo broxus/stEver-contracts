@@ -24,7 +24,7 @@ let strategyFactory: StrategyFactory;
 const ST_EVER_FEE_PERCENT = 11;
 let cluster: Cluster;
 let strategies: Array<DePoolStrategyWithPool>;
-describe("Clusters", () => {
+describe("Cluster create and remove after one round", () => {
   before(async () => {
     const {
       vault: v,

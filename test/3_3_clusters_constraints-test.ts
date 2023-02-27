@@ -54,7 +54,7 @@ describe("Clusters constraints", () => {
       vault,
       clusterOwner: admin.account,
       assurance: toNano(10),
-      maxStrategiesCount: 3,
+      maxStrategiesCount: 2,
     });
     strategies = await lastValueFrom(
       range(3).pipe(
@@ -88,22 +88,70 @@ describe("Clusters constraints", () => {
         from: admin.account.address,
         amount: toNano(2),
       });
-    console.log(admin.account.address.toString());
-    console.log(await cluster.clusterContract.methods.getDetails({ answerId: 0 }).call());
-    const { traceTree } = await locklift.tracing.trace(
+
+    expect(
+      (
+        await locklift.tracing.trace(
+          cluster.clusterContract.methods
+            .setUnlockedAssuranceValue({
+              _newUnlockAssurance: toNano(5),
+            })
+            .send({
+              from: admin.account.address,
+              amount: toNano(1),
+            }),
+        )
+      ).traceTree,
+    )
+      .to.emit("NewUnlockedAssuranceAmount")
+      .withNamedArgs({
+        unlockedAssuranceAmount: toNano(5),
+      });
+
+    const { traceTree: withdrawAssuranceTraceTree } = await locklift.tracing.trace(
       cluster.clusterContract.methods
-        .setUnlockedAssuranceValue({
-          _newUnlockAssurance: toNano(5),
+        .withdrawAssurance({
+          _amount: toNano(5),
         })
         .send({
           from: admin.account.address,
           amount: toNano(1),
         }),
+      { raise: false },
     );
-    expect(traceTree)
+    expect(withdrawAssuranceTraceTree!.tokens.getTokenBalanceChange(admin.wallet.walletContract.address)).to.be.eq(
+      toNano(5),
+    );
+
+    expect(
+      (
+        await locklift.tracing.trace(
+          cluster.clusterContract.methods
+            .setUnlockedAssuranceValue({
+              _newUnlockAssurance: toNano(5),
+            })
+            .send({
+              from: admin.account.address,
+              amount: toNano(1),
+            }),
+        )
+      ).traceTree,
+    )
       .to.emit("NewUnlockedAssuranceAmount")
       .withNamedArgs({
         unlockedAssuranceAmount: toNano(5),
       });
+    const { traceTree: addOneStrategyTraceTree } = await cluster.addStrategies(
+      strategies.slice(0, 2).map(el => el.strategy.address),
+    );
+
+    expect(addOneStrategyTraceTree).to.emit("StrategiesAdded");
+
+    expect((await cluster.addStrategies([strategies.at(-1)?.strategy.address!])).traceTree).to.error(5010);
+    expect((await cluster.removeStrategies([strategies.at(0)?.strategy.address!])).traceTree).to.emit(
+      "StrategyRemoved",
+    );
+
+    expect((await cluster.addStrategies([strategies.at(-1)?.strategy.address!])).traceTree).to.emit("StrategiesAdded");
   });
 });

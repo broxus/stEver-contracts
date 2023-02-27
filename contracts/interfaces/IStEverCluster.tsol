@@ -34,10 +34,17 @@ interface IStEverCluster {
         uint128 assurance;
         uint32 maxStrategiesCount;
         uint32 currentVersion;
+        address strategyFactory;
 
         uint128 currentAssurance;
+        uint128 unlockedAssurance;
         uint32 currentStrategiesCount;
+        ClusterState clusterState;
+
+        address stEverTokenRoot;
+        address stEverTokenWallet;
         mapping(address => Strategy) strategies;
+        mapping(address => bool) deployedStrategies;
     }
 
 
