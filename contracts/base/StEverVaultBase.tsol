@@ -51,6 +51,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         _;
     }
 
+    // TODO: а овнер тоже нужен как часть данных, необходимых для вывода адреса?? нонс уникален среди всех ведь
     modifier onlyCluster(address _clusterOwner, uint32 _clusterNonce) {
         address cluster = getClusterAddress(_clusterOwner, _clusterNonce);
         require(msg.sender == cluster, ErrorCodes.NOT_CLUSTER_ACCOUNT);

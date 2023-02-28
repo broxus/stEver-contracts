@@ -119,6 +119,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
 
         uint128 minimalRemoveStrategyValue = uint128(pendingDeleteStrategies.length) * StEverVaultGas.REMOVE_STRATEGY_RESERVE;
 
+        // TODO: сложный мув с резервированием на контракте
         tvm.rawReserve(address(this).balance - (msg.value - minimalRemoveStrategyValue), 0);
         emit StrategiesPendingRemove(pendingDeleteStrategies);
 
@@ -149,6 +150,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategy);
     }
 
+    // TODO: а можно ли вынуть стратегию из кластера?
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
         require(
             msg.value >= uint128(_strategies.length) * (StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE),
