@@ -5,7 +5,6 @@ import "../interfaces/IStEverVault.tsol";
 import "../utils/ClusterLib.tsol";
 
 interface IStEverCluster {
-    event NewStrategyDeployed(address strategy);
 
     enum StrategyState {
         INITIAL,
@@ -47,10 +46,10 @@ interface IStEverCluster {
     }
 
 
-
+    event NewStrategyDeployed(address strategy);
     event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
-    event SetAssuranceAmount(uint128 unlockedAssuranceAmount);
+    event SetAssuranceAmount(uint128 newAssuranceAmount);
     function setAssurance(uint128 _newRequiredAssurance) external;
     function withdrawAssurance(uint128 amount) external;
 

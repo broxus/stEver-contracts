@@ -182,7 +182,7 @@
 		{
 			"name": "SetAssuranceAmount",
 			"inputs": [
-				{"name":"unlockedAssuranceAmount","type":"uint128"}
+				{"name":"newAssuranceAmount","type":"uint128"}
 			],
 			"outputs": [
 			]

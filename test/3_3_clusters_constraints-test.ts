@@ -105,8 +105,9 @@ describe("Clusters constraints", () => {
     )
       .to.emit("SetAssuranceAmount")
       .withNamedArgs({
-        unlockedAssuranceAmount: toNano(5),
+        newAssuranceAmount: toNano(5),
       });
+
     expect(
       await cluster.clusterContract.methods
         .freeAssurance()
