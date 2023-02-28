@@ -104,6 +104,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
+        // TODO: выше мы для каждого депула берем ClusterGas.MIN_CALL_VALUE, а здесь вычитаем назад, не оч понял
         for(address dePool : _dePools) {
             IDepoolStrategyFactory(strategyFactory).deployStrategy{
                 value: valueForDeployOneStrategy - ClusterGas.MIN_CALL_VALUE,
@@ -144,7 +145,9 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             ErrorCodes.NOT_ENOUGH_VALUE
         );
 
-        // Reserve value for deleting strategies in the feature
+        // TODO: а зачем мы резервируем здесь? У нас ведь нет экстернал вызовов нигде.
+        // Почему не запрашиваем эти эверы там, где нужно? т.е на удалении фактическом
+        // Reserve value for deleting strategies in the future
         tvm.rawReserve(address(this).balance - (msg.value - valueForRemoveStrategies), 0);
 
         for (address strategy : _strategies) {
@@ -156,6 +159,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                 revert(ErrorCodesCluster.STRATEGY_NOT_DEPLOYED_BY_CLUSTER);
             }
 
+            // TODO: честно говоря не очень понимаю для чего этот промежуточный стейт. Он живет только пока не прилетит колбек от волта и больше нигде не юзается
+            // по ощущениям на этом шаге можно ничего не писать
             strategies[strategy] = Strategy({
                 state: StrategyState.INITIAL
             });
@@ -175,6 +180,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         tvm.rawReserve(_reserve(), 0);
         uint8 batchSize = 50;
 
+        // TODO: вот эта проверка должна быть в начале цепочки, т.е  на addStrategies выше
+        // Иначе получается мы в начале пропустили, записали все в кластер, а потом в конце ебнулось и стратегии застряли в инишл стейте?
         require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
         for (address strategy : _strategies) {
             strategies[strategy].state = StrategyState.ACTIVE;
@@ -183,10 +190,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    // TODO: вот тут бы я требовал приложения всех нужных денег, а не где-то раньше, это же все равно адрес кидает?
+    // То что мы резервируем в одном а тратим в друго как-то нехорошо
     function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner minCallValue {
 
         for (address strategy : _strategies) {
             require(strategies.exists(strategy), ErrorCodesCluster.STRATEGY_NOT_EXISTS);
+            // TODO: а удалять стратегии в инишл стейте возможно?
             require(strategies[strategy].state == StrategyState.ACTIVE, ErrorCodesCluster.STRATEGY_NOT_IN_ACTIVE_STATE);
         }
 
@@ -245,6 +255,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
 
     function handleDelegateStrategies(address[] _strategies) override external onlyStEverVault {
+        // TODO: снова мув с резервированием заранее
         tvm.rawReserve(address(this).balance - (msg.value - getValueForRemoveStrategies(_strategies.length)), 0);
 
         address[] handledStrategies;

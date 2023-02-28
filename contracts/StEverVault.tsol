@@ -467,6 +467,7 @@ contract StEverVault is
                 )
         );
 
+        // TODO: сколько сейчас подключено стратегий? Оно не лопнет по газу здесь?
         for ((address oldStrategy, OldStrategyParams oldStrategyParams) : oldStrategies) {
             strategies[oldStrategy] = StrategyParams({
                     lastReport: oldStrategyParams.lastReport,

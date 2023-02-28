@@ -256,6 +256,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         StrategyParams strategy = strategies[_strategy];
         return strategy.state == StrategyState.REMOVING && strategy.totalAssets == 0;
     }
+
     function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
 
         if (_isIncrease) {
