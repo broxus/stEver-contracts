@@ -6276,11 +6276,11 @@ CALLREF {
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverStrategiesManager.tsol, 159
+.loc ../contracts/base/StEverStrategiesManager.tsol, 160
 PUSHINT 0
 NEWDICT
 PAIR
-.loc ../contracts/base/StEverStrategiesManager.tsol, 160
+.loc ../contracts/base/StEverStrategiesManager.tsol, 161
 ROT
 SECOND
 PUSHINT 0
@@ -6297,7 +6297,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 161
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 162
 	DUP
 	GETGLOB 31
 	PUSHINT 267
@@ -6332,7 +6332,7 @@ PUSHCONT {
 		TUPLE 7
 	}
 	IFELSE
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 162
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 163
 	DUP
 	INDEX 6
 	EQINT 0
@@ -6344,7 +6344,7 @@ PUSHCONT {
 	SDEQ
 	AND
 	PUSHCONT {
-		.loc ../contracts/base/StEverStrategiesManager.tsol, 163
+		.loc ../contracts/base/StEverStrategiesManager.tsol, 164
 		DUP
 		GETGLOB 31
 		DUP2
@@ -6402,7 +6402,7 @@ PUSHCONT {
 		PUSHINT 267
 		DICTSETREF
 		SETGLOB 31
-		.loc ../contracts/base/StEverStrategiesManager.tsol, 164
+		.loc ../contracts/base/StEverStrategiesManager.tsol, 165
 		PUSH2 S0, S3
 		UNPAIR
 		OVER
@@ -6422,7 +6422,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/base/StEverStrategiesManager.tsol, 168
+.loc ../contracts/base/StEverStrategiesManager.tsol, 169
 SWAP
 FALSE
 NEWC
@@ -6451,7 +6451,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverStrategiesManager.tsol, 175
+.loc ../contracts/base/StEverStrategiesManager.tsol, 176
 OVER
 PUSHCONT {
 	LDREF
@@ -6478,7 +6478,7 @@ CALLREF {
 THROW 0
 
 .macro onStrategiesDelegationHandled_af30329d_internal_macro
-.loc ../contracts/base/StEverStrategiesManager.tsol, 175
+.loc ../contracts/base/StEverStrategiesManager.tsol, 176
 BLKPUSH 2, 2
 .loc ../contracts/base/StEverVaultBase.tsol, 55
 CALLREF {
@@ -6488,13 +6488,13 @@ CALLREF {
 GETGLOB 9
 SDEQ
 THROWIFNOT 1033
-.loc ../contracts/base/StEverStrategiesManager.tsol, 180
+.loc ../contracts/base/StEverStrategiesManager.tsol, 181
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverStrategiesManager.tsol, 182
+.loc ../contracts/base/StEverStrategiesManager.tsol, 183
 DUP
 SECOND
 PUSHINT 0
@@ -6511,7 +6511,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 183
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 184
 	DUP
 	GETGLOB 31
 	DUP2
@@ -6570,7 +6570,7 @@ PUSHCONT {
 	DICTSETREF
 	DUP
 	SETGLOB 31
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 184
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 185
 	PUXC S1, S-1
 	DUP2
 	PUSHINT 267
@@ -6634,7 +6634,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/base/StEverStrategiesManager.tsol, 187
+.loc ../contracts/base/StEverStrategiesManager.tsol, 188
 XCHG S2
 GETGLOB 9
 PUSHSLICE xc0000000000000000000000001
@@ -6658,7 +6658,7 @@ STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverStrategiesManager.tsol, 189
+.loc ../contracts/base/StEverStrategiesManager.tsol, 190
 GETGLOB 27
 NEWC
 STSLICECONST x42_
@@ -10088,32 +10088,39 @@ PUSHCONT {
 	STUR 98
 	SWAP
 	NEWC
-	STSLICECONST xc3807a76
+	STSLICECONST xab1b5f32
 	SWAP
-	PUSHINT 16
+	PUSHINT 19
 	UNTUPLEVAR
-	REVERSE 17, 0
-	STSLICE
-	ROLLREV 15
-	NEWC
-	STSLICE
+	PUSHINT 20
+	PUSHINT 0
+	REVX
 	STU 128
-	STU 128
-	STU 128
-	ROLLREV 11
-	NEWC
-	STSLICE
 	STU 256
 	STU 128
-	STU 32
-	ROLLREV 7
+	STU 128
+	STU 128
+	STU 128
+	ROLLREV 13
 	NEWC
+	STSLICE
+	ROLLREV 12
+	NEWC
+	STSLICE
+	STU 128
 	STU 32
 	STU 128
 	STU 128
 	STI 1
+	ROLLREV 6
+	NEWC
+	STSLICE
+	ROLLREV 5
+	NEWC
+	STSLICE
 	STU 32
-	STU 128
+	STU 32
+	STU 32
 	SWAP
 	UNTUPLE 4
 	REVERSE 5, 0
@@ -10123,6 +10130,7 @@ PUSHCONT {
 	NEWC
 	STSLICE
 	STU 64
+	STBREFR
 	STBREFR
 	STBREFR
 	STBREFR
@@ -10156,30 +10164,37 @@ PUSHCONT {
 	INDEX 5
 	STUR 32
 	SWAP
-	PUSHINT 16
+	PUSHINT 19
 	UNTUPLEVAR
-	REVERSE 17, 0
-	STSLICE
-	ROLLREV 15
-	NEWC
-	STSLICE
+	PUSHINT 20
+	PUSHINT 0
+	REVX
 	STU 128
-	STU 128
-	STU 128
-	ROLLREV 11
-	NEWC
-	STSLICE
 	STU 256
 	STU 128
-	STU 32
-	ROLLREV 7
+	STU 128
+	STU 128
+	STU 128
+	ROLLREV 13
 	NEWC
+	STSLICE
+	ROLLREV 12
+	NEWC
+	STSLICE
+	STU 128
 	STU 32
 	STU 128
 	STU 128
 	STI 1
+	ROLLREV 6
+	NEWC
+	STSLICE
+	ROLLREV 5
+	NEWC
+	STSLICE
 	STU 32
-	STU 128
+	STU 32
+	STU 32
 	SWAP
 	UNTUPLE 4
 	REVERSE 5, 0
@@ -10189,6 +10204,7 @@ PUSHCONT {
 	NEWC
 	STSLICE
 	STU 64
+	STBREFR
 	STBREFR
 	STBREFR
 	STBREFR
@@ -10215,24 +10231,27 @@ SETINDEXQ 1
 PUSHINT 64
 SETINDEXQ 4
 SETGLOB 4
-GETGLOB 20
-GETGLOB 19
+GETGLOB 10
+GETGLOB 11
 GETGLOB 15
 GETGLOB 16
 GETGLOB 17
-GETGLOB 27
-GETGLOB 11
+GETGLOB 18
+GETGLOB 19
+GETGLOB 20
 GETGLOB 21
-GETGLOB 28
-GETGLOB 29
+GETGLOB 22
 GETGLOB 23
 GETGLOB 24
 GETGLOB 25
-GETGLOB 22
-GETGLOB 18
+GETGLOB 26
+GETGLOB 27
+GETGLOB 28
+GETGLOB 29
+GETGLOB 30
 PUSHINT 34
 GETGLOBVAR
-PUSHINT 16
+PUSHINT 19
 TUPLEVAR
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
@@ -10800,7 +10819,7 @@ IFJMPREF {
 		}
 	}
 	DUP
-	PUSHINT 1066892288
+	PUSHINT 1066272536
 	LEQ
 	IFJMPREF {
 		DUP
@@ -10833,7 +10852,7 @@ IFJMPREF {
 			}
 		}
 		DUP
-		PUSHINT 733434185
+		PUSHINT 723214130
 		LEQ
 		IFJMPREF {
 			DUP
@@ -10855,16 +10874,22 @@ IFJMPREF {
 				CALL $strategyReport$
 			}
 			DUP
+			PUSHINT 723214130
+			EQUAL
+			IFJMPREF {
+				CALL $getDetails$
+			}
+		}
+		DUP
+		PUSHINT 918477020
+		LEQ
+		IFJMPREF {
+			DUP
 			PUSHINT 733434185
 			EQUAL
 			IFJMPREF {
 				CALL $_upgradeStEverAccounts$
 			}
-		}
-		DUP
-		PUSHINT 998067406
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 840220080
 			EQUAL
@@ -10883,17 +10908,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $changeEmergencyPauseState$
 			}
+		}
+		DUP
+		PUSHINT 1066272536
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 998067406
 			EQUAL
 			IFJMPREF {
 				CALL $startEmergencyProcess$
 			}
-		}
-		DUP
-		PUSHINT 1066892288
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1026338858
 			EQUAL
@@ -10912,12 +10937,6 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $_removeStrategy$
 			}
-			DUP
-			PUSHINT 1066892288
-			EQUAL
-			IFJMPREF {
-				CALL $getWithdrawEverAmount$
-			}
 		}
 	}
 	DUP
@@ -10925,9 +10944,15 @@ IFJMPREF {
 	LEQ
 	IFJMPREF {
 		DUP
-		PUSHINT 1132493430
+		PUSHINT 1126281173
 		LEQ
 		IFJMPREF {
+			DUP
+			PUSHINT 1066892288
+			EQUAL
+			IFJMPREF {
+				CALL $getWithdrawEverAmount$
+			}
 			DUP
 			PUSHINT 1069811872
 			EQUAL
@@ -10945,12 +10970,6 @@ IFJMPREF {
 			EQUAL
 			IFJMPREF {
 				CALL $decodeDepositPayload$
-			}
-			DUP
-			PUSHINT 1132493430
-			EQUAL
-			IFJMPREF {
-				CALL $getDetails$
 			}
 		}
 		DUP

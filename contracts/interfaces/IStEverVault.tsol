@@ -77,21 +77,29 @@ interface IStEverVault {
     event WithdrawFee(uint128 amount);
 
     struct Details {
-        address stTokenRoot;
-        address stEverWallet;
+
+        uint128 nonce;
+        uint256 governance;
+
         uint128 stEverSupply;
         uint128 totalAssets;
         uint128 availableAssets;
-        address owner;
-        uint256 governance;
+        uint128 totalStEverFee;
+        address stEverWallet;
+        address stTokenRoot;
+
         uint128 gainFee;
-        uint32 accountVersion;
-        uint32 stEverVaultVersion;
+        uint32 stEverFeePercent;
         uint128 minStrategyDepositValue;
         uint128 minStrategyWithdrawValue;
         bool isPaused;
-        uint32 stEverFeePercent;
-        uint128 totalStEverFee;
+        address strategyFactory;
+
+
+        address owner;
+        uint32 accountVersion;
+        uint32 stEverVaultVersion;
+        uint32 clusterVersion;
         EmergencyState emergencyState;
     }
     struct StrategyReport {

@@ -378,13 +378,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         view
         returns (address)
     {
-        TvmBuilder constructor_params;
-        constructor_params.store(clusterVersion);
-        constructor_params.store(clusterVersion);
-        constructor_params.store(_assurance);
-        constructor_params.store(_maxStrategiesCount);
-        constructor_params.store(_strategyFactory);
-        constructor_params.store(_stEverTokenRoot);
+        TvmBuilder constructorParams;
+        constructorParams.store(clusterVersion);
+        constructorParams.store(clusterVersion);
+        constructorParams.store(_assurance);
+        constructorParams.store(_maxStrategiesCount);
+        constructorParams.store(_strategyFactory);
+        constructorParams.store(_stEverTokenRoot);
         return new Platform{
                 stateInit: _buildInitCluster(
                     _buildClusterParams(
@@ -396,7 +396,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 ),
                 value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
                 bounce: false
-        }(clusterCode, constructor_params.toCell(), _clusterOwner);
+        }(clusterCode, constructorParams.toCell(), _clusterOwner);
     }
 
     function getClusterAddress(address _clusterOwner, uint32 _clusterNonce)
@@ -474,21 +474,28 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     function getDetails() override external responsible view returns(Details) {
         return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
-                stTokenRoot,
-                stEverWallet,
+                nonce,
+                governance,
+
                 stEverSupply,
                 totalAssets,
                 availableAssets,
-                owner,
-                governance,
+                totalStEverFee,
+                stEverWallet,
+                stTokenRoot,
+
                 gainFee,
-                accountVersion,
-                stEverVaultVersion,
+                stEverFeePercent,
                 minStrategyDepositValue,
                 minStrategyWithdrawValue,
                 isPaused,
-                stEverFeePercent,
-                totalStEverFee,
+                strategyFactory,
+
+
+                owner,
+                accountVersion,
+                stEverVaultVersion,
+                clusterVersion,
                 emergencyState
             );
     }

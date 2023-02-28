@@ -1,7 +1,7 @@
 import { Contract, Signer, toNano, zeroAddress } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
-import { FactorySource, Old_StEverVaultAbi, TokenRootUpgradeableAbi } from "../build/factorySource";
+import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { deployTokenRoot, preparation } from "./preparation";
@@ -13,7 +13,7 @@ import { expect } from "chai";
 import { toNanoBn } from "../utils";
 import { Cluster } from "../utils/entities/cluster";
 
-const STRATEGIES_COUNT = 2;
+const STRATEGIES_COUNT = 40;
 const DEPOSIT_TO_STRATEGY_VALUE = 120;
 const DEPOSIT_FEE = toNanoBn(0.6);
 let signer: Signer;
@@ -366,7 +366,7 @@ describe("Upgrade testing", function () {
         expect(traceTree).to.emit("NewClusterCodeSet").withNamedArgs({
           newVersion: "2",
         });
-        const { traceTree: upgradeClusterTraceTree } = await locklift.tracing.trace(
+        await locklift.tracing.trace(
           newVault.vaultContract.methods
             .upgradeStEverCluster({
               _clusterNonce: "0",
