@@ -24,13 +24,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     address static stEverOwner;
     address static clusterOwner;
 
-    uint128 assurance;
+    uint128 requiredAssurance;
     uint32 maxStrategiesCount;
     uint32 currentVersion;
     address strategyFactory;
 
     uint128 currentAssurance;
-    uint128 unlockedAssurance;
     uint32 currentStrategiesCount;
     ClusterState clusterState;
 
@@ -49,7 +48,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         address _strategyFactory,
         address _stEverTokenRoot
     ) internal {
-        assurance = _assurance;
+        requiredAssurance = _assurance;
         maxStrategiesCount = _maxStrategiesCount;
         currentVersion = _version;
         strategyFactory = _strategyFactory;
@@ -131,7 +130,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     function addStrategies(address[] _strategies) public onyClusterOwner {
 
-        if (currentAssurance < (assurance - unlockedAssurance)) {
+        if (currentAssurance < requiredAssurance) {
             revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);
         }
 
@@ -287,12 +286,11 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             stEverVault,
             stEverOwner,
             clusterOwner,
-            assurance,
+            requiredAssurance,
             maxStrategiesCount,
             currentVersion,
             strategyFactory,
             currentAssurance,
-            unlockedAssurance,
             currentStrategiesCount,
             clusterState,
             stEverTokenRoot,
@@ -320,20 +318,24 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         remainingGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function setUnlockedAssuranceValue(uint128 _newUnlockAssurance) override external onlyStEverOwner minCallValue {
+    function setAssurance(uint128 _newRequiredAssurance) override external onlyStEverOwner minCallValue {
         tvm.rawReserve(_reserve(), 0);
 
-        unlockedAssurance = math.min(_newUnlockAssurance, currentAssurance);
+        requiredAssurance = _newRequiredAssurance;
 
-        emit NewUnlockedAssuranceAmount(unlockedAssurance);
+        emit SetAssuranceAmount(requiredAssurance);
 
         stEverOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+    function freeAssurance() public view returns (uint128) {
+        return currentAssurance >= requiredAssurance ? currentAssurance - requiredAssurance : 0;
+    }
 
     function withdrawAssurance(uint128 _amount) override external onyClusterOwner {
-        require(_amount <= unlockedAssurance, ErrorCodesCluster.NOT_ENOUGH_UNLOCKED_ASSURANCE);
-        unlockedAssurance -= _amount;
-        uint128 amountToWithdraw = math.min(currentAssurance, _amount);
+        uint128 unlockedAssurance = freeAssurance();
+
+        uint128 amountToWithdraw = math.min(_amount, unlockedAssurance);
+
         currentAssurance -= amountToWithdraw;
 
         tvm.rawReserve(_reserve(), 0);
@@ -387,7 +389,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmBuilder constructorParams;
         constructorParams.store(_newVersion);
         constructorParams.store(currentVersion);
-        constructorParams.store(assurance);
+        constructorParams.store(requiredAssurance);
         constructorParams.store(maxStrategiesCount);
         constructorParams.store(strategyFactory);
         constructorParams.store(stEverTokenRoot);
@@ -403,13 +405,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             stEverOwner, //address
             clusterOwner, //address
 
-            assurance, //uint128
+            requiredAssurance, //uint128
             maxStrategiesCount, //uint32
             currentVersion, //uint32
             strategyFactory, //address
 
             currentAssurance, //uint128
-            unlockedAssurance, //uint128
             currentStrategiesCount, //uint32
             clusterState, //ClusterState
 

@@ -37,7 +37,6 @@ interface IStEverCluster {
         address strategyFactory;
 
         uint128 currentAssurance;
-        uint128 unlockedAssurance;
         uint32 currentStrategiesCount;
         ClusterState clusterState;
 
@@ -51,8 +50,8 @@ interface IStEverCluster {
 
     event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
-    event NewUnlockedAssuranceAmount(uint128 unlockedAssuranceAmount);
-    function setUnlockedAssuranceValue(uint128 newUnlockAssurance) external;
+    event SetAssuranceAmount(uint128 unlockedAssuranceAmount);
+    function setAssurance(uint128 _newRequiredAssurance) external;
     function withdrawAssurance(uint128 amount) external;
 
     function deployStrategies(address[] dePools) external;
