@@ -39,15 +39,6 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function removeCluster(
-        address _clusterOwner,
-        uint32 _clusterNonce
-    ) override external onlyOwner minCallValue {
-        tvm.rawReserve(_reserve(), 0);
-        address clusterAddress = getClusterAddress(_clusterOwner, _clusterNonce);
-
-        IStEverCluster(clusterAddress).onRemove{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
-    }
 
     function onClusterRemoved(
         address _clusterOwner,
@@ -120,6 +111,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint128 minimalRemoveStrategyValue = uint128(pendingDeleteStrategies.length) * StEverVaultGas.REMOVE_STRATEGY_RESERVE;
 
         // TODO: сложный мув с резервированием на контракте
+        // Боюсь что тут не избежать
         tvm.rawReserve(address(this).balance - (msg.value - minimalRemoveStrategyValue), 0);
         emit StrategiesPendingRemove(pendingDeleteStrategies);
 
@@ -153,7 +145,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     // TODO: а можно ли вынуть стратегию из кластера?
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
         require(
-            msg.value >= uint128(_strategies.length) * (StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.MIN_CALL_MSG_VALUE),
+            msg.value >= uint128(_strategies.length) * (StEverVaultGas.MIN_CALL_MSG_VALUE / 2),
             ErrorCodes.NOT_ENOUGH_VALUE
         );
 

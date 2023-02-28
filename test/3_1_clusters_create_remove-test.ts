@@ -104,11 +104,8 @@ describe("Cluster create and immediately remove", () => {
     const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
     expect(strategyInfo.cluster.equals(cluster.clusterContract.address)).to.be.true;
   });
-  it("cluster should removed", async () => {
-    const { traceTree: removeClusterTraceTree } = await vault.removeCluster({
-      clusterNonce: 0,
-      clusterOwner: admin.account.address,
-    });
+  it("cluster should be removed", async () => {
+    const { traceTree: removeClusterTraceTree } = await cluster.removeCluster();
     expect(removeClusterTraceTree)
       .to.emit("ClusterRemoved")
       .withNamedArgs({

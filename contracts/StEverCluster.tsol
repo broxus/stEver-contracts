@@ -99,15 +99,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     function deployStrategies(address[] _dePools) override external onyClusterOwner {
-        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE * 2;
+        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE;
         uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(_dePools.length);
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
-        // TODO: выше мы для каждого депула берем ClusterGas.MIN_CALL_VALUE, а здесь вычитаем назад, не оч понял
         for(address dePool : _dePools) {
             IDepoolStrategyFactory(strategyFactory).deployStrategy{
-                value: valueForDeployOneStrategy - ClusterGas.MIN_CALL_VALUE,
+                value: valueForDeployOneStrategy,
                 flag: 1,
                 bounce: false
             }(dePool);
@@ -125,9 +124,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function getValueForRemoveStrategies(uint256 _strategiesCount) internal pure returns (uint128) {
-        return uint128(_strategiesCount) * StEverVaultGas.REMOVE_STRATEGY_RESERVE;
-    }
+
 
     function addStrategies(address[] _strategies) public onyClusterOwner {
 
@@ -139,16 +136,16 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             revert(ErrorCodesCluster.STRATEGIES_LIMIT_REACHED);
         }
 
-        uint128 valueForRemoveStrategies = getValueForRemoveStrategies(_strategies.length);
         require (
-            msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE + valueForRemoveStrategies + StEverVaultGas.MIN_CALL_MSG_VALUE,
+            msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE + StEverVaultGas.MIN_CALL_MSG_VALUE,
             ErrorCodes.NOT_ENOUGH_VALUE
         );
 
-        // TODO: а зачем мы резервируем здесь? У нас ведь нет экстернал вызовов нигде.
-        // Почему не запрашиваем эти эверы там, где нужно? т.е на удалении фактическом
-        // Reserve value for deleting strategies in the future
-        tvm.rawReserve(address(this).balance - (msg.value - valueForRemoveStrategies), 0);
+        uint8 batchSize = 50;
+
+        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+
+        tvm.rawReserve(_reserve(), 0);
 
         for (address strategy : _strategies) {
 
@@ -158,13 +155,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             if (!deployedStrategies.exists(strategy)) {
                 revert(ErrorCodesCluster.STRATEGY_NOT_DEPLOYED_BY_CLUSTER);
             }
-
-            // TODO: честно говоря не очень понимаю для чего этот промежуточный стейт. Он живет только пока не прилетит колбек от волта и больше нигде не юзается
-            // по ощущениям на этом шаге можно ничего не писать
-            strategies[strategy] = Strategy({
-                state: StrategyState.INITIAL
-            });
-            currentStrategiesCount++;
         }
 
         IStEverVault(stEverVault).addStrategies{
@@ -178,25 +168,25 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     function onStrategiesAdded(address[] _strategies) override external onlyStEverVault {
         tvm.rawReserve(_reserve(), 0);
-        uint8 batchSize = 50;
 
-        // TODO: вот эта проверка должна быть в начале цепочки, т.е  на addStrategies выше
-        // Иначе получается мы в начале пропустили, записали все в кластер, а потом в конце ебнулось и стратегии застряли в инишл стейте?
-        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
         for (address strategy : _strategies) {
             strategies[strategy].state = StrategyState.ACTIVE;
+            currentStrategiesCount++;
         }
 
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    // TODO: вот тут бы я требовал приложения всех нужных денег, а не где-то раньше, это же все равно адрес кидает?
-    // То что мы резервируем в одном а тратим в друго как-то нехорошо
-    function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner minCallValue {
+
+    function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner {
+
+        require(
+            msg.value >= uint128(_strategies.length) * (StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.EXPERIMENTAL_FEE),
+            ErrorCodesCluster.NOT_ENOUGH_VALUE
+        );
 
         for (address strategy : _strategies) {
             require(strategies.exists(strategy), ErrorCodesCluster.STRATEGY_NOT_EXISTS);
-            // TODO: а удалять стратегии в инишл стейте возможно?
             require(strategies[strategy].state == StrategyState.ACTIVE, ErrorCodesCluster.STRATEGY_NOT_IN_ACTIVE_STATE);
         }
 
@@ -204,8 +194,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     function _removeStrategies(address[] _strategies) internal {
-        // make free reserves that were locked when strategies were adding
-        tvm.rawReserve(address(this).balance - msg.value - getValueForRemoveStrategies(_strategies.length), 0);
+        tvm.rawReserve(_reserve(), 0);
 
         for (address strategy : _strategies) {
             strategies[strategy].state = StrategyState.REMOVING;
@@ -255,8 +244,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
 
     function handleDelegateStrategies(address[] _strategies) override external onlyStEverVault {
-        // TODO: снова мув с резервированием заранее
-        tvm.rawReserve(address(this).balance - (msg.value - getValueForRemoveStrategies(_strategies.length)), 0);
+        tvm.rawReserve(_reserve(), 0);
 
         address[] handledStrategies;
 
@@ -278,7 +266,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }(clusterOwner, _nonce, handledStrategies);
     }
 
-    function onRemove() override external onlyStEverVault {
+    function dropCluster() override external stEverOwnerOrClusterOwner {
         clusterState = ClusterState.REMOVING;
         address[] strategiesForRemove;
 
@@ -288,6 +276,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             }
             strategiesForRemove.push(strategy);
         }
+
+        require(
+            msg.value >= strategiesForRemove.length * StEverVaultGas.REMOVE_STRATEGY_RESERVE,
+            ErrorCodesCluster.NOT_ENOUGH_VALUE
+        );
+
         _removeStrategies(strategiesForRemove);
     }
 

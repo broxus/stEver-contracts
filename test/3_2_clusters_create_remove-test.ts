@@ -120,10 +120,7 @@ describe("Cluster create and remove after one round", () => {
     expect(depositToStrategyTraceTree).to.emit("StrategyHandledDeposit").count(strategies.length);
   });
   it("strategies should marked as deleting", async () => {
-    const { traceTree } = await vault.removeCluster({
-      clusterNonce: 0,
-      clusterOwner: admin.account.address,
-    });
+    const { traceTree } = await cluster.removeCluster();
     expect(traceTree).to.emit("StrategiesPendingRemove");
 
     const vaultStrategies = await vault.getStrategiesInfo();

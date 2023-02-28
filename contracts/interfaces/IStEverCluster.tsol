@@ -65,7 +65,7 @@ interface IStEverCluster {
 
     function getDetails() external responsible returns (Details);
 
-    function onRemove() external;
+    function dropCluster() external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

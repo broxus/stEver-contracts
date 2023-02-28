@@ -22,6 +22,19 @@ export class Cluster {
       { raise: false },
     );
   };
+  removeCluster = async () => {
+    const { currentStrategiesCount } = await this.clusterContract.methods
+      .getDetails({ answerId: 0 })
+      .call()
+      .then(res => res.value0);
+    return locklift.tracing.trace(
+      this.clusterContract.methods.dropCluster().send({
+        from: this.clusterOwner.address,
+        amount: toNano((1 + 0.2) * Number(currentStrategiesCount)),
+      }),
+      { raise: false },
+    );
+  };
 
   removeStrategies = (strategies: Array<Address>) => {
     return locklift.tracing.trace(
@@ -31,7 +44,7 @@ export class Cluster {
         })
         .send({
           from: this.clusterOwner.address,
-          amount: toNano(1),
+          amount: toNano((1 + 0.2) * strategies.length),
         }),
       { raise: false },
     );

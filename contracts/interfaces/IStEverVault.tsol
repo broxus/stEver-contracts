@@ -197,10 +197,6 @@ interface IStEverVault {
         address _clusterOwner,
         uint32 _clusterNonce
     ) external;
-    function removeCluster(
-        address _clusterOwner,
-        uint32 _clusterNonce
-    ) external;
     // Deposit to strategy
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
     function onStrategyHandledDeposit() external;

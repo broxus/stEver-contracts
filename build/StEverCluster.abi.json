@@ -83,7 +83,7 @@
 			]
 		},
 		{
-			"name": "onRemove",
+			"name": "dropCluster",
 			"inputs": [
 			],
 			"outputs": [

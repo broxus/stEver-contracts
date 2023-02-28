@@ -358,8 +358,8 @@ describe("Strategy base", function () {
         strategies: [strategy.strategy.address],
       });
     expect(new BigNumber(traceTree!.getBalanceDiff(admin.account.address)).negated().toNumber())
-      .to.be.lte(new BigNumber(toNano(0.1)).toNumber())
-      .and.gte(Number(toNano(0.01)));
+      .to.be.lte(new BigNumber(toNano(1.1)).toNumber())
+      .and.gte(Number(toNano(1)));
 
     const { totalAssets } = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
     expect(Number(totalAssets)).to.be.lte(Number(toNano(101)));

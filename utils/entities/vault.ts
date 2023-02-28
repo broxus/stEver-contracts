@@ -221,19 +221,6 @@ export class Vault {
     return locklift.factory.getDeployedContract("StEverCluster", events[0]!.params!.cluster);
   };
 
-  removeCluster = ({ clusterNonce, clusterOwner }: { clusterOwner: Address; clusterNonce: number }) =>
-    locklift.tracing.trace(
-      this.vaultContract.methods
-        .removeCluster({
-          _clusterOwner: clusterOwner,
-          _clusterNonce: clusterNonce,
-        })
-        .send({
-          from: this.adminAccount.address,
-          amount: toNano(1),
-        }),
-      { raise: false },
-    );
   setNewAccountCode = async () => {
     const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
     const transaction = await locklift.tracing.trace(
