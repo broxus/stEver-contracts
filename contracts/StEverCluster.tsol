@@ -218,11 +218,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
+        tvm.rawReserve(_reserve(), 0);
 
         delete strategies[_strategy];
         currentStrategiesCount--;
         if (clusterState == ClusterState.REMOVING && currentStrategiesCount == 0) {
-            // TODO: ты так уверен что там хватит 0.2 эверов всегда? Там на волте идет работа с маппингом неопределенного размера
+
             IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
                 TvmCell empty;
@@ -235,13 +236,11 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                     empty
                 );
             }
-            // TODO: так ли надо удалять прям ? Просто после удаления например в эверскане перестают парсится вызовы, что потом создает проблемы, если вдруг будет баг и надо будет поресерчить
-            // Я бы оставлял копейку, в духе 0.1 ever
-            clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO, bounce: false});
+
+            clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
             return;
         }
 
-        tvm.rawReserve(_reserve(), 0);
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -393,16 +392,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         initialData.store(clusterOwner);
 
 
-
-        TvmBuilder constructorParams;
-        constructorParams.store(_newVersion);
-        constructorParams.store(currentVersion);
-        constructorParams.store(requiredAssurance);
-        constructorParams.store(maxStrategiesCount);
-        constructorParams.store(strategyFactory);
-        constructorParams.store(stEverTokenRoot);
-
-
+        TvmCell constructorParams = abi.encode(
+            _newVersion,
+            currentVersion,
+            requiredAssurance,
+            maxStrategiesCount,
+            strategyFactory,
+            stEverTokenRoot
+        );
 
         mainBuilder.storeRef(initialData);
         mainBuilder.storeRef(constructorParams);
@@ -450,7 +447,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         (_nonce, stEverVault, stEverOwner, clusterOwner) = initialData.decode(uint32, address, address, address);
 
-        TvmSlice constructorParams = s.loadRefAsSlice();
+        TvmCell constructorParams = s.loadRef();
 
         (
             uint32 _current_version,
@@ -459,13 +456,16 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             uint32 _maxStrategiesCount,
             address _strategyFactory,
             address _stEverTokenRoot
-        ) = constructorParams.decode(
-            uint32,
-            uint32,
-            uint128,
-            uint32,
-            address,
-            address
+        ) = abi.decode(
+            constructorParams,
+            (
+                uint32,
+                uint32,
+                uint128,
+                uint32,
+                address,
+                address
+            )
         );
 
         _init(

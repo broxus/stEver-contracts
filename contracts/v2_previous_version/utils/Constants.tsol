@@ -15,3 +15,4 @@ library Constants {
     // DePooLStrategyFactory
     uint128 constant MAX_STRATEGY_PER_UPGRADE = 50;
 }
+

@@ -218,7 +218,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 				contr: Platform,
 				varInit: {
 					root: address(this),
-                    platformType: 0, // TODO: использовать либу
+                    platformType: 0,
                     initialData: _initialData,
                     platformCode: platformCode
 				},
