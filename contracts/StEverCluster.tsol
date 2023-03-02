@@ -222,6 +222,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         delete strategies[_strategy];
         currentStrategiesCount--;
         if (clusterState == ClusterState.REMOVING && currentStrategiesCount == 0) {
+            // TODO: ты так уверен что там хватит 0.2 эверов всегда? Там на волте идет работа с маппингом неопределенного размера
             IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
                 TvmCell empty;
@@ -234,6 +235,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                     empty
                 );
             }
+            // TODO: так ли надо удалять прям ? Просто после удаления например в эверскане перестают парсится вызовы, что потом создает проблемы, если вдруг будет баг и надо будет поресерчить
+            // Я бы оставлял копейку, в духе 0.1 ever
             clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO, bounce: false});
             return;
         }

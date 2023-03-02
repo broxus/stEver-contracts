@@ -150,6 +150,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 	}
 
     function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
+        // TODO: можно короче, в 1ну строку: abi.encode(_nonce);
         TvmBuilder builder;
         builder.store(_nonce);
         return builder.toCell();
@@ -159,6 +160,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         // check if payload assembled correctly
         TvmSlice slice = _payload.toSlice();
         // 1 cell
+        // TODO: Это тупой метод, он проверяет, что есть МИНИМУМ столько бит и реф, а не что их ровно столько по-моему
         if (!slice.hasNBitsAndRefs(64, 0)) {
             return (0, false);
         }
@@ -199,6 +201,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // account utils
     function _buildAccountParams(address _user) internal virtual pure returns (TvmCell) {
+        // TODO: можно короче как и выше
         TvmBuilder builder;
         builder.store(_user);
         return builder.toCell();
@@ -215,7 +218,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 				contr: Platform,
 				varInit: {
 					root: address(this),
-                    platformType: 0,
+                    platformType: 0, // TODO: использовать либу
                     initialData: _initialData,
                     platformCode: platformCode
 				},
