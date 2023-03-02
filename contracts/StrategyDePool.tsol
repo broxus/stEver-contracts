@@ -123,11 +123,11 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     }
 
     function depositToDePool(uint128 _amount) internal view {
-        IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
+        IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
     function withdrawFromDePool(uint128 _amount) internal view {
-        IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(uint64(_amount));
+        IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
     function receiveAnswer(uint32 _errcode, uint64) override external onlyDepool {
@@ -177,7 +177,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         tvm.rawReserve(_reserve(), 0);
 
         state = State.WITHDRAWING_FROM_POOLING_ROUND;
-        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_amount);
+        IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(_amount);
     }
 
     receive() external onlyDepoolOrVault {
@@ -190,6 +190,30 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             }
 
             IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+        }
+    }
+
+    onBounce(TvmSlice _slice) external onlyDepool {
+        tvm.accept();
+
+        uint32 functionId = _slice.decode(uint32);
+        if (functionId == tvm.functionId(IDePool.addOrdinaryStake)) {
+            tvm.rawReserve(_reserve(),0);
+
+            state = State.INITIAL;
+
+            return depositNotHandled(1);
+        }
+
+        if (
+            functionId == tvm.functionId(IDePool.withdrawPart) ||
+            functionId == tvm.functionId(IDePool.withdrawFromPoolingRound)
+        ) {
+            tvm.rawReserve(_reserve(),0);
+
+            state = State.INITIAL;
+
+            return withdrawError(1);
         }
     }
 

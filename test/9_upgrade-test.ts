@@ -159,15 +159,18 @@ describe("Upgrade testing", function () {
     expect(userStEverBalanceChange).to.be.eq(DEPOSIT_VALUE);
   });
   it("governance going to deposit to strategies", async () => {
-    const { traceTree: depositToStrategyTraceTree } = await governance.depositToStrategies({
-      _depositConfigs: strategies.map(({ strategy }) => [
-        strategy.address,
-        {
-          fee: DEPOSIT_FEE.toString(),
-          amount: toNano(DEPOSIT_TO_STRATEGY_VALUE),
-        },
-      ]),
-    });
+    const { traceTree: depositToStrategyTraceTree } = await governance.depositToStrategies(
+      {
+        _depositConfigs: strategies.map(({ strategy }) => [
+          strategy.address,
+          {
+            fee: DEPOSIT_FEE.toString(),
+            amount: toNano(DEPOSIT_TO_STRATEGY_VALUE),
+          },
+        ]),
+      },
+      false,
+    );
     expect(depositToStrategyTraceTree).to.emit("StrategyHandledDeposit").count(strategies.length);
   });
   it("user makes withdraw request", async () => {

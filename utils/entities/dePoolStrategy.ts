@@ -1,4 +1,5 @@
 import { Contract, Signer } from "locklift";
+import { Address } from "locklift/everscale-provider";
 import { StEverVaultAbi, StrategyDePoolAbi, TestDepoolAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
 import { getAddressEverBalance } from "../index";
@@ -43,6 +44,18 @@ export class DePoolStrategyWithPool {
       this.dePoolContract.methods
         .setWithdrawalsClosed({ _withdrawalsClosed: isClosed })
         .sendExternal({ publicKey: this.signer.publicKey }),
+    );
+  };
+
+  terminateDePool = (remainingGasTo: Address) => {
+    return locklift.tracing.trace(
+      this.dePoolContract.methods
+        .terminator({
+          _sendGasTo: remainingGasTo,
+        })
+        .sendExternal({
+          publicKey: this.signer.publicKey,
+        }),
     );
   };
 
