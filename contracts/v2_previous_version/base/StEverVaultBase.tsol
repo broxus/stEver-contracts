@@ -150,10 +150,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 	}
 
     function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
-        // TODO: можно короче, в 1ну строку: abi.encode(_nonce);
-        TvmBuilder builder;
-        builder.store(_nonce);
-        return builder.toCell();
+        return abi.encode(_nonce);
     }
 
     function decodeDepositPayload(TvmCell _payload) public virtual pure returns (uint64 nonce, bool correct) {

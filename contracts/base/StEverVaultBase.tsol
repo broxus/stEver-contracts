@@ -178,16 +178,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 	}
 
     function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
-        TvmBuilder builder;
-        builder.store(_nonce);
-        return builder.toCell();
+        return abi.encode(_nonce);
     }
 
     function decodeDepositPayload(TvmCell _payload) public virtual pure returns (uint64 nonce, bool correct) {
         // check if payload assembled correctly
         TvmSlice slice = _payload.toSlice();
-        // 1 cell
-        if (!slice.hasNBitsAndRefs(64, 0)) {
+        if (slice.bits() != 64) {
             return (0, false);
         }
 
@@ -227,9 +224,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // account utils
     function _buildAccountParams(address _user) internal virtual pure returns (TvmCell) {
-        TvmBuilder builder;
-        builder.store(_user);
-        return builder.toCell();
+        return abi.encode(_user);
     }
 
     function _buildInitAccount(TvmCell _initialData)
