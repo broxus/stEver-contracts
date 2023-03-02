@@ -16,8 +16,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         require(msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
-        // TODO: очень много обращений к маппингу, которые являются наверн самой доррогой операцией в эвере )
-        // копировать в локалку, делать все операции и чтение на локальных копиях, потом в глоабал
+
         if (!clusterPools.exists(_clusterOwner)) {
             mapping(uint32 => address) emptyClusters;
             clusterPools[_clusterOwner] = ClustersPool({

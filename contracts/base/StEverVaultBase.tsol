@@ -253,13 +253,15 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         view
 		returns (address)
 	{
-        TvmBuilder constructor_params;
-        constructor_params.store(accountVersion);
-        constructor_params.store(accountVersion);
+        TvmCell constructor_params = abi.encode(
+            accountVersion,
+            accountVersion
+        );
+
         return new Platform{
             stateInit: _buildInitAccount(_buildAccountParams(_user)),
             value: StEverVaultGas.USER_DATA_DEPLOY_VALUE
-        }(accountCode, constructor_params.toCell(), _user);
+        }(accountCode, constructor_params, _user);
 	}
 
     function getAccountAddress(address _user)
@@ -333,13 +335,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         address _stEverOwner,
         address _clusterOwner
     ) internal virtual pure returns (TvmCell) {
-        TvmBuilder builder;
-        builder.store(_clusterNonce);
-        builder.store(_stEverVault);
-        builder.store(_stEverOwner);
-        builder.store(_clusterOwner);
-
-        return builder.toCell();
+        return abi.encode(
+            _clusterNonce,
+            _stEverVault,
+            _stEverOwner,
+            _clusterOwner
+        );
     }
 
     function _buildInitCluster(TvmCell _initialData)
@@ -374,7 +375,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         view
         returns (address)
     {
-        // TODO: был близок к тому, чтобы словить переполнение ячейки, го везде переезжать на abi.encode
         TvmCell constructorParams = abi.encode(
             clusterVersion,
             clusterVersion,
@@ -419,6 +419,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 )
         );
     }
+
     function setNewClusterCode(TvmCell _newClusterCode) override external onlyOwner minCallValue {
         tvm.rawReserve(_reserve(), 0);
 
@@ -446,7 +447,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function _upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters, uint128 _startIdx) override external onlySelf {
         tvm.rawReserve(_reserve(), 0);
         uint128 batchSize = 50;
-        // TODO: сложный мув с передачей индекса далее, мог бы просто делал .pop() с массива и каждый некст раз передавать его остаток, а не весь
         for (; _startIdx < _clusters.length && batchSize != 0; _startIdx++) {
             ClusterStatic cluster = _clusters[_startIdx];
             batchSize--;

@@ -385,11 +385,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmCell dummyPlatformCode;
         mainBuilder.store(dummyPlatformCode);
 
-        TvmBuilder initialData;
-        initialData.store(_nonce);
-        initialData.store(stEverVault);
-        initialData.store(stEverOwner);
-        initialData.store(clusterOwner);
+
+        TvmCell initialData = abi.encode(
+            _nonce,
+            stEverVault,
+            stEverOwner,
+            clusterOwner
+        );
 
 
         TvmCell constructorParams = abi.encode(
@@ -443,9 +445,17 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmSlice s = _upgrade_data.toSlice();
 
         (,, address sendGasTo,) = s.decode(address,uint8,address, TvmCell);
-        TvmSlice initialData = s.loadRefAsSlice();
+        TvmCell initialData = s.loadRef();
 
-        (_nonce, stEverVault, stEverOwner, clusterOwner) = initialData.decode(uint32, address, address, address);
+        (
+            _nonce,
+            stEverVault,
+            stEverOwner,
+            clusterOwner
+        ) = abi.decode(
+            initialData,
+            (uint32, address, address, address)
+        );
 
         TvmCell constructorParams = s.loadRef();
 
