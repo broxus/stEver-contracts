@@ -132,7 +132,7 @@ contract TestDepool is IDePool {
         IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 64}(STATUS_SUCCESS, 0);
     }
 
-    function terminator(address _sendGasTo) public {
+    function terminator(address _sendGasTo) public pure {
         tvm.accept();
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO});
     }

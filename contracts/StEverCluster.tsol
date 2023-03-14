@@ -126,7 +126,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
 
 
-    function addStrategies(address[] _strategies) public onyClusterOwner {
+    function addStrategies(address[] _strategies) public view onyClusterOwner {
 
         if (currentAssurance < requiredAssurance) {
             revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);

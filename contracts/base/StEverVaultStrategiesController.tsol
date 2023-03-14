@@ -328,4 +328,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         emit ReceiveExtraMoneyFromStrategy(msg.sender, availableAssetsIncreasedFor);
     }
+
+
+
 }

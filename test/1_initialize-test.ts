@@ -1,5 +1,5 @@
 import { preparation } from "./preparation";
-import { Address, Contract, Signer } from "locklift";
+import { Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -32,6 +32,26 @@ describe("Initialize testing", function () {
     tokenRoot = tr;
   });
   it("Vault should be initialized", async () => {
+    type A = {
+      a: number;
+      b: string;
+    };
+    const fn = <T extends keyof A>(firstField: T, secondField: A[T]) => {};
+
+    fn("a", "");
+    // const { tvc } = locklift.factory.getContractArtifacts("DepoolStrategyFactory");
+    // const { data } = await locklift.provider.splitTvc(tvc);
+    // const res = await locklift.provider.unpackFromCell({
+    //   abiVersion: "2.2",
+    //   boc: data!,
+    //   allowPartial: true,
+    //   structure: [
+    //     { key: 1, name: "nonce", type: "uint128" },
+    //     { key: 2, name: "dePoolStrategyCode", type: "cell" },
+    //     { key: 3, name: "stEverVault", type: "address" },
+    //   ],
+    // });
+    // console.log(res);
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
   });
 });
