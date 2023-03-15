@@ -2,7 +2,6 @@ pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 import "../interfaces/IStEverCluster.tsol";
 import "../utils/ClusterLib.tsol";
-import "locklift/src/console.tsol";
 
 
 abstract contract StEverStrategiesManager is StEverVaultBase {

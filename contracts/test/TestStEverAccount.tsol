@@ -8,7 +8,6 @@ import "../utils/Gas.tsol";
 import "../utils/Constants.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "locklift/src/console.tsol";
 
 
 

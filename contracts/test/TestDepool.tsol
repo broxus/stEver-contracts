@@ -3,7 +3,6 @@ pragma AbiHeader expire;
 import "../interfaces/IDePool.tsol";
 import "../interfaces/IParticipant.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "locklift/src/console.tsol";
 
 
 
