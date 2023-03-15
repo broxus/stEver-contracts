@@ -13,7 +13,7 @@ import { expect } from "chai";
 import { toNanoBn } from "../utils";
 import { Cluster } from "../utils/entities/cluster";
 
-const STRATEGIES_COUNT = 40;
+const STRATEGIES_COUNT = 49;
 const DEPOSIT_TO_STRATEGY_VALUE = 120;
 const DEPOSIT_FEE = toNanoBn(0.6);
 let signer: Signer;
@@ -139,6 +139,7 @@ describe("Upgrade testing", function () {
         toArray(),
       ),
     );
+
     const { traceTree } = await locklift.tracing.trace(
       oldVault.vaultContract.methods
         // @ts-ignore
@@ -179,6 +180,51 @@ describe("Upgrade testing", function () {
     console.log(await user1.getWithdrawRequests());
   });
   it("StEverVault upgrade", async () => {
+    // Deploy new additional strategies
+    const POLL_DEPLOY_VALUE = toNano(100);
+    const newStrategies = await lastValueFrom(
+      range(STRATEGIES_COUNT).pipe(
+        concatMap(() =>
+          locklift.factory.deployContract({
+            contract: "TestDepool",
+            value: POLL_DEPLOY_VALUE,
+            constructorParams: {},
+            publicKey: signer.publicKey,
+            initParams: {
+              nonce: locklift.utils.getRandomNonce(),
+            },
+          }),
+        ),
+        concatMap(({ contract: dePool }) =>
+          from(strategyFactory.deployStrategy({ dePool: dePool.address, deployValue: toNano(21) })).pipe(
+            map(
+              strategy =>
+                new DePoolStrategyWithPool(
+                  dePool,
+                  locklift.factory.getDeployedContract("StrategyDePool", strategy),
+                  signer,
+                ),
+            ),
+          ),
+        ),
+        toArray(),
+      ),
+    );
+    const { traceTree } = await locklift.tracing.trace(
+      oldVault.vaultContract.methods
+        // @ts-ignore
+        .addStrategies({
+          _strategies: newStrategies.map(el => el.strategy.address),
+        })
+        .send({
+          from: admin.account.address,
+          amount: toNano(40),
+        }),
+    );
+    expect(traceTree).to.emit("StrategiesAdded");
+    const newStrategiesCount = await oldVault.getStrategiesInfo().then(res => Object.keys(res).length);
+    expect(newStrategiesCount).to.be.eq(STRATEGIES_COUNT * 2);
+    //
     const { stEverVaultVersion } = await oldVault.getDetails();
     expect(stEverVaultVersion).to.be.eq("0");
     const { code: newStEverCode } = locklift.factory.getContractArtifacts("StEverVault");
@@ -200,16 +246,16 @@ describe("Upgrade testing", function () {
       vaultContract: locklift.factory.getDeployedContract("StEverVault", oldVault.vaultContract.address),
       tokenRootContract: tokenRoot,
     });
+
     const { stEverVaultVersion: newVaultVersion } = await newVault.getDetails();
 
     expect(newVaultVersion).to.be.eq("1");
 
     const vaultStrategies = await newVault.getStrategiesInfo();
 
-    strategies.forEach(({ strategy }) => {
-      const strategyInfo = vaultStrategies[strategy.address.toString()];
-      expect(strategyInfo.state).to.be.eq("0");
-      expect(strategyInfo.cluster.equals(zeroAddress)).to.be.true;
+    Object.entries(vaultStrategies).forEach(([, strategyState]) => {
+      expect(strategyState.state).to.be.eq("0");
+      expect(strategyState.cluster.equals(zeroAddress)).to.be.true;
     });
     await newVault.vaultContract.methods
       .setStrategyFactory({

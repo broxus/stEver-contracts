@@ -1906,7 +1906,7 @@ PUSHINT 33
 SETGLOBVAR
 PUSHINT 34
 SETGLOBVAR
-.loc ../contracts/StEverVault.tsol, 471
+.loc ../contracts/StEverVault.tsol, 470
 DUP
 PUSHINT 267
 DICTMIN
@@ -1930,7 +1930,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverVault.tsol, 472
+	.loc ../contracts/StEverVault.tsol, 471
 	DUP
 	FIRST
 	OVER
@@ -1990,7 +1990,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverVault.tsol, 483
+.loc ../contracts/StEverVault.tsol, 482
 NEWC
 STSLICECONST x42_
 STSLICE

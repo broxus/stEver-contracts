@@ -49,7 +49,7 @@
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "everscale-standalone-client": "^2.0.31",
-    "locklift": "^2.4.8",
+    "locklift": "^2.5.0",
     "lodash": "^4.17.21",
     "ora": "^6.1.2",
     "prompts": "^2.4.2",
