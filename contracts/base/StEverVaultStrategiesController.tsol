@@ -246,7 +246,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
         availableAssets += receivedAmount;
-//        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
 
         if (isStrategyReadyToDelete(msg.sender)) {
             removeStrategy(msg.sender);
@@ -340,7 +340,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             (address strategy, uint128 _strategyTotalAssets) = strategyTotalAssetsConfig.unpack();
             require(strategies.exists(strategy));
 
-            strategies[strategy].totalAssets += _strategyTotalAssets - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION;
+            strategies[strategy].totalAssets = _strategyTotalAssets >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
+            _strategyTotalAssets - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
+            _strategyTotalAssets;
+
+            if (isStrategyReadyToDelete(strategy)) {
+                removeStrategy(strategy);
+            }
         }
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
