@@ -268,7 +268,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }(clusterOwner, _nonce, handledStrategies);
     }
 
-    function dropCluster() override external stEverOwnerOrClusterOwner {
+    function dropCluster() override external onlyStEverOwner {
         clusterState = ClusterState.REMOVING;
         address[] strategiesForRemove;
 

@@ -1231,15 +1231,11 @@ CALLREF {
 THROW 0
 
 .macro dropCluster_19500376_internal_macro
-.loc ../contracts/StEverCluster.tsol, 84
-PUSHINT 5004
+.loc ../contracts/StEverCluster.tsol, 76
+PUSHINT 5002
 GETGLOB 9
 GETGLOB 12
 SDEQ
-GETGLOB 9
-GETGLOB 13
-SDEQ
-OR
 THROWANYIFNOT
 .loc ../contracts/StEverCluster.tsol, 272
 PUSHINT 2
