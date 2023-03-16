@@ -152,7 +152,7 @@ contract StEverAccount is IStEverAccount {
     }
 
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external virtual override onlyVault {
-        
+
 
         if (_newVersion == currentVersion) {
             tvm.rawReserve(_reserve(), 0);
@@ -169,12 +169,9 @@ contract StEverAccount is IStEverAccount {
         TvmCell dummyPlatformCode;
         mainBuilder.store(dummyPlatformCode);
 
-        TvmBuilder initialData;
-        initialData.store(user);
+        TvmCell initialData = abi.encode(user);
 
-        TvmBuilder constructorParams;
-        constructorParams.store(_newVersion);
-        constructorParams.store(currentVersion);
+        TvmCell constructorParams = abi.encode(_newVersion, currentVersion);
 
         mainBuilder.storeRef(initialData);
         mainBuilder.storeRef(constructorParams);
@@ -205,11 +202,11 @@ contract StEverAccount is IStEverAccount {
         (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 
-        TvmSlice initialData = s.loadRefAsSlice();
-        user = initialData.decode(address);
+        TvmCell initialData = s.loadRef();
+        (user) = abi.decode(initialData, (address));
 
-        TvmSlice constructorParams = s.loadRefAsSlice();
-        (uint32 _current_version,) = constructorParams.decode(uint32, uint32);
+        TvmCell constructorParams = s.loadRef();
+        (uint32 _current_version,) = abi.decode(constructorParams, (uint32, uint32));
         _init(_current_version);
 
         send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});

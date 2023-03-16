@@ -1043,25 +1043,26 @@ PUSHCONT {
 	}
 	SWAP
 	STREF
-	.loc ../contracts/StEverAccount.tsol, 173
+	.loc ../contracts/StEverAccount.tsol, 172
 	GETGLOB 11
 	NEWC
 	STSLICE
-	.loc ../contracts/StEverAccount.tsol, 176
-	ROT
+	ENDC
+	.loc ../contracts/StEverAccount.tsol, 174
+	GETGLOB 12
+	ROLL 3
 	NEWC
 	STU 32
-	.loc ../contracts/StEverAccount.tsol, 177
-	GETGLOB 12
-	STUR 32
-	.loc ../contracts/StEverAccount.tsol, 179
+	STU 32
+	ENDC
+	.loc ../contracts/StEverAccount.tsol, 176
 	PUSH S2
 	ROT
-	STBREFR
+	STREFR
 	POP S2
-	.loc ../contracts/StEverAccount.tsol, 180
-	STBREFR
-	.loc ../contracts/StEverAccount.tsol, 182
+	.loc ../contracts/StEverAccount.tsol, 177
+	STREFR
+	.loc ../contracts/StEverAccount.tsol, 179
 	GETGLOB 13
 	GETGLOB 12
 	GETGLOB 11
@@ -1075,10 +1076,10 @@ PUSHCONT {
 	STDICT
 	STBREFR
 	STBREFR
-	.loc ../contracts/StEverAccount.tsol, 193
+	.loc ../contracts/StEverAccount.tsol, 190
 	OVER
 	SETCODE
-	.loc ../contracts/StEverAccount.tsol, 195
+	.loc ../contracts/StEverAccount.tsol, 192
 	SWAP
 	CTOS
 	DUP
@@ -1093,7 +1094,7 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/StEverAccount.tsol, 197
+	.loc ../contracts/StEverAccount.tsol, 194
 	ENDC
 	CALLREF {
 		CALL $:onCodeUpgrade$
@@ -1105,7 +1106,7 @@ CALLX
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/StEverAccount.tsol, 201
+.loc ../contracts/StEverAccount.tsol, 198
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
@@ -1118,15 +1119,15 @@ PUSHINT 0
 SETGLOB 12
 NEWDICT
 SETGLOB 13
-.loc ../contracts/StEverAccount.tsol, 202
+.loc ../contracts/StEverAccount.tsol, 199
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverAccount.tsol, 203
+.loc ../contracts/StEverAccount.tsol, 200
 CTOS
-.loc ../contracts/StEverAccount.tsol, 205
+.loc ../contracts/StEverAccount.tsol, 202
 DUP
 LDMSGADDR
 LDU 8
@@ -1135,31 +1136,32 @@ LDREF
 POP S5
 DROP
 NIP
-.loc ../contracts/StEverAccount.tsol, 206
+.loc ../contracts/StEverAccount.tsol, 203
 SWAP
 SETGLOB 10
-.loc ../contracts/StEverAccount.tsol, 208
+.loc ../contracts/StEverAccount.tsol, 205
 OVER
-LDREFRTOS
-SWAP
+LDREF
 POP S3
-.loc ../contracts/StEverAccount.tsol, 209
+.loc ../contracts/StEverAccount.tsol, 206
+CTOS
 LDMSGADDR
-DROP
+ENDS
 SETGLOB 11
-.loc ../contracts/StEverAccount.tsol, 211
+.loc ../contracts/StEverAccount.tsol, 208
 SWAP
-LDREFRTOS
-NIP
-.loc ../contracts/StEverAccount.tsol, 212
+PLDREF
+.loc ../contracts/StEverAccount.tsol, 209
+CTOS
 LDU 32
-PLDU 32
+LDU 32
+ENDS
 DROP
-.loc ../contracts/StEverAccount.tsol, 213
+.loc ../contracts/StEverAccount.tsol, 210
 CALLREF {
 	CALL $_init_8fd55bfc_internal_macro$
 }
-.loc ../contracts/StEverAccount.tsol, 215
+.loc ../contracts/StEverAccount.tsol, 212
 NEWC
 STSLICECONST x42_
 STSLICE

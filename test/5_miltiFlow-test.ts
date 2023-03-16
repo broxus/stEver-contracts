@@ -1,17 +1,17 @@
-import { Contract, Signer } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { assertEvent, getAddressEverBalance, getBalance, getBalances, toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
-import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
-import { intersectionWith } from "lodash";
+import { concatMap, defer, from, lastValueFrom, map, range, switchMap, toArray } from "rxjs";
+import { Cluster } from "../utils/entities/cluster";
 
 let signer: Signer;
 let admin: User;
@@ -52,21 +52,28 @@ describe("Multi flow", async function () {
     });
   });
   it("should strategies deployed", async () => {
+    const cluster = await Cluster.create({
+      vault,
+      clusterOwner: admin.account,
+      assurance: toNano(0),
+      maxStrategiesCount: 100,
+    });
     strategiesWithPool.push(
       ...(await lastValueFrom(
         range(3).pipe(
           concatMap(() =>
-            createAndRegisterStrategy({
-              admin: admin.account,
-              vault,
+            createStrategy({
               signer,
+              cluster,
               poolDeployValue: locklift.utils.toNano(200),
-              strategyDeployValue: locklift.utils.toNano(22),
-              strategyFactory,
             }),
           ),
-          map(({ strategy }) => strategy),
           toArray(),
+          switchMap(strategies =>
+            from(cluster.addStrategies(strategies.map(strategyWithDePool => strategyWithDePool.strategy.address))).pipe(
+              map(() => strategies),
+            ),
+          ),
         ),
       )),
     );

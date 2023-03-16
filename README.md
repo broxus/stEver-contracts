@@ -30,7 +30,28 @@ npx locklift run --disable-build --network mainnet -s scripts/1_deploy-and-setup
 ```shell
 npx locklift run --disable-build --network mainnet -s scripts/2_fix_upgrade.ts
 ```
+## Change log
+### [v2]
+#### Fixes
 
+### [v3] - Cluster
+This update provides validators the possibility to control their strategies for themselves
+(in the previous version only `stEverOwner` could add and remove strategies from `StEverVault`)
+#### Added
+- Cluster entity was added to the StEverVault, now actions like deploy, add and delete strategy only allowed by the
+  `Cluster` contract. Cluster can be created only by the `stEverOwner`. Each cluster includes constraints such as
+  `maxStrategiesCount` and `assurance`.
+  - `maxStrategiesCount` - maximal strategy count that can be created by the `Cluster`
+  - `assurance` - Assurance that should be provided by the `clusterOwner` to his `Cluster`. `assurance` is `StEver` value,
+    so the `clusterOwner` should make a `StEver` token transfer to the `Cluster` address
+  
+Now interaction with strategies looks like this:
+1. We need to create a `Cluster`, this method can be called by `stEverOnwer` only
+- Other operations should be done by `clusterOwner`
+2. Deploy strategies via `Cluster.deployStrategies(_dePools=deppolssAddress[])`
+3. Attach strategies to the StEver `Cluster.addStrategies(_strategies=strategiesAddresses[])`
+- Remove strategies
+1. `Cluster.removeStrategies(_strategies=strategiesAddresses[])`
 
 
 

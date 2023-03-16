@@ -12,15 +12,6 @@
 			]
 		},
 		{
-			"name": "transferOwnership",
-			"inputs": [
-				{"name":"_newOwner","type":"address"},
-				{"name":"_sendGasTo","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "getDetails",
 			"inputs": [
 				{"name":"answerId","type":"uint32"}
@@ -30,11 +21,12 @@
 			]
 		},
 		{
-			"name": "checkIsUpdateApplied",
+			"name": "transferOwnership",
 			"inputs": [
+				{"name":"_newOwner","type":"address"},
+				{"name":"_sendGasTo","type":"address"}
 			],
 			"outputs": [
-				{"components":[{"name":"stEverVault","type":"address"},{"name":"owner","type":"address"},{"name":"strategyVersion","type":"uint32"},{"name":"strategyCount","type":"uint32"},{"name":"factoryVersion","type":"uint32"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{

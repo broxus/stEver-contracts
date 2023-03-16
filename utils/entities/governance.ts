@@ -17,11 +17,14 @@ export class Governance {
     this.vault = upgradedVault;
   };
 
-  depositToStrategies = async (...params: Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>) => {
+  depositToStrategies = async (
+    ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>, boolean?]
+  ) => {
     const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
-        .depositToStrategies(...params)
+        .depositToStrategies(params[0])
         .sendExternal({ publicKey: this.keyPair.publicKey }),
+      { raise: params[1] },
     );
 
     const depositSuccessEvents = traceTree?.findEventsForContract({
@@ -46,12 +49,13 @@ export class Governance {
   };
 
   withdrawFromStrategiesRequest = async (
-    ...params: Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawFromStrategies"]>
+    ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawFromStrategies"]>, boolean?]
   ) => {
     const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
-        .processWithdrawFromStrategies(...params)
+        .processWithdrawFromStrategies(params[0])
         .sendExternal({ publicKey: this.keyPair.publicKey }),
+      { raise: params[1] },
     );
 
     const successEvents = traceTree!.findEventsForContract({
@@ -76,12 +80,13 @@ export class Governance {
   };
 
   forceWithdrawFromStrategies = async (
-    ...params: Parameters<Contract<StEverVaultAbi>["methods"]["forceWithdrawFromStrategies"]>
+    ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["forceWithdrawFromStrategies"]>, boolean?]
   ) => {
     const { transaction, traceTree } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
-        .forceWithdrawFromStrategies(...params)
+        .forceWithdrawFromStrategies(params[0])
         .sendExternal({ publicKey: this.keyPair.publicKey }),
+      { raise: params[1] },
     );
     const successEvents = await this.vault.getEventsAfterTransaction({
       eventName: "StrategyWithdrawSuccess",

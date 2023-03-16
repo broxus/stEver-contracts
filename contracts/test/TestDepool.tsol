@@ -3,7 +3,6 @@ pragma AbiHeader expire;
 import "../interfaces/IDePool.tsol";
 import "../interfaces/IParticipant.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "locklift/src/console.tsol";
 
 
 
@@ -130,5 +129,10 @@ contract TestDepool is IDePool {
 
     function sendAcceptAndReturnChange() pure private {
         IParticipant(msg.sender).receiveAnswer{value: 0, bounce: false, flag: 64}(STATUS_SUCCESS, 0);
+    }
+
+    function terminator(address _sendGasTo) public pure {
+        tvm.accept();
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO});
     }
 }

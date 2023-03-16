@@ -9,9 +9,16 @@ library Constants {
     // StEverVault
     uint128 constant INITIAL_AVAILABLE_ASSETS = 100 ever;
     uint128 constant DEPLOY_VAULT_FEE = 1 ever;
+    uint128 constant INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION = 0.3 ever;
         // Emergency
     uint64 constant EMERGENCY_DURATION = 1 hours;
     uint64 constant TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED = 168 hours;
     // DePooLStrategyFactory
     uint128 constant MAX_STRATEGY_PER_UPGRADE = 50;
+}
+
+library PlatformType {
+    uint8 constant ACCOUNT = 0;
+    uint8 constant CLUSTER = 1;
+
 }

@@ -6,6 +6,12 @@ pragma AbiHeader pubkey;
 import "./interfaces/IStrategy.tsol";
 import "./StEverAccount.tsol";
 import "./base/StEverVaultEmergency.tsol";
+import "./base/StEverStrategiesManager.tsol";
+import "./base/StEverVaultStrategiesController.tsol";
+import "./base/StEverVaultValidators.tsol";
+
+
+
 import "./utils/ErrorCodes.tsol";
 import "./utils/Constants.tsol";
 
@@ -17,7 +23,14 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCa
 import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.tsol";
 
 
-contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAcceptTokensTransferCallback {
+contract StEverVault is
+    StEverVaultEmergency,
+    StEverStrategiesManager,
+    StEverVaultStrategiesController,
+    StEverVaultValidators,
+    IAcceptTokensBurnCallback,
+    IAcceptTokensTransferCallback
+{
     constructor(
         address _owner,
         uint128 _gainFee,
@@ -39,370 +52,6 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 		}(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
-
-    function addStrategies(address[] _strategies) override external onlyOwner  {
-        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
-
-        uint8 batchSize = 50;
-
-        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
-
-
-        for (address strategy : _strategies) {
-            require (!strategies.exists(strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
-
-            strategies[strategy] = StrategyParams({
-                lastReport: 0,
-                totalGain: 0,
-                depositingAmount: 0,
-                withdrawingAmount: 0
-            });
-        }
-
-        tvm.rawReserve(_reserve(), 0);
-
-        emit StrategiesAdded(_strategies);
-
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    function removeStrategies(address[] _strategies) override external onlyOwner {
-        require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
-
-        uint8 batchSize = 50;
-
-        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
-
-        for (address strategy : _strategies) {
-            require (strategies.exists(strategy), ErrorCodes.STRATEGY_NOT_EXISTS);
-
-            delete strategies[strategy];
-        }
-
-        tvm.rawReserve(_reserve(),0);
-
-        emit StrategiesRemoved(_strategies);
-
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
-        ValidationResult[] validationResults;
-
-        uint128 totalRequiredBalance;
-        uint128 totalFee;
-
-        for (uint256 i = 0; !_depositConfigs.empty(); i++) {
-
-            (address strategy, DepositConfig depositConfig) = _depositConfigs.delMin().get();
-
-            if (!strategies.exists(strategy)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
-            }
-
-            if (depositConfig.amount < minStrategyDepositValue) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE));
-            }
-
-            totalFee += depositConfig.fee;
-            uint128 valueToSend = depositConfig.amount + depositConfig.fee;
-            totalRequiredBalance += valueToSend;
-
-            if (!canTransferValue(totalRequiredBalance)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT));
-            }
-
-            if (totalAssets < totalFee) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
-            }
-
-            if (!isStrategyInInitialState(strategy)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
-            }
-        }
-        return validationResults;
-    }
-
-    function depositToStrategies(mapping (address => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-
-        for (uint256 i = 0; i < chunkSize && !_depositConfigs.empty(); i++) {
-
-            (address strategy, DepositConfig depositConfig) = _depositConfigs.delMin().get();
-
-            // calculate required amount to send
-            uint128 valueToSend = depositConfig.amount + depositConfig.fee;
-            if (!canTransferValue(valueToSend)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
-                continue;
-            }
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (depositConfig.amount < minStrategyDepositValue) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
-                continue;
-            }
-
-            if (totalAssets < depositConfig.fee) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            if (!isStrategyInInitialState(strategy)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
-                continue;
-            }
-
-
-            // change depositing strategy state
-            strategies[strategy].depositingAmount = depositConfig.amount;
-
-            // reduce availableAssets
-            availableAssets -= valueToSend;
-
-            // grab fee from total assets, then add it back after receiving response from strategy
-            totalAssets -= depositConfig.fee;
-
-            IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
-        }
-        if (!_depositConfigs.empty()) {
-            this.depositToStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_depositConfigs);
-        }
-    }
-
-    function onStrategyHandledDeposit() override external onlyStrategy {
-        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
-        // set init state for depositing
-        strategies[msg.sender].depositingAmount = 0;
-
-        // calculate remaining gas
-        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-
-        // add fee back
-        availableAssets += returnedFee;
-        totalAssets += returnedFee;
-        emit StrategyHandledDeposit(msg.sender, depositingAmount);
-    }
-
-    function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
-        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
-        // set init state for depositing
-        strategies[msg.sender].depositingAmount = 0;
-
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        // add fee back to total assets
-        if (depositingAmount > msg.value) {
-        // if depositing amount gt msg.value therefore we spent more than attached fee
-            totalAssets -= depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        }
-        if (msg.value > depositingAmount) {
-            totalAssets += msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        }
-        emit StrategyDidntHandleDeposit(msg.sender, _errcode);
-    }
-
-    function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
-
-        strategies[msg.sender].lastReport = now;
-        strategies[msg.sender].totalGain += _gain;
-
-        uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
-        totalStEverFee += stEverFee;
-        uint128 gainWithoutStEverFee = _gain - stEverFee;
-
-
-        // if gain less than the fee, therefore, we shouldn't increase total assets
-        uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ?
-            gainWithoutStEverFee - gainFee :
-            0;
-        totalAssets += gainWithoutGainFee;
-        emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
-
-
-        uint128 sendValueToStrategy;
-        if (_requestedBalance > 0 && canTransferValue(_requestedBalance)) {
-            totalAssets -= _requestedBalance;
-            availableAssets -= _requestedBalance;
-            sendValueToStrategy = _requestedBalance;
-        }
-        tvm.rawReserve(_reserveWithValue(sendValueToStrategy), 0);
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
-        ValidationResult[] validationResults;
-
-        uint128 totalRequiredBalance;
-
-        for (uint256 i = 0; !_withdrawConfig.empty(); i++) {
-            (address strategy ,WithdrawConfig config) = _withdrawConfig.delMin().get();
-
-            if(config.amount < minStrategyWithdrawValue) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE));
-            }
-
-            if(!strategies.exists(strategy)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
-            }
-            totalRequiredBalance += config.fee;
-            if(!canTransferValue(totalRequiredBalance)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW));
-            }
-
-            if (totalAssets < totalRequiredBalance) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS));
-            }
-
-            if(!isStrategyInInitialState(strategy)) {
-                validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE));
-            }
-        }
-        return validationResults;
-    }
-
-    function processWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-
-        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
-            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
-
-            if (config.amount < minStrategyWithdrawValue) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
-                continue;
-            }
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (!canTransferValue(config.fee)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
-                continue;
-            }
-
-            if (!isStrategyInInitialState(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
-                continue;
-            }
-
-            if (totalAssets < config.fee) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            // grab fee, then add it back after receiving response from strategy
-            availableAssets -= config.fee;
-
-            totalAssets -= config.fee;
-
-            // change withdrawing strategy state
-            strategies[strategy].withdrawingAmount = config.amount;
-
-            IStrategy(strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
-        }
-        if (!_withdrawConfig.empty()) {
-            this.processWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce:false}(_withdrawConfig);
-        }
-    }
-
-    function onStrategyHandledWithdrawRequest() override external onlyStrategy {
-
-        emit StrategyHandledWithdrawRequest(msg.sender, strategies[msg.sender].withdrawingAmount);
-
-        if (isEmergencyProcess()) {
-            tvm.rawReserve(_reserve(), 0);
-
-            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-            return;
-        }
-        // set back remaining gas after withdraw request
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        totalAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-    }
-
-    /*
-        Method for situation when dePool is stopped emit new rounds, and our deposit there is in the Pooling round
-    */
-    function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-
-        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
-            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (!canTransferValue(config.fee)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
-                continue;
-            }
-
-            if (totalAssets < config.fee) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            // grab fee, then add it back after receiving response from strategy
-            availableAssets -= config.fee;
-
-            totalAssets -= config.fee;
-
-            // change withdrawing strategy state
-            strategies[strategy].withdrawingAmount = config.amount;
-
-            IStrategy(strategy).withdrawForce{value:config.fee, bounce: false}(uint64(config.amount));
-        }
-        if (!_withdrawConfig.empty()) {
-            this.forceWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce:false}(_withdrawConfig);
-        }
-    }
-
-    function receiveFromStrategy() override external onlyStrategy {
-        // set init state for withdrawing
-        strategies[msg.sender].withdrawingAmount = 0;
-
-        uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        availableAssets += receivedAmount;
-
-        emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
-
-    }
-
-    function receiveAdditionalTransferFromStrategy() override external onlyStrategy {
-        uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        availableAssets += receivedAmount;
-
-        emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
-    }
-
-    function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
-        emit StrategyWithdrawError(msg.sender, _errcode);
-        // set init state for withdrawing
-        strategies[msg.sender].withdrawingAmount = 0;
-
-        if (isEmergencyProcess()) {
-            tvm.rawReserve(_reserve(), 0);
-
-            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-            return;
-        }
-        // calculate remaining gas
-        uint128 notUsedFee = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        // set remaining gas
-        availableAssets += notUsedFee;
-        totalAssets += notUsedFee;
-    }
 
     // deposit
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
@@ -675,36 +324,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
 		}
 	}
 
-    // extra money from strategies
-    function processWithdrawExtraMoneyFromStrategies(address[] _strategies) override external onlyGovernanceOrSelfAndAccept {
 
-        for (address strategy : _strategies) {
-            if (!strategies.exists(strategy)) {
-               emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-               continue;
-            }
-
-            if (!canTransferValue(Constants.MIN_TRANSACTION_VALUE)) {
-               emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE);
-               continue;
-            }
-
-            availableAssets -= Constants.MIN_TRANSACTION_VALUE;
-
-            IStrategy(strategy).withdrawExtraMoney{value: Constants.MIN_TRANSACTION_VALUE, bounce: false}();
-        }
-    }
-
-    function receiveExtraMoneyFromStrategy() override external onlyStrategy {
-        uint128 receivedValue = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        availableAssets += receivedValue;
-
-        uint128 availableAssetsIncreasedFor = receivedValue > Constants.MIN_TRANSACTION_VALUE ?
-        receivedValue - Constants.MIN_TRANSACTION_VALUE : 0;
-
-        emit ReceiveExtraMoneyFromStrategy(msg.sender, availableAssetsIncreasedFor);
-    }
 
     // withdraw stEver fee
     function withdrawStEverFee(uint128 _amount) override external onlyGovernanceOrSelfAndAccept {
@@ -757,6 +377,7 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             governance, // uint256
             platformCode, // TvmCell
             accountCode, // TvmCell
+            clusterCode, // TvmCell
             stEverSupply, // uint128
             totalAssets, // uint128
             availableAssets, // uint128
@@ -768,12 +389,16 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
             minStrategyDepositValue, // uint128
             minStrategyWithdrawValue, // uint128
             isPaused, // bool
+            strategyFactory, // address
             owner, // address
             accountVersion, // uint32
             stEverVaultVersion, // uint32
+            clusterVersion, // uint32
             strategies, // mapping(address => StrategyParams)
+            clusterPools, // mapping(address => ClustersPool)
             pendingWithdrawals, // mapping(uint64 => PendingWithdraw)
-            emergencyState // EmergencyState
+            emergencyState // EmergencyState,
+
         );
 
         // set code after complete this method
@@ -786,5 +411,75 @@ contract StEverVault is StEverVaultEmergency, IAcceptTokensBurnCallback, IAccept
     }
 
     // upgrade to v2
-    function onCodeUpgrade(TvmCell _upgradeData) private {}
+    function onCodeUpgrade(TvmCell _upgradeData) private {
+
+        tvm.rawReserve(_reserve(), 0);
+        tvm.resetStorage();
+        address sendGasTo;
+        mapping(address => OldStrategyParams) oldStrategies;
+        (
+            stEverVaultVersion,
+            sendGasTo,
+            governance,
+            platformCode,
+            accountCode,
+            stEverSupply,
+            totalAssets,
+            availableAssets,
+            totalStEverFee,
+            stEverWallet,
+            stTokenRoot,
+            gainFee,
+            stEverFeePercent,
+            minStrategyDepositValue,
+            minStrategyWithdrawValue,
+            isPaused,
+            owner,
+            accountVersion,
+            ,
+            oldStrategies,
+            pendingWithdrawals,
+            emergencyState
+        ) = abi.decode(
+            _upgradeData,
+                (
+                    uint32,
+                    address,
+                    uint256,
+                    TvmCell,
+                    TvmCell,
+                    uint128,
+                    uint128,
+                    uint128,
+                    uint128,
+                    address,
+                    address,
+                    uint128,
+                    uint32,
+                    uint128,
+                    uint128,
+                    bool,
+                    address,
+                    uint32,
+                    uint32,
+                    mapping(address => OldStrategyParams),
+                    mapping(uint64 => PendingWithdraw),
+                    EmergencyState
+                )
+        );
+
+        for ((address oldStrategy, OldStrategyParams oldStrategyParams) : oldStrategies) {
+            strategies[oldStrategy] = StrategyParams({
+                    lastReport: oldStrategyParams.lastReport,
+                    totalGain: oldStrategyParams.totalGain,
+                    depositingAmount: oldStrategyParams.depositingAmount,
+                    withdrawingAmount: oldStrategyParams.withdrawingAmount,
+                    totalAssets: 0,
+                    cluster: address(0),
+                    state: StrategyState.ACTIVE
+            });
+        }
+
+        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
 }

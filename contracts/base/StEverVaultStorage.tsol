@@ -10,6 +10,8 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint256 static governance;
     TvmCell static platformCode;
     TvmCell static accountCode;
+    TvmCell static clusterCode;
+
     // balances
     uint128 stEverSupply;
     uint128 totalAssets;
@@ -25,13 +27,16 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint128 minStrategyDepositValue = 100 ever;
     uint128 minStrategyWithdrawValue = 100 ever;
     bool isPaused;
+    address strategyFactory;
 
 
     address owner;
     uint32 accountVersion;
     uint32 stEverVaultVersion;
+    uint32 clusterVersion;
     // mappings
     mapping(address => StrategyParams) public strategies;
+    mapping(address => ClustersPool) public clusterPools;
     mapping(uint64 => PendingWithdraw) pendingWithdrawals;
     // emergency
     EmergencyState emergencyState;

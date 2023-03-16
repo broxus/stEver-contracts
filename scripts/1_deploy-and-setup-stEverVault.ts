@@ -26,6 +26,7 @@ const deployAndSetupStEverVault = async ({
   const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
   const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
+  const { code: clusterCode } = locklift.factory.getContractArtifacts("StEverCluster");
 
   logger.startStep("StEverVault is deploying...");
   const { contract: vaultContract } = await locklift.transactions.waitFinalized(
@@ -33,6 +34,7 @@ const deployAndSetupStEverVault = async ({
       contract: "StEverVault",
       value: deployVaultValue,
       initParams: {
+        clusterCode,
         nonce: locklift.utils.getRandomNonce(),
         governance: `0x${governancePublicKey}`,
         platformCode: platformCode,
