@@ -8,9 +8,18 @@
     "test-initialize": "npx locklift test --network local --tests test/1_initialize-test.ts",
     "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
     "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
+    "test-clusters": "npx locklift test --network local --tests test/3_1_clusters_create_remove-test.ts",
+    "test-clusters-create-remove": "npx locklift test --network local --tests test/3_2_clusters_create_remove-test.ts",
+
+    "test-clusters-constraints": "npx locklift test --network local --tests test/3_3_clusters_constraints-test.ts",
+    "test-strategyBase-with-dePool-dropped": "npx locklift test --network local --tests test/3_4_strategyBase-depool-dropped-test.ts",
+    "test-strategy-total-ssets-test.ts": "npx locklift test --network local --tests test/3_5_strategy_total_assets-test.ts",
+
+
+
+
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
-    "test-miltiFlow-main": "npx locklift test --network local --tests test/6_miltiFlow-main-test.ts",
     "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
     "test-withdraw-extra": "npx locklift test --network local --tests test/8_withdraw-extra-test.ts",
     "test-upgrade": "npx locklift test --network local --tests test/9_upgrade-test.ts",
@@ -44,7 +53,7 @@
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "everscale-standalone-client": "^2.0.31",
-    "locklift": "^2.4.8",
+    "locklift": "^2.5.0",
     "lodash": "^4.17.21",
     "ora": "^6.1.2",
     "prompts": "^2.4.2",

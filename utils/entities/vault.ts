@@ -1,10 +1,9 @@
-import { StEverVaultAbi, TestStEverVaultAbi, TokenRootUpgradeableAbi, WalletAbi } from "../../build/factorySource";
+import { StEverClusterAbi, StEverVaultAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
 import { AbiEventName, Address, Contract, DecodedEventWithTransaction, toNano, Transaction } from "locklift";
 import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
-import { Account } from "locklift/everscale-standalone-client";
-import { ConstructorParams } from "locklift/build/types";
+import { Account } from "locklift/everscale-client";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
@@ -14,7 +13,7 @@ type ExtractEvent<T extends VaultEvents> = Extract<
 export class Vault {
   constructor(
     protected readonly adminAccount: Account,
-    public readonly vaultContract: Contract<StEverVaultAbi> | Contract<TestStEverVaultAbi>,
+    public readonly vaultContract: Contract<StEverVaultAbi>,
     protected readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
     public readonly tokenWallet: TokenWallet,
   ) {}
@@ -53,6 +52,19 @@ export class Vault {
         from: this.adminAccount.address,
         amount: toNano(2),
       }),
+    );
+  };
+
+  setTotalAssetsToStrategies = async (strategiesConfig: Array<{ strategy: Address; totalAssets: string }>) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods
+        .setStrategiesTotalAssets({
+          _totalAssetsConfig: strategiesConfig.map(({ strategy, totalAssets }) => ({ strategy, totalAssets })),
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(1),
+        }),
     );
   };
 
@@ -98,9 +110,20 @@ export class Vault {
         };
       });
 
+  delegateStrategies = async (strategies: Array<Address>, destinationCluster: Address, value: string) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods
+        .delegateStrategies({
+          _strategies: strategies,
+          _destinationCluster: destinationCluster,
+        })
+        .send({ from: this.adminAccount.address, amount: value }),
+      { raise: false },
+    );
+  };
   getStrategiesInfo = () =>
     this.vaultContract.methods
-      .strategies({})
+      .strategies()
       .call()
       .then(res =>
         res.strategies.reduce(
@@ -180,6 +203,37 @@ export class Vault {
       expect(pausedEvent[0].data.pauseState).to.be.false;
     }
   };
+
+  createCluster = async ({
+    clusterOwner,
+    assurance,
+    maxStrategiesCount,
+  }: {
+    clusterOwner: Address;
+    assurance: string;
+    maxStrategiesCount: number;
+  }): Promise<Contract<StEverClusterAbi>> => {
+    const { traceTree } = await locklift.tracing.trace(
+      this.vaultContract.methods
+        .createCluster({
+          _clusterOwner: clusterOwner,
+          _assurance: assurance,
+          _maxStrategiesCount: maxStrategiesCount,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(5),
+        }),
+    );
+    expect(traceTree).to.emit("ClusterCreated").withNamedArgs({
+      clusterOwner,
+      assurance,
+      maxStrategiesCount: maxStrategiesCount.toString(),
+    });
+    const events = traceTree?.findForContract({ contract: this.vaultContract, name: "ClusterCreated" })!;
+    return locklift.factory.getDeployedContract("StEverCluster", events[0]!.params!.cluster);
+  };
+
   setNewAccountCode = async () => {
     const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
     const transaction = await locklift.tracing.trace(
@@ -200,10 +254,7 @@ export class Vault {
     };
   };
 
-  upgradeVault = async (
-    newVersion: number,
-    vaultName: "TestStEverVault" | "StEverVault" | undefined = "TestStEverVault",
-  ): Promise<UpgradedVault> => {
+  upgradeVault = async (newVersion: number, vaultName: "StEverVault"): Promise<UpgradedVault> => {
     const { tvc, abi, code } = locklift.factory.getContractArtifacts(vaultName);
     await locklift.tracing.trace(
       this.vaultContract.methods
@@ -219,7 +270,7 @@ export class Vault {
     );
     return new UpgradedVault(
       this.adminAccount,
-      locklift.factory.getDeployedContract(vaultName as "TestStEverVault", this.vaultContract.address),
+      locklift.factory.getDeployedContract(vaultName, this.vaultContract.address),
       this.tokenRootContract,
       this.tokenWallet,
     );
@@ -229,7 +280,7 @@ export class Vault {
 export class UpgradedVault extends Vault {
   constructor(
     protected readonly adminAccount: Account,
-    public readonly vaultContract: Contract<TestStEverVaultAbi>,
+    public readonly vaultContract: Contract<any>,
     protected readonly tokenRootContract: Contract<TokenRootUpgradeableAbi>,
     public readonly tokenWallet: TokenWallet,
   ) {

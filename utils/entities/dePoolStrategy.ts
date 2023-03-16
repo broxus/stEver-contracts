@@ -1,7 +1,9 @@
 import { Contract, Signer } from "locklift";
+import { Address } from "locklift/everscale-provider";
 import { StEverVaultAbi, StrategyDePoolAbi, TestDepoolAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
 import { getAddressEverBalance } from "../index";
+import { Cluster } from "./cluster";
 
 export class DePoolStrategyWithPool {
   constructor(
@@ -10,7 +12,7 @@ export class DePoolStrategyWithPool {
     private readonly signer: Signer,
   ) {}
 
-  emitDePoolRoundComplete = async (reward: string, withWithdraw = false) => {
+  emitDePoolRoundComplete = async (reward: string, withWithdraw = false, raise = true) => {
     return await locklift.tracing.trace(
       this.dePoolContract.methods
         .roundComplete({
@@ -18,6 +20,7 @@ export class DePoolStrategyWithPool {
           includesWithdraw: withWithdraw,
         })
         .sendExternal({ publicKey: this.signer.publicKey }),
+      { raise },
     );
   };
 
@@ -45,6 +48,18 @@ export class DePoolStrategyWithPool {
     );
   };
 
+  terminateDePool = (remainingGasTo: Address) => {
+    return locklift.tracing.trace(
+      this.dePoolContract.methods
+        .terminator({
+          _sendGasTo: remainingGasTo,
+        })
+        .sendExternal({
+          publicKey: this.signer.publicKey,
+        }),
+    );
+  };
+
   getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);
   getStrategyDetails = () =>
     this.strategy.methods
@@ -56,13 +71,11 @@ export class DePoolStrategyWithPool {
 export const createStrategy = async ({
   signer,
   poolDeployValue,
-  strategyDeployValue,
-  strategyFactory,
+  cluster,
 }: {
   signer: Signer;
   poolDeployValue: string;
-  strategyDeployValue: string;
-  strategyFactory: StrategyFactory;
+  cluster: Cluster;
 }): Promise<DePoolStrategyWithPool> => {
   const dePool = await locklift.tracing.trace(
     locklift.factory.deployContract({
@@ -75,9 +88,8 @@ export const createStrategy = async ({
       },
     }),
   );
-  const strategyAddress = await strategyFactory.deployStrategy({
-    deployValue: strategyDeployValue,
-    dePool: dePool.contract.address,
+  const strategyAddress = await cluster.deployStrategy({
+    dePools: [dePool.contract.address],
   });
   console.log(`strategy balance: ${await getAddressEverBalance(strategyAddress)}`);
 

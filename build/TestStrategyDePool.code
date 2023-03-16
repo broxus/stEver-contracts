@@ -22,16 +22,16 @@ ENDS
 CTOS
 LDMSGADDR
 ENDS
-.loc ../contracts/test/TestStrategyDePool.tsol, 78
+.loc ../contracts/test/TestStrategyDePool.tsol, 77
 PUSHINT 3005
 GETGLOB 9
 GETGLOB 15
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 63
+.loc ../contracts/test/TestStrategyDePool.tsol, 62
 SWAP
 SETGLOB 11
-.loc ../contracts/test/TestStrategyDePool.tsol, 64
+.loc ../contracts/test/TestStrategyDePool.tsol, 63
 SETGLOB 12
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
 CALLREF {
@@ -44,7 +44,7 @@ THROW 0
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 89
+.loc ../contracts/test/TestStrategyDePool.tsol, 88
 GETPARAM 7
 FIRST
 DEPTH
@@ -61,7 +61,7 @@ MAX
 CALL $_reserveWithValue_3f1d138f_internal_macro$
 
 .macro _reserveWithValue_3f1d138f_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 93
+.loc ../contracts/test/TestStrategyDePool.tsol, 92
 GETPARAM 7
 FIRST
 DEPTH
@@ -84,7 +84,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 96
+.loc ../contracts/test/TestStrategyDePool.tsol, 95
 LDU 32
 GETGLOB 4
 ROT
@@ -172,7 +172,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 97
+.loc ../contracts/test/TestStrategyDePool.tsol, 96
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -199,7 +199,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 100
+.loc ../contracts/test/TestStrategyDePool.tsol, 99
 LDU 128
 ENDS
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -213,24 +213,24 @@ CALLREF {
 THROW 0
 
 .macro deposit_54469aea_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 68
+.loc ../contracts/test/TestStrategyDePool.tsol, 67
 PUSHINT 3001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 69
+.loc ../contracts/test/TestStrategyDePool.tsol, 68
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 101
+	.loc ../contracts/test/TestStrategyDePool.tsol, 100
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 102
+	.loc ../contracts/test/TestStrategyDePool.tsol, 101
 	GETGLOB 13
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 103
+		.loc ../contracts/test/TestStrategyDePool.tsol, 102
 		PUSHINT 30
 		CALLREF {
 			CALL $depositNotHandled_e71354e7_internal_macro$
@@ -239,10 +239,10 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 105
+	.loc ../contracts/test/TestStrategyDePool.tsol, 104
 	PUSHINT 1
 	SETGLOB 13
-	.loc ../contracts/test/TestStrategyDePool.tsol, 107
+	.loc ../contracts/test/TestStrategyDePool.tsol, 106
 	DEPTH
 	ADDCONST -2
 	PICK
@@ -255,7 +255,7 @@ PUSHCONT {
 	UFITS 128
 	LESS
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 108
+		.loc ../contracts/test/TestStrategyDePool.tsol, 107
 		PUSHINT 29
 		CALLREF {
 			CALL $depositNotHandled_e71354e7_internal_macro$
@@ -264,12 +264,12 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 110
+	.loc ../contracts/test/TestStrategyDePool.tsol, 109
 	DUP
 	GETGLOB 10
 	LESS
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 111
+		.loc ../contracts/test/TestStrategyDePool.tsol, 110
 		PUSHINT 28
 		CALLREF {
 			CALL $depositNotHandled_e71354e7_internal_macro$
@@ -278,11 +278,11 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 113
+	.loc ../contracts/test/TestStrategyDePool.tsol, 112
 	CALLREF {
 		CALL $depositToDePool_fc542560_internal_macro$
 	}
-	.loc ../contracts/test/TestStrategyDePool.tsol, 100
+	.loc ../contracts/test/TestStrategyDePool.tsol, 99
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -296,7 +296,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 116
+.loc ../contracts/test/TestStrategyDePool.tsol, 115
 LDU 128
 ENDS
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -310,24 +310,24 @@ CALLREF {
 THROW 0
 
 .macro withdraw_02387a7b_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 68
+.loc ../contracts/test/TestStrategyDePool.tsol, 67
 PUSHINT 3001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 69
+.loc ../contracts/test/TestStrategyDePool.tsol, 68
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 117
+	.loc ../contracts/test/TestStrategyDePool.tsol, 116
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 118
+	.loc ../contracts/test/TestStrategyDePool.tsol, 117
 	GETGLOB 13
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 119
+		.loc ../contracts/test/TestStrategyDePool.tsol, 118
 		PUSHINT 30
 		CALLREF {
 			CALL $depositNotHandled_e71354e7_internal_macro$
@@ -336,14 +336,14 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 121
+	.loc ../contracts/test/TestStrategyDePool.tsol, 120
 	PUSHINT 2
 	SETGLOB 13
-	.loc ../contracts/test/TestStrategyDePool.tsol, 123
+	.loc ../contracts/test/TestStrategyDePool.tsol, 122
 	CALLREF {
 		CALL $withdrawFromDePool_a08e184a_internal_macro$
 	}
-	.loc ../contracts/test/TestStrategyDePool.tsol, 116
+	.loc ../contracts/test/TestStrategyDePool.tsol, 115
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -353,7 +353,7 @@ CALLX
 CALL $depositToDePool_fc542560_internal_macro$
 
 .macro depositToDePool_fc542560_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 127
+.loc ../contracts/test/TestStrategyDePool.tsol, 126
 UFITS 64
 GETGLOB 12
 FALSE
@@ -375,7 +375,7 @@ SENDRAWMSG
 CALL $withdrawFromDePool_a08e184a_internal_macro$
 
 .macro withdrawFromDePool_a08e184a_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 131
+.loc ../contracts/test/TestStrategyDePool.tsol, 130
 UFITS 64
 GETGLOB 12
 FALSE
@@ -401,7 +401,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 134
+.loc ../contracts/test/TestStrategyDePool.tsol, 133
 LDU 32
 LDU 64
 ENDS
@@ -416,33 +416,33 @@ CALLREF {
 THROW 0
 
 .macro receiveAnswer_81808287_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 73
+.loc ../contracts/test/TestStrategyDePool.tsol, 72
 PUSHINT 3002
 GETGLOB 9
 GETGLOB 12
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 74
+.loc ../contracts/test/TestStrategyDePool.tsol, 73
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 135
+	.loc ../contracts/test/TestStrategyDePool.tsol, 134
 	DROP
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 137
+	.loc ../contracts/test/TestStrategyDePool.tsol, 136
 	FALSE ; decl return flag
 	OVER
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 139
+		.loc ../contracts/test/TestStrategyDePool.tsol, 138
 		GETGLOB 13
 		EQINT 1
 		PUSHCONT {
-			.loc ../contracts/test/TestStrategyDePool.tsol, 140
+			.loc ../contracts/test/TestStrategyDePool.tsol, 139
 			PUSHINT 0
 			SETGLOB 13
-			.loc ../contracts/test/TestStrategyDePool.tsol, 141
+			.loc ../contracts/test/TestStrategyDePool.tsol, 140
 			CALLREF {
 				CALL $depositHandled_31d22200_internal_macro$
 			}
@@ -451,11 +451,11 @@ PUSHCONT {
 			.loc ../contracts/test/TestStrategyDePool.tsol, 0
 		}
 		IFJMP
-		.loc ../contracts/test/TestStrategyDePool.tsol, 144
+		.loc ../contracts/test/TestStrategyDePool.tsol, 143
 		GETGLOB 13
 		EQINT 2
 		PUSHCONT {
-			.loc ../contracts/test/TestStrategyDePool.tsol, 145
+			.loc ../contracts/test/TestStrategyDePool.tsol, 144
 			GETGLOB 11
 			FALSE
 			NEWC
@@ -468,7 +468,7 @@ PUSHCONT {
 			ENDC
 			PUSHPOW2 7
 			SENDRAWMSG
-			.loc ../contracts/test/TestStrategyDePool.tsol, 146
+			.loc ../contracts/test/TestStrategyDePool.tsol, 145
 			DROP2
 			PUSHINT 4
 			.loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -479,7 +479,7 @@ PUSHCONT {
 	IFNOT
 	.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	IFRET
-	.loc ../contracts/test/TestStrategyDePool.tsol, 151
+	.loc ../contracts/test/TestStrategyDePool.tsol, 150
 	DUP
 	EQINT 3
 	OVER
@@ -492,17 +492,17 @@ PUSHCONT {
 	OR
 	OR
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 157
+		.loc ../contracts/test/TestStrategyDePool.tsol, 156
 		PUSHINT 0
 		SETGLOB 13
-		.loc ../contracts/test/TestStrategyDePool.tsol, 158
+		.loc ../contracts/test/TestStrategyDePool.tsol, 157
 		CALLREF {
 			CALL $depositNotHandled_e71354e7_internal_macro$
 		}
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 161
+	.loc ../contracts/test/TestStrategyDePool.tsol, 160
 	DUP
 	EQINT 3
 	OVER
@@ -512,10 +512,10 @@ PUSHCONT {
 	OR
 	OR
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 166
+		.loc ../contracts/test/TestStrategyDePool.tsol, 165
 		PUSHINT 0
 		SETGLOB 13
-		.loc ../contracts/test/TestStrategyDePool.tsol, 167
+		.loc ../contracts/test/TestStrategyDePool.tsol, 166
 		CALLREF {
 			CALL $withdrawError_e9b439e4_internal_macro$
 		}
@@ -524,7 +524,7 @@ PUSHCONT {
 	IFJMP
 	.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	DROP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 134
+	.loc ../contracts/test/TestStrategyDePool.tsol, 133
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -534,7 +534,7 @@ CALLX
 CALL $depositHandled_31d22200_internal_macro$
 
 .macro depositHandled_31d22200_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 172
+.loc ../contracts/test/TestStrategyDePool.tsol, 171
 GETGLOB 11
 FALSE
 NEWC
@@ -554,7 +554,7 @@ SENDRAWMSG
 CALL $depositNotHandled_e71354e7_internal_macro$
 
 .macro depositNotHandled_e71354e7_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 176
+.loc ../contracts/test/TestStrategyDePool.tsol, 175
 GETGLOB 11
 FALSE
 NEWC
@@ -575,7 +575,7 @@ SENDRAWMSG
 CALL $withdrawError_e9b439e4_internal_macro$
 
 .macro withdrawError_e9b439e4_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 180
+.loc ../contracts/test/TestStrategyDePool.tsol, 179
 GETGLOB 11
 FALSE
 NEWC
@@ -600,7 +600,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 183
+.loc ../contracts/test/TestStrategyDePool.tsol, 182
 OVER
 PUSHCONT {
 	LDREF
@@ -622,7 +622,7 @@ CALLREF {
 THROW 0
 
 .macro onTransfer_733d56ae_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 183
+.loc ../contracts/test/TestStrategyDePool.tsol, 182
 DROP2
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
 
@@ -635,7 +635,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 187
+.loc ../contracts/test/TestStrategyDePool.tsol, 186
 LDU 64
 ENDS
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -649,22 +649,22 @@ CALLREF {
 THROW 0
 
 .macro withdrawForce_5fbaad6f_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 68
+.loc ../contracts/test/TestStrategyDePool.tsol, 67
 PUSHINT 3001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 188
+.loc ../contracts/test/TestStrategyDePool.tsol, 187
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStrategyDePool.tsol, 190
+.loc ../contracts/test/TestStrategyDePool.tsol, 189
 PUSHINT 3
 SETGLOB 13
-.loc ../contracts/test/TestStrategyDePool.tsol, 191
+.loc ../contracts/test/TestStrategyDePool.tsol, 190
 GETGLOB 12
 FALSE
 NEWC
@@ -688,7 +688,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 83
+.loc ../contracts/test/TestStrategyDePool.tsol, 82
 PUSHINT 3003
 GETGLOB 9
 GETGLOB 12
@@ -698,28 +698,28 @@ GETGLOB 11
 SDEQ
 OR
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 195
+.loc ../contracts/test/TestStrategyDePool.tsol, 194
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStrategyDePool.tsol, 197
+.loc ../contracts/test/TestStrategyDePool.tsol, 196
 GETGLOB 9
 GETGLOB 12
 SDEQ
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 199
+	.loc ../contracts/test/TestStrategyDePool.tsol, 198
 	GETGLOB 13
 	EQINT 3
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 200
+		.loc ../contracts/test/TestStrategyDePool.tsol, 199
 		PUSHINT 0
 		SETGLOB 13
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IF
-	.loc ../contracts/test/TestStrategyDePool.tsol, 203
+	.loc ../contracts/test/TestStrategyDePool.tsol, 202
 	GETGLOB 11
 	FALSE
 	NEWC
@@ -749,7 +749,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 207
+.loc ../contracts/test/TestStrategyDePool.tsol, 206
 LDU 64
 LDU 64
 LDU 64
@@ -769,18 +769,18 @@ CALLREF {
 THROW 0
 
 .macro onRoundComplete_14513b01_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 73
+.loc ../contracts/test/TestStrategyDePool.tsol, 72
 PUSHINT 3002
 GETGLOB 9
 GETGLOB 12
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 74
+.loc ../contracts/test/TestStrategyDePool.tsol, 73
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 216
+	.loc ../contracts/test/TestStrategyDePool.tsol, 215
 	BLKDROP 4
 	ACCEPT
-	.loc ../contracts/test/TestStrategyDePool.tsol, 220
+	.loc ../contracts/test/TestStrategyDePool.tsol, 219
 	GETPARAM 7
 	FIRST
 	PUSHINT 110000000
@@ -793,15 +793,15 @@ PUSHCONT {
 	UFITS 128
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 222
+	.loc ../contracts/test/TestStrategyDePool.tsol, 221
 	PUSHINT 0
-	.loc ../contracts/test/TestStrategyDePool.tsol, 223
+	.loc ../contracts/test/TestStrategyDePool.tsol, 222
 	GETPARAM 7
 	FIRST
 	PUSHINT 4000000000
 	LESS
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 224
+		.loc ../contracts/test/TestStrategyDePool.tsol, 223
 		PUSHINT 10000000000
 		GETPARAM 7
 		FIRST
@@ -811,7 +811,7 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IF
-	.loc ../contracts/test/TestStrategyDePool.tsol, 227
+	.loc ../contracts/test/TestStrategyDePool.tsol, 226
 	SWAP
 	PUSHINT 0
 	ROLL 3
@@ -835,7 +835,7 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/test/TestStrategyDePool.tsol, 237
+	.loc ../contracts/test/TestStrategyDePool.tsol, 236
 	DROP
 	FALSE ; decl return flag
 	DEPTH
@@ -845,14 +845,14 @@ PUSHCONT {
 		CALL $isDePoolMakingWithdraw_4d3d0def_internal_macro$
 	}
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 238
+		.loc ../contracts/test/TestStrategyDePool.tsol, 237
 		GETGLOB 13
 		EQINT 2
 		PUSHCONT {
-			.loc ../contracts/test/TestStrategyDePool.tsol, 239
+			.loc ../contracts/test/TestStrategyDePool.tsol, 238
 			PUSHINT 0
 			SETGLOB 13
-			.loc ../contracts/test/TestStrategyDePool.tsol, 241
+			.loc ../contracts/test/TestStrategyDePool.tsol, 240
 			GETGLOB 11
 			FALSE
 			NEWC
@@ -865,13 +865,13 @@ PUSHCONT {
 			ENDC
 			PUSHPOW2 7
 			SENDRAWMSG
-			.loc ../contracts/test/TestStrategyDePool.tsol, 242
+			.loc ../contracts/test/TestStrategyDePool.tsol, 241
 			DROP
 			PUSHINT 4
 			.loc ../contracts/test/TestStrategyDePool.tsol, 0
 		}
 		IFJMP
-		.loc ../contracts/test/TestStrategyDePool.tsol, 245
+		.loc ../contracts/test/TestStrategyDePool.tsol, 244
 		GETGLOB 11
 		FALSE
 		NEWC
@@ -889,7 +889,7 @@ PUSHCONT {
 	IF
 	.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	IFRET
-	.loc ../contracts/test/TestStrategyDePool.tsol, 207
+	.loc ../contracts/test/TestStrategyDePool.tsol, 206
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -899,7 +899,7 @@ CALLX
 CALL $isDePoolMakingWithdraw_4d3d0def_internal_macro$
 
 .macro isDePoolMakingWithdraw_4d3d0def_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 250
+.loc ../contracts/test/TestStrategyDePool.tsol, 249
 PUSHINT 50000000
 GREATER
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -913,7 +913,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 253
+.loc ../contracts/test/TestStrategyDePool.tsol, 252
 ENDS
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
 CALLREF {
@@ -926,26 +926,26 @@ CALLREF {
 THROW 0
 
 .macro withdrawExtraMoney_d0916c2e_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 68
+.loc ../contracts/test/TestStrategyDePool.tsol, 67
 PUSHINT 3001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 69
+.loc ../contracts/test/TestStrategyDePool.tsol, 68
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 254
+	.loc ../contracts/test/TestStrategyDePool.tsol, 253
 	GETPARAM 7
 	FIRST
-	.loc ../contracts/test/TestStrategyDePool.tsol, 256
+	.loc ../contracts/test/TestStrategyDePool.tsol, 255
 	PUSHINT 10000000000
 	GREATER
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 257
+		.loc ../contracts/test/TestStrategyDePool.tsol, 256
 		PUSHINT 10000000000
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/test/TestStrategyDePool.tsol, 259
+		.loc ../contracts/test/TestStrategyDePool.tsol, 258
 		GETGLOB 11
 		NEWC
 		STSLICECONST x62_
@@ -958,13 +958,13 @@ PUSHCONT {
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 263
+	.loc ../contracts/test/TestStrategyDePool.tsol, 262
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 265
+	.loc ../contracts/test/TestStrategyDePool.tsol, 264
 	GETGLOB 11
 	NEWC
 	STSLICECONST x62_
@@ -974,7 +974,7 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/test/TestStrategyDePool.tsol, 253
+	.loc ../contracts/test/TestStrategyDePool.tsol, 252
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
@@ -988,7 +988,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 270
+.loc ../contracts/test/TestStrategyDePool.tsol, 269
 OVER
 PUSHCONT {
 	LDREF
@@ -1015,26 +1015,26 @@ CALLREF {
 THROW 0
 
 .macro upgrade_fb9d1513_internal_macro
-.loc ../contracts/test/TestStrategyDePool.tsol, 78
+.loc ../contracts/test/TestStrategyDePool.tsol, 77
 PUSHINT 3005
 GETGLOB 9
 GETGLOB 15
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/test/TestStrategyDePool.tsol, 79
+.loc ../contracts/test/TestStrategyDePool.tsol, 78
 PUSHCONT {
-	.loc ../contracts/test/TestStrategyDePool.tsol, 271
+	.loc ../contracts/test/TestStrategyDePool.tsol, 270
 	OVER
 	GETGLOB 16
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/test/TestStrategyDePool.tsol, 272
+		.loc ../contracts/test/TestStrategyDePool.tsol, 271
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/test/TestStrategyDePool.tsol, 273
+		.loc ../contracts/test/TestStrategyDePool.tsol, 272
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -1043,12 +1043,12 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/test/TestStrategyDePool.tsol, 274
+		.loc ../contracts/test/TestStrategyDePool.tsol, 273
 		DROP2
 		.loc ../contracts/test/TestStrategyDePool.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/test/TestStrategyDePool.tsol, 278
+	.loc ../contracts/test/TestStrategyDePool.tsol, 277
 	GETGLOB 16
 	GETGLOB 15
 	GETGLOB 14
@@ -1077,10 +1077,10 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	ENDC
-	.loc ../contracts/test/TestStrategyDePool.tsol, 290
+	.loc ../contracts/test/TestStrategyDePool.tsol, 289
 	OVER
 	SETCODE
-	.loc ../contracts/test/TestStrategyDePool.tsol, 292
+	.loc ../contracts/test/TestStrategyDePool.tsol, 291
 	SWAP
 	CTOS
 	DUP
@@ -1095,24 +1095,24 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/test/TestStrategyDePool.tsol, 294
+	.loc ../contracts/test/TestStrategyDePool.tsol, 293
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
-	.loc ../contracts/test/TestStrategyDePool.tsol, 270
+	.loc ../contracts/test/TestStrategyDePool.tsol, 269
 }
 CALLX
 .loc ../contracts/test/TestStrategyDePool.tsol, 0
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/test/TestStrategyDePool.tsol, 298
+.loc ../contracts/test/TestStrategyDePool.tsol, 297
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/test/TestStrategyDePool.tsol, 299
+.loc ../contracts/test/TestStrategyDePool.tsol, 298
 PUSHINT 0
 SETGLOB 10
 PUSHREFSLICE {
@@ -1133,11 +1133,11 @@ PUSHREFSLICE {
 SETGLOB 15
 PUSHINT 0
 SETGLOB 16
-.loc ../contracts/test/TestStrategyDePool.tsol, 300
+.loc ../contracts/test/TestStrategyDePool.tsol, 299
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
-.loc ../contracts/test/TestStrategyDePool.tsol, 301
+.loc ../contracts/test/TestStrategyDePool.tsol, 300
 SWAP
 CTOS
 LDMSGADDR
@@ -1172,7 +1172,7 @@ SETGLOB 13
 SETGLOB 14
 SETGLOB 15
 DROP
-.loc ../contracts/test/TestStrategyDePool.tsol, 313
+.loc ../contracts/test/TestStrategyDePool.tsol, 312
 NEWC
 STSLICECONST x42_
 STSLICE

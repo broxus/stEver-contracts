@@ -15,119 +15,6 @@
 			]
 		},
 		{
-			"name": "addStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "removeStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "validateDepositRequest",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "depositToStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledDeposit",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyDidntHandleDeposit",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "strategyReport",
-			"inputs": [
-				{"name":"_gain","type":"uint128"},
-				{"name":"_loss","type":"uint128"},
-				{"name":"_totalAssets","type":"uint128"},
-				{"name":"_requestedBalance","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "validateWithdrawFromStrategiesRequest",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "processWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledWithdrawRequest",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "forceWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveAdditionalTransferFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "withdrawFromStrategyError",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "deposit",
 			"inputs": [
 				{"name":"_amount","type":"uint128"},
@@ -219,21 +106,6 @@
 			]
 		},
 		{
-			"name": "processWithdrawExtraMoneyFromStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "receiveExtraMoneyFromStrategy",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "withdrawStEverFee",
 			"inputs": [
 				{"name":"_amount","type":"uint128"}
@@ -254,6 +126,192 @@
 				{"name":"_newCode","type":"cell"},
 				{"name":"_newVersion","type":"uint32"},
 				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "validateDepositRequest",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
+			],
+			"outputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
+			]
+		},
+		{
+			"name": "validateWithdrawFromStrategiesRequest",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
+			]
+		},
+		{
+			"name": "depositToStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyHandledDeposit",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyDidntHandleDeposit",
+			"inputs": [
+				{"name":"_errcode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "strategyReport",
+			"inputs": [
+				{"name":"_gain","type":"uint128"},
+				{"name":"_loss","type":"uint128"},
+				{"name":"_totalAssets","type":"uint128"},
+				{"name":"_requestedBalance","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategyHandledWithdrawRequest",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "forceWithdrawFromStrategies",
+			"inputs": [
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveAdditionalTransferFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "withdrawFromStrategyError",
+			"inputs": [
+				{"name":"_errcode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "processWithdrawExtraMoneyFromStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "receiveExtraMoneyFromStrategy",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setStrategiesTotalAssets",
+			"inputs": [
+				{"components":[{"name":"strategy","type":"address"},{"name":"totalAssets","type":"uint128"}],"name":"_totalAssetsConfig","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "createCluster",
+			"inputs": [
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_assurance","type":"uint128"},
+				{"name":"_maxStrategiesCount","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onClusterRemoved",
+			"inputs": [
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterNonce","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "addStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterId","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterId","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_removeStrategy",
+			"inputs": [
+				{"name":"_strategy","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "delegateStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"_destinationCluster","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStrategiesDelegationHandled",
+			"inputs": [
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterNonce","type":"uint32"},
+				{"name":"_strategies","type":"address[]"}
 			],
 			"outputs": [
 			]
@@ -302,7 +360,7 @@
 			"name": "_processEmergencyWithdrawFromStrategy",
 			"inputs": [
 				{"name":"_user","type":"address"},
-				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
+				{"components":[{"name":"value0","type":"address"},{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"cluster","type":"address"},{"name":"state","type":"uint8"}],"name":"value1","type":"tuple"}],"name":"_startPair","type":"optional(tuple)"}
 			],
 			"outputs": [
 			]
@@ -384,6 +442,14 @@
 			"name": "setIsPaused",
 			"inputs": [
 				{"name":"_isPaused","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setStrategyFactory",
+			"inputs": [
+				{"name":"_strategyFactory","type":"address"}
 			],
 			"outputs": [
 			]
@@ -480,12 +546,69 @@
 			]
 		},
 		{
+			"name": "getClusterAddress",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterNonce","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "setNewClusterCode",
+			"inputs": [
+				{"name":"_newClusterCode","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgradeStEverCluster",
+			"inputs": [
+				{"name":"_clusterNonce","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgradeStEverClusters",
+			"inputs": [
+				{"name":"_sendGasTo","type":"address"},
+				{"components":[{"name":"clusterOwner","type":"address"},{"name":"clusterNonce","type":"uint32"}],"name":"_clusters","type":"tuple[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_upgradeStEverClusters",
+			"inputs": [
+				{"name":"_sendGasTo","type":"address"},
+				{"components":[{"name":"clusterOwner","type":"address"},{"name":"clusterNonce","type":"uint32"}],"name":"_clusters","type":"tuple[]"},
+				{"name":"_startIdx","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onClusterUpgraded",
+			"inputs": [
+				{"name":"_clusterOwner","type":"address"},
+				{"name":"_clusterNonce","type":"uint32"},
+				{"name":"_sendGasTo","type":"address"},
+				{"name":"_newVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "getDetails",
 			"inputs": [
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"stTokenRoot","type":"address"},{"name":"stEverWallet","type":"address"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"owner","type":"address"},{"name":"governance","type":"uint256"},{"name":"gainFee","type":"uint128"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"isPaused","type":"bool"},{"name":"stEverFeePercent","type":"uint32"},{"name":"totalStEverFee","type":"uint128"},{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"nonce","type":"uint128"},{"name":"governance","type":"uint256"},{"name":"stEverSupply","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"availableAssets","type":"uint128"},{"name":"totalStEverFee","type":"uint128"},{"name":"stEverWallet","type":"address"},{"name":"stTokenRoot","type":"address"},{"name":"gainFee","type":"uint128"},{"name":"stEverFeePercent","type":"uint32"},{"name":"minStrategyDepositValue","type":"uint128"},{"name":"minStrategyWithdrawValue","type":"uint128"},{"name":"isPaused","type":"bool"},{"name":"strategyFactory","type":"address"},{"name":"owner","type":"address"},{"name":"accountVersion","type":"uint32"},{"name":"stEverVaultVersion","type":"uint32"},{"name":"clusterVersion","type":"uint32"},{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -501,7 +624,15 @@
 			"inputs": [
 			],
 			"outputs": [
-				{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"}
+				{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"cluster","type":"address"},{"name":"state","type":"uint8"}],"name":"strategies","type":"map(address,tuple)"}
+			]
+		},
+		{
+			"name": "clusterPools",
+			"inputs": [
+			],
+			"outputs": [
+				{"components":[{"name":"currentClusterNonce","type":"uint32"},{"name":"clusters","type":"map(uint32,address)"}],"name":"clusterPools","type":"map(address,tuple)"}
 			]
 		}
 	],
@@ -509,13 +640,22 @@
 		{"key":1,"name":"nonce","type":"uint128"},
 		{"key":2,"name":"governance","type":"uint256"},
 		{"key":3,"name":"platformCode","type":"cell"},
-		{"key":4,"name":"accountCode","type":"cell"}
+		{"key":4,"name":"accountCode","type":"cell"},
+		{"key":5,"name":"clusterCode","type":"cell"}
 	],
 	"events": [
 		{
 			"name": "PausedStateChanged",
 			"inputs": [
 				{"name":"pauseState","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "StrategyFactoryAddressUpdated",
+			"inputs": [
+				{"name":"_strategyFactory","type":"address"}
 			],
 			"outputs": [
 			]
@@ -529,9 +669,17 @@
 			]
 		},
 		{
-			"name": "StrategiesRemoved",
+			"name": "StrategyRemoved",
 			"inputs": [
-				{"name":"strategy","type":"address[]"}
+				{"name":"strategy","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "StrategiesPendingRemove",
+			"inputs": [
+				{"name":"strategies","type":"address[]"}
 			],
 			"outputs": [
 			]
@@ -541,6 +689,46 @@
 			"inputs": [
 				{"name":"strategy","type":"address"},
 				{"components":[{"name":"gain","type":"uint128"},{"name":"loss","type":"uint128"},{"name":"totalAssets","type":"uint128"}],"name":"report","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ClusterCreated",
+			"inputs": [
+				{"name":"clusterOwner","type":"address"},
+				{"name":"assurance","type":"uint128"},
+				{"name":"maxStrategiesCount","type":"uint32"},
+				{"name":"cluster","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ClusterHandledStrategiesDelegation",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"name":"clusterOwner","type":"address"},
+				{"name":"clusterNonce","type":"uint32"},
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ClusterRemoving",
+			"inputs": [
+				{"name":"cluster","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ClusterRemoved",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"name":"clusterOwner","type":"address"},
+				{"name":"clusterNonce","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -720,6 +908,24 @@
 			]
 		},
 		{
+			"name": "NewClusterCodeSet",
+			"inputs": [
+				{"name":"newVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "ClusterUpgraded",
+			"inputs": [
+				{"name":"clusterOwner","type":"address"},
+				{"name":"clusterNonce","type":"uint32"},
+				{"name":"newVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "EmergencyProcessStarted",
 			"inputs": [
 				{"name":"emitter","type":"address"}
@@ -774,6 +980,7 @@
 		{"name":"governance","type":"uint256"},
 		{"name":"platformCode","type":"cell"},
 		{"name":"accountCode","type":"cell"},
+		{"name":"clusterCode","type":"cell"},
 		{"name":"stEverSupply","type":"uint128"},
 		{"name":"totalAssets","type":"uint128"},
 		{"name":"availableAssets","type":"uint128"},
@@ -785,10 +992,13 @@
 		{"name":"minStrategyDepositValue","type":"uint128"},
 		{"name":"minStrategyWithdrawValue","type":"uint128"},
 		{"name":"isPaused","type":"bool"},
+		{"name":"strategyFactory","type":"address"},
 		{"name":"owner","type":"address"},
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},
-		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"}],"name":"strategies","type":"map(address,tuple)"},
+		{"name":"clusterVersion","type":"uint32"},
+		{"components":[{"name":"lastReport","type":"uint128"},{"name":"totalGain","type":"uint128"},{"name":"depositingAmount","type":"uint128"},{"name":"withdrawingAmount","type":"uint128"},{"name":"totalAssets","type":"uint128"},{"name":"cluster","type":"address"},{"name":"state","type":"uint8"}],"name":"strategies","type":"map(address,tuple)"},
+		{"components":[{"name":"currentClusterNonce","type":"uint32"},{"name":"clusters","type":"map(uint32,address)"}],"name":"clusterPools","type":"map(address,tuple)"},
 		{"components":[{"name":"amount","type":"uint128"},{"name":"user","type":"address"},{"name":"remainingGasTo","type":"address"}],"name":"pendingWithdrawals","type":"map(uint64,tuple)"},
 		{"components":[{"name":"isEmergency","type":"bool"},{"name":"isPaused","type":"bool"},{"name":"emitter","type":"address"},{"name":"emitTimestamp","type":"uint64"}],"name":"emergencyState","type":"tuple"}
 	]

@@ -6,8 +6,7 @@ import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { concatMap, from, lastValueFrom, map, mergeMap, switchMap, timer, toArray } from "rxjs";
 
 let signer: Signer;
 let admin: User;
@@ -79,30 +78,6 @@ describe("Upgrade testing", function () {
     upgradedUsersData.forEach(({ value0: { version } }) => {
       expect(version).to.be.eq("1");
     });
-  });
-  it("should have error 9, deserialization error", async () => {
-    const { traceTree } = await locklift.tracing.trace(
-      vault.vaultContract.methods
-        .onAcceptTokensBurn({
-          value0: 0,
-          payload: "",
-          wallet: vault.tokenWallet.walletContract.address,
-          value1: vault.vaultContract.address,
-          value3: vault.vaultContract.address,
-        })
-        .send({
-          from: user1.account.address,
-          amount: toNano(1),
-        }),
-      { raise: false },
-    );
-    expect(traceTree).to.be.error(9);
-  });
-  it("should vault be upgraded", async () => {
-    const NEW_VERSION = 1;
-    const upgradedVault = await vault.upgradeVault(NEW_VERSION, "StEverVault");
-    vault = upgradedVault;
-    governance.setUpgradedVault(upgradedVault);
   });
   it("should have error 1032, not token root", async () => {
     const { traceTree } = await locklift.tracing.trace(

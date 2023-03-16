@@ -1,159 +1,411 @@
-import { Contract, Signer, toNano } from "locklift";
+import { Contract, Signer, toNano, zeroAddress } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
-import { TokenRootUpgradeableAbi } from "../build/factorySource";
-import { Vault } from "../utils/entities/vault";
+import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
+import { creteVault, Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { preparation } from "./preparation";
+import { deployTokenRoot, preparation } from "./preparation";
+import { GetExpectedAddressParams } from "../../ever-locklift/everscale-provider";
+import { GAIN_FEE, INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION } from "../utils/constants";
+import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
+import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { toNanoBn } from "../utils";
+import { Cluster } from "../utils/entities/cluster";
 
+const STRATEGIES_COUNT = 40;
+const DEPOSIT_TO_STRATEGY_VALUE = 120;
+const DEPOSIT_FEE = toNanoBn(0.6);
 let signer: Signer;
 let admin: User;
 let governance: Governance;
 let user1: User;
-let user2: User;
-let user3: User;
+
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
-let vault: Vault;
+
 let strategyFactory: StrategyFactory;
+let oldVault: Vault;
+let governanceSigner: Signer;
+let newVault: Vault;
+
+let strategies: Array<DePoolStrategyWithPool>;
 describe("Upgrade testing", function () {
   before(async () => {
     const {
-      vault: v,
-      tokenRoot: tr,
       signer: s,
-      users: [adminUser, _, u1, u2, u3],
-      governance: g,
-      strategyFactory: sf,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
-    signer = s;
-    vault = v;
-    admin = adminUser;
-    governance = g;
-    user1 = u1;
-    user2 = u2;
-    user3 = u3;
-    tokenRoot = tr;
-    strategyFactory = sf;
-  });
-  it("users should deposit to the StEverVault and make withdraw requests", async () => {
-    const users1 = [user1, user2, user3];
-    await lastValueFrom(
-      from(users1).pipe(
-        concatMap(user =>
-          from(user.depositToVault(toNano(100))).pipe(concatMap(() => user.makeWithdrawRequest(toNano(20)))),
-        ),
-      ),
-    );
-  });
-  it("new account code should set", async () => {
-    await vault.setNewAccountCode();
-  });
-  it("user should upgrade his code", async () => {
-    const upgradedUser = await user1.getUpgradedUserData();
-    expect(await upgradedUser.checkIsUpdateApplied().then(({ value0 }) => value0.version)).to.be.eq("1");
-    user1 = upgradedUser;
-  });
-  it("upgraded user should make new withdraw request", async () => {
-    await user1.makeWithdrawRequest(toNano(20));
-    expect(await user1.getWithdrawRequests().then(res => res.length)).to.be.eq(
-      2,
-      "user should have both withdraw requests",
-    );
-  });
-
-  it("two users should be upgraded by the admin", async () => {
-    await lastValueFrom(timer(1000));
-    const users = [user2, user3];
-    const upgradedUsersData = await lastValueFrom(
-      from(users).pipe(
-        toArray(),
-        concatMap(() => admin.upgradeAccounts(users.map(user => user.account.address))),
-        switchMap(() => from(users.map(user => user.getUpgradedUser()))),
-        mergeMap(user => user.checkIsUpdateApplied()),
-        toArray(),
-      ),
-    );
-    upgradedUsersData.forEach(({ value0: { version } }) => {
-      expect(version).to.be.eq("1");
+      governanceSigner: g,
+      users: [adminUser, _, u1],
+    } = await preparation({
+      deployUserValue: locklift.utils.toNano(STRATEGIES_COUNT * DEPOSIT_TO_STRATEGY_VALUE + 500),
     });
+    signer = s;
+    admin = adminUser;
+    user1 = u1;
+
+    governanceSigner = g;
   });
 
-  it("should vault be upgraded", async () => {
-    const NEW_VERSION = 1;
-    const upgradedVault = await vault.upgradeVault(NEW_VERSION);
-    expect(await upgradedVault.checkIsUpdateApplied().then(res => res.value0.stEverVaultVersion)).to.be.eq(
-      NEW_VERSION.toString(),
-    );
-    vault = upgradedVault;
-    governance.setUpgradedVault(upgradedVault);
+  it("should old stEverVault be deployed", async () => {
+    const { code: platformCode } = locklift.factory.getContractArtifacts("Platform");
+    const { code: accountCode } = locklift.factory.getContractArtifacts("StEverAccount");
+
+    const { tvc, abi } = locklift.factory.getContractArtifacts("Old_StEverVault");
+
+    const initParams = {
+      nonce: locklift.utils.getRandomNonce(),
+      governance: `0x${governanceSigner.publicKey}`,
+      platformCode,
+      accountCode,
+    };
+    const deployArgs: GetExpectedAddressParams<FactorySource["Old_StEverVault"]> = {
+      tvc,
+      initParams,
+      publicKey: signer.publicKey,
+    };
+    const vaultAddress = await locklift.provider.getExpectedAddress(abi, deployArgs);
+    console.log("expected address" + vaultAddress.toString());
+    tokenRoot = await deployTokenRoot({ signer, owner: vaultAddress });
+    const { contract: oldVaultContract } = await locklift.factory.deployContract({
+      contract: "Old_StEverVault",
+      value: toNano(10),
+      constructorParams: {
+        _owner: admin.account.address,
+        _gainFee: GAIN_FEE,
+        _stTokenRoot: tokenRoot.address,
+        _stEverFeePercent: 100,
+      },
+      initParams,
+      publicKey: signer.publicKey,
+    });
+
+    oldVault = await creteVault({
+      adminAccount: admin.account,
+      tokenRootContract: tokenRoot,
+      // @ts-ignore
+      vaultContract: oldVaultContract,
+    });
+
+    console.log("address after deploy" + oldVault.vaultContract.address.toString());
+    const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyDePool");
+    const factoryContact = await locklift.factory.deployContract({
+      contract: "Old_DepoolStrategyFactory",
+      value: locklift.utils.toNano(2),
+      publicKey: signer.publicKey,
+      initParams: {
+        stEverVault: vaultAddress,
+        nonce: locklift.utils.getRandomNonce(),
+        dePoolStrategyCode: dePoolStrategyCode.code,
+      },
+      constructorParams: {
+        _owner: admin.account.address,
+      },
+    });
+    governance = new Governance(governanceSigner, oldVault);
+    strategyFactory = new StrategyFactory(admin.account, factoryContact.contract, oldVault);
+    await user1.connectStEverVault(oldVault);
+    await user1.setWallet(tokenRoot);
   });
-  it("should governance withdraw all pending", async () => {
-    const users = [user1, user2, user3];
-    const withdrawals = await lastValueFrom(
-      from(users).pipe(
-        mergeMap(user =>
-          from(user.getWithdrawRequests()).pipe(
-            map(pendingWithdrawals => ({ pendingWithdrawals, userAddress: user.account.address })),
+  it("should old vault be initialized", async () => {
+    await oldVault.setStEverFeePercent({ percentFee: 11 });
+    await oldVault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
+  });
+  it("should deployed and register 40 strategies", async () => {
+    const POLL_DEPLOY_VALUE = toNano(100);
+    strategies = await lastValueFrom(
+      range(STRATEGIES_COUNT).pipe(
+        concatMap(() =>
+          locklift.factory.deployContract({
+            contract: "TestDepool",
+            value: POLL_DEPLOY_VALUE,
+            constructorParams: {},
+            publicKey: signer.publicKey,
+            initParams: {
+              nonce: locklift.utils.getRandomNonce(),
+            },
+          }),
+        ),
+        concatMap(({ contract: dePool }) =>
+          from(strategyFactory.deployStrategy({ dePool: dePool.address, deployValue: toNano(21) })).pipe(
+            map(
+              strategy =>
+                new DePoolStrategyWithPool(
+                  dePool,
+                  locklift.factory.getDeployedContract("StrategyDePool", strategy),
+                  signer,
+                ),
+            ),
           ),
         ),
         toArray(),
       ),
     );
-    const { transaction } = await governance.emitWithdraw({
-      sendConfig: withdrawals.map(({ pendingWithdrawals, userAddress }) => [
-        userAddress,
-        { nonces: pendingWithdrawals.map(({ nonce }) => nonce) },
+
+    const { traceTree } = await locklift.tracing.trace(
+      oldVault.vaultContract.methods
+        // @ts-ignore
+        .addStrategies({
+          _strategies: strategies.map(el => el.strategy.address),
+        })
+        .send({
+          from: admin.account.address,
+          amount: toNano(40),
+        }),
+    );
+    expect(traceTree).to.emit("StrategiesAdded");
+  });
+  it("user should deposit to old st-ever vault", async () => {
+    const DEPOSIT_VALUE = toNano(strategies.length * (DEPOSIT_TO_STRATEGY_VALUE + 10));
+    const { traceTree } = await user1.depositToVault(DEPOSIT_VALUE);
+    const userStEverBalanceChange = traceTree?.tokens.getTokenBalanceChange(user1.wallet.walletContract.address);
+    expect(userStEverBalanceChange).to.be.eq(DEPOSIT_VALUE);
+  });
+  it("governance going to deposit to strategies", async () => {
+    const { traceTree: depositToStrategyTraceTree } = await governance.depositToStrategies(
+      {
+        _depositConfigs: strategies.map(({ strategy }) => [
+          strategy.address,
+          {
+            fee: DEPOSIT_FEE.toString(),
+            amount: toNano(DEPOSIT_TO_STRATEGY_VALUE),
+          },
+        ]),
+      },
+      false,
+    );
+    expect(depositToStrategyTraceTree).to.emit("StrategyHandledDeposit").count(strategies.length);
+  });
+  it("user makes withdraw request", async () => {
+    const { traceTree } = await user1.makeWithdrawRequest(toNano(strategies.length * DEPOSIT_TO_STRATEGY_VALUE));
+    expect(traceTree).to.emit("WithdrawRequest");
+    console.log(await user1.getWithdrawRequests());
+  });
+  it("StEverVault upgrade", async () => {
+    const { stEverVaultVersion } = await oldVault.getDetails();
+    expect(stEverVaultVersion).to.be.eq("0");
+    const { code: newStEverCode } = locklift.factory.getContractArtifacts("StEverVault");
+
+    await locklift.tracing.trace(
+      oldVault.vaultContract.methods
+        .upgrade({
+          _newVersion: 1,
+          _newCode: newStEverCode,
+          _sendGasTo: admin.account.address,
+        })
+        .send({
+          from: admin.account.address,
+          amount: toNano(2),
+        }),
+    );
+    newVault = await creteVault({
+      adminAccount: admin.account,
+      vaultContract: locklift.factory.getDeployedContract("StEverVault", oldVault.vaultContract.address),
+      tokenRootContract: tokenRoot,
+    });
+
+    const { stEverVaultVersion: newVaultVersion } = await newVault.getDetails();
+
+    expect(newVaultVersion).to.be.eq("1");
+
+    const vaultStrategies = await newVault.getStrategiesInfo();
+
+    Object.entries(vaultStrategies).forEach(([, strategyState]) => {
+      expect(strategyState.state).to.be.eq("0");
+      expect(strategyState.cluster.equals(zeroAddress)).to.be.true;
+    });
+    await newVault.vaultContract.methods
+      .setStrategyFactory({
+        _strategyFactory: strategyFactory.factoryContract.address,
+      })
+      .send({
+        from: admin.account.address,
+        amount: toNano(1),
+      });
+    const { code: clusterCode } = locklift.factory.getContractArtifacts("StEverCluster");
+    await newVault.vaultContract.methods
+      .setNewClusterCode({
+        _newClusterCode: clusterCode,
+      })
+      .send({
+        from: admin.account.address,
+        amount: toNano(1),
+      });
+    await user1.connectStEverVault(newVault);
+  });
+  it("strategy factory upgrade", async () => {
+    describe("strategy factory upgrade", () => {
+      it("factory should be upgraded", async () => {
+        const { code: newStrategyFactoryCode } = locklift.factory.getContractArtifacts("DepoolStrategyFactory");
+        await strategyFactory.factoryContract.methods
+          .upgrade({
+            _newVersion: 1,
+            _newCode: newStrategyFactoryCode,
+            _sendGasTo: admin.account.address,
+          })
+          .send({
+            from: admin.account.address,
+            amount: toNano(1),
+          });
+      });
+      it("All existed strategies should be upgraded", async () => {
+        const { code: newStrategyCode } = locklift.factory.getContractArtifacts("StrategyDePool");
+        const { traceTree } = await strategyFactory.installNewStrategyCode(newStrategyCode);
+        expect(traceTree).to.emit("StrategyCodeUpdated").withNamedArgs({
+          prevStrategyVersion: "0",
+          newStrategyVersion: "1",
+        });
+        const { traceTree: upgradeStrategiesTraceTree } = await strategyFactory.upgradeStrategies(
+          strategies.map(el => el.strategy.address),
+        );
+        expect(upgradeStrategiesTraceTree).to.call("upgrade").count(strategies.length);
+      });
+    });
+  });
+  it("Migrate strategies", async () => {
+    describe("Migration to clusters", () => {
+      let cluster: Cluster;
+      it("admin deploys cluster", async () => {
+        cluster = await Cluster.create({
+          vault: newVault,
+          assurance: toNano(0),
+          maxStrategiesCount: STRATEGIES_COUNT,
+          clusterOwner: admin.account,
+        });
+      });
+      it("admin shouldn't delegate strategies to the new cluster with bad msg.value", async () => {
+        const { traceTree: badDelegationTraceTree } = await newVault.delegateStrategies(
+          strategies.map(el => el.strategy.address),
+          cluster.clusterContract.address,
+          toNano(1),
+        );
+        expect(badDelegationTraceTree).to.error(1004);
+      });
+      it("admin should delegate all strategies to the new cluster", async () => {
+        const { traceTree } = await newVault.delegateStrategies(
+          strategies.map(el => el.strategy.address),
+          cluster.clusterContract.address,
+          toNano(strategies.length * 2),
+        );
+        expect(traceTree).to.emit("ClusterHandledStrategiesDelegation").withNamedArgs({
+          cluster: cluster.clusterContract.address,
+          clusterOwner: admin.account.address,
+          clusterNonce: "0",
+        });
+      });
+      it("admin should set total assets to all strategies", async () => {
+        const strategyTotalAssets = toNanoBn(100);
+        await newVault.setTotalAssetsToStrategies(
+          strategies.map(el => ({ strategy: el.strategy.address, totalAssets: strategyTotalAssets.toString() })),
+        );
+        const strategiesInfo = await newVault.getStrategiesInfo();
+        Object.entries(strategiesInfo).map(([, strategyParams]) => {
+          expect(Number(strategyParams.totalAssets)).to.be.eq(
+            strategyTotalAssets.minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION).toNumber(),
+          );
+        });
+      });
+    });
+  });
+  it("governance withdraws from strategies", async () => {
+    const { traceTree } = await governance.withdrawFromStrategiesRequest({
+      _withdrawConfig: strategies.map(({ strategy }) => [
+        strategy.address,
+        {
+          fee: DEPOSIT_FEE.toString(),
+          amount: toNano(DEPOSIT_TO_STRATEGY_VALUE - 5),
+        },
       ]),
     });
-    const withdrawEvents = await vault.getEventsAfterTransaction({
-      eventName: "WithdrawSuccess",
-      parentTransaction: transaction,
-    });
-    expect(withdrawEvents.length).to.be.eq(3);
-  });
-
-  it("strategy factory should be upgraded", async () => {
-    const NEW_STRATEGY_FACTORY_VERSION = 1;
-    const upgradedStrategyFactory = await strategyFactory.upgradeStrategyFactory(NEW_STRATEGY_FACTORY_VERSION);
-    expect(await upgradedStrategyFactory.checkIsUpdateApplied().then(res => res.value0.factoryVersion)).to.be.eq(
-      NEW_STRATEGY_FACTORY_VERSION.toString(),
-    );
-    strategyFactory = upgradedStrategyFactory;
-  });
-
-  it("should strategy factory upgrade strategies", async () => {
-    const strategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          createAndRegisterStrategy({
-            admin: admin.account,
-            vault,
-            poolDeployValue: toNano(100),
-            strategyFactory,
-            signer,
-            strategyDeployValue: toNano(22),
-          }),
-        ),
-        concatMap(({ strategy }) =>
-          from(strategy.getStrategyDetails()).pipe(map(strategyDetails => ({ strategyDetails, strategy }))),
-        ),
-        toArray(),
-      ),
-    );
-
-    strategies.forEach(({ strategyDetails }) => expect(strategyDetails.strategyVersion).to.be.eq("0"));
-    await strategyFactory.installNewStrategyCode();
-    await strategyFactory.upgradeStrategies(strategies.map(({ strategy }) => strategy.strategy.address));
-
-    const strategiesDetailsAfterUpgrade = await lastValueFrom(
+    expect(traceTree).to.emit("StrategyHandledWithdrawRequest").count(strategies.length);
+    await lastValueFrom(
       from(strategies).pipe(
-        mergeMap(({ strategy }) => strategy.getStrategyDetails()),
+        concatMap(strategy =>
+          from(strategy.emitDePoolRoundComplete(toNano(1), false)).pipe(
+            map(({ traceTree }) => ({ traceTree, strategy })),
+          ),
+        ),
         toArray(),
       ),
     );
-    strategiesDetailsAfterUpgrade.forEach(({ strategyVersion }) => expect(strategyVersion).to.be.eq("1"));
+    // process.exit(1);
+    const roundsCompletesTransactions = await lastValueFrom(
+      from(strategies).pipe(
+        concatMap(strategy =>
+          from(strategy.emitDePoolRoundComplete(toNano(1), true)).pipe(
+            map(({ traceTree }) => ({ traceTree, strategy })),
+          ),
+        ),
+        toArray(),
+      ),
+    );
+    roundsCompletesTransactions.forEach(({ traceTree, strategy }) => {
+      expect(traceTree).to.emit("StrategyWithdrawSuccess").withNamedArgs({
+        strategy: strategy.strategy.address,
+      });
+    });
+  });
+  it("Governance emits withdraw to user", async () => {
+    const withdrawRequests = await user1.getWithdrawRequests();
+    const { traceTree } = await governance.emitWithdraw({
+      sendConfig: [[user1.account.address, { nonces: [withdrawRequests[0].nonce] }]],
+    });
+    expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
+      user: user1.account.address,
+    });
+  });
+  it("Create new Cluster", () => {
+    describe("Create new Cluster", () => {
+      let cluster: Cluster;
+      let strategy: DePoolStrategyWithPool;
+
+      it("Admin creates new clusters", async () => {
+        cluster = await Cluster.create({
+          vault: newVault,
+          clusterOwner: user1.account,
+          assurance: toNano(0),
+          maxStrategiesCount: 10,
+        });
+        strategy = await createStrategy({
+          signer,
+          cluster,
+          poolDeployValue: toNano(40),
+        });
+      });
+      it("user1 register strategy", async () => {
+        const { traceTree } = await cluster.addStrategies([strategy.strategy.address]);
+        expect(traceTree)
+          .to.emit("StrategiesAdded")
+          .withNamedArgs({
+            strategy: [strategy.strategy.address],
+          });
+      });
+      it("cluster should be upgraded", async () => {
+        const { code } = locklift.factory.getContractArtifacts("StEverCluster");
+        const { traceTree } = await locklift.tracing.trace(
+          newVault.vaultContract.methods
+            .setNewClusterCode({
+              _newClusterCode: code,
+            })
+            .send({
+              from: admin.account.address,
+              amount: toNano(2),
+            }),
+        );
+        expect(traceTree).to.emit("NewClusterCodeSet").withNamedArgs({
+          newVersion: "2",
+        });
+        expect((await locklift.tracing.trace(cluster.removeCluster(), { raise: false })).traceTree).to.error(5002);
+        await locklift.tracing.trace(
+          newVault.vaultContract.methods
+            .upgradeStEverClusters({
+              _clusters: [{ clusterNonce: 0, clusterOwner: user1.account.address }],
+              _sendGasTo: admin.account.address,
+            })
+            .send({
+              from: admin.account.address,
+              amount: toNano(2),
+            }),
+        );
+      });
+    });
   });
 });

@@ -4,11 +4,12 @@ import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { preparation } from "./preparation";
 import { expect } from "chai";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, toArray } from "rxjs";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
+import { Cluster } from "../utils/entities/cluster";
 
 let signer: Signer;
 let admin: User;
@@ -28,7 +29,7 @@ describe("Withdraw extra testing", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: sf,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(3000) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -39,26 +40,31 @@ describe("Withdraw extra testing", function () {
     strategyFactory = sf;
   });
   it("Vault should be initialized", async () => {
+    const cluster = await Cluster.create({
+      vault,
+      clusterOwner: admin.account,
+      assurance: toNano(0),
+      maxStrategiesCount: 100,
+    });
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
     await vault.setStEverFeePercent({ percentFee: 0 });
     await user1.depositToVault(toNano(1100));
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNano(101);
     strategies = await lastValueFrom(
       range(3).pipe(
-        mergeMap(
-          () =>
-            createAndRegisterStrategy({
-              signer,
-              vault,
-              admin: admin.account,
-              strategyDeployValue: locklift.utils.toNano(22),
-              poolDeployValue: locklift.utils.toNano(200000),
-              strategyFactory,
-            }),
-          1,
+        concatMap(() =>
+          createStrategy({
+            signer,
+            cluster,
+            poolDeployValue: locklift.utils.toNano(200000),
+          }),
         ),
-        map(({ strategy }) => strategy),
         toArray(),
+        switchMap(strategies =>
+          from(cluster.addStrategies(strategies.map(strategyWithDePool => strategyWithDePool.strategy.address))).pipe(
+            map(() => strategies),
+          ),
+        ),
       ),
     );
     await governance.depositToStrategies({

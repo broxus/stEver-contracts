@@ -7,6 +7,7 @@ export class SimpleGiver implements Giver {
 
   constructor(ever: ProviderRpcClient, readonly keyPair: Ed25519KeyPair, address: string) {
     const giverAddr = new Address(address);
+    ever.getBalance(giverAddr).then(console.log);
     this.giverContract = new ever.Contract(giverAbi, giverAddr);
   }
 

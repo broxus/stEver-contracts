@@ -60,6 +60,14 @@
 			]
 		},
 		{
+			"name": "terminator",
+			"inputs": [
+				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "constructor",
 			"inputs": [
 			],
