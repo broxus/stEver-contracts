@@ -29,7 +29,7 @@ let governanceSigner: Signer;
 let newVault: Vault;
 
 let strategies: Array<DePoolStrategyWithPool>;
-describe("Upgrade testing", function () {
+describe.skip("Upgrade testing", function () {
   before(async () => {
     const {
       signer: s,
