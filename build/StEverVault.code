@@ -1752,13 +1752,13 @@ CALLX
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/StEverVault.tsol, 416
+.loc ../contracts/StEverVault.tsol, 415
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverVault.tsol, 417
+.loc ../contracts/StEverVault.tsol, 416
 PUSHINT 0
 SETGLOB 10
 PUSHINT 0
@@ -1829,13 +1829,13 @@ PUSHINT 0
 TUPLE 4
 PUSHINT 34
 SETGLOBVAR
-.loc ../contracts/StEverVault.tsol, 418
+.loc ../contracts/StEverVault.tsol, 417
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
-.loc ../contracts/StEverVault.tsol, 419
+.loc ../contracts/StEverVault.tsol, 418
 NEWDICT
-.loc ../contracts/StEverVault.tsol, 420
+.loc ../contracts/StEverVault.tsol, 419
 ROT
 CTOS
 LDU 32
@@ -1906,7 +1906,7 @@ PUSHINT 33
 SETGLOBVAR
 PUSHINT 34
 SETGLOBVAR
-.loc ../contracts/StEverVault.tsol, 471
+.loc ../contracts/StEverVault.tsol, 470
 DUP
 PUSHINT 267
 DICTMIN
@@ -1930,7 +1930,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverVault.tsol, 472
+	.loc ../contracts/StEverVault.tsol, 471
 	DUP
 	FIRST
 	OVER
@@ -1990,7 +1990,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverVault.tsol, 483
+.loc ../contracts/StEverVault.tsol, 482
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -4403,15 +4403,6 @@ OVER
 ADD
 UFITS 128
 SETGLOB 17
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 249
-GETGLOB 9
-DEPTH
-ADDCONST -2
-PICK
-FALSE
-CALLREF {
-	CALL $updateTotalAssetsForStrategy_82b9cfd3_internal_macro$
-}
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 251
 GETGLOB 9
 CALLREF {
@@ -5170,20 +5161,10 @@ PUSHCONT {
 	NIP
 	THROWIFNOT 100
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 343
-	DUP
 	PUSHINT 300000000
-	GEQ
-	PUSHCONT {
-		DUP
-		PUSHINT 300000000
-		SUB
-		UFITS 128
-	}
-	PUSHCONT {
-		DUP
-	}
-	IFELSE
-	PUSH S2
+	SUB
+	UFITS 128
+	SWAP
 	GETGLOB 31
 	DUP2
 	PUSHINT 267
@@ -5218,7 +5199,11 @@ PUSHCONT {
 		TUPLE 7
 	}
 	IFELSE
-	ROLL 3
+	DUP
+	INDEX 4
+	ROLL 4
+	ADD
+	UFITS 128
 	SETINDEX 4
 	CALLREF {
 		UNTUPLE 7
@@ -5240,30 +5225,14 @@ PUSHCONT {
 	PUSHINT 267
 	DICTSETREF
 	SETGLOB 31
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 347
-	DROP
-	DUP
-	CALLREF {
-		CALL $isStrategyReadyToDelete_267ffad3_internal_macro$
-	}
-	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 348
-		DUP
-		CALLREF {
-			CALL $removeStrategy_175188e8_internal_macro$
-		}
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
-	}
-	IF
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
-	DROP
 	OVER
 	INC
 	POP S2
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 352
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 346
 GETGLOB 27
 NEWC
 STSLICECONST x42_

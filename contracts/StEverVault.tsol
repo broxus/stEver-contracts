@@ -412,7 +412,6 @@ contract StEverVault is
 
     // upgrade to v2
     function onCodeUpgrade(TvmCell _upgradeData) private {
-
         tvm.rawReserve(_reserve(), 0);
         tvm.resetStorage();
         address sendGasTo;
