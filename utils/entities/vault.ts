@@ -233,7 +233,27 @@ export class Vault {
     const events = traceTree?.findForContract({ contract: this.vaultContract, name: "ClusterCreated" })!;
     return locklift.factory.getDeployedContract("StEverCluster", events[0]!.params!.cluster);
   };
-
+  setNewClusterCode = (newCode: string) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.setNewClusterCode({ _newClusterCode: newCode }).send({
+        from: this.adminAccount.address,
+        amount: toNano("1"),
+      }),
+    );
+  };
+  upgradeClusters = (clusters: Array<Address>) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods
+        .upgradeStEverClusters({
+          _clusters: clusters,
+          _sendGasTo: this.adminAccount.address,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(clusters.length * 2),
+        }),
+    );
+  };
   setNewAccountCode = async () => {
     const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
     const transaction = await locklift.tracing.trace(

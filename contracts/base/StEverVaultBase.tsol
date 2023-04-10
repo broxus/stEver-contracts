@@ -436,22 +436,19 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         IStEverCluster(cluster).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, msg.sender);
     }
 
-    function upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters) override external minCallValue onlyOwner {
+    function upgradeStEverClusters(address _sendGasTo, address[] _clusters) override external minCallValue onlyOwner {
         require(msg.value >= _clusters.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         this._upgradeStEverClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusters, 0);
     }
 
-    function _upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters, uint128 _startIdx) override external onlySelf {
+    function _upgradeStEverClusters(address _sendGasTo, address[] _clusters, uint128 _startIdx) external onlySelf {
         tvm.rawReserve(_reserve(), 0);
         uint128 batchSize = 50;
         for (; _startIdx < _clusters.length && batchSize != 0; _startIdx++) {
-            ClusterStatic cluster = _clusters[_startIdx];
+            address clusterAddress = _clusters[_startIdx];
             batchSize--;
-
-            address userData = getClusterAddress(cluster.clusterOwner, cluster.clusterNonce);
-
-            IStEverCluster(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, _sendGasTo);
+            IStEverCluster(clusterAddress).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, _sendGasTo);
         }
 
         if (_startIdx < _clusters.length) {

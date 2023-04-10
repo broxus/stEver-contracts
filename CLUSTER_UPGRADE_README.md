@@ -1,29 +1,15 @@
 ## StEver cluster upgrade guide
 1. Set `StEverVault` to the paused state via method `setIsPaused(true)` value=2
 2. Build contracts `npx locklift build`
-3. Upgrade `DepoolStrategyFactory`
-   - Get new code `npx locklift code -c DepoolStrategyFactory`
-   - Upgrade factory via `DepoolStrategyFactory.upgrade(newCode, newVersion=3, _sendGasTo)` value=2
-   - Upgrade strategies
-     - Get new strategy code `npx locklift code -c StrategyDePool`
-     - Install new code `DepoolStrategyFactory.installNewStrategyCode(_strategyCode, _sendGasTo)` value=2
-     - Retrieve strategies addresses `StEverVault.strategies()`
-     - Run strategies upgrade `DepoolStrategyFactory.upgradeStrategies(strategies)` value=countOfStrategies * 2 + 1
-4. Upgrade `StEverVault`
+
+3. Upgrade `StEverVault`
    - Get new code `npx locklift code -c StEverVault`
-   - Run upgrade `StEverVault.upgrade(newCode, newVersion=3, _sendGasTo)` value=2
-   - Set total assets to all strategies `StEverVault.setStrategiesTotalAssets(_totalAssetsConfig=[]{strategy, totalAssets})`
-5. Set new fields
-   - Set strategy factory address `StEverVault.setStrategyFactory(DePoolStrategyFactory address)` value=2
-   - Set cluster code
-     - Get cluster code `npx locklift code -c StEverCluster`
-     - `StEverVault.setNewClusterCode(clusterCode)` value=2
-6. Create a cluster
-   - Call method `StEverVault.createCluster(_clusterOwner=admin, _assurance=0, _maxStrategiesCount=10000)` value=5
-   - Find cluster address inside the event `ClusterCreated`
-   - Or address can be retrieved via method `getClusterAddress(_clusterOwner=admin, _clusterNonce=0)`
-   - Or cluster list can be retrieved via `clusterPools()`
-7. Assign strategies to the new cluster
-   - Retrieve strategies addresses `StEverVault.strategies()`
-   - Assign strategies `StEverVault.delegateStrategies(_strategies, _destinationCluster=cluster)` value=strategiesCount*2
-8. Set `StEverVault` to the active state via method `setIsPaused(false)` value=2
+   - Run upgrade `StEverVault.upgrade(newCode, newVersion=4, _sendGasTo)` value=2
+4. Upgrade `StEverCluster`
+   - Get new code `npx locklift code -c StEverCluster`
+   - Set new cluster code `StEverVault.setNewClusterCode(newCode)` value=2
+   - Upgrade `StEverVault.upgradeStEverClusters(_sendGasTo=admin, _clusters=["0:cedb787c499417abeb88c965594b849485c940dae20035c8279e37a291a361fd","0:86ea048f599734f266d3267a66941cd218dfb8120e4eca8cc055fdba8413fade"])` value=2
+5. Fixing
+   - Call method `StEverVault.setStrategiesTotalAssets(_totalAssetsConfig=[{strategy:"0:b610d0fa3ae6850a8b17caf5b9dda587d9833c3bd31bf2c599c3ab7af3c89507",totalAssets: "0"}])` value=5
+   - Call method `StEverVault.forceStrategyRemove(_strategy="0:0fb3e96f08434570cdf9e06c6bd69875b844fbca3363561464020631e910e379", _cluster="0:86ea048f599734f266d3267a66941cd218dfb8120e4eca8cc055fdba8413fade")` value=3
+6. Set `StEverVault` to the active state via method `setIsPaused(false)` value=2

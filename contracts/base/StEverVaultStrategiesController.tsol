@@ -352,4 +352,20 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function forceStrategyRemove(address _strategy, address _cluster) override external onlyOwner {
+        require(msg.value >= StEverVaultGas.REMOVE_STRATEGY_RESERVE, ErrorCodes.NOT_ENOUGH_VALUE);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        if (!strategies.exists(_strategy)) {
+            IStEverCluster(_cluster).onStrategyRemoved{
+                    value: 0,
+                    flag: MsgFlag.ALL_NOT_RESERVED,
+                    bounce: false
+            }(_strategy);
+        }
+
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
 }

@@ -181,6 +181,7 @@ interface IStEverVault {
     function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
     function setStrategyFactory(address _strategyFactory) external;
+    function forceStrategyRemove(address _strategy, address _cluster) external;
         // Migration
     function setStrategiesTotalAssets(IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig) external;
     // clusters
@@ -269,8 +270,7 @@ interface IStEverVault {
     // upgrade cluster
     function setNewClusterCode(TvmCell _newClusterCode) external;
     function upgradeStEverCluster(uint32 _clusterNonce) external;
-    function upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters) external;
-    function _upgradeStEverClusters(address _sendGasTo, ClusterStatic[] _clusters, uint128 _startIdx) external;
+    function upgradeStEverClusters(address _sendGasTo, address[] _clusters) external;
     function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) external;
 }
 
