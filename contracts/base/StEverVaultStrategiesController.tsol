@@ -360,7 +360,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         if (!strategies.exists(_strategy)) {
             IStEverCluster(_cluster).onStrategyRemoved{
                     value: 0,
-                    flag: MsgFlag.ALL_NOT_RESERVED,
+                    flag: StEverVaultGas.REMOVE_STRATEGY_RESERVE,
                     bounce: false
             }(_strategy);
         }
