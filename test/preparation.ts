@@ -211,13 +211,13 @@ const deployVault = async ({
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});
   expect(newOwner.value0.equals(vaultContract.address)).to.be.true;
   const vaultSubscriber = new locklift.provider.Subscriber();
-  vaultSubscriber.transactions(vaultContract.address).on(transaction => {
-    transaction.transactions.forEach(async tx => {
-      const parsedEvent = await vaultContract.decodeTransactionEvents({ transaction: tx });
-      parsedEvent.forEach(event => {
-        console.log(`Event received: ${JSON.stringify(event)}`);
-      });
-    });
-  });
+  // vaultSubscriber.transactions(vaultContract.address).on(transaction => {
+  //   transaction.transactions.forEach(async tx => {
+  //     const parsedEvent = await vaultContract.decodeTransactionEvents({ transaction: tx });
+  //     parsedEvent.forEach(event => {
+  //       console.log(`Event received: ${JSON.stringify(event)}`);
+  //     });
+  //   });
+  // });
   return vaultContract;
 };

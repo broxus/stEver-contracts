@@ -91,7 +91,6 @@ export const createStrategy = async ({
   const strategyAddress = await cluster.deployStrategy({
     dePools: [dePool.contract.address],
   });
-  console.log(`strategy balance: ${await getAddressEverBalance(strategyAddress)}`);
 
   return new DePoolStrategyWithPool(
     dePool.contract,

@@ -325,7 +325,6 @@ describe("Strategy base", function () {
 
   it("governance should withdraw extra money from strategy", async () => {
     const vaultStateBefore = await vault.getDetails();
-    console.log(`strategy balance ${await getAddressEverBalance(strategy.strategy.address)}`);
 
     const { traceTree, successEvents } = await governance.withdrawExtraMoneyFromStrategy({
       _strategies: [strategy.strategy.address],

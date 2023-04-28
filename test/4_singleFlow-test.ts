@@ -160,10 +160,13 @@ describe("Single flow", async function () {
 
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
     const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
+    console.log(locklift.testing.getCurrentTime());
+
     const { traceTree } = await governance.emitWithdraw({
       sendConfig: [[user1.account.address, { nonces: [nonce] }]],
     });
 
+    await traceTree?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
       user: user1.account.address,
       amount: expectedEverAmountWithReward,

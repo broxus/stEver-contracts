@@ -57,16 +57,22 @@ contract StEverAccount is IStEverAccount {
 	}
 
 
-    function addPendingValue(uint64 _nonce, uint128 _amount, address _remainingGasTo) override external onlyVault {
+    function addPendingValue(
+        uint64 _nonce,
+        uint128 _amount,
+        uint64 _unlockTime,
+        address _remainingGasTo
+    ) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
             withdrawRequests[_nonce] = WithdrawRequest({
                 amount: _amount,
-                timestamp: now
+                timestamp: now,
+                unlockTime: _unlockTime
             });
 
-            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _remainingGasTo);
+            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _unlockTime, _remainingGasTo);
             return;
         }
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);

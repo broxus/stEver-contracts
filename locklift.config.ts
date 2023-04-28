@@ -1,8 +1,7 @@
 import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
-import { NETWORK_PRESETS } from "everscale-standalone-client/nodejs";
-import _ from "lodash";
+
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
