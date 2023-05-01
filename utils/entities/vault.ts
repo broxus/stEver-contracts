@@ -80,7 +80,14 @@ export class Vault {
         }),
     );
   };
-
+  setHoldTime = async ({ holdTime }: { holdTime: string }) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.setWithdrawHoldTimeInSeconds({ _holdTime: holdTime }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+  };
   getDetails = async () =>
     this.vaultContract.methods
       .getDetails({ answerId: 0 })
@@ -128,7 +135,7 @@ export class Vault {
       .then(res =>
         res.strategies.reduce(
           (acc, strategy) => ({ ...acc, [strategy[0].toString()]: strategy[1] }),
-          {} as Record<string, typeof res["strategies"][0][1]>,
+          {} as Record<string, (typeof res)["strategies"][0][1]>,
         ),
       );
 

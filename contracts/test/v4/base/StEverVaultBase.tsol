@@ -5,8 +5,7 @@ import "./StEverVaultStorage.tsol";
 import "../interfaces/IStEverVault.tsol";
 import "../interfaces/IStEverCluster.tsol";
 
-import "../StEverAccount.tsol";
-import "../Platform.tsol";
+import "../../../Platform.tsol";
 import "../utils/ErrorCodes.tsol";
 import "../utils/Gas.tsol";
 import "../utils/Constants.tsol";
@@ -149,14 +148,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function setWithdrawHoldTimeInSeconds(uint64 _holdTime) override external onlyOwner minCallValue {
-        tvm.rawReserve(_reserve(), 0);
 
-        withdrawHoldTime = _holdTime;
-        emit WithdrawHoldTimeUpdated(withdrawHoldTime);
-
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
@@ -214,22 +206,18 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, totalAssets, stEverSupply);
     }
 
-    function getAndCheckWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo), bool) {
-        bool isOk = true;
+    function getWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo)) {
+
         mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
 
         for ((uint64 nonce, IStEverAccount.WithdrawRequest withdrawRequest) : _withdrawals) {
-            if (withdrawRequest.unlockTime > now) {
-                isOk = false;
-            }
             withdrawInfo[nonce] = WithdrawToUserInfo({
                 stEverAmount: withdrawRequest.amount,
-                everAmount: getWithdrawEverAmount(withdrawRequest.amount),
-                unlockTime: withdrawRequest.unlockTime
+                everAmount: getWithdrawEverAmount(withdrawRequest.amount)
             });
         }
 
-        return (withdrawInfo, isOk);
+        return withdrawInfo;
     }
 
 

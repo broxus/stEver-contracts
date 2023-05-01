@@ -1,13 +1,11 @@
-import { Contract, Signer, toNano, zeroAddress } from "locklift";
+import { Contract, Signer } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
-import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
-import { creteVault, Vault } from "../utils/entities/vault";
+import { TokenRootUpgradeableAbi } from "../build/factorySource";
+import { Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { deployTokenRoot, preparation } from "./preparation";
-import { GetExpectedAddressParams } from "../../ever-locklift/everscale-provider";
-import { GAIN_FEE, INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION } from "../utils/constants";
-import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
+import { preparation } from "./preparation";
+
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { expect } from "chai";
 import { toNanoBn } from "../utils";

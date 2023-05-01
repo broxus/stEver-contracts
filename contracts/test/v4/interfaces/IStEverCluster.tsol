@@ -1,0 +1,69 @@
+pragma ever-solidity >=0.62.0;
+pragma AbiHeader expire;
+
+import "../interfaces/IStEverVault.tsol";
+import "../utils/ClusterLib.tsol";
+
+interface IStEverCluster {
+
+    enum StrategyState {
+        INITIAL,
+        ACTIVE,
+        REMOVING,
+        PENDING_REMOVE
+    }
+
+    enum ClusterState {
+        INITIAL,
+        PAUSED,
+        REMOVING,
+        REMOVED
+    }
+
+    struct Strategy {
+        StrategyState state;
+    }
+
+    struct Details {
+        uint32 _nonce;
+        address stEverVault;
+        address stEverOwner;
+        address clusterOwner;
+
+        uint128 assurance;
+        uint32 maxStrategiesCount;
+        uint32 currentVersion;
+        address strategyFactory;
+
+        uint128 currentAssurance;
+        uint32 currentStrategiesCount;
+        ClusterState clusterState;
+
+        address stEverTokenRoot;
+        address stEverTokenWallet;
+    }
+
+
+    event NewStrategyDeployed(address strategy);
+    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
+    event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
+    event SetAssuranceAmount(uint128 newAssuranceAmount);
+    function setAssurance(uint128 _newRequiredAssurance) external;
+    function withdrawAssurance(uint128 amount) external;
+
+    function deployStrategies(address[] dePools) external;
+    function onStrategyDeployed(address strategy) external;
+    function onStrategiesAdded(address[] _strategies) external;
+
+    function handleDelegateStrategies(address[] _strategies) external;
+
+    function onPendingStrategyRemove(address[] _strategies) external;
+
+    function onStrategyRemoved(address _strategy) external;
+
+    function getDetails() external responsible returns (Details);
+
+    function dropCluster() external;
+    // upgrade
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
+}

@@ -7,7 +7,6 @@ interface IStEverVault {
     // common
     event PausedStateChanged(bool pauseState);
     event StrategyFactoryAddressUpdated(address _strategyFactory);
-    event WithdrawHoldTimeUpdated(uint64 withdrawHoldTimeSeconds);
     // Strategy
     event StrategiesAdded(address[] strategy);
     event StrategyRemoved(address strategy);
@@ -55,7 +54,7 @@ interface IStEverVault {
 
     // User interaction
     event Deposit(address user, uint128 depositAmount, uint128 receivedStEvers);
-    event WithdrawRequest(address user, uint128 amount, uint64 unlockTime, uint64 nonce);
+    event WithdrawRequest(address user, uint128 amount, uint64 nonce);
     event WithdrawRequestRemoved(address user, uint64 nonce);
     event BadWithdrawRequest(address user, uint128 amount, uint128 attachedValue);
     event WithdrawError(address user, mapping(uint64 => WithdrawToUserInfo) withdrawInfo, uint128 amount);
@@ -124,12 +123,10 @@ interface IStEverVault {
         StrategyState state;
     }
 
-
     struct PendingWithdraw {
         uint128 amount;
         address user;
         address remainingGasTo;
-        uint64 unlockTime;
     }
 
     struct WithdrawConfig {
@@ -149,7 +146,6 @@ interface IStEverVault {
     struct WithdrawToUserInfo {
         uint128 stEverAmount;
         uint128 everAmount;
-        uint64 unlockTime;
     }
     struct ValidationResult {
         address strategy;
@@ -236,7 +232,7 @@ interface IStEverVault {
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
 
     // account
-    function onPendingWithdrawAccepted(uint64 nonce,address user, uint64 _unlockTime, address remainingGasTo) external;
+    function onPendingWithdrawAccepted(uint64 nonce,address user, address remainingGasTo) external;
     function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount, address remainingGasTo) external;
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
 
@@ -249,7 +245,6 @@ interface IStEverVault {
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
     function setStEverFeePercent(uint32 _stEverFeePercent) external;
     function setIsPaused(bool isPaused) external;
-    function setWithdrawHoldTimeInSeconds(uint64 _hold_time) external;
 
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;

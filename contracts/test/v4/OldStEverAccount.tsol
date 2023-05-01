@@ -9,17 +9,15 @@ import "./utils/Constants.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
-import {IStEverAccount as OldIStEverAccount} from "./test/v4/interfaces/IStEverAccount.tsol";
 
 
-
-contract StEverAccount is IStEverAccount {
+contract OldStEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
     uint32 currentVersion; //setup from _init
 
     // mappings
-    mapping(uint64 => IStEverAccount.WithdrawRequest) public withdrawRequests;
+    mapping(uint64 => WithdrawRequest) public withdrawRequests;
 
     //constant
     uint128 constant MAX_PENDING_COUNT = 50;
@@ -48,7 +46,7 @@ contract StEverAccount is IStEverAccount {
 		view
 		responsible
 		override
-		returns (IStEverAccount.AccountDetails)
+		returns (AccountDetails)
 	{
 		return
 			{
@@ -59,31 +57,25 @@ contract StEverAccount is IStEverAccount {
 	}
 
 
-    function addPendingValue(
-        uint64 _nonce,
-        uint128 _amount,
-        uint64 _unlockTime,
-        address _remainingGasTo
-    ) override external onlyVault {
+    function addPendingValue(uint64 _nonce, uint128 _amount, address _remainingGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
             withdrawRequests[_nonce] = WithdrawRequest({
                 amount: _amount,
-                timestamp: now,
-                unlockTime: _unlockTime
+                timestamp: now
             });
 
-            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _unlockTime, _remainingGasTo);
+            IStEverVault(vault).onPendingWithdrawAccepted{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _remainingGasTo);
             return;
         }
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);
     }
 
-    function resetPendingValues(mapping(uint64 => IStEverAccount.WithdrawRequest) rejectedWithdrawals, address _sendGasTo) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address _sendGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
-        for ((uint64 nonce, IStEverAccount.WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
+        for ((uint64 nonce, WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
             withdrawRequests[nonce] = rejectedWithdrawRequest;
         }
 
@@ -93,7 +85,7 @@ contract StEverAccount is IStEverAccount {
     function removePendingWithdraw(uint64 _nonce) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.exists(_nonce)) {
-            IStEverAccount.WithdrawRequest withdrawRequest = withdrawRequests[_nonce];
+            WithdrawRequest withdrawRequest = withdrawRequests[_nonce];
             delete withdrawRequests[_nonce];
             IStEverVault(vault).onPendingWithdrawRemoved{
                 value: 0,
@@ -108,12 +100,12 @@ contract StEverAccount is IStEverAccount {
     function createAndSendWithdrawToUserRequest(uint64[] _satisfiedWithdrawRequests) internal {
 
         uint128 totalAmount = 0;
-        mapping(uint64 => IStEverAccount.WithdrawRequest) withdrawals;
+        mapping(uint64 => WithdrawRequest) withdrawals;
 
         for (uint256 i = 0; i < _satisfiedWithdrawRequests.length; i++) {
             uint64 withdrawRequestKey = _satisfiedWithdrawRequests[i];
             if (withdrawRequests.exists(withdrawRequestKey)) {
-                IStEverAccount.WithdrawRequest withdrawRequest = withdrawRequests[withdrawRequestKey];
+                WithdrawRequest withdrawRequest = withdrawRequests[withdrawRequestKey];
                 withdrawals[withdrawRequestKey] = withdrawRequest;
                 delete withdrawRequests[withdrawRequestKey];
                 totalAmount += withdrawRequest.amount;
@@ -140,10 +132,6 @@ contract StEverAccount is IStEverAccount {
         for((uint64 nonce,) : withdrawRequests) {
             satisfiedWithdrawRequests.push(nonce);
         }
-        if (satisfiedWithdrawRequests.length == 0) {
-            user.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-            return;
-        }
         createAndSendWithdrawToUserRequest(satisfiedWithdrawRequests);
     }
 
@@ -154,7 +142,7 @@ contract StEverAccount is IStEverAccount {
             return;
         }
 
-        IStEverAccount.WithdrawRequest withdrawRequest = withdrawRequests[_proofNonce];
+        WithdrawRequest withdrawRequest = withdrawRequests[_proofNonce];
         if ((withdrawRequest.timestamp + Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED) > now) {
             IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.EMERGENCY_CANT_BE_ACTIVATED);
             return;
@@ -218,33 +206,8 @@ contract StEverAccount is IStEverAccount {
         (user) = abi.decode(initialData, (address));
 
         TvmCell constructorParams = s.loadRef();
-        (uint32 _newVersion, uint32 _currentVersion) = abi.decode(constructorParams, (uint32, uint32));
-
-        if (_newVersion == _currentVersion) {
-            _init(_newVersion);
-        }
-
-        if  (_newVersion != _currentVersion) {
-            (
-                address vault,
-                address user,
-                uint32 currentVersion,
-                mapping(uint64 => OldIStEverAccount.WithdrawRequest) oldWithdrawRequests
-            ) = abi.decode(
-                s.loadRef(),
-                (
-                    address,
-                    address,
-                    uint32,
-                    mapping(uint64 => OldIStEverAccount.WithdrawRequest)
-                )
-            );
-
-            for ((uint64 nonce, OldIStEverAccount.WithdrawRequest oldWithdrawRequest) : oldWithdrawRequests) {
-                withdrawRequests[nonce] = IStEverAccount.WithdrawRequest(oldWithdrawRequest.amount, oldWithdrawRequest.timestamp, 0);
-            }
-        }
-
+        (uint32 _current_version,) = abi.decode(constructorParams, (uint32, uint32));
+        _init(_current_version);
 
         send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
