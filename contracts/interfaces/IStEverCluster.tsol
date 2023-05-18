@@ -39,6 +39,8 @@ interface IStEverCluster {
         uint32 currentStrategiesCount;
         ClusterState clusterState;
 
+        bool isPunished;
+
         address stEverTokenRoot;
         address stEverTokenWallet;
     }
@@ -63,7 +65,7 @@ interface IStEverCluster {
 
     function getDetails() external responsible returns (Details);
 
-    function dropCluster() external;
+    function dropCluster(bool _isPunish) external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

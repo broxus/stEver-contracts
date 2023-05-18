@@ -450,6 +450,7 @@ contract StEverVault is
             governance,
             platformCode,
             accountCode,
+            clusterCode,
             stEverSupply,
             totalAssets,
             availableAssets,
@@ -461,10 +462,13 @@ contract StEverVault is
             minStrategyDepositValue,
             minStrategyWithdrawValue,
             isPaused,
+            strategyFactory,
             owner,
             accountVersion,
             ,
+            clusterVersion,
             strategies,
+            clusterPools,
             oldPendingWithdrawals,
             emergencyState
         ) = abi.decode(
@@ -473,6 +477,7 @@ contract StEverVault is
                     uint32,
                     address,
                     uint256,
+                    TvmCell,
                     TvmCell,
                     TvmCell,
                     uint128,
@@ -487,9 +492,12 @@ contract StEverVault is
                     uint128,
                     bool,
                     address,
+                    address,
+                    uint32,
                     uint32,
                     uint32,
                     mapping(address => StrategyParams),
+                    mapping(address => ClustersPool),
                     mapping(uint64 => OldIStEverVault.PendingWithdraw),
                     EmergencyState
                 )

@@ -85,7 +85,6 @@
 		{
 			"name": "dropCluster",
 			"inputs": [
-				{"name":"_isPunish","type":"bool"}
 			],
 			"outputs": [
 			]
@@ -96,7 +95,7 @@
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"_nonce","type":"uint32"},{"name":"stEverVault","type":"address"},{"name":"stEverOwner","type":"address"},{"name":"clusterOwner","type":"address"},{"name":"assurance","type":"uint128"},{"name":"maxStrategiesCount","type":"uint32"},{"name":"currentVersion","type":"uint32"},{"name":"strategyFactory","type":"address"},{"name":"currentAssurance","type":"uint128"},{"name":"currentStrategiesCount","type":"uint32"},{"name":"clusterState","type":"uint8"},{"name":"isPunished","type":"bool"},{"name":"stEverTokenRoot","type":"address"},{"name":"stEverTokenWallet","type":"address"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"_nonce","type":"uint32"},{"name":"stEverVault","type":"address"},{"name":"stEverOwner","type":"address"},{"name":"clusterOwner","type":"address"},{"name":"assurance","type":"uint128"},{"name":"maxStrategiesCount","type":"uint32"},{"name":"currentVersion","type":"uint32"},{"name":"strategyFactory","type":"address"},{"name":"currentAssurance","type":"uint128"},{"name":"currentStrategiesCount","type":"uint32"},{"name":"clusterState","type":"uint8"},{"name":"stEverTokenRoot","type":"address"},{"name":"stEverTokenWallet","type":"address"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -217,7 +216,6 @@
 		{"name":"clusterState","type":"uint8"},
 		{"name":"stEverTokenRoot","type":"address"},
 		{"name":"stEverTokenWallet","type":"address"},
-		{"name":"isPunished","type":"bool"},
 		{"components":[{"name":"state","type":"uint8"}],"name":"strategies","type":"map(address,tuple)"},
 		{"name":"deployedStrategies","type":"map(address,bool)"}
 	]

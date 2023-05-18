@@ -17,7 +17,7 @@ import "./utils/ErrorCodes.tsol";
 
 
 
-contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
+contract OldStEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     uint32 _nonce;
     address stEverVault;
@@ -34,8 +34,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     address stEverTokenRoot;
     address stEverTokenWallet;
-
-    bool isPunished;
 
     mapping(address => Strategy) public strategies;
     mapping(address => bool) public deployedStrategies;
@@ -60,9 +58,9 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         ITokenRoot(stEverTokenRoot).deployWallet{
                 value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
-                callback: StEverCluster.handleStEverTokenWalletAddress,
+                callback: OldStEverCluster.handleStEverTokenWalletAddress,
                 bounce: false
-        }(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
+            }(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
 
@@ -109,10 +107,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         for(address dePool : _dePools) {
             IDepoolStrategyFactory(strategyFactory).deployStrategy{
-                value: valueForDeployOneStrategy,
-                flag: 1,
-                bounce: false
-            }(dePool);
+                    value: valueForDeployOneStrategy,
+                    flag: 1,
+                    bounce: false
+                }(dePool);
         }
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -161,10 +159,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }
 
         IStEverVault(stEverVault).addStrategies{
-            value: uint128(_strategies.length) * StEverVaultGas.EXPERIMENTAL_FEE,
-            flag: 1,
-            bounce: false
-        }(_strategies, clusterOwner, _nonce);
+                value: uint128(_strategies.length) * StEverVaultGas.EXPERIMENTAL_FEE,
+                flag: 1,
+                bounce: false
+            }(_strategies, clusterOwner, _nonce);
 
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -198,16 +196,15 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function _removeStrategies(address[] _strategies) internal {
         tvm.rawReserve(_reserve(), 0);
 
-
         for (address strategy : _strategies) {
             strategies[strategy].state = StrategyState.REMOVING;
         }
 
         IStEverVault(stEverVault).removeStrategies{
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED,
-            bounce: false
-        }(_strategies, clusterOwner, _nonce);
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            }(_strategies, clusterOwner, _nonce);
     }
 
     function onPendingStrategyRemove(address[] _strategies) override external onlyStEverVault {
@@ -217,9 +214,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategies[strategy].state = StrategyState.PENDING_REMOVE;
         }
 
-        address remainingGasTo = isPunished ? stEverOwner : clusterOwner;
-
-        remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
@@ -231,13 +226,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
             IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
-                address assuranceTo = isPunished ? stEverOwner : clusterOwner;
                 TvmCell empty;
                 ITokenWallet(stEverTokenWallet).transfer{value: 0.2 ever, bounce: false}(
                     currentAssurance,
-                    assuranceTo,
+                    clusterOwner,
                     0,
-                    assuranceTo,
+                    clusterOwner,
                     false,
                     empty
                 );
@@ -260,7 +254,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
             if (!strategies.exists(strategy)) {
                 strategies[strategy] = Strategy({
-                        state: StrategyState.ACTIVE
+                    state: StrategyState.ACTIVE
                 });
                 deployedStrategies[strategy] = true;
                 handledStrategies.push(strategy);
@@ -268,19 +262,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }
 
         IStEverVault(stEverVault).onStrategiesDelegationHandled{
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED,
-            bounce: false
-        }(clusterOwner, _nonce, handledStrategies);
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            }(clusterOwner, _nonce, handledStrategies);
     }
 
-    function dropCluster(bool _isPunish) override external onlyStEverOwner {
-
-        require(clusterState != ClusterState.REMOVING, ErrorCodesCluster.CLUSTER_IS_REMOVING);
-
-        isPunished = _isPunish;
+    function dropCluster() override external onlyStEverOwner {
         clusterState = ClusterState.REMOVING;
-
         address[] strategiesForRemove;
 
         for ((address strategy, Strategy strategyInfo) : strategies) {
@@ -311,7 +300,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             currentAssurance,
             uint32(strategies.keys().length),//currentStrategiesCount
             clusterState,
-            isPunished,
             stEverTokenRoot,
             stEverTokenWallet
         );
@@ -359,10 +347,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmCell empty;
 
         ITokenWallet(stEverTokenWallet).transfer{
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED,
-            bounce: false
-        }(
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            }(
             amountToWithdraw,
             msg.sender,
             0,
@@ -434,8 +422,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             stEverTokenRoot, //address
             stEverTokenWallet, //address
 
-            isPunished, //bool
-
             strategies, //mapping(address => Strategy)
             deployedStrategies //mapping(address => bool)
         );
@@ -460,9 +446,9 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmCell initialData = s.loadRef();
 
         (
-            _nonce,
-            stEverVault,
-            clusterOwner
+        _nonce,
+        stEverVault,
+        clusterOwner
         ) = abi.decode(
             initialData,
             (uint32, address, address)
@@ -471,23 +457,23 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmCell constructorParams = s.loadRef();
 
         (
-            uint32 _current_version,
-            uint32 _prevVersion,
-            uint128 _assurance,
-            uint32 _maxStrategiesCount,
-            address _strategyFactory,
-            address _stEverTokenRoot,
-            address _stEverOwner
+        uint32 _current_version,
+        uint32 _prevVersion,
+        uint128 _assurance,
+        uint32 _maxStrategiesCount,
+        address _strategyFactory,
+        address _stEverTokenRoot,
+        address _stEverOwner
         ) = abi.decode(
             constructorParams,
             (
-                uint32,
-                uint32,
-                uint128,
-                uint32,
-                address,
-                address,
-                address
+            uint32,
+            uint32,
+            uint128,
+            uint32,
+            address,
+            address,
+            address
             )
         );
 
@@ -504,27 +490,27 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             TvmCell storageData = s.loadRef();
             currentVersion = _current_version;
             (
-                _nonce,
-                stEverVault,
-                stEverOwner,
-                clusterOwner,
+            _nonce,
+            stEverVault,
+            stEverOwner,
+            clusterOwner,
 
-                requiredAssurance,
-                maxStrategiesCount,
-                ,
-                strategyFactory,
+            requiredAssurance,
+            maxStrategiesCount,
+            ,
+            strategyFactory,
 
-                currentAssurance,
-                , //currentStrategiesCount
-                clusterState,
+            currentAssurance,
+            , //currentStrategiesCount
+            clusterState,
 
-                stEverTokenRoot,
-                stEverTokenWallet,
+            stEverTokenRoot,
+            stEverTokenWallet,
 
-                strategies,
-                deployedStrategies
+            strategies,
+            deployedStrategies
             ) = abi.decode(
-            storageData,
+                storageData,
                 (
                 uint32,
                 address,

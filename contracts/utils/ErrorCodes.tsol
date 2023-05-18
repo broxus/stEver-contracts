@@ -75,5 +75,5 @@ library ErrorCodesCluster {
     uint16 constant STRATEGY_NOT_EXISTS = 5014;
     uint16 constant NOT_ST_EVER_TOKEN_WALLET = 5015;
     uint16 constant NOT_ENOUGH_UNLOCKED_ASSURANCE = 5016;
-
+    uint16 constant CLUSTER_IS_REMOVING = 5017;
 }

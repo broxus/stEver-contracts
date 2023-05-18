@@ -320,7 +320,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
             address userData = getAccountAddress(user);
 
-            IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, _sendGasTo);
+            IStEverAccount(userData).upgrade{
+                value: StEverVaultGas.MIN_CALL_MSG_VALUE
+            }(accountCode, accountVersion, _sendGasTo);
         }
 
         if (_startIdx < _users.length) {

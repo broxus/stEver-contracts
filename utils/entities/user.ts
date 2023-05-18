@@ -1,4 +1,9 @@
-import { StEverAccountAbi, TestStEverAccountAbi, TokenRootUpgradeableAbi } from "../../build/factorySource";
+import {
+  OldStEverAccountAbi,
+  StEverAccountAbi,
+  TestStEverAccountAbi,
+  TokenRootUpgradeableAbi,
+} from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
 import { Address, Contract, fromNano, toNano } from "locklift";
 import { expect } from "chai";
@@ -13,9 +18,9 @@ export class User {
     public readonly account: Account,
     public wallet: TokenWallet,
     protected vault: Vault,
-    public withdrawUserData: Contract<StEverAccountAbi> | Contract<TestStEverAccountAbi>,
+    public withdrawUserData: Contract<StEverAccountAbi> | Contract<OldStEverAccountAbi>,
   ) {}
-  connectStEverVault = async (vault: any) => {
+  connectStEverVault = async (vault: any, type: "old" | "new" = "new") => {
     this.vault = vault;
     const withdrawUserData = await this.vault.vaultContract.methods
       .getAccountAddress({
@@ -23,7 +28,11 @@ export class User {
         answerId: 0,
       })
       .call();
-    this.withdrawUserData = locklift.factory.getDeployedContract("StEverAccount", withdrawUserData.value0);
+    if (type === "old") {
+      this.withdrawUserData = locklift.factory.getDeployedContract("OldStEverAccount", withdrawUserData.value0);
+    } else {
+      this.withdrawUserData = locklift.factory.getDeployedContract("StEverAccount", withdrawUserData.value0);
+    }
   };
   setWallet = async (tokenRoot: Contract<TokenRootUpgradeableAbi>) => {
     const wallet = await TokenWallet.getWallet(locklift.provider, this.account.address, tokenRoot);
@@ -103,7 +112,7 @@ export class User {
           amount: amountBn.plus(feeBn).toString(),
         }),
     );
-
+    await transaction.traceTree?.beautyPrint();
     const depositEvents = await this.vault.getEventsAfterTransaction({
       eventName: "Deposit",
       parentTransaction: transaction,
@@ -158,7 +167,6 @@ export class User {
   };
 
   getWithdrawRequests = async (): Promise<Array<{ nonce: string; amount: string }>> => {
-    debugger;
     const { withdrawRequests } = await this.withdrawUserData.methods.withdrawRequests({}).call();
     return withdrawRequests.map(([nonce, { amount }]) => ({ nonce, amount }));
   };

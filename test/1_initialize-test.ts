@@ -16,6 +16,8 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 describe("Initialize testing", function () {
   before(async () => {
+    const s1 = await locklift.keystore.getSigner("0");
+    debugger;
     const {
       vault: v,
       tokenRoot: tr,
