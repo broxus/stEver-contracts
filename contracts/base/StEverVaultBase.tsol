@@ -149,7 +149,14 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function setWithdrawHoldTimeInSeconds(uint64 _holdTime) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
 
+        withdrawHoldTime = _holdTime;
+        emit WithdrawHoldTimeUpdated(withdrawHoldTime);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
@@ -207,18 +214,22 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, totalAssets, stEverSupply);
     }
 
-    function getWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo)) {
-
+    function getAndCheckWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo), bool) {
+        bool isOk = true;
         mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
 
         for ((uint64 nonce, IStEverAccount.WithdrawRequest withdrawRequest) : _withdrawals) {
+            if (withdrawRequest.unlockTime > now) {
+                isOk = false;
+            }
             withdrawInfo[nonce] = WithdrawToUserInfo({
                 stEverAmount: withdrawRequest.amount,
-                everAmount: getWithdrawEverAmount(withdrawRequest.amount)
+                everAmount: getWithdrawEverAmount(withdrawRequest.amount),
+                unlockTime: withdrawRequest.unlockTime
             });
         }
 
-        return withdrawInfo;
+        return (withdrawInfo, isOk);
     }
 
 
@@ -309,7 +320,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
             address userData = getAccountAddress(user);
 
-            IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, _sendGasTo);
+            IStEverAccount(userData).upgrade{
+                value: StEverVaultGas.MIN_CALL_MSG_VALUE
+            }(accountCode, accountVersion, _sendGasTo);
         }
 
         if (_startIdx < _users.length) {

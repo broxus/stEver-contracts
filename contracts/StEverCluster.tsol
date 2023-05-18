@@ -35,6 +35,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     address stEverTokenRoot;
     address stEverTokenWallet;
 
+    bool isPunished;
+
     mapping(address => Strategy) public strategies;
     mapping(address => bool) public deployedStrategies;
 
@@ -196,6 +198,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function _removeStrategies(address[] _strategies) internal {
         tvm.rawReserve(_reserve(), 0);
 
+
         for (address strategy : _strategies) {
             strategies[strategy].state = StrategyState.REMOVING;
         }
@@ -214,7 +217,9 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategies[strategy].state = StrategyState.PENDING_REMOVE;
         }
 
-        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        address remainingGasTo = isPunished ? stEverOwner : clusterOwner;
+
+        remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
@@ -226,12 +231,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
             IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
+                address assuranceTo = isPunished ? stEverOwner : clusterOwner;
                 TvmCell empty;
                 ITokenWallet(stEverTokenWallet).transfer{value: 0.2 ever, bounce: false}(
                     currentAssurance,
-                    clusterOwner,
+                    assuranceTo,
                     0,
-                    clusterOwner,
+                    assuranceTo,
                     false,
                     empty
                 );
@@ -268,8 +274,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }(clusterOwner, _nonce, handledStrategies);
     }
 
-    function dropCluster() override external onlyStEverOwner {
+    function dropCluster(bool _isPunish) override external onlyStEverOwner {
+
+        require(clusterState != ClusterState.REMOVING, ErrorCodesCluster.CLUSTER_IS_REMOVING);
+
+        isPunished = _isPunish;
         clusterState = ClusterState.REMOVING;
+
         address[] strategiesForRemove;
 
         for ((address strategy, Strategy strategyInfo) : strategies) {
@@ -300,6 +311,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             currentAssurance,
             uint32(strategies.keys().length),//currentStrategiesCount
             clusterState,
+            isPunished,
             stEverTokenRoot,
             stEverTokenWallet
         );
@@ -421,6 +433,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
             stEverTokenRoot, //address
             stEverTokenWallet, //address
+
+            isPunished, //bool
 
             strategies, //mapping(address => Strategy)
             deployedStrategies //mapping(address => bool)

@@ -1,0 +1,496 @@
+pragma ever-solidity >=0.62.0;
+
+
+import "./StEverVaultStorage.tsol";
+import "../interfaces/IStEverVault.tsol";
+import "../interfaces/IStEverCluster.tsol";
+
+import "../../../Platform.tsol";
+import "../utils/ErrorCodes.tsol";
+import "../utils/Gas.tsol";
+import "../utils/Constants.tsol";
+
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+
+abstract contract StEverVaultBase is StEverVaultStorage {
+    //modifiers
+    modifier onlyGovernanceAndAccept() {
+        require (msg.pubkey() == governance, ErrorCodes.NOT_GOVERNANCE);
+        tvm.accept();
+        _;
+    }
+
+    modifier onlyGovernanceOrSelfAndAccept() {
+        require (msg.pubkey() == governance || msg.sender == address(this), ErrorCodes.NOT_GOVERNANCE);
+        tvm.accept();
+        _;
+    }
+
+    modifier onlySelf() {
+        require(msg.sender == address(this), ErrorCodes.NOT_SELF);
+        _;
+    }
+
+    modifier onlyOwner() {
+        require (msg.sender == owner,ErrorCodes.NOT_OWNER);
+        _;
+    }
+
+    modifier adminOrClusterOwner(uint32 _clusterId) {
+        bool isAdmin = msg.sender == owner;
+        bool isClusterOwner = clusterPools[msg.sender].clusters.exists(_clusterId);
+        require (isAdmin || isClusterOwner,ErrorCodes.NOT_OWNER);
+        _;
+    }
+
+    modifier onlyAccount(address _user) {
+        address account = getAccountAddress(_user);
+
+        require (msg.sender == account, ErrorCodes.NOT_USER_DATA);
+        _;
+    }
+
+    modifier onlyCluster(address _clusterOwner, uint32 _clusterNonce) {
+        address cluster = getClusterAddress(_clusterOwner, _clusterNonce);
+        require(msg.sender == cluster, ErrorCodes.NOT_CLUSTER_ACCOUNT);
+        _;
+    }
+
+    modifier onlyStrategy() {
+        require (strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
+        _;
+    }
+
+    modifier minCallValue() {
+        require (msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.LOW_MSG_VALUE);
+        _;
+    }
+
+    modifier notPaused() {
+        require(!isPaused, ErrorCodes.ST_EVER_VAULT_PAUSED);
+        _;
+    }
+
+    // ownership
+    function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        owner = _newOwner;
+
+        _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function transferGovernance(uint256 _newGovernance, address _sendGasTo) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        governance = _newGovernance;
+
+        _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+
+    function receiveTokenWalletAddress(address _wallet) external virtual {
+        require (msg.sender == stTokenRoot, ErrorCodes.NOT_ROOT_WALLET);
+		stEverWallet = _wallet;
+	}
+
+    // setters
+    function setGainFee(uint128 _gainFee) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        gainFee = _gainFee;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function setMinStrategyDepositValue(uint128 _minStrategyDepositValue) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        minStrategyDepositValue = _minStrategyDepositValue;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function setMinStrategyWithdrawValue(uint128 _minStrategyWithdrawValue) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
+        minStrategyWithdrawValue = _minStrategyWithdrawValue;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function setStEverFeePercent(uint32 _stEverFeePercent) override external onlyOwner {
+        require (_stEverFeePercent <= Constants.ONE_HUNDRED_PERCENT, ErrorCodes.BAD_FEE_PERCENT);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        stEverFeePercent = _stEverFeePercent;
+        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
+    }
+
+    function setIsPaused(bool _isPaused) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        isPaused = _isPaused;
+
+        emit PausedStateChanged(_isPaused);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function setStrategyFactory(address _strategyFactory) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        strategyFactory = _strategyFactory;
+        emit StrategyFactoryAddressUpdated(strategyFactory);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+
+    // predicates
+    function canTransferValue(uint128 _amount) internal view returns (bool) {
+        return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
+         availableAssets - StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE >= _amount;
+    }
+
+    function isStrategyInInitialState(address _strategy, bool isAllowedNotActiveState) internal view returns (bool) {
+        StrategyParams strategy = strategies[_strategy];
+        return strategy.depositingAmount == 0 &&
+            strategy.withdrawingAmount == 0 &&
+            (isAllowedNotActiveState || strategy.state == StrategyState.ACTIVE);
+    }
+
+    // utils
+    function _reserve() internal pure returns (uint128) {
+		return
+			math.max(address(this).balance - msg.value, StEverVaultGas.CONTRACT_MIN_BALANCE);
+	}
+
+    function _reserveWithValue(uint128 _value) internal pure returns (uint128) {
+		return math.max(address(this).balance - msg.value - _value, StEverVaultGas.CONTRACT_MIN_BALANCE);
+	}
+
+    function _reserveExceptFee(uint128 _fee) internal pure returns (uint128) {
+		return math.max(address(this).balance - (msg.value - _fee), StEverVaultGas.CONTRACT_MIN_BALANCE);
+	}
+
+    function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
+        return abi.encode(_nonce);
+    }
+
+    function decodeDepositPayload(TvmCell _payload) public virtual pure returns (uint64 nonce, bool correct) {
+        // check if payload assembled correctly
+        TvmSlice slice = _payload.toSlice();
+        if (slice.bits() != 64) {
+            return (0, false);
+        }
+
+        nonce = slice.decode(uint64);
+
+        return (nonce, true);
+    }
+        // when the user deposits we should calculate the amount of stEver to send
+    function getDepositStEverAmount(uint128 _amount) public view returns(uint128) {
+        if(stEverSupply == 0 || totalAssets == 0) {
+            return _amount;
+        }
+        return math.muldiv(_amount, stEverSupply, totalAssets);
+    }
+        // when the user withdraw we should calculate the amount of ever to send
+    function getWithdrawEverAmount(uint128 _amount) public view returns(uint128) {
+        if(stEverSupply == 0 || totalAssets == 0) {
+            return _amount;
+        }
+        return math.muldiv(_amount, totalAssets, stEverSupply);
+    }
+
+    function getWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo)) {
+
+        mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
+
+        for ((uint64 nonce, IStEverAccount.WithdrawRequest withdrawRequest) : _withdrawals) {
+            withdrawInfo[nonce] = WithdrawToUserInfo({
+                stEverAmount: withdrawRequest.amount,
+                everAmount: getWithdrawEverAmount(withdrawRequest.amount)
+            });
+        }
+
+        return withdrawInfo;
+    }
+
+
+    // account utils
+    function _buildAccountParams(address _user) internal virtual pure returns (TvmCell) {
+        return abi.encode(_user);
+    }
+
+    function _buildInitAccount(TvmCell _initialData)
+		internal
+		view
+		virtual
+		returns (TvmCell)
+	{
+		return
+			tvm.buildStateInit({
+				contr: Platform,
+				varInit: {
+					root: address(this),
+                    platformType: PlatformType.ACCOUNT,
+                    initialData: _initialData,
+                    platformCode: platformCode
+				},
+				pubkey: 0,
+				code: platformCode
+			});
+	}
+
+    function deployAccount(address _user)
+		internal
+		virtual
+        view
+		returns (address)
+	{
+        TvmCell constructor_params = abi.encode(
+            accountVersion,
+            accountVersion
+        );
+
+        return new Platform{
+            stateInit: _buildInitAccount(_buildAccountParams(_user)),
+            value: StEverVaultGas.USER_DATA_DEPLOY_VALUE
+        }(accountCode, constructor_params, _user);
+	}
+
+    function getAccountAddress(address _user)
+		public
+		view
+		virtual
+		responsible
+		returns (address)
+	{
+		return
+			{value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
+				tvm.hash(_buildInitAccount(_buildAccountParams(_user)))
+			);
+	}
+    function setNewAccountCode(TvmCell _newAccountCode) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        accountCode = _newAccountCode;
+        accountVersion += 1;
+
+        emit NewAccountCodeSet(accountVersion);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function upgradeStEverAccount() override external minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        address userData = getAccountAddress(msg.sender);
+        IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, msg.sender);
+    }
+
+    function upgradeStEverAccounts(address _sendGasTo, address[] _users) override external minCallValue onlyOwner {
+        require(msg.value >= _users.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
+        tvm.rawReserve(_reserve(), 0);
+        this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, 0);
+    }
+
+    function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) override external onlySelf {
+        tvm.rawReserve(_reserve(), 0);
+        uint128 batchSize = 50;
+        for (; _startIdx < _users.length && batchSize != 0; _startIdx++) {
+            address user = _users[_startIdx];
+            batchSize--;
+
+            address userData = getAccountAddress(user);
+
+            IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, _sendGasTo);
+        }
+
+        if (_startIdx < _users.length) {
+            this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, _startIdx);
+            return;
+        }
+
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onAccountUpgraded(address _user, address _sendGasTo, uint32 _newVersion) override external onlyAccount(_user) {
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emit AccountUpgraded(_user, _newVersion);
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    // Cluster
+    function _buildClusterParams(
+        uint32 _clusterNonce,
+        address _stEverVault,
+        address _clusterOwner
+    ) internal virtual pure returns (TvmCell) {
+        return abi.encode(
+            _clusterNonce,
+            _stEverVault,
+            _clusterOwner
+        );
+    }
+
+    function _buildInitCluster(TvmCell _initialData)
+        internal
+        view
+        virtual
+        returns (TvmCell)
+    {
+        return
+        tvm.buildStateInit({
+                contr: Platform,
+                varInit: {
+                    root: address(this),
+                    platformType: PlatformType.CLUSTER,
+                    initialData: _initialData,
+                    platformCode: platformCode
+                },
+                pubkey: 0,
+                code: platformCode
+        });
+    }
+
+    function deployCluster(
+        address _clusterOwner,
+        uint32 _clusterNonce,
+        uint128 _assurance,
+        uint32 _maxStrategiesCount,
+        address _strategyFactory,
+        address _stEverTokenRoot,
+        address _stEverOwner
+    )
+        internal
+        view
+        returns (address)
+    {
+        TvmCell constructorParams = abi.encode(
+            clusterVersion,
+            clusterVersion,
+            _assurance,
+            _maxStrategiesCount,
+            _strategyFactory,
+            _stEverTokenRoot,
+            _stEverOwner
+        );
+
+        return new Platform{
+                stateInit: _buildInitCluster(
+                    _buildClusterParams(
+                        _clusterNonce,
+                        address(this),
+                        _clusterOwner
+                    )
+                ),
+                value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
+                bounce: false
+        }(clusterCode, constructorParams, _clusterOwner);
+    }
+
+    function getClusterAddress(address _clusterOwner, uint32 _clusterNonce)
+        public
+        view
+        virtual
+        responsible
+        returns (address)
+    {
+        return
+            {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
+                tvm.hash(
+                    _buildInitCluster(
+                        _buildClusterParams(
+                            _clusterNonce,
+                            address(this),
+                            _clusterOwner
+                        )
+                    )
+                )
+        );
+    }
+
+    function setNewClusterCode(TvmCell _newClusterCode) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        clusterCode = _newClusterCode;
+        clusterVersion += 1;
+
+        emit NewClusterCodeSet(clusterVersion);
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function upgradeStEverCluster(uint32 _clusterNonce) override external minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        address cluster = getClusterAddress(msg.sender, _clusterNonce);
+        IStEverCluster(cluster).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, msg.sender);
+    }
+
+    function upgradeStEverClusters(address _sendGasTo, address[] _clusters) override external minCallValue onlyOwner {
+        require(msg.value >= _clusters.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
+        tvm.rawReserve(_reserve(), 0);
+        this._upgradeStEverClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusters, 0);
+    }
+
+    function _upgradeStEverClusters(address _sendGasTo, address[] _clusters, uint128 _startIdx) external onlySelf {
+        tvm.rawReserve(_reserve(), 0);
+        uint128 batchSize = 50;
+        for (; _startIdx < _clusters.length && batchSize != 0; _startIdx++) {
+            address clusterAddress = _clusters[_startIdx];
+            batchSize--;
+            IStEverCluster(clusterAddress).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(clusterCode, clusterVersion, _sendGasTo);
+        }
+
+        if (_startIdx < _clusters.length) {
+            this._upgradeStEverClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusters, _startIdx);
+            return;
+        }
+
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) override external onlyCluster(_clusterOwner, _clusterNonce) {
+
+        tvm.rawReserve(_reserve(), 0);
+
+        emit ClusterUpgraded(_clusterOwner, _clusterNonce, _newVersion);
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function getDetails() override external responsible view returns(Details) {
+        return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
+                nonce,
+                governance,
+
+                stEverSupply,
+                totalAssets,
+                availableAssets,
+                totalStEverFee,
+                stEverWallet,
+                stTokenRoot,
+
+                gainFee,
+                stEverFeePercent,
+                minStrategyDepositValue,
+                minStrategyWithdrawValue,
+                isPaused,
+                strategyFactory,
+
+
+                owner,
+                accountVersion,
+                stEverVaultVersion,
+                clusterVersion,
+                emergencyState
+            );
+    }
+}

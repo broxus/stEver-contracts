@@ -80,7 +80,14 @@ export class Vault {
         }),
     );
   };
-
+  setHoldTime = async ({ holdTime }: { holdTime: string }) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods.setWithdrawHoldTimeInSeconds({ _holdTime: holdTime }).send({
+        from: this.adminAccount.address,
+        amount: toNano(2),
+      }),
+    );
+  };
   getDetails = async () =>
     this.vaultContract.methods
       .getDetails({ answerId: 0 })
@@ -208,10 +215,12 @@ export class Vault {
     clusterOwner,
     assurance,
     maxStrategiesCount,
+    clusterVersion = "new",
   }: {
     clusterOwner: Address;
     assurance: string;
     maxStrategiesCount: number;
+    clusterVersion?: "old" | "new";
   }): Promise<Contract<StEverClusterAbi>> => {
     const { traceTree } = await locklift.tracing.trace(
       this.vaultContract.methods
@@ -231,7 +240,11 @@ export class Vault {
       maxStrategiesCount: maxStrategiesCount.toString(),
     });
     const events = traceTree?.findForContract({ contract: this.vaultContract, name: "ClusterCreated" })!;
-    return locklift.factory.getDeployedContract("StEverCluster", events[0]!.params!.cluster);
+    //@ts-ignore
+    return locklift.factory.getDeployedContract(
+      clusterVersion === "new" ? "StEverCluster" : "OldStEverCluster",
+      events[0]!.params!.cluster,
+    );
   };
   setNewClusterCode = (newCode: string) => {
     return locklift.tracing.trace(
@@ -254,10 +267,9 @@ export class Vault {
         }),
     );
   };
-  setNewAccountCode = async () => {
-    const { code: testAccountCode } = locklift.factory.getContractArtifacts("TestStEverAccount");
+  setNewAccountCode = async (newCode: string) => {
     const transaction = await locklift.tracing.trace(
-      this.vaultContract.methods.setNewAccountCode({ _newAccountCode: testAccountCode }).send({
+      this.vaultContract.methods.setNewAccountCode({ _newAccountCode: newCode }).send({
         from: this.adminAccount.address,
         amount: toNano(2),
       }),
@@ -273,7 +285,19 @@ export class Vault {
       installEvent: installEvents[0],
     };
   };
-
+  upgradeAccounts = async (accounts: Array<Address>) => {
+    return locklift.tracing.trace(
+      this.vaultContract.methods
+        .upgradeStEverAccounts({
+          _sendGasTo: this.adminAccount.address,
+          _users: accounts,
+        })
+        .send({
+          from: this.adminAccount.address,
+          amount: toNano(accounts.length * 2),
+        }),
+    );
+  };
   upgradeVault = async (newVersion: number, vaultName: "StEverVault"): Promise<UpgradedVault> => {
     const { tvc, abi, code } = locklift.factory.getContractArtifacts(vaultName);
     await locklift.tracing.trace(

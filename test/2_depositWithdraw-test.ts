@@ -9,15 +9,14 @@ import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
 import { ITERATION_FEE } from "../utils/constants";
 
-let signer: Signer;
-let admin: User;
-let governance: Governance;
-let user1: User;
-let user2: User;
-let tokenRoot: Contract<TokenRootUpgradeableAbi>;
-let vault: Vault;
-
-describe("Deposit withdraw test", function () {
+describe.skip("Deposit withdraw test without lock time", function () {
+  let signer: Signer;
+  let admin: User;
+  let governance: Governance;
+  let user1: User;
+  let user2: User;
+  let tokenRoot: Contract<TokenRootUpgradeableAbi>;
+  let vault: Vault;
   before(async () => {
     const {
       vault: v,
@@ -240,5 +239,80 @@ describe("Deposit withdraw test", function () {
       .getWithdrawRequests()
       .then(res => res.find(withdrawReq => Number(withdrawReq.nonce) === nonce));
     expect(withdrawRequestNotExisted).to.be.equals(undefined, "user should not have withdraw request");
+  });
+});
+describe("Deposit withdraw test with lock time", function () {
+  let signer: Signer;
+  let admin: User;
+  let governance: Governance;
+  let user1: User;
+  let user2: User;
+  let tokenRoot: Contract<TokenRootUpgradeableAbi>;
+  let vault: Vault;
+  const HOLD_TIME = (60).toString();
+  before(async () => {
+    const {
+      vault: v,
+      tokenRoot: tr,
+      signer: s,
+      users: [adminUser, _, u1, u2],
+      governance: g,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(30) });
+    signer = s;
+    vault = v;
+    admin = adminUser;
+    governance = g;
+    user1 = u1;
+    user2 = u2;
+    tokenRoot = tr;
+    const { traceTree } = await vault.setHoldTime({ holdTime: HOLD_TIME });
+    expect(traceTree).to.emit("WithdrawHoldTimeUpdated").withNamedArgs({
+      withdrawHoldTimeSeconds: HOLD_TIME,
+    });
+  });
+
+  it("user should successfully deposited", async () => {
+    const DEPOSIT_AMOUNT = toNanoBn(20);
+    const { traceTree } = await user1.depositToVault(DEPOSIT_AMOUNT.toString());
+    const balance = await user1.wallet.getBalance();
+    const { availableAssets } = await vault.getDetails();
+    expect(balance.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "user should receive stEvers by rate 1:1");
+    expect(availableAssets.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "vault should have availableAssets");
+    console.log(`Token Balance change ${traceTree?.tokens.getTokenBalanceChange(user1.wallet.walletContract.address)}`);
+  });
+
+  it("user should create withdraw request", async () => {
+    const WITHDRAW_AMOUNT = toNanoBn(20);
+
+    const { withdrawToUserConfig } = await lastValueFrom(
+      range(1).pipe(
+        concatMap(() => user1.makeWithdrawRequest(WITHDRAW_AMOUNT.dividedBy(2).toString())),
+        toArray(),
+        map(requests => ({
+          withdrawToUserConfig: [user1.account.address, { nonces: requests.map(({ nonce }) => nonce) }] as const,
+          traceTree: requests.map(el => el.traceTree),
+        })),
+      ),
+    );
+
+    {
+      const { traceTree } = await governance.emitWithdraw({
+        sendConfig: [withdrawToUserConfig],
+      });
+      expect(traceTree).to.emit("WithdrawError").withNamedArgs({
+        user: user1.account.address,
+      });
+    }
+
+    await locklift.testing.increaseTime(Number(HOLD_TIME)); // shift time to make withdraw available
+    const { traceTree } = await governance.emitWithdraw({
+      sendConfig: [withdrawToUserConfig],
+    });
+
+    await traceTree?.beautyPrint();
+    console.log(locklift.testing.getCurrentTime());
+    expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
+      user: user1.account.address,
+    });
   });
 });

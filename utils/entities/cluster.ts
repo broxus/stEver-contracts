@@ -28,7 +28,7 @@ export class Cluster {
       .call()
       .then(res => res.value0);
     return locklift.tracing.trace(
-      this.clusterContract.methods.dropCluster().send({
+      this.clusterContract.methods.dropCluster({ _isPunish: false }).send({
         from: this.clusterOwner.address,
         amount: toNano((1 + 0.2) * Number(currentStrategiesCount)),
       }),

@@ -1,8 +1,7 @@
 import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
-import { NETWORK_PRESETS } from "everscale-standalone-client/nodejs";
-import _ from "lodash";
+
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
@@ -66,7 +65,7 @@ const config: LockliftConfig = {
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
-        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        phrase: "caution wedding nation nose snow school cradle surface version answer rough achieve",
         amount: 20,
       },
     },

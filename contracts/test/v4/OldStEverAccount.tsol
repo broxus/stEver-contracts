@@ -1,17 +1,17 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../interfaces/IStEverAccount.tsol";
-import "../interfaces/IStEverVault.tsol";
-import "../utils/ErrorCodes.tsol";
-import "../utils/Gas.tsol";
-import "../utils/Constants.tsol";
+import "./interfaces/IStEverAccount.tsol";
+import "./interfaces/IStEverVault.tsol";
+import "./utils/ErrorCodes.tsol";
+import "./utils/Gas.tsol";
+import "./utils/Constants.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 
 
-contract TestStEverAccount is IStEverAccount {
+contract OldStEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData
     uint32 currentVersion; //setup from _init
@@ -27,7 +27,6 @@ contract TestStEverAccount is IStEverAccount {
         revert();
     }
 
-    // should be called in onCodeUpgrade on platform initialization
     function _init(uint32 _version) internal {
         currentVersion = _version;
     }
@@ -73,14 +72,14 @@ contract TestStEverAccount is IStEverAccount {
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);
     }
 
-    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) override external onlyVault {
+    function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address _sendGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
         for ((uint64 nonce, WithdrawRequest rejectedWithdrawRequest) : rejectedWithdrawals) {
             withdrawRequests[nonce] = rejectedWithdrawRequest;
         }
 
-        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     function removePendingWithdraw(uint64 _nonce) override external onlyVault {
@@ -152,13 +151,9 @@ contract TestStEverAccount is IStEverAccount {
         IStEverVault(vault).emergencyWithdrawFromStrategiesProcess{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user);
     }
 
-    // test function
-    function checkIsUpdateApplied() public view returns(AccountDetails) {
-        return AccountDetails(user, vault, currentVersion);
-
-    }
-
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external virtual override onlyVault {
+
+
         if (_newVersion == currentVersion) {
             tvm.rawReserve(_reserve(), 0);
             _sendGasTo.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -174,12 +169,9 @@ contract TestStEverAccount is IStEverAccount {
         TvmCell dummyPlatformCode;
         mainBuilder.store(dummyPlatformCode);
 
-        TvmBuilder initialData;
-        initialData.store(user);
+        TvmCell initialData = abi.encode(user);
 
-        TvmBuilder constructorParams;
-        constructorParams.store(_newVersion);
-        constructorParams.store(currentVersion);
+        TvmCell constructorParams = abi.encode(_newVersion, currentVersion);
 
         mainBuilder.storeRef(initialData);
         mainBuilder.storeRef(constructorParams);
@@ -203,31 +195,20 @@ contract TestStEverAccount is IStEverAccount {
     }
 
     function onCodeUpgrade(TvmCell _upgrade_data) private {
+        tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgrade_data.toSlice();
 
-        (address root_, , address sendGasTo,) = s.decode(address, uint8, address,TvmCell);
+        (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
+        vault = root_;
 
-        TvmSlice initialData = s.loadRefAsSlice();
+        TvmCell initialData = s.loadRef();
+        (user) = abi.decode(initialData, (address));
 
-        TvmSlice constructorParams = s.loadRefAsSlice();
-        (uint32 _currentVersion, uint32 prevVersion) = constructorParams.decode(uint32, uint32);
+        TvmCell constructorParams = s.loadRef();
+        (uint32 _current_version,) = abi.decode(constructorParams, (uint32, uint32));
+        _init(_current_version);
 
-        tvm.resetStorage();
-
-        if (_currentVersion == prevVersion) {
-            // deploy
-            vault = root_;
-            user = initialData.decode(address);
-            _init(_currentVersion);
-            sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
-            return;
-        }
-        // upgrade
-        TvmCell prevStoreData = s.loadRef();
-        (vault, user, , withdrawRequests) = abi.decode(prevStoreData, (address, address, uint32, mapping(uint64 => WithdrawRequest)));
-        currentVersion = _currentVersion;
-        IStEverVault(vault).onAccountUpgraded{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, sendGasTo, currentVersion);
+        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
-
 }

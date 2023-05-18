@@ -9,7 +9,7 @@ import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverStrategiesManager.tsol";
 import "./base/StEverVaultStrategiesController.tsol";
 import "./base/StEverVaultValidators.tsol";
-
+import { IStEverVault as OldIStEverVault} from "./test/v4/interfaces/IStEverVault.tsol";
 
 
 import "./utils/ErrorCodes.tsol";
@@ -137,14 +137,15 @@ contract StEverVault is
         tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE - StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION), 0);
 
         address accountAddr = getAccountAddress(_user);
-
+        uint64 unlockTime = uint64(now) + withdrawHoldTime;
         pendingWithdrawals[_nonce] = PendingWithdraw({
             amount: _amount,
             user: _user,
-            remainingGasTo: _remainingGasTo
+            remainingGasTo: _remainingGasTo,
+            unlockTime: unlockTime
         });
 
-        addPendingValueToAccount(_nonce, _amount, accountAddr, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
+        addPendingValueToAccount(_nonce, _amount, accountAddr, unlockTime, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
     }
 
     function handleAddPendingValueError(TvmSlice _slice) internal view {
@@ -156,22 +157,43 @@ contract StEverVault is
 
         address account = deployAccount(pendingWithdraw.user);
 
-        addPendingValueToAccount(_withdraw_nonce, pendingWithdraw.amount, account, 0, MsgFlag.ALL_NOT_RESERVED, pendingWithdraw.remainingGasTo);
+        addPendingValueToAccount(
+            _withdraw_nonce,
+            pendingWithdraw.amount,
+            account,
+            pendingWithdraw.unlockTime,
+            0,
+            MsgFlag.ALL_NOT_RESERVED,
+            pendingWithdraw.remainingGasTo
+        );
     }
 
-    function addPendingValueToAccount(uint64 _withdraw_nonce, uint128 _amount, address account, uint128 _value, uint8 _flag, address _remainingGasTo) internal pure {
+    function addPendingValueToAccount(
+        uint64 _withdraw_nonce,
+        uint128 _amount,
+        address account,
+        uint64 _unlockTime,
+        uint128 _value,
+        uint8 _flag,
+        address _remainingGasTo
+    ) internal pure {
         IStEverAccount(account).addPendingValue{
             value:_value,
             flag: _flag,
             bounce: true
-        }(_withdraw_nonce, _amount, _remainingGasTo);
+        }(_withdraw_nonce, _amount, _unlockTime, _remainingGasTo);
     }
 
-    function onPendingWithdrawAccepted(uint64 _nonce, address _user, address remainingGasTo) override external onlyAccount(_user) {
+    function onPendingWithdrawAccepted(
+        uint64 _nonce,
+        address _user,
+        uint64 _unlockTime,
+        address remainingGasTo
+    ) override external onlyAccount(_user) {
        tvm.rawReserve(_reserve(), 0);
 
        PendingWithdraw pendingWithdraw = pendingWithdrawals[_nonce];
-       emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, _nonce);
+       emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, pendingWithdraw.unlockTime, _nonce);
        delete pendingWithdrawals[_nonce];
 
        remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -232,7 +254,10 @@ contract StEverVault is
 
             uint128 unusedIterationFee = (uint128(config.nonces.length) - 1) * StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION;
 
-            IStEverAccount(account).processWithdraw{value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length) + unusedIterationFee, bounce: false}(config.nonces);
+            IStEverAccount(account).processWithdraw{
+                    value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length) + unusedIterationFee,
+                    bounce: false
+            }(config.nonces);
         }
 
         if (!sendConfig.empty()) {
@@ -245,17 +270,19 @@ contract StEverVault is
         address _user,
         mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals
     ) override external onlyAccount(_user) {
-
         if(_withdrawals.empty()) {
             return;
         }
 
-        // create withdraw info
-        mapping(uint64 => WithdrawToUserInfo) withdrawInfo = getWithdrawToUserInfo(_withdrawals);
+        // create and check withdraw info
+        (
+            mapping(uint64 => WithdrawToUserInfo) withdrawInfo,
+            bool isOk
+        ) = getAndCheckWithdrawToUserInfo(_withdrawals);
 
         uint128 everAmount = getWithdrawEverAmount(amount);
         // if not enough balance, reset pending to the Account;
-        if (availableAssets < everAmount) {
+        if (availableAssets < everAmount || !isOk) {
             tvm.rawReserve(_reserve(), 0);
 
             emit WithdrawError(_user, withdrawInfo, amount);
@@ -389,7 +416,8 @@ contract StEverVault is
             minStrategyDepositValue, // uint128
             minStrategyWithdrawValue, // uint128
             isPaused, // bool
-            strategyFactory, // address
+            strategyFactory, // address,
+            withdrawHoldTime, // uint64
             owner, // address
             accountVersion, // uint32
             stEverVaultVersion, // uint32
@@ -410,9 +438,80 @@ contract StEverVault is
 
     }
 
-    // upgrade to v3.1
+    // upgrade to v5
     function onCodeUpgrade(TvmCell _upgradeData) private {
         tvm.rawReserve(_reserve(), 0);
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        tvm.resetStorage();
+        address sendGasTo;
+        mapping(uint64 => OldIStEverVault.PendingWithdraw) oldPendingWithdrawals;
+        (
+            stEverVaultVersion,
+            sendGasTo,
+            governance,
+            platformCode,
+            accountCode,
+            clusterCode,
+            stEverSupply,
+            totalAssets,
+            availableAssets,
+            totalStEverFee,
+            stEverWallet,
+            stTokenRoot,
+            gainFee,
+            stEverFeePercent,
+            minStrategyDepositValue,
+            minStrategyWithdrawValue,
+            isPaused,
+            strategyFactory,
+            owner,
+            accountVersion,
+            ,
+            clusterVersion,
+            strategies,
+            clusterPools,
+            oldPendingWithdrawals,
+            emergencyState
+        ) = abi.decode(
+            _upgradeData,
+                (
+                    uint32,
+                    address,
+                    uint256,
+                    TvmCell,
+                    TvmCell,
+                    TvmCell,
+                    uint128,
+                    uint128,
+                    uint128,
+                    uint128,
+                    address,
+                    address,
+                    uint128,
+                    uint32,
+                    uint128,
+                    uint128,
+                    bool,
+                    address,
+                    address,
+                    uint32,
+                    uint32,
+                    uint32,
+                    mapping(address => StrategyParams),
+                    mapping(address => ClustersPool),
+                    mapping(uint64 => OldIStEverVault.PendingWithdraw),
+                    EmergencyState
+                )
+        );
+
+        for ((uint64 oldPendingWithdraw, OldIStEverVault.PendingWithdraw oldPendingParams) : oldPendingWithdrawals) {
+            pendingWithdrawals[oldPendingWithdraw] = PendingWithdraw({
+                user: oldPendingParams.user,
+                amount: oldPendingParams.amount,
+                remainingGasTo: oldPendingParams.remainingGasTo,
+                unlockTime: 0
+            });
+        }
+
+        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 }
