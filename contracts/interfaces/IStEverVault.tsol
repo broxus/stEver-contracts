@@ -96,6 +96,7 @@ interface IStEverVault {
         bool isPaused;
         address strategyFactory;
 
+        uint64 withdrawHoldTime;
 
         address owner;
         uint32 accountVersion;

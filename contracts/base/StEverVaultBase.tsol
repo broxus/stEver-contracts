@@ -499,6 +499,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 isPaused,
                 strategyFactory,
 
+                withdrawHoldTime,
 
                 owner,
                 accountVersion,
