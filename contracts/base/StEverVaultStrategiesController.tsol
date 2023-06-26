@@ -93,6 +93,15 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         emit StrategyDidntHandleDeposit(msg.sender, _errcode);
     }
 
+    function updateRemainingUnlockAssets() internal {
+        if  (remainingUnlockAssets == 0) {
+            return;
+        }
+        uint128 unlockAmount = unlockPerSecond * (now - lastUnlockTime);
+        remainingUnlockAssets = remainingUnlockAssets > unlockAmount ? remainingUnlockAssets - unlockAmount : 0;
+        lastUnlockTime = now;
+    }
+
     function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
 
         strategies[msg.sender].lastReport = now;
@@ -110,6 +119,20 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         totalAssets += gainWithoutGainFee;
 
+        if (unlockPerSecond == 0) {
+            unlockPerSecond = gainWithoutGainFee / fullUnlockSeconds;
+            remainingUnlockAssets = gainWithoutGainFee;
+        } else {
+            updateRemainingUnlockAssets();
+            remainingSeconds =
+                (unlockPerSecond * remainingSeconds + gainWithoutGainFee * fullUnlockSeconds) /
+                    (remainingUnlockAssets + gainWithoutGainFee);
+
+            remainingUnlockAssets += gainWithoutGainFee;
+
+            unlockPerSecond = remainingUnlockAssets / remainingSeconds;
+        }
+        ///
         updateTotalAssetsForStrategy(msg.sender, gainWithoutGainFee, true);
 
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
