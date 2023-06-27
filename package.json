@@ -10,14 +10,9 @@
     "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
     "test-clusters": "npx locklift test --network local --tests test/3_1_clusters_create_remove-test.ts",
     "test-clusters-create-remove": "npx locklift test --network local --tests test/3_2_clusters_create_remove-test.ts",
-
     "test-clusters-constraints": "npx locklift test --network local --tests test/3_3_clusters_constraints-test.ts",
     "test-strategyBase-with-dePool-dropped": "npx locklift test --network local --tests test/3_4_strategyBase-depool-dropped-test.ts",
     "test-strategy-total-ssets-test.ts": "npx locklift test --network local --tests test/3_5_strategy_total_assets-test.ts",
-
-
-
-
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",
     "test-emergency": "npx locklift test --network local --tests test/7_emergency-test.ts",
@@ -54,6 +49,7 @@
     "cross-env": "^7.0.3",
     "everscale-standalone-client": "^2.0.31",
     "locklift": "^2.5.0",
+    "locklift-verifier": "^1.0.4",
     "lodash": "^4.17.21",
     "ora": "^6.1.2",
     "prompts": "^2.4.2",

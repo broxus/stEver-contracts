@@ -3,6 +3,7 @@ import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
 import { NETWORK_PRESETS } from "everscale-standalone-client/nodejs";
 import _ from "lodash";
+import "locklift-verifier";
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
@@ -38,6 +39,11 @@ const config: LockliftConfig = {
 
     // Or specify version of linker
     version: "0.15.48",
+  },
+  verifier: {
+    verifierVersion: "latest",
+    apiKey: process.env.VERIFY_API_KEY || "",
+    secretKey: process.env.VERIFY_SECRET_KEY || "",
   },
   networks: {
     local: {
