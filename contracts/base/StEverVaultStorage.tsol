@@ -18,13 +18,13 @@ abstract contract StEverVaultStorage is IStEverVault {
     uint128 availableAssets;
     uint128 totalStEverFee;
     uint128 effectiveEverAssets;
-    uint128 remainingUnlockAssets;
+    uint128 remainingLockedAssets;
     uint128 unlockPerSecond;
     // tokens
     address stEverWallet;
     address stTokenRoot;
     //
-    uint64 lastUnlockTime;
+    uint64 lastUnlockTime = now;
     uint128 fullUnlockSeconds = 2 days;
     uint128 remainingSeconds = 2 days;
     // modifiable field

@@ -58,7 +58,7 @@ contract StEverVault is
         require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
 
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
-
+        unlockAssets();
         uint128 amountToSend = getDepositStEverAmount(_amount);
 
         totalAssets += _amount;
@@ -274,11 +274,13 @@ contract StEverVault is
             return;
         }
 
+        unlockAssets();
         // create and check withdraw info
         (
             mapping(uint64 => WithdrawToUserInfo) withdrawInfo,
             bool isOk
         ) = getAndCheckWithdrawToUserInfo(_withdrawals);
+
 
         uint128 everAmount = getWithdrawEverAmount(amount);
         // if not enough balance, reset pending to the Account;

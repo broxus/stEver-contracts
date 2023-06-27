@@ -86,8 +86,15 @@ interface IStEverVault {
         uint128 totalAssets;
         uint128 availableAssets;
         uint128 totalStEverFee;
+        uint128 effectiveEverAssets; //new
+        uint128 remainingLockedAssets; //new
+        uint128 unlockPerSecond; //new
         address stEverWallet;
         address stTokenRoot;
+
+        uint64 lastUnlockTime; //new
+        uint128 fullUnlockSeconds; //new
+        uint128 remainingSeconds; //new
 
         uint128 gainFee;
         uint32 stEverFeePercent;
