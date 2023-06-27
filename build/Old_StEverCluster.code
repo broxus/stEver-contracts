@@ -1,0 +1,2598 @@
+.version sol 0.62.0
+
+.macro constructor
+DROP
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+GETGLOB 6
+THROWIF 51
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 42
+THROW 100
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.globl	_init_28104f57_internal
+.type	_init_28104f57_internal, @function
+CALL $_init_28104f57_internal_macro$
+
+.macro _init_28104f57_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 52
+ROLL 4
+SETGLOB 14
+.loc ../contracts/test/Old_StEverCluster.tsol, 53
+ROLL 3
+SETGLOB 15
+.loc ../contracts/test/Old_StEverCluster.tsol, 54
+ROLL 3
+SETGLOB 16
+.loc ../contracts/test/Old_StEverCluster.tsol, 55
+ROT
+SETGLOB 17
+.loc ../contracts/test/Old_StEverCluster.tsol, 56
+SWAP
+SETGLOB 21
+.loc ../contracts/test/Old_StEverCluster.tsol, 57
+PUSHINT 0
+SETGLOB 20
+.loc ../contracts/test/Old_StEverCluster.tsol, 58
+SETGLOB 13
+.loc ../contracts/test/Old_StEverCluster.tsol, 60
+PUSHINT 100000000
+MYADDR
+GETGLOB 21
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+PUSHINT 2868722788230934574387753789225109188247553
+STUR 143
+ROTREV
+PUSHSLICE x31edd4c73a42c618
+NEWC
+STSLICE
+STSLICE
+STU 128
+STBREFR
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.globl	_reserve_413ab4a8_internal
+.type	_reserve_413ab4a8_internal, @function
+CALL $_reserve_413ab4a8_internal_macro$
+
+.macro _reserve_413ab4a8_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 70
+GETPARAM 7
+FIRST
+DEPTH
+ADDCONST -2
+PICK
+SUB
+UFITS 128
+PUSHINT 100000000
+MAX
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro handleStEverTokenWalletAddress
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 98
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $handleStEverTokenWalletAddress_9147b763_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.globl	handleStEverTokenWalletAddress_9147b763_internal
+.type	handleStEverTokenWalletAddress_9147b763_internal, @function
+CALL $handleStEverTokenWalletAddress_9147b763_internal_macro$
+
+.macro handleStEverTokenWalletAddress_9147b763_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 99
+PUSHINT 5008
+GETGLOB 9
+GETGLOB 21
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 100
+SETGLOB 22
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro deployStrategies
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 103
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $deployStrategies_6a2bc5c5_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro deployStrategies_6a2bc5c5_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 82
+PUSHINT 5003
+GETGLOB 9
+GETGLOB 12
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 104
+PUSHINT 20000000000
+PUSHINT 1000000000
+ADD
+UFITS 128
+.loc ../contracts/test/Old_StEverCluster.tsol, 105
+PUSH2 S0, S1
+FIRST
+UFITS 128
+MUL
+UFITS 128
+.loc ../contracts/test/Old_StEverCluster.tsol, 106
+PUSHINT 5007
+DEPTH
+ADDCONST -2
+PICK
+ROT
+GEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 107
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 109
+SWAP
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 110
+	PUSH2 S0, S3
+	GETGLOB 17
+	FALSE
+	NEWC
+	STSLICECONST x6_
+	STI 1
+	STSLICECONST x1_
+	STSLICE
+	SWAP
+	STGRAMS
+	PUSHINT 1
+	STUR 107
+	SWAP
+	NEWC
+	STSLICECONST x164ace49
+	STSLICE
+	STBREFR
+	ENDC
+	PUSHINT 1
+	SENDRAWMSG
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 4
+.loc ../contracts/test/Old_StEverCluster.tsol, 116
+GETGLOB 12
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro onStrategyDeployed
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 119
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $onStrategyDeployed_8ec1be8d_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro onStrategyDeployed_8ec1be8d_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 90
+PUSHINT 5005
+GETGLOB 9
+GETGLOB 17
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 120
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 122
+DUP
+GETGLOB 24
+NEWC
+STONE
+ROTREV
+PUSHINT 267
+DICTSETB
+SETGLOB 24
+.loc ../contracts/test/Old_StEverCluster.tsol, 124
+PUSHSLICE xc000000000000000000000000060cfd077
+NEWC
+STSLICE
+STSLICE
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 126
+GETGLOB 12
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro addStrategies
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 131
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $addStrategies_c0c0b602_internal_macro$
+}
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.globl	addStrategies_c0c0b602_internal
+.type	addStrategies_c0c0b602_internal, @function
+CALL $addStrategies_c0c0b602_internal_macro$
+
+.macro addStrategies_c0c0b602_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 82
+PUSHINT 5003
+GETGLOB 9
+GETGLOB 12
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 133
+GETGLOB 18
+GETGLOB 14
+LESS
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 134
+	PUSHINT 5009
+	THROWANY
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+}
+IF
+.loc ../contracts/test/Old_StEverCluster.tsol, 137
+GETGLOB 19
+OVER
+FIRST
+ADD
+GETGLOB 15
+GREATER
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 138
+	PUSHINT 5010
+	THROWANY
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+}
+IF
+.loc ../contracts/test/Old_StEverCluster.tsol, 141
+DEPTH
+ADDCONST -2
+PICK
+OVER
+FIRST
+PUSHINT 200000000
+MUL
+PUSHINT 1000000000
+ADD
+GEQ
+THROWIFNOT 1004
+.loc ../contracts/test/Old_StEverCluster.tsol, 146
+PUSHINT 50
+.loc ../contracts/test/Old_StEverCluster.tsol, 148
+OVER
+FIRST
+OVER
+LEQ
+THROWIFNOT 1030
+.loc ../contracts/test/Old_StEverCluster.tsol, 150
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 152
+OVER
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 154
+	DUP
+	GETGLOB 23
+	PUSHINT 267
+	DICTGET
+	NULLSWAPIFNOT
+	NIP
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 155
+		PUSHINT 5011
+		THROWANY
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	IF
+	.loc ../contracts/test/Old_StEverCluster.tsol, 157
+	DUP
+	GETGLOB 24
+	PUSHINT 267
+	DICTGET
+	NULLSWAPIFNOT
+	NIP
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 158
+		PUSHINT 5012
+		THROWANY
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	IFNOT
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 4
+.loc ../contracts/test/Old_StEverCluster.tsol, 162
+GETGLOB 10
+GETGLOB 12
+PUSH S2
+ROLL 3
+FIRST
+UFITS 128
+PUSHINT 200000000
+MUL
+UFITS 128
+GETGLOB 11
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+SWAP
+STGRAMS
+PUSHINT 1
+STUR 107
+ROLLREV 3
+NEWC
+STSLICECONST x6a959db8
+SWAP
+UNPAIR
+XCHG S2
+STU 32
+STDICT
+STSLICE
+STU 32
+STBREFR
+ENDC
+PUSHINT 1
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 168
+GETGLOB 12
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro onStrategiesAdded
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 171
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $onStrategiesAdded_4b074cec_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro onStrategiesAdded_4b074cec_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 74
+PUSHINT 5001
+GETGLOB 9
+GETGLOB 11
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 172
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 174
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 175
+	DUP
+	GETGLOB 23
+	DUP2
+	PUSHINT 267
+	DICTGET
+IFREFELSEREF
+{
+		LDU 8
+		OVER
+		GTINT 3
+		THROWIF 73
+		ENDS
+		SINGLE
+}
+{
+		PUSHINT 0
+		SINGLE
+}
+	PUSHINT 1
+	SETINDEX 0
+	CALLREF {
+		UNSINGLE
+		NEWC
+		STU 8
+	}
+	ROTREV
+	PUSHINT 267
+	DICTSETB
+	SETGLOB 23
+	.loc ../contracts/test/Old_StEverCluster.tsol, 176
+	GETGLOB 19
+	INC
+	UFITS 32
+	SETGLOB 19
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/test/Old_StEverCluster.tsol, 179
+GETGLOB 12
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro removeStrategies
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 183
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $removeStrategies_70814eeb_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.globl	removeStrategies_70814eeb_internal
+.type	removeStrategies_70814eeb_internal, @function
+CALL $removeStrategies_70814eeb_internal_macro$
+
+.macro removeStrategies_70814eeb_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 86
+PUSHINT 5004
+GETGLOB 9
+GETGLOB 13
+SDEQ
+GETGLOB 9
+GETGLOB 12
+SDEQ
+OR
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 185
+PUSHINT 5006
+DEPTH
+ADDCONST -2
+PICK
+PUSH S2
+FIRST
+UFITS 128
+PUSHINT 1000000000
+PUSHINT 200000000
+ADD
+UFITS 128
+MUL
+UFITS 128
+GEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 190
+DUP
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 191
+	PUSHINT 5014
+	OVER
+	GETGLOB 23
+	PUSHINT 267
+	DICTGET
+	NULLSWAPIFNOT
+	NIP
+	THROWANYIFNOT
+	.loc ../contracts/test/Old_StEverCluster.tsol, 192
+	PUSHINT 5013
+	OVER
+	GETGLOB 23
+	PUSHINT 267
+	DICTGET
+IFREFELSEREF
+{
+		LDU 8
+		OVER
+		GTINT 3
+		THROWIF 73
+		ENDS
+		SINGLE
+}
+{
+		PUSHINT 0
+		SINGLE
+}
+	FIRST
+	EQINT 1
+	THROWANYIFNOT
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/test/Old_StEverCluster.tsol, 195
+CALLREF {
+	CALL $_removeStrategies_5f385030_internal_macro$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.globl	_removeStrategies_5f385030_internal
+.type	_removeStrategies_5f385030_internal, @function
+CALL $_removeStrategies_5f385030_internal_macro$
+
+.macro _removeStrategies_5f385030_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 199
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 201
+DUP
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 202
+	DUP
+	GETGLOB 23
+	DUP2
+	PUSHINT 267
+	DICTGET
+IFREFELSEREF
+{
+		LDU 8
+		OVER
+		GTINT 3
+		THROWIF 73
+		ENDS
+		SINGLE
+}
+{
+		PUSHINT 0
+		SINGLE
+}
+	PUSHINT 2
+	SETINDEX 0
+	CALLREF {
+		UNSINGLE
+		NEWC
+		STU 8
+	}
+	ROTREV
+	PUSHINT 267
+	DICTSETB
+	SETGLOB 23
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/test/Old_StEverCluster.tsol, 205
+GETGLOB 10
+GETGLOB 12
+ROT
+GETGLOB 11
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+PUSHINT 1
+STUR 111
+ROLLREV 3
+NEWC
+STSLICECONST x477f768d
+SWAP
+UNPAIR
+XCHG S2
+STU 32
+STDICT
+STSLICE
+STU 32
+STBREFR
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro onPendingStrategyRemove
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 212
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $onPendingStrategyRemove_f55037eb_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro onPendingStrategyRemove_f55037eb_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 74
+PUSHINT 5001
+GETGLOB 9
+GETGLOB 11
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 213
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 215
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 216
+	DUP
+	GETGLOB 23
+	DUP2
+	PUSHINT 267
+	DICTGET
+IFREFELSEREF
+{
+		LDU 8
+		OVER
+		GTINT 3
+		THROWIF 73
+		ENDS
+		SINGLE
+}
+{
+		PUSHINT 0
+		SINGLE
+}
+	PUSHINT 3
+	SETINDEX 0
+	CALLREF {
+		UNSINGLE
+		NEWC
+		STU 8
+	}
+	ROTREV
+	PUSHINT 267
+	DICTSETB
+	SETGLOB 23
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/test/Old_StEverCluster.tsol, 219
+GETGLOB 12
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro onStrategyRemoved
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 222
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $onStrategyRemoved_9377ed70_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro onStrategyRemoved_9377ed70_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 74
+PUSHINT 5001
+GETGLOB 9
+GETGLOB 11
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 75
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 223
+	CALLREF {
+		CALL $_reserve_413ab4a8_internal_macro$
+	}
+	PUSHINT 0
+	RAWRESERVE
+	.loc ../contracts/test/Old_StEverCluster.tsol, 225
+	GETGLOB 23
+	PUSHINT 267
+	DICTDEL
+	DROP
+	SETGLOB 23
+	.loc ../contracts/test/Old_StEverCluster.tsol, 226
+	GETGLOB 19
+	DEC
+	UFITS 32
+	SETGLOB 19
+	.loc ../contracts/test/Old_StEverCluster.tsol, 227
+	GETGLOB 20
+	EQINT 2
+	GETGLOB 19
+	EQINT 0
+	AND
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 229
+		GETGLOB 10
+		GETGLOB 12
+		GETGLOB 11
+		FALSE
+		NEWC
+		STSLICECONST x6_
+		STI 1
+		STSLICECONST x1_
+		STSLICE
+		PUSHINT 2820045005182170565370280386138670788247553
+		STUR 143
+		ROTREV
+		NEWC
+		STSLICECONST x56b1d224
+		STSLICE
+		STU 32
+		STBREFR
+		ENDC
+		PUSHINT 0
+		SENDRAWMSG
+		.loc ../contracts/test/Old_StEverCluster.tsol, 230
+		GETGLOB 18
+		PUSHCONT {
+			.loc ../contracts/test/Old_StEverCluster.tsol, 231
+			PUSHREF {
+			}
+			.loc ../contracts/test/Old_StEverCluster.tsol, 232
+			FALSE
+			GETGLOB 12
+			PUSHINT 0
+			GETGLOB 12
+			GETGLOB 18
+			GETGLOB 22
+			FALSE
+			NEWC
+			STSLICECONST x6_
+			STI 1
+			STSLICECONST x1_
+			STSLICE
+			PUSHINT 2820045005182170565370280386138670788247553
+			STUR 143
+			ROLLREV 6
+			NEWC
+			STSLICECONST x73e22143
+			STU 128
+			STSLICE
+			STU 128
+			ROLLREV 3
+			NEWC
+			STSLICE
+			STI 1
+			STREF
+			STBREFR
+			STBREFR
+			ENDC
+			PUSHINT 0
+			SENDRAWMSG
+			.loc ../contracts/test/Old_StEverCluster.tsol, 0
+		}
+		IF
+		.loc ../contracts/test/Old_StEverCluster.tsol, 242
+		GETGLOB 12
+		NEWC
+		STSLICECONST x42_
+		STSLICE
+		PUSHINT 111
+		STZEROES
+		ENDC
+		PUSHPOW2 7
+		SENDRAWMSG
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	IFJMP
+	.loc ../contracts/test/Old_StEverCluster.tsol, 246
+	GETGLOB 12
+	NEWC
+	STSLICECONST x42_
+	STSLICE
+	PUSHINT 111
+	STZEROES
+	ENDC
+	PUSHPOW2 7
+	SENDRAWMSG
+	.loc ../contracts/test/Old_StEverCluster.tsol, 222
+}
+CALLX
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro handleDelegateStrategies
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 250
+LDU 32
+LDDICT
+ROTREV
+PAIR
+SWAP
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $handleDelegateStrategies_d34f9d6d_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro handleDelegateStrategies_d34f9d6d_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 74
+PUSHINT 5001
+GETGLOB 9
+GETGLOB 11
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 251
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 253
+PUSHINT 0
+NEWDICT
+PAIR
+.loc ../contracts/test/Old_StEverCluster.tsol, 255
+SWAP
+SECOND
+PUSHINT 0
+NULL
+PUSHCONT {
+	PUSH2 S1, S2
+	PUSHINT 32
+	DICTUGET
+	NULLSWAPIFNOT
+	DROP
+	DUP
+	POP S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 257
+	DUP
+	GETGLOB 23
+	PUSHINT 267
+	DICTGET
+	NULLSWAPIFNOT
+	NIP
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 258
+		PUSHINT 1
+		SINGLE
+		OVER
+		GETGLOB 23
+		ROT
+		CALLREF {
+			UNSINGLE
+			NEWC
+			STU 8
+		}
+		ROTREV
+		PUSHINT 267
+		DICTSETB
+		SETGLOB 23
+		.loc ../contracts/test/Old_StEverCluster.tsol, 261
+		DUP
+		GETGLOB 24
+		NEWC
+		STONE
+		ROTREV
+		PUSHINT 267
+		DICTSETB
+		SETGLOB 24
+		.loc ../contracts/test/Old_StEverCluster.tsol, 262
+		PUSH2 S0, S3
+		UNPAIR
+		OVER
+		INC
+		ROLLREV 3
+		PUSHINT 32
+		DICTUSET
+		PAIR
+		POP S4
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	IFNOT
+	.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	OVER
+	INC
+	POP S2
+}
+WHILE
+BLKDROP 3
+.loc ../contracts/test/Old_StEverCluster.tsol, 266
+GETGLOB 10
+GETGLOB 12
+GETGLOB 11
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+PUSHINT 1
+STUR 111
+ROLLREV 3
+NEWC
+STSLICECONST x0b58596e
+STSLICE
+STU 32
+SWAP
+UNPAIR
+XCHG S2
+STU 32
+STDICT
+STBREFR
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro dropCluster
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 273
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $dropCluster_19500376_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro dropCluster_19500376_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 78
+PUSHINT 5002
+GETGLOB 9
+GETGLOB 13
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 274
+PUSHINT 2
+SETGLOB 20
+.loc ../contracts/test/Old_StEverCluster.tsol, 275
+PUSHINT 0
+NEWDICT
+PAIR
+.loc ../contracts/test/Old_StEverCluster.tsol, 277
+GETGLOB 23
+DUP
+PUSHINT 267
+DICTMIN
+PUSHCONT {
+	NULL
+	BLKPUSH 2, 0
+}
+IFREFELSE {
+	DUP
+	ROT
+	LDU 8
+	OVER
+	GTINT 3
+	THROWIF 73
+	ENDS
+	SINGLE
+}
+PUSHCONT {
+	PUSH S2
+	ISNULL
+	NOT
+}
+PUSHCONT {
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 278
+		DUP
+		FIRST
+		NEQINT 1
+		IFRET
+		.loc ../contracts/test/Old_StEverCluster.tsol, 281
+		PUSH2 S1, S4
+		UNPAIR
+		OVER
+		INC
+		ROLLREV 3
+		PUSHINT 32
+		DICTUSET
+		PAIR
+		POP S5
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	CALLX
+	PUSH2 S2, S3
+	PUSHINT 267
+	DICTGETNEXT
+	PUSHCONT {
+		NULL
+		BLKPUSH 2, 0
+	}
+IFREFELSE {
+		DUP
+		ROT
+		LDU 8
+		OVER
+		GTINT 3
+		THROWIF 73
+		ENDS
+		SINGLE
+}
+	BLKDROP2 3, 3
+}
+WHILE
+BLKDROP 4
+.loc ../contracts/test/Old_StEverCluster.tsol, 284
+PUSHINT 5006
+DEPTH
+ADDCONST -2
+PICK
+PUSH S2
+FIRST
+PUSHINT 1000000000
+MUL
+GEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 289
+CALLREF {
+	CALL $_removeStrategies_5f385030_internal_macro$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro getDetails
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 292
+LDU 32
+GETGLOB 4
+ROT
+SETINDEXQ 5
+SETGLOB 4
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $getDetails_fbbf93a0_internal_macro$
+}
+OVER
+PUSHCONT {
+	PUSH S3
+	CTOS
+	LDU 2
+	LDMSGADDR
+	DROP
+	NIP
+	NEWC
+	STSLICECONST xc
+	STSLICE
+	PUSHINT 1
+	STUR 98
+	SWAP
+	NEWC
+	STSLICECONST xe706d5ba
+	SWAP
+	UNTUPLE 13
+	REVERSE 14, 0
+	STU 32
+	STSLICE
+	ROLLREV 11
+	NEWC
+	STSLICE
+	ROLLREV 10
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 32
+	ROLLREV 6
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 8
+	ROTREV
+	NEWC
+	STSLICE
+	SWAP
+	NEWC
+	STSLICE
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	ENDC
+	PUSHINT 0
+}
+PUSHCONT {
+	GETGLOB 4
+	DUP
+	INDEX 3
+	OVER
+	THIRD
+	GETGLOB 9
+	ROLL 3
+	SECOND
+	NEWC
+	STSLICECONST x2_
+	STI 1
+	STSLICECONST x1_
+	STSLICE
+	SWAP
+	STGRAMS
+	STDICT
+	PUSHINT 1
+	STUR 106
+	SWAP
+	NEWC
+	GETGLOB 4
+	INDEX 5
+	STUR 32
+	SWAP
+	UNTUPLE 13
+	REVERSE 14, 0
+	STU 32
+	STSLICE
+	ROLLREV 11
+	NEWC
+	STSLICE
+	ROLLREV 10
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 32
+	ROLLREV 6
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 8
+	ROTREV
+	NEWC
+	STSLICE
+	SWAP
+	NEWC
+	STSLICE
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	ENDC
+	GETGLOB 4
+	INDEX 4
+}
+IFELSE
+SENDRAWMSG
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro getDetails_fbbf93a0_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 293
+GETGLOB 4
+PUSHINT 0
+SETINDEXQ 2
+PUSHINT 64
+SETINDEXQ 4
+FALSE
+SETINDEXQ 1
+SETGLOB 4
+GETGLOB 10
+GETGLOB 11
+GETGLOB 13
+GETGLOB 12
+GETGLOB 14
+GETGLOB 15
+GETGLOB 16
+GETGLOB 17
+GETGLOB 18
+GETGLOB 19
+GETGLOB 20
+GETGLOB 21
+GETGLOB 22
+TUPLE 13
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro onAcceptTokensTransfer
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 310
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+LDU 128
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $onAcceptTokensTransfer_e63f2284_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro onAcceptTokensTransfer_e63f2284_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 318
+DROP
+PUSHINT 5015
+GETGLOB 9
+GETGLOB 22
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 319
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 321
+GETGLOB 18
+PUSH S4
+ADD
+UFITS 128
+DUP
+SETGLOB 18
+.loc ../contracts/test/Old_StEverCluster.tsol, 323
+ROLL 4
+PUSHSLICE xc00000000000000000000000004b4959ab
+NEWC
+STSLICE
+STU 128
+STU 128
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 325
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+BLKDROP 3
+
+.macro setAssurance
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 328
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDU 128
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $setAssurance_90529b7e_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro setAssurance_90529b7e_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 78
+PUSHINT 5002
+GETGLOB 9
+GETGLOB 13
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 94
+PUSHINT 5007
+DEPTH
+ADDCONST -2
+PICK
+PUSHINT 1000000000
+GEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 329
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 331
+DUP
+SETGLOB 14
+.loc ../contracts/test/Old_StEverCluster.tsol, 333
+PUSHSLICE xc0000000000000000000000000076c1702
+NEWC
+STSLICE
+STU 128
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 335
+GETGLOB 13
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro freeAssurance
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 337
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $freeAssurance_3e743181_internal_macro$
+}
+OVER
+PUSHCONT {
+	PUSH S3
+	CTOS
+	LDU 2
+	LDMSGADDR
+	DROP
+	NIP
+	NEWC
+	STSLICECONST xc
+	STSLICE
+	PUSHINT 2878368444
+	STUR 130
+	STU 128
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+PUSHCONT {
+	DROP
+}
+IFELSE
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.globl	freeAssurance_3e743181_internal
+.type	freeAssurance_3e743181_internal, @function
+CALL $freeAssurance_3e743181_internal_macro$
+
+.macro freeAssurance_3e743181_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 338
+GETGLOB 18
+GETGLOB 14
+GEQ
+ZEROSWAPIFNOT
+PUSHCONT {
+	GETGLOB 18
+	GETGLOB 14
+	SUB
+	UFITS 128
+}
+IF
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro withdrawAssurance
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 341
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDU 128
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $withdrawAssurance_2f3884a7_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro withdrawAssurance_2f3884a7_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 82
+PUSHINT 5003
+GETGLOB 9
+GETGLOB 12
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 342
+CALLREF {
+	CALL $freeAssurance_3e743181_internal_macro$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 344
+MIN
+.loc ../contracts/test/Old_StEverCluster.tsol, 346
+GETGLOB 18
+OVER
+SUB
+UFITS 128
+SETGLOB 18
+.loc ../contracts/test/Old_StEverCluster.tsol, 348
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 349
+PUSHREF {
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 351
+TRUE
+GETGLOB 9
+PUSHINT 0
+GETGLOB 9
+ROLL 5
+GETGLOB 22
+FALSE
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+PUSHINT 1
+STUR 111
+ROLLREV 6
+NEWC
+STSLICECONST x73e22143
+STU 128
+STSLICE
+STU 128
+ROLLREV 3
+NEWC
+STSLICE
+STI 1
+STREF
+STBREFR
+STBREFR
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.macro upgrade
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 366
+OVER
+PUSHCONT {
+	LDREF
+	LDU 32
+	LDREF
+	ENDS
+	CTOS
+}
+PUSHCONT {
+	LDREF
+	LDU 32
+}
+IFELSE
+LDMSGADDR
+ENDS
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $upgrade_fb9d1513_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro upgrade_fb9d1513_internal_macro
+.loc ../contracts/test/Old_StEverCluster.tsol, 74
+PUSHINT 5001
+GETGLOB 9
+GETGLOB 11
+SDEQ
+THROWANYIFNOT
+.loc ../contracts/test/Old_StEverCluster.tsol, 75
+PUSHCONT {
+	.loc ../contracts/test/Old_StEverCluster.tsol, 373
+	OVER
+	GETGLOB 16
+	EQUAL
+	PUSHCONT {
+		.loc ../contracts/test/Old_StEverCluster.tsol, 374
+		CALLREF {
+			CALL $_reserve_413ab4a8_internal_macro$
+		}
+		PUSHINT 0
+		RAWRESERVE
+		.loc ../contracts/test/Old_StEverCluster.tsol, 375
+		NEWC
+		STSLICECONST x42_
+		STSLICE
+		PUSHINT 111
+		STZEROES
+		ENDC
+		PUSHPOW2 7
+		SENDRAWMSG
+		.loc ../contracts/test/Old_StEverCluster.tsol, 376
+		DROP2
+		.loc ../contracts/test/Old_StEverCluster.tsol, 0
+	}
+	IFJMP
+	.loc ../contracts/test/Old_StEverCluster.tsol, 381
+	GETGLOB 11
+	NEWC
+	STSLICE
+	.loc ../contracts/test/Old_StEverCluster.tsol, 382
+	STSLICECONST x00
+	.loc ../contracts/test/Old_StEverCluster.tsol, 383
+	STSLICE
+	.loc ../contracts/test/Old_StEverCluster.tsol, 386
+	PUSHREF {
+	}
+	SWAP
+	STREF
+	.loc ../contracts/test/Old_StEverCluster.tsol, 389
+	GETGLOB 11
+	GETGLOB 10
+	NEWC
+	STU 32
+	STSLICE
+	GETGLOB 12
+	NEWC
+	STSLICE
+	STBREFR
+	ENDC
+	.loc ../contracts/test/Old_StEverCluster.tsol, 396
+	GETGLOB 13
+	GETGLOB 21
+	GETGLOB 17
+	GETGLOB 15
+	GETGLOB 14
+	GETGLOB 16
+	ROLL 8
+	NEWC
+	STU 32
+	STU 32
+	STU 128
+	STU 32
+	STSLICE
+	ROTREV
+	NEWC
+	STSLICE
+	SWAP
+	NEWC
+	STSLICE
+	STBREFR
+	STBREFR
+	ENDC
+	.loc ../contracts/test/Old_StEverCluster.tsol, 406
+	PUSH S2
+	ROT
+	STREFR
+	POP S2
+	.loc ../contracts/test/Old_StEverCluster.tsol, 407
+	STREFR
+	.loc ../contracts/test/Old_StEverCluster.tsol, 409
+	GETGLOB 24
+	GETGLOB 23
+	GETGLOB 22
+	GETGLOB 21
+	GETGLOB 20
+	GETGLOB 19
+	GETGLOB 18
+	GETGLOB 17
+	GETGLOB 16
+	GETGLOB 15
+	GETGLOB 14
+	GETGLOB 12
+	GETGLOB 13
+	GETGLOB 11
+	GETGLOB 10
+	NEWC
+	STU 32
+	STSLICE
+	ROLLREV 13
+	NEWC
+	STSLICE
+	ROLLREV 12
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 32
+	ROLLREV 8
+	NEWC
+	STSLICE
+	STU 128
+	STU 32
+	STU 8
+	ROLLREV 4
+	NEWC
+	STSLICE
+	ROLLREV 3
+	NEWC
+	STSLICE
+	STDICT
+	STDICT
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	STBREFR
+	.loc ../contracts/test/Old_StEverCluster.tsol, 435
+	OVER
+	SETCODE
+	.loc ../contracts/test/Old_StEverCluster.tsol, 437
+	SWAP
+	CTOS
+	DUP
+	PUSHSLICE x8adb35
+	SDEQ
+	PUSHCONT {
+		PLDREFIDX 1
+		CTOS
+	}
+	IF
+	PLDREF
+	CTOS
+	BLESS
+	POP C3
+	.loc ../contracts/test/Old_StEverCluster.tsol, 439
+	ENDC
+	CALLREF {
+		CALL $:onCodeUpgrade$
+	}
+	.loc ../contracts/test/Old_StEverCluster.tsol, 366
+}
+CALLX
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+
+.internal-alias :onCodeUpgrade, 2
+.internal :onCodeUpgrade
+.loc ../contracts/test/Old_StEverCluster.tsol, 443
+PUSHINT 0
+SETGLOB 10
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 11
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 12
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 13
+PUSHINT 0
+SETGLOB 14
+PUSHINT 0
+SETGLOB 15
+PUSHINT 0
+SETGLOB 16
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 17
+PUSHINT 0
+SETGLOB 18
+PUSHINT 0
+SETGLOB 19
+PUSHINT 0
+SETGLOB 20
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 21
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 22
+NEWDICT
+SETGLOB 23
+NEWDICT
+SETGLOB 24
+.loc ../contracts/test/Old_StEverCluster.tsol, 444
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/test/Old_StEverCluster.tsol, 445
+CTOS
+.loc ../contracts/test/Old_StEverCluster.tsol, 447
+DUP
+LDMSGADDR
+LDU 8
+LDMSGADDR
+LDREF
+POP S5
+DROP
+BLKDROP2 2, 1
+.loc ../contracts/test/Old_StEverCluster.tsol, 448
+OVER
+LDREF
+POP S3
+.loc ../contracts/test/Old_StEverCluster.tsol, 450
+CTOS
+LDU 32
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+ENDS
+XCHG S2
+SETGLOB 10
+SETGLOB 11
+SETGLOB 12
+.loc ../contracts/test/Old_StEverCluster.tsol, 459
+SWAP
+PLDREF
+.loc ../contracts/test/Old_StEverCluster.tsol, 461
+CTOS
+LDU 32
+LDU 32
+LDU 128
+LDU 32
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+ENDS
+BLKDROP2 1, 5
+.loc ../contracts/test/Old_StEverCluster.tsol, 482
+CALLREF {
+	CALL $_init_28104f57_internal_macro$
+}
+.loc ../contracts/test/Old_StEverCluster.tsol, 491
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/test/Old_StEverCluster.tsol, 0
+CALLREF {
+	CALL $c7_to_c4$
+}
+COMMIT
+THROW 0
+
+.macro c4_to_c7
+PUSHROOT
+CTOS
+LDU 256 ; pubkey c4
+LDU 64 ; pubkey timestamp c4
+LDU 1 ; ctor flag
+NIP
+LDU 32
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDU 128
+LDU 32
+LDU 32
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDU 128
+LDU 32
+LDU 8
+OVER
+GTINT 3
+THROWIF 73
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDDICT
+LDDICT
+ENDS
+SETGLOB 24
+SETGLOB 23
+SETGLOB 22
+SETGLOB 21
+SETGLOB 20
+SETGLOB 19
+SETGLOB 18
+SETGLOB 17
+SETGLOB 16
+SETGLOB 15
+SETGLOB 14
+SETGLOB 13
+SETGLOB 12
+SETGLOB 11
+SETGLOB 10
+SETGLOB 3
+SETGLOB 2
+
+.macro c4_to_c7_with_init_storage
+PUSHROOT
+CTOS
+SBITS
+GTINT 1
+PUSHCONT {
+	PUSHINT 0
+	PUSHROOT
+	CTOS
+	PLDDICT ; D
+	PUSHINT 0
+	PUSHREFSLICE {
+		.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+	}
+	BLKPUSH 2, 0
+	PUSHINT 0
+	BLKPUSH 2, 0
+	PUSHREFSLICE {
+		.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+	}
+	PUSHINT 0
+	BLKPUSH 2, 0
+	PUSHREFSLICE {
+		.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+	}
+	DUP
+	NEWDICT
+	DUP
+	SETGLOB 24
+	SETGLOB 23
+	SETGLOB 22
+	SETGLOB 21
+	SETGLOB 20
+	SETGLOB 19
+	SETGLOB 18
+	SETGLOB 17
+	SETGLOB 16
+	SETGLOB 15
+	SETGLOB 14
+	SETGLOB 13
+	SETGLOB 12
+	SETGLOB 11
+	SETGLOB 10
+	PUSHINT 64
+	DICTUGET
+	THROWIFNOT 61
+	PLDU 256
+	SETGLOB 2
+	PUSHINT 0 ; timestamp
+	SETGLOB 3
+}
+IFREFELSE {
+	CALL $c4_to_c7$
+}
+
+.macro c7_to_c4
+GETGLOB 24
+GETGLOB 23
+GETGLOB 22
+GETGLOB 21
+GETGLOB 20
+GETGLOB 19
+GETGLOB 18
+GETGLOB 17
+GETGLOB 16
+GETGLOB 15
+GETGLOB 14
+GETGLOB 13
+GETGLOB 12
+GETGLOB 11
+GETGLOB 10
+GETGLOB 3
+GETGLOB 2
+NEWC
+STU 256
+STU 64
+STONE
+STU 32
+STSLICE
+ROLLREV 13
+NEWC
+STSLICE
+ROLLREV 12
+NEWC
+STSLICE
+STU 128
+STU 32
+STU 32
+ROLLREV 8
+NEWC
+STSLICE
+STU 128
+STU 32
+STU 8
+ROLLREV 4
+NEWC
+STSLICE
+ROLLREV 3
+NEWC
+STSLICE
+STDICT
+STDICT
+STBREFR
+STBREFR
+STBREFR
+STBREFR
+STBREFR
+ENDC
+POPROOT
+
+.macro upd_only_time_in_c4
+PUSHROOT
+CTOS
+LDU 256
+LDU 64
+NIP
+GETGLOB 3
+ROT
+NEWC
+STU 256
+STU 64
+STSLICE
+ENDC
+POPROOT
+
+.internal-alias :main_internal, 0
+.internal :main_internal
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSH S2
+CTOS
+LDU 4 ; bounced tail
+LDMSGADDR ; bounced src tail
+DROP
+SETGLOB 9
+MODPOW2 1
+GETGLOB 4
+TRUE
+SETINDEXQ 1
+PUSHINT 10000000
+SETINDEXQ 2
+NULL
+SETINDEXQ 3
+PUSHINT 0
+SETINDEXQ 4
+SETGLOB 4
+IFRET
+OVER
+SEMPTY ; isEmpty
+IFJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+OVER
+LDUQ 32  ; [funcId] body' ok
+THROWIFNOT 60
+OVER
+IFNOTJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.internal-alias :main_external, -1
+.internal :main_external
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSHREFSLICE {
+	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
+}
+SETGLOB 9
+OVER
+CALLREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+LDU 1 ; haveSign msgSlice
+SWAP
+PUSHCONT {
+	PUSHPOW2 9
+	LDSLICEX ; signatureSlice msgSlice
+	DUP
+	HASHSU ; signatureSlice msgSlice hashMsgSlice
+	SWAP
+	LDU 1 ; signatureSlice hashMsgSlice hasPubkey msgSlice
+	SWAP
+	PUSHCONT {
+		LDU 256 ; signatureSlice hashMsgSlice pubkey msgSlice
+		XCHG S3
+		SWAP
+	}
+	PUSHCONT {
+		XCHG S2
+		GETGLOB 2
+	}
+	IFELSE
+	CHKSIGNU ; msgSlice isSigned
+	THROWIFNOT 40
+}
+PUSHCONT {
+	LDU 1 ; hasPubkey msgSlice
+	SWAP
+	THROWIF 58
+}
+IFELSE
+LDU 64 ; timestamp msgSlice
+SWAP
+CALL $replay_protection_macro$
+LDU 32 ; expireAt msgSlice
+SWAP
+NOW ; msgSlice expireAt now
+GREATER ; msgSlice expireAt>now
+THROWIFNOT 57
+LDU 32 ; funcId body
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.macro strategies
+DROP
+ENDS
+CALLREF {
+	CALL $c4_to_c7$
+}
+GETGLOB 23
+OVER
+PUSHCONT {
+	PUSHSLICE xc0000000000000000000000000d72ed1f8
+	NEWC
+	STSLICE
+	STDICT
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+IF
+THROW 0
+
+.macro deployedStrategies
+DROP
+ENDS
+CALLREF {
+	CALL $c4_to_c7$
+}
+GETGLOB 24
+OVER
+PUSHCONT {
+	PUSHSLICE xc0000000000000000000000000c4f21876
+	NEWC
+	STSLICE
+	STDICT
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+IF
+THROW 0
+
+.macro public_function_selector
+DUP
+PUSHINT 1810190892
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 730884796
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 51565927
+		EQUAL
+		IFJMPREF {
+			CALL $onStrategiesAdded$
+		}
+		DUP
+		PUSHINT 228092443
+		EQUAL
+		IFJMPREF {
+			CALL $dropCluster$
+		}
+		DUP
+		PUSHINT 672887173
+		EQUAL
+		IFJMPREF {
+			CALL $deployStrategies$
+		}
+		DUP
+		PUSHINT 730884796
+		EQUAL
+		IFJMPREF {
+			CALL $freeAssurance$
+		}
+	}
+	DUP
+	PUSHINT 1156716662
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 977454616
+		EQUAL
+		IFJMPREF {
+			CALL $handleStEverTokenWalletAddress$
+		}
+		DUP
+		PUSHINT 1024685517
+		EQUAL
+		IFJMPREF {
+			CALL $handleDelegateStrategies$
+		}
+		DUP
+		PUSHINT 1069485403
+		EQUAL
+		IFJMPREF {
+			CALL $onStrategyDeployed$
+		}
+		DUP
+		PUSHINT 1156716662
+		EQUAL
+		IFJMPREF {
+			CALL $deployedStrategies$
+		}
+	}
+	DUP
+	PUSHINT 1688565960
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 1360036140
+		EQUAL
+		IFJMPREF {
+			CALL $onPendingStrategyRemove$
+		}
+		DUP
+		PUSHINT 1462686200
+		EQUAL
+		IFJMPREF {
+			CALL $strategies$
+		}
+		DUP
+		PUSHINT 1467332334
+		EQUAL
+		IFJMPREF {
+			CALL $setAssurance$
+		}
+		DUP
+		PUSHINT 1688565960
+		EQUAL
+		IFJMPREF {
+			CALL $upgrade$
+		}
+	}
+	DUP
+	PUSHINT 1810190892
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 1728501178
+		EQUAL
+		IFJMPREF {
+			CALL $getDetails$
+		}
+		DUP
+		PUSHINT 1756716863
+		EQUAL
+		IFJMPREF {
+			CALL $constructor$
+		}
+		DUP
+		PUSHINT 1773890877
+		EQUAL
+		IFJMPREF {
+			CALL $removeStrategies$
+		}
+		DUP
+		PUSHINT 1810190892
+		EQUAL
+		IFJMPREF {
+			CALL $onStrategyRemoved$
+		}
+	}
+}
+DUP
+PUSHINT 2147393641
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 1893244873
+	EQUAL
+	IFJMPREF {
+		CALL $onAcceptTokensTransfer$
+	}
+	DUP
+	PUSHINT 2112191443
+	EQUAL
+	IFJMPREF {
+		CALL $withdrawAssurance$
+	}
+	DUP
+	PUSHINT 2147393641
+	EQUAL
+	IFJMPREF {
+		CALL $addStrategies$
+	}
+}
+
