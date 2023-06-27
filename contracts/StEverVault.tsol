@@ -413,6 +413,72 @@ contract StEverVault is
     // upgrade to v3.1
     function onCodeUpgrade(TvmCell _upgradeData) private {
         tvm.rawReserve(_reserve(), 0);
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        tvm.resetStorage();
+        address sendGasTo;
+        mapping(address => OldStrategyParams) oldStrategies;
+        (
+            stEverVaultVersion,
+            sendGasTo,
+            governance,
+            platformCode,
+            accountCode,
+            stEverSupply,
+            totalAssets,
+            availableAssets,
+            totalStEverFee,
+            stEverWallet,
+            stTokenRoot,
+            gainFee,
+            stEverFeePercent,
+            minStrategyDepositValue,
+            minStrategyWithdrawValue,
+            isPaused,
+            owner,
+            accountVersion,
+            ,
+            oldStrategies,
+            pendingWithdrawals,
+            emergencyState
+        ) = abi.decode(
+            _upgradeData,
+                (
+                    uint32,
+                    address,
+                    uint256,
+                    TvmCell,
+                    TvmCell,
+                    uint128,
+                    uint128,
+                    uint128,
+                    uint128,
+                    address,
+                    address,
+                    uint128,
+                    uint32,
+                    uint128,
+                    uint128,
+                    bool,
+                    address,
+                    uint32,
+                    uint32,
+                    mapping(address => OldStrategyParams),
+                    mapping(uint64 => PendingWithdraw),
+                    EmergencyState
+                )
+        );
+
+        for ((address oldStrategy, OldStrategyParams oldStrategyParams) : oldStrategies) {
+            strategies[oldStrategy] = StrategyParams({
+                    lastReport: oldStrategyParams.lastReport,
+                    totalGain: oldStrategyParams.totalGain,
+                    depositingAmount: oldStrategyParams.depositingAmount,
+                    withdrawingAmount: oldStrategyParams.withdrawingAmount,
+                    totalAssets: 0,
+                    cluster: address(0),
+                    state: StrategyState.ACTIVE
+            });
+        }
+
+        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 }

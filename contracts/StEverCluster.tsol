@@ -403,7 +403,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         mainBuilder.storeRef(initialData);
         mainBuilder.storeRef(constructorParams);
-        uint32 currentStrategiesCount;
+
         TvmCell storageData = abi.encode(
             _nonce, //uint32
             stEverVault, //address
@@ -416,7 +416,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategyFactory, //address
 
             currentAssurance, //uint128
-            currentStrategiesCount, //uint32
             clusterState, //ClusterState
 
             stEverTokenRoot, //address
@@ -458,7 +457,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         (
             uint32 _current_version,
-            uint32 _prevVersion,
+            ,
             uint128 _assurance,
             uint32 _maxStrategiesCount,
             address _strategyFactory,
@@ -477,65 +476,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             )
         );
 
-        if (_current_version == _prevVersion) {
-            _init(
-                _current_version,
-                _assurance,
-                _maxStrategiesCount,
-                _strategyFactory,
-                _stEverTokenRoot,
-                _stEverOwner
-            );
-        } else {
-            TvmCell storageData = s.loadRef();
-            currentVersion = _current_version;
-            (
-                _nonce,
-                stEverVault,
-                stEverOwner,
-                clusterOwner,
-
-                requiredAssurance,
-                maxStrategiesCount,
-                ,
-                strategyFactory,
-
-                currentAssurance,
-                , //currentStrategiesCount
-                clusterState,
-
-                stEverTokenRoot,
-                stEverTokenWallet,
-
-                strategies,
-                deployedStrategies
-            ) = abi.decode(
-            storageData,
-                (
-                uint32,
-                address,
-                address,
-                address,
-
-                uint128,
-                uint32,
-                uint32,
-                address,
-
-                uint128,
-                uint32, // strategies count
-                ClusterState,
-
-                address,
-                address,
-
-                mapping(address => Strategy),
-                mapping(address => bool)
-                )
-            );
-
-        }
-
+        _init(
+            _current_version,
+            _assurance,
+            _maxStrategiesCount,
+            _strategyFactory,
+            _stEverTokenRoot,
+            _stEverOwner
+        );
 
         sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }

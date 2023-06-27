@@ -123,6 +123,15 @@ interface IStEverVault {
         StrategyState state;
     }
 
+    struct OldStrategyParams {
+        uint128 lastReport;
+        uint128 totalGain;
+        uint128 depositingAmount;
+        uint128 withdrawingAmount;
+    }
+
+
+
     struct PendingWithdraw {
         uint128 amount;
         address user;
