@@ -9239,27 +9239,6 @@ MULDIV
 UFITS 128
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
-.macro unlockAssets
-DROP
-GETGLOB 6
-THROWIFNOT 76
-GETGLOB 2
-ISNULL
-IFREF {
-	CALL $c4_to_c7$
-}
-.loc ../contracts/base/StEverVaultBase.tsol, 234
-ENDS
-.loc ../contracts/base/StEverVaultBase.tsol, 0
-CALLREF {
-	CALL $unlockAssets_72e2c4a1_internal_macro$
-}
-DROP
-CALLREF {
-	CALL $c7_to_c4$
-}
-THROW 0
-
 .globl	unlockAssets_72e2c4a1_internal
 .type	unlockAssets_72e2c4a1_internal, @function
 CALL $unlockAssets_72e2c4a1_internal_macro$
@@ -12236,12 +12215,6 @@ IFJMPREF {
 		EQUAL
 		IFJMPREF {
 			CALL $upgradeStEverCluster$
-		}
-		DUP
-		PUSHINT 2114972515
-		EQUAL
-		IFJMPREF {
-			CALL $unlockAssets$
 		}
 		DUP
 		PUSHINT 2139724725

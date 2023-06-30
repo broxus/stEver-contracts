@@ -231,7 +231,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, effectiveEverAssets, stEverSupply);
     }
 
-    function unlockAssets() public {
+    function unlockAssets() internal {
         if  (remainingLockedAssets == 0) {
             effectiveEverAssets = totalAssets;
             return;

@@ -23,7 +23,7 @@ let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let strategyFactory: StrategyFactory;
 let cluster: Cluster;
 
-describe("Single flow", async function () {
+describe("Reduction factor", async function () {
   before(async () => {
     const {
       vault: v,
@@ -123,7 +123,6 @@ describe("Single flow", async function () {
 
       await locklift.testing.increaseTime(60 * 60 * 24);
 
-      await vault.vaultContract.methods.unlockAssets().send({ amount: toNano(1), from: admin.account.address });
       const rateAfterHalfUnlockTime = await vault.getWithdrawRate();
 
       expect(rateAfterHalfUnlockTime).to.be.closeTo(1.5, 0.0007);

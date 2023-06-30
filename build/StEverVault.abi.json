@@ -538,13 +538,6 @@
 			]
 		},
 		{
-			"name": "unlockAssets",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "getLockStateFor",
 			"inputs": [
 				{"name":"time","type":"uint128"}

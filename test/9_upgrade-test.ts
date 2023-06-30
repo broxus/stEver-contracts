@@ -5,7 +5,7 @@ import { FactorySource, TokenRootUpgradeableAbi } from "../build/factorySource";
 import { creteVault, Vault } from "../utils/entities/vault";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { deployTokenRoot, preparation } from "./preparation";
-import { GetExpectedAddressParams } from "../../ever-locklift/everscale-provider";
+import { GetExpectedAddressParams } from "locklift/everscale-provider";
 import { GAIN_FEE } from "../utils/constants";
 import { DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { expect } from "chai";
