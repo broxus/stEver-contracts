@@ -106,6 +106,7 @@ export class Vault {
 
         return {
           ...value0,
+          effectiveEverAssets: new BigNumber(value0.effectiveEverAssets),
           stEverSupply: new BigNumber(value0.stEverSupply),
           totalAssets: new BigNumber(value0.totalAssets),
           stEverFeePercent: new BigNumber(value0.stEverFeePercent),
@@ -146,9 +147,25 @@ export class Vault {
         totalAssets.toString(),
       )}`,
     );
-    return this.getDetails().then(({ stEverSupply, totalAssets }) => totalAssets.dividedBy(stEverSupply));
+    return this.getDetails().then(({ stEverSupply, effectiveEverAssets }) =>
+      effectiveEverAssets.dividedBy(stEverSupply),
+    );
   };
 
+  getWithdrawRate = async () => {
+    return this.vaultContract.methods
+      .getWithdrawEverAmount({ _amount: toNano(1) })
+      .call()
+      .then(res => new BigNumber(res.value0).dividedBy(toNano(1)).toNumber());
+  };
+  getDepositRate = async () => {
+    return this.vaultContract.methods
+      .getDepositStEverAmount({ _amount: toNano(1) })
+      .call()
+      .then(res => {
+        return new BigNumber(res.value0).dividedBy(toNano(1)).toNumber();
+      });
+  };
   getStrategyInfo = (address: Address) => this.getStrategiesInfo().then(strategies => strategies[address.toString()]);
 
   getEventsAfterTransaction = async <T extends VaultEvents>({

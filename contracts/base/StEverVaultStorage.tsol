@@ -26,7 +26,7 @@ abstract contract StEverVaultStorage is IStEverVault {
     //
     uint64 lastUnlockTime = now;
     uint128 fullUnlockSeconds = 2 days;
-    uint128 remainingSeconds = 2 days;
+    uint128 remainingSeconds;
     // modifiable field
     uint128 gainFee;
     uint32 stEverFeePercent;

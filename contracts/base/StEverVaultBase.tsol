@@ -157,6 +157,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+
+    function setFullUnlockRewardSeconds(uint128 _fullUnlockSeconds) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+        fullUnlockSeconds = _fullUnlockSeconds;
+        emit FullUnlockTimeUpdated(fullUnlockSeconds);
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
@@ -201,17 +208,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
         // when the user deposits we should calculate the amount of stEver to send
     function getDepositStEverAmount(uint128 _amount) public view returns(uint128) {
-        if(stEverSupply == 0 || totalAssets == 0) {
-            return _amount;
-        }
-        return math.muldiv(_amount, stEverSupply, effectiveEverAssets);
+        return getDepositStEverAmountFor(_amount,uint128(now));
     }
         // when the user withdraw we should calculate the amount of ever to send
     function getWithdrawEverAmount(uint128 _amount) public view returns(uint128) {
-        if(stEverSupply == 0 || totalAssets == 0) {
-            return _amount;
-        }
-        return math.muldiv(_amount, effectiveEverAssets, stEverSupply);
+        return getWithdrawEverAmountFor(_amount,uint128(now));
     }
     // when the user deposits we should calculate the amount of stEver to send
     function getDepositStEverAmountFor(uint128 _amount, uint128 _time) public view returns(uint128) {
@@ -230,7 +231,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return math.muldiv(_amount, effectiveEverAssets, stEverSupply);
     }
 
-    function unlockAssets() internal {
+    function unlockAssets() public {
         if  (remainingLockedAssets == 0) {
             effectiveEverAssets = totalAssets;
             return;
@@ -238,6 +239,16 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         (remainingLockedAssets, remainingSeconds, effectiveEverAssets) = getLockStateFor(uint128(now));
         lastUnlockTime = now;
+    }
+
+    function increaseTotalAssets(uint128 _update) internal {
+            totalAssets += _update;
+            unlockAssets();
+    }
+
+    function decreaseTotalAssets(uint128 _update) internal {
+            totalAssets -= _update;
+            unlockAssets();
     }
 
     function getLockStateFor(uint128 time) public view returns (

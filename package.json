@@ -17,6 +17,7 @@
 
 
 
+    "test-reduction-factor": "npx locklift test --network local --tests test/4_1_reduction_factor-test.ts",
 
     "test-singleFlow": "npx locklift test --network local --tests test/4_singleFlow-test.ts",
     "test-miltiFlow": "npx locklift test --network local --tests test/5_miltiFlow-test.ts",

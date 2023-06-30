@@ -147,11 +147,10 @@ CALLREF {
 	CALL $getDepositStEverAmount_47a2280d_internal_macro$
 }
 .loc ../contracts/StEverVault.tsol, 64
-GETGLOB 16
-PUSH S3
-ADD
-UFITS 128
-SETGLOB 16
+PUSH S2
+CALLREF {
+	CALL $increaseTotalAssets_7299f503_internal_macro$
+}
 .loc ../contracts/StEverVault.tsol, 65
 GETGLOB 17
 PUSH S3
@@ -1111,12 +1110,12 @@ PUSHCONT {
 	CALLREF {
 		CALL $getAndCheckWithdrawToUserInfo_1a59f3c6_internal_macro$
 	}
-	.loc ../contracts/StEverVault.tsol, 285
+	.loc ../contracts/StEverVault.tsol, 284
 	PUSH S4
 	CALLREF {
 		CALL $getWithdrawEverAmount_803e06eb_internal_macro$
 	}
-	.loc ../contracts/StEverVault.tsol, 287
+	.loc ../contracts/StEverVault.tsol, 286
 	GETGLOB 17
 	OVER
 	LESS
@@ -1124,13 +1123,13 @@ PUSHCONT {
 	NOT
 	OR
 	PUSHCONT {
-		.loc ../contracts/StEverVault.tsol, 288
+		.loc ../contracts/StEverVault.tsol, 287
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/StEverVault.tsol, 290
+		.loc ../contracts/StEverVault.tsol, 289
 		ROLL 4
 		ROT
 		PUSH S4
@@ -1143,12 +1142,12 @@ PUSHCONT {
 		ENDC
 		PUSHINT 0
 		SENDRAWMSG
-		.loc ../contracts/StEverVault.tsol, 292
+		.loc ../contracts/StEverVault.tsol, 291
 		CALLREF {
 			CALL $isEmergencyProcess_d47d294b_internal_macro$
 		}
 		PUSHCONT {
-			.loc ../contracts/StEverVault.tsol, 293
+			.loc ../contracts/StEverVault.tsol, 292
 			ROTREV
 			GETGLOB 9
 			FALSE
@@ -1168,12 +1167,12 @@ PUSHCONT {
 			ENDC
 			PUSHPOW2 7
 			SENDRAWMSG
-			.loc ../contracts/StEverVault.tsol, 298
+			.loc ../contracts/StEverVault.tsol, 297
 			DROP
 			.loc ../contracts/StEverVault.tsol, 0
 		}
 		IFJMP
-		.loc ../contracts/StEverVault.tsol, 301
+		.loc ../contracts/StEverVault.tsol, 300
 		MYADDR
 		ROT
 		GETGLOB 9
@@ -1194,17 +1193,16 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/StEverVault.tsol, 306
+		.loc ../contracts/StEverVault.tsol, 305
 		DROP2
 		.loc ../contracts/StEverVault.tsol, 0
 	}
 	IFJMP
 	.loc ../contracts/StEverVault.tsol, 308
-	GETGLOB 16
-	OVER
-	SUB
-	UFITS 128
-	SETGLOB 16
+	DUP
+	CALLREF {
+		CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+	}
 	.loc ../contracts/StEverVault.tsol, 309
 	GETGLOB 17
 	OVER
@@ -1704,8 +1702,14 @@ PUSHCONT {
 	GETGLOB 29
 	GETGLOB 28
 	GETGLOB 27
+	GETGLOB 26
+	GETGLOB 25
+	GETGLOB 24
 	GETGLOB 23
 	GETGLOB 22
+	GETGLOB 21
+	GETGLOB 20
+	GETGLOB 19
 	GETGLOB 18
 	GETGLOB 17
 	GETGLOB 16
@@ -1715,7 +1719,7 @@ PUSHCONT {
 	GETGLOB 12
 	GETGLOB 11
 	PUSHINT 2
-	PUSHINT 25
+	PUSHINT 31
 	BLKSWX
 	SWAP
 	NEWC
@@ -1726,27 +1730,37 @@ PUSHCONT {
 	STREF
 	STREF
 	STU 128
-	PUSHINT 20
+	PUSHINT 26
 	ROLLREVX
 	NEWC
 	STU 128
 	STU 128
 	STU 128
-	STSLICE
-	ROLLREV 16
+	STU 128
+	STU 128
+	STU 128
+	PUSHINT 20
+	ROLLREVX
 	NEWC
 	STSLICE
+	PUSHINT 19
+	ROLLREVX
+	NEWC
+	STSLICE
+	STU 64
+	STU 128
+	STU 128
+	ROLLREV 15
+	NEWC
 	STU 128
 	STU 32
 	STU 128
 	STU 128
 	STI 1
-	ROLLREV 10
-	NEWC
 	STSLICE
-	STU 64
-	ROLLREV 8
+	ROLLREV 9
 	NEWC
+	STU 64
 	STSLICE
 	STU 32
 	STU 32
@@ -1768,11 +1782,12 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	STBREFR
+	STBREFR
 	ENDC
-	.loc ../contracts/StEverVault.tsol, 435
+	.loc ../contracts/StEverVault.tsol, 455
 	OVER
 	SETCODE
-	.loc ../contracts/StEverVault.tsol, 437
+	.loc ../contracts/StEverVault.tsol, 457
 	SWAP
 	CTOS
 	DUP
@@ -1787,7 +1802,7 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/StEverVault.tsol, 439
+	.loc ../contracts/StEverVault.tsol, 459
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
@@ -1798,13 +1813,13 @@ CALLX
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/StEverVault.tsol, 445
+.loc ../contracts/StEverVault.tsol, 465
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverVault.tsol, 446
+.loc ../contracts/StEverVault.tsol, 466
 PUSHINT 0
 SETGLOB 10
 PUSHINT 0
@@ -1896,13 +1911,13 @@ PUSHINT 0
 TUPLE 4
 PUSHINT 41
 SETGLOBVAR
-.loc ../contracts/StEverVault.tsol, 447
+.loc ../contracts/StEverVault.tsol, 467
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
-.loc ../contracts/StEverVault.tsol, 448
+.loc ../contracts/StEverVault.tsol, 468
 NEWDICT
-.loc ../contracts/StEverVault.tsol, 449
+.loc ../contracts/StEverVault.tsol, 469
 ROT
 CTOS
 LDU 32
@@ -1990,7 +2005,13 @@ SETGLOBVAR
 POP S2
 PUSHINT 41
 SETGLOBVAR
-.loc ../contracts/StEverVault.tsol, 508
+.loc ../contracts/StEverVault.tsol, 529
+NOW
+SETGLOB 24
+.loc ../contracts/StEverVault.tsol, 530
+PUSHINT 172800
+SETGLOB 25
+.loc ../contracts/StEverVault.tsol, 532
 DUP
 PUSHINT 64
 DICTUMINREF
@@ -2019,7 +2040,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverVault.tsol, 509
+	.loc ../contracts/StEverVault.tsol, 533
 	DUP
 	FIRST
 	OVER
@@ -2078,7 +2099,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverVault.tsol, 517
+.loc ../contracts/StEverVault.tsol, 541
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -2881,13 +2902,12 @@ PUSHCONT {
 		SUBR
 		UFITS 128
 		SETGLOB 17
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 55
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 56
 		DUP
 		SECOND
-		GETGLOB 16
-		SUBR
-		UFITS 128
-		SETGLOB 16
+		CALLREF {
+			CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+		}
 		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 57
 		DUP
 		FIRST
@@ -3096,10 +3116,9 @@ ADD
 UFITS 128
 SETGLOB 17
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 74
-GETGLOB 16
-ADD
-UFITS 128
-SETGLOB 16
+CALLREF {
+	CALL $increaseTotalAssets_7299f503_internal_macro$
+}
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 75
 GETGLOB 9
 PUSHSLICE xc000000000000000000000000039f388d5
@@ -3269,10 +3288,9 @@ PUSHCONT {
 	PUSHINT 30000000
 	ADD
 	UFITS 128
-	GETGLOB 16
-	SUBR
-	UFITS 128
-	SETGLOB 16
+	CALLREF {
+		CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+	}
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IF
@@ -3293,10 +3311,9 @@ PUSHCONT {
 	PUSHINT 30000000
 	SUB
 	UFITS 128
-	GETGLOB 16
-	ADD
-	UFITS 128
-	SETGLOB 16
+	CALLREF {
+		CALL $increaseTotalAssets_7299f503_internal_macro$
+	}
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IF
@@ -3509,11 +3526,10 @@ PUSHCONT {
 }
 IF
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 113
-GETGLOB 16
-OVER
-ADD
-UFITS 128
-SETGLOB 16
+DUP
+CALLREF {
+	CALL $increaseTotalAssets_7299f503_internal_macro$
+}
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 115
 DUP
 GTINT 0
@@ -3613,11 +3629,10 @@ PUSHCONT {
 IF
 PUSHCONT {
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 139
-	GETGLOB 16
-	PUSH S2
-	SUB
-	UFITS 128
-	SETGLOB 16
+	OVER
+	CALLREF {
+		CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+	}
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 140
 	GETGLOB 17
 	PUSH S2
@@ -3858,11 +3873,10 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 181
 		DUP
 		SECOND
-		GETGLOB 16
-		SUBR
-		UFITS 128
-		SETGLOB 16
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 184
+		CALLREF {
+			CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+		}
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 183
 		DUP
 		FIRST
 		PUSH S2
@@ -3924,7 +3938,7 @@ PUSHCONT {
 		DICTSETREF
 		PUSHINT 38
 		SETGLOBVAR
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 186
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 185
 		DUP
 		FIRST
 		UFITS 64
@@ -3954,11 +3968,11 @@ PUSHCONT {
 }
 WHILE
 DROP2
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 188
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 187
 DUP
 DICTEMPTY
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 189
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 188
 	DUP
 	MYADDR
 	FALSE
@@ -3988,7 +4002,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 193
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 192
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 CALLREF {
@@ -4012,7 +4026,7 @@ NIP
 THROWIFNOT 1008
 .loc ../contracts/base/StEverVaultBase.tsol, 63
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 195
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 194
 	GETGLOB 9
 	PUSHINT 38
 	GETGLOBVAR
@@ -4058,18 +4072,18 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 197
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 196
 	CALLREF {
 		CALL $isEmergencyProcess_d47d294b_internal_macro$
 	}
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 198
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 197
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 200
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 199
 		PUSHINT 41
 		GETGLOBVAR
 		THIRD
@@ -4084,7 +4098,7 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 204
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 203
 	DEPTH
 	ADDCONST -2
 	PICK
@@ -4095,18 +4109,17 @@ PUSHCONT {
 	ADD
 	UFITS 128
 	SETGLOB 17
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 205
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 204
 	DEPTH
 	ADDCONST -2
 	PICK
 	PUSHINT 30000000
 	SUB
 	UFITS 128
-	GETGLOB 16
-	ADD
-	UFITS 128
-	SETGLOB 16
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 193
+	CALLREF {
+		CALL $increaseTotalAssets_7299f503_internal_macro$
+	}
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 192
 }
 CALLX
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
@@ -4120,7 +4133,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 211
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 210
 LDDICT
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
@@ -4152,12 +4165,12 @@ OR
 THROWIFNOT 1002
 .loc ../contracts/base/StEverVaultBase.tsol, 27
 ACCEPT
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 212
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 211
 PUSHINT 50
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 213
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 212
 PUSHINT 0
 BLKPUSH 2, 0
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 215
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 214
 PUSHCONT {
 	PUSH2 S0, S3
 	LESS
@@ -4168,7 +4181,7 @@ PUSHCONT {
 }
 PUSHCONT {
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 216
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 215
 		PUSH S4
 		PUSHINT 267
 		DICTREMMIN
@@ -4187,7 +4200,7 @@ PUSHCONT {
 		ISNULL
 		THROWIF 63
 		UNPAIR
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 218
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 217
 		OVER
 		PUSHINT 38
 		GETGLOBVAR
@@ -4196,7 +4209,7 @@ PUSHCONT {
 		NULLSWAPIFNOT
 		NIP
 		PUSHCONT {
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 219
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 218
 			PUSHINT 1008
 			ROT
 			PUSHREFSLICE {
@@ -4209,19 +4222,19 @@ PUSHCONT {
 			ENDC
 			PUSHINT 0
 			SENDRAWMSG
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 220
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 219
 			DROP
 			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 		}
 		IFNOTJMP
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 223
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 222
 		DUP
 		SECOND
 		CALLREF {
 			CALL $canTransferValue_cb044c9d_internal_macro$
 		}
 		PUSHCONT {
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 224
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 223
 			PUSHINT 1017
 			ROT
 			PUSHREFSLICE {
@@ -4234,18 +4247,18 @@ PUSHCONT {
 			ENDC
 			PUSHINT 0
 			SENDRAWMSG
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 225
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 224
 			DROP
 			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 		}
 		IFNOTJMP
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 228
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 227
 		GETGLOB 16
 		OVER
 		SECOND
 		LESS
 		PUSHCONT {
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 229
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 228
 			PUSHINT 1028
 			ROT
 			PUSHREFSLICE {
@@ -4258,26 +4271,26 @@ PUSHCONT {
 			ENDC
 			PUSHINT 0
 			SENDRAWMSG
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 230
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 229
 			DROP
 			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 		}
 		IFJMP
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 234
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 233
 		DUP
 		SECOND
 		PUSH S5
 		ADD
 		UFITS 128
 		POP S5
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 236
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 235
 		DUP
 		SECOND
 		PUSH S4
 		ADD
 		UFITS 128
 		POP S4
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 239
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 238
 		DUP
 		FIRST
 		PUSH S2
@@ -4339,7 +4352,7 @@ PUSHCONT {
 		DICTSETREF
 		PUSHINT 38
 		SETGLOBVAR
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 241
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 240
 		DUP
 		FIRST
 		UFITS 64
@@ -4363,29 +4376,28 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 	}
 	CALLX
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 215
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 214
 	INC
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 WHILE
 DROP
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 244
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 243
 GETGLOB 17
 ROT
 SUB
 UFITS 128
 SETGLOB 17
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 244
+CALLREF {
+	CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+}
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 245
-GETGLOB 16
-SUBR
-UFITS 128
-SETGLOB 16
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 247
 DROP
 DUP
 DICTEMPTY
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 248
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 246
 	DUP
 	MYADDR
 	FALSE
@@ -4415,7 +4427,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 252
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 250
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 CALLREF {
@@ -4437,7 +4449,7 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 THROWIFNOT 1008
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 254
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 252
 GETGLOB 9
 PUSHINT 38
 GETGLOBVAR
@@ -4497,14 +4509,14 @@ PUSHINT 267
 DICTSETREF
 PUSHINT 38
 SETGLOBVAR
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 256
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 254
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 30000000
 SUB
 UFITS 128
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 258
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 256
 GETGLOB 9
 DEPTH
 ADDCONST -2
@@ -4513,13 +4525,13 @@ FALSE
 CALLREF {
 	CALL $updateTotalAssetsForStrategy_82b9cfd3_internal_macro$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 260
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 258
 GETGLOB 17
 OVER
 ADD
 UFITS 128
 SETGLOB 17
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 262
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 260
 GETGLOB 9
 PUSHSLICE xc0000000000000000000000000631380a5
 NEWC
@@ -4529,13 +4541,13 @@ STU 128
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 264
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 262
 GETGLOB 9
 CALLREF {
 	CALL $isStrategyReadyToDelete_267ffad3_internal_macro$
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 265
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 263
 	GETGLOB 9
 	CALLREF {
 		CALL $removeStrategy_175188e8_internal_macro$
@@ -4554,7 +4566,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 269
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 267
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 CALLREF {
@@ -4576,20 +4588,20 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 THROWIFNOT 1008
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 270
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 268
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 30000000
 SUB
 UFITS 128
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 272
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 270
 GETGLOB 17
 OVER
 ADD
 UFITS 128
 SETGLOB 17
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 273
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 271
 GETGLOB 9
 DEPTH
 ADDCONST -2
@@ -4598,13 +4610,13 @@ FALSE
 CALLREF {
 	CALL $updateTotalAssetsForStrategy_82b9cfd3_internal_macro$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 275
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 273
 GETGLOB 9
 CALLREF {
 	CALL $isStrategyReadyToDelete_267ffad3_internal_macro$
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 276
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 274
 	GETGLOB 9
 	CALLREF {
 		CALL $removeStrategy_175188e8_internal_macro$
@@ -4612,7 +4624,7 @@ PUSHCONT {
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IF
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 279
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 277
 GETGLOB 9
 PUSHSLICE xc000000000000000000000000010c8f69e
 NEWC
@@ -4629,7 +4641,7 @@ SENDRAWMSG
 CALL $isStrategyReadyToDelete_267ffad3_internal_macro$
 
 .macro isStrategyReadyToDelete_267ffad3_internal_macro
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 283
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 281
 PUSHINT 38
 GETGLOBVAR
 PUSHINT 267
@@ -4664,7 +4676,7 @@ PUSHCONT {
 	TUPLE 7
 }
 IFELSE
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 284
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 282
 DUP
 INDEX 6
 EQINT 3
@@ -4679,9 +4691,9 @@ AND
 CALL $updateTotalAssetsForStrategy_82b9cfd3_internal_macro$
 
 .macro updateTotalAssetsForStrategy_82b9cfd3_internal_macro
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 289
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 287
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 290
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 288
 	DUP
 	PUSHINT 300000000
 	GEQ
@@ -4693,7 +4705,7 @@ PUSHCONT {
 		UFITS 128
 	}
 	IF
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 294
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 292
 	PUSHINT 38
 	GETGLOBVAR
 	ROLL 3
@@ -4758,12 +4770,12 @@ PUSHCONT {
 	DICTSETREF
 	PUSHINT 38
 	SETGLOBVAR
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 295
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 293
 	DROP
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IFJMP
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 298
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 296
 OVER
 PUSHINT 38
 GETGLOBVAR
@@ -4800,11 +4812,11 @@ PUSHCONT {
 }
 IFELSE
 INDEX 4
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 300
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 298
 PUXC S1, S-1
 GEQ
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 301
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 299
 	DROP
 	PUSHINT 38
 	GETGLOBVAR
@@ -4867,7 +4879,7 @@ PUSHCONT {
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IFJMP
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 305
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 303
 SWAP
 PUSHINT 38
 GETGLOBVAR
@@ -4942,7 +4954,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 309
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 307
 LDU 32
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
@@ -4967,7 +4979,7 @@ NIP
 THROWIFNOT 1008
 .loc ../contracts/base/StEverVaultBase.tsol, 63
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 310
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 308
 	GETGLOB 9
 	PUSHSLICE xc0000000000000000000000000290aaf95
 	NEWC
@@ -4977,7 +4989,7 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 312
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 310
 	GETGLOB 9
 	PUSHINT 38
 	GETGLOBVAR
@@ -5037,18 +5049,18 @@ PUSHCONT {
 	DICTSETREF
 	PUSHINT 38
 	SETGLOBVAR
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 314
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 312
 	CALLREF {
 		CALL $isEmergencyProcess_d47d294b_internal_macro$
 	}
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 315
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 313
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 317
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 315
 		PUSHINT 41
 		GETGLOBVAR
 		THIRD
@@ -5063,25 +5075,24 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 321
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 319
 	DEPTH
 	ADDCONST -2
 	PICK
 	PUSHINT 30000000
 	SUB
 	UFITS 128
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 324
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 322
 	GETGLOB 17
 	OVER
 	ADD
 	UFITS 128
 	SETGLOB 17
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 325
-	GETGLOB 16
-	ADD
-	UFITS 128
-	SETGLOB 16
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 309
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 323
+	CALLREF {
+		CALL $increaseTotalAssets_7299f503_internal_macro$
+	}
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 307
 }
 CALLX
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
@@ -5095,7 +5106,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 329
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 327
 LDU 32
 LDDICT
 ROTREV
@@ -5131,7 +5142,7 @@ OR
 THROWIFNOT 1002
 .loc ../contracts/base/StEverVaultBase.tsol, 27
 ACCEPT
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 331
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 329
 DUP
 SECOND
 PUSHINT 0
@@ -5149,7 +5160,7 @@ PUSHCONT {
 }
 PUSHCONT {
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 332
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 330
 		DUP
 		PUSHINT 38
 		GETGLOBVAR
@@ -5158,7 +5169,7 @@ PUSHCONT {
 		NULLSWAPIFNOT
 		NIP
 		PUSHCONT {
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 333
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 331
 			PUSHINT 1008
 			OVER
 			PUSHSLICE xc0000000000000000000000000249b74cf
@@ -5172,13 +5183,13 @@ PUSHCONT {
 			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 		}
 		IFNOTJMP
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 337
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 335
 		PUSHINT 10000000
 		CALLREF {
 			CALL $canTransferValue_cb044c9d_internal_macro$
 		}
 		PUSHCONT {
-			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 338
+			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 336
 			PUSHINT 1004
 			OVER
 			PUSHSLICE xc0000000000000000000000000249b74cf
@@ -5192,13 +5203,13 @@ PUSHCONT {
 			.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 		}
 		IFNOTJMP
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 342
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 340
 		GETGLOB 17
 		PUSHINT 10000000
 		SUB
 		UFITS 128
 		SETGLOB 17
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 344
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 342
 		DUP
 		FALSE
 		NEWC
@@ -5231,7 +5242,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 348
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 346
 ENDS
 .loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 CALLREF {
@@ -5253,20 +5264,20 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 THROWIFNOT 1008
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 349
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 347
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 30000000
 SUB
 UFITS 128
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 351
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 349
 GETGLOB 17
 OVER
 ADD
 UFITS 128
 SETGLOB 17
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 353
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 351
 DUP
 PUSHINT 10000000
 GREATER
@@ -5278,7 +5289,7 @@ PUSHCONT {
 	UFITS 128
 }
 IF
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 356
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 354
 GETGLOB 9
 PUSHSLICE xc00000000000000000000000003a702baa
 NEWC
@@ -5300,7 +5311,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 359
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 357
 LDU 32
 LDDICT
 ROTREV
@@ -5331,13 +5342,13 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1015
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 362
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 360
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 363
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 361
 SECOND
 PUSHINT 0
 NULL
@@ -5358,10 +5369,10 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 364
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 362
 	DUP
 	UNPAIR
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 365
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 363
 	OVER
 	PUSHINT 38
 	GETGLOBVAR
@@ -5370,7 +5381,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	THROWIFNOT 100
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 367
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 365
 	DUP
 	PUSHINT 300000000
 	GEQ
@@ -5443,14 +5454,14 @@ PUSHCONT {
 	DICTSETREF
 	PUSHINT 38
 	SETGLOBVAR
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 371
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 369
 	DROP
 	DUP
 	CALLREF {
 		CALL $isStrategyReadyToDelete_267ffad3_internal_macro$
 	}
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 372
+		.loc ../contracts/base/StEverVaultStrategiesController.tsol, 370
 		DUP
 		CALLREF {
 			CALL $removeStrategy_175188e8_internal_macro$
@@ -5466,7 +5477,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 376
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 374
 PUSHINT 34
 GETGLOBVAR
 NEWC
@@ -5488,7 +5499,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 379
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 377
 OVER
 PUSHCONT {
 	LDREF
@@ -5519,20 +5530,20 @@ PUSHINT 34
 GETGLOBVAR
 SDEQ
 THROWIFNOT 1001
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 380
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 378
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 382
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 380
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 384
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 382
 OVER
 PUSHINT 38
 GETGLOBVAR
@@ -5541,7 +5552,7 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 385
+	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 383
 	DUP2
 	FALSE
 	NEWC
@@ -5562,7 +5573,7 @@ PUSHCONT {
 	.loc ../contracts/base/StEverVaultStrategiesController.tsol, 0
 }
 IFNOT
-.loc ../contracts/base/StEverVaultStrategiesController.tsol, 391
+.loc ../contracts/base/StEverVaultStrategiesController.tsol, 389
 DROP2
 GETGLOB 9
 NEWC
@@ -8625,12 +8636,85 @@ PUSHPOW2 7
 SENDRAWMSG
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
+.macro setFullUnlockRewardSeconds
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/base/StEverVaultBase.tsol, 161
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDU 128
+ENDS
+.loc ../contracts/base/StEverVaultBase.tsol, 0
+CALLREF {
+	CALL $setFullUnlockRewardSeconds_191096cb_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro setFullUnlockRewardSeconds_191096cb_internal_macro
+.loc ../contracts/base/StEverVaultBase.tsol, 37
+GETGLOB 9
+PUSHINT 34
+GETGLOBVAR
+SDEQ
+THROWIFNOT 1001
+.loc ../contracts/base/StEverVaultBase.tsol, 67
+DEPTH
+ADDCONST -2
+PICK
+PUSHINT 1000000000
+GEQ
+THROWIFNOT 1015
+.loc ../contracts/base/StEverVaultBase.tsol, 162
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/base/StEverVaultBase.tsol, 163
+DUP
+SETGLOB 25
+.loc ../contracts/base/StEverVaultBase.tsol, 164
+PUSHSLICE xc00000000000000000000000005375cd0d
+NEWC
+STSLICE
+STU 128
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/base/StEverVaultBase.tsol, 165
+PUSHINT 34
+GETGLOBVAR
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
+.loc ../contracts/base/StEverVaultBase.tsol, 0
+
 .globl	canTransferValue_cb044c9d_internal
 .type	canTransferValue_cb044c9d_internal, @function
 CALL $canTransferValue_cb044c9d_internal_macro$
 
 .macro canTransferValue_cb044c9d_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 162
+.loc ../contracts/base/StEverVaultBase.tsol, 169
 GETGLOB 17
 PUSHINT 1000000000
 GREATER
@@ -8653,7 +8737,7 @@ NIP
 CALL $isStrategyInInitialState_f847c801_internal_macro$
 
 .macro isStrategyInInitialState_f847c801_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 167
+.loc ../contracts/base/StEverVaultBase.tsol, 174
 SWAP
 PUSHINT 38
 GETGLOBVAR
@@ -8689,7 +8773,7 @@ PUSHCONT {
 	TUPLE 7
 }
 IFELSE
-.loc ../contracts/base/StEverVaultBase.tsol, 168
+.loc ../contracts/base/StEverVaultBase.tsol, 175
 DUP
 THIRD
 EQINT 0
@@ -8709,7 +8793,7 @@ AND
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 176
+.loc ../contracts/base/StEverVaultBase.tsol, 183
 GETPARAM 7
 FIRST
 DEPTH
@@ -8726,7 +8810,7 @@ MAX
 CALL $_reserveWithValue_3f1d138f_internal_macro$
 
 .macro _reserveWithValue_3f1d138f_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 180
+.loc ../contracts/base/StEverVaultBase.tsol, 187
 GETPARAM 7
 FIRST
 DEPTH
@@ -8745,7 +8829,7 @@ MAX
 CALL $_reserveExceptFee_34c3d790_internal_macro$
 
 .macro _reserveExceptFee_34c3d790_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 184
+.loc ../contracts/base/StEverVaultBase.tsol, 191
 GETPARAM 7
 FIRST
 DEPTH
@@ -8764,7 +8848,7 @@ MAX
 DROP
 GETGLOB 6
 THROWIFNOT 76
-.loc ../contracts/base/StEverVaultBase.tsol, 187
+.loc ../contracts/base/StEverVaultBase.tsol, 194
 LDU 64
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -8799,7 +8883,7 @@ IFREF {
 THROW 0
 
 .macro encodeDepositPayload_88e308f3_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 188
+.loc ../contracts/base/StEverVaultBase.tsol, 195
 NEWC
 STU 64
 ENDC
@@ -8809,7 +8893,7 @@ ENDC
 DROP
 GETGLOB 6
 THROWIFNOT 76
-.loc ../contracts/base/StEverVaultBase.tsol, 191
+.loc ../contracts/base/StEverVaultBase.tsol, 198
 LDREF
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -8851,23 +8935,23 @@ THROW 0
 CALL $decodeDepositPayload_94b131d7_internal_macro$
 
 .macro decodeDepositPayload_94b131d7_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 193
+.loc ../contracts/base/StEverVaultBase.tsol, 200
 CTOS
-.loc ../contracts/base/StEverVaultBase.tsol, 194
+.loc ../contracts/base/StEverVaultBase.tsol, 201
 DUP
 SBITS
 NEQINT 64
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 195
+	.loc ../contracts/base/StEverVaultBase.tsol, 202
 	PUSHINT 0
 	DUP
 	BLKDROP2 1, 2
 	.loc ../contracts/base/StEverVaultBase.tsol, 0
 }
 IFJMP
-.loc ../contracts/base/StEverVaultBase.tsol, 198
+.loc ../contracts/base/StEverVaultBase.tsol, 205
 PLDU 64
-.loc ../contracts/base/StEverVaultBase.tsol, 200
+.loc ../contracts/base/StEverVaultBase.tsol, 207
 TRUE
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
@@ -8880,7 +8964,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 203
+.loc ../contracts/base/StEverVaultBase.tsol, 210
 OVER
 PUSHCONT {
 	LDREF
@@ -8926,18 +9010,11 @@ THROW 0
 CALL $getDepositStEverAmount_47a2280d_internal_macro$
 
 .macro getDepositStEverAmount_47a2280d_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 204
-GETGLOB 15
-EQINT 0
-GETGLOB 16
-EQINT 0
-OR
-IFRET
-.loc ../contracts/base/StEverVaultBase.tsol, 207
-GETGLOB 15
-GETGLOB 19
-MULDIV
-UFITS 128
+.loc ../contracts/base/StEverVaultBase.tsol, 211
+NOW
+CALLREF {
+	CALL $getDepositStEverAmountFor_2cbf051c_internal_macro$
+}
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
 .macro getWithdrawEverAmount
@@ -8949,7 +9026,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 210
+.loc ../contracts/base/StEverVaultBase.tsol, 214
 OVER
 PUSHCONT {
 	LDREF
@@ -8995,18 +9072,11 @@ THROW 0
 CALL $getWithdrawEverAmount_803e06eb_internal_macro$
 
 .macro getWithdrawEverAmount_803e06eb_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 211
-GETGLOB 15
-EQINT 0
-GETGLOB 16
-EQINT 0
-OR
-IFRET
-.loc ../contracts/base/StEverVaultBase.tsol, 214
-GETGLOB 19
-GETGLOB 15
-MULDIV
-UFITS 128
+.loc ../contracts/base/StEverVaultBase.tsol, 215
+NOW
+CALLREF {
+	CALL $getWithdrawEverAmountFor_8cb0dbfb_internal_macro$
+}
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
 .macro getDepositStEverAmountFor
@@ -9018,7 +9088,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 217
+.loc ../contracts/base/StEverVaultBase.tsol, 218
 OVER
 PUSHCONT {
 	LDREF
@@ -9065,24 +9135,24 @@ THROW 0
 CALL $getDepositStEverAmountFor_2cbf051c_internal_macro$
 
 .macro getDepositStEverAmountFor_2cbf051c_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 218
+.loc ../contracts/base/StEverVaultBase.tsol, 219
 GETGLOB 15
 EQINT 0
 GETGLOB 16
 EQINT 0
 OR
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 219
+	.loc ../contracts/base/StEverVaultBase.tsol, 220
 	DROP
 	.loc ../contracts/base/StEverVaultBase.tsol, 0
 }
 IFJMP
-.loc ../contracts/base/StEverVaultBase.tsol, 221
+.loc ../contracts/base/StEverVaultBase.tsol, 222
 CALLREF {
 	CALL $getLockStateFor_6e42a12d_internal_macro$
 }
 BLKDROP2 2, 1
-.loc ../contracts/base/StEverVaultBase.tsol, 222
+.loc ../contracts/base/StEverVaultBase.tsol, 223
 SWAP
 GETGLOB 15
 ROT
@@ -9099,7 +9169,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 225
+.loc ../contracts/base/StEverVaultBase.tsol, 226
 OVER
 PUSHCONT {
 	LDREF
@@ -9146,44 +9216,65 @@ THROW 0
 CALL $getWithdrawEverAmountFor_8cb0dbfb_internal_macro$
 
 .macro getWithdrawEverAmountFor_8cb0dbfb_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 226
+.loc ../contracts/base/StEverVaultBase.tsol, 227
 GETGLOB 15
 EQINT 0
 GETGLOB 16
 EQINT 0
 OR
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 227
+	.loc ../contracts/base/StEverVaultBase.tsol, 228
 	DROP
 	.loc ../contracts/base/StEverVaultBase.tsol, 0
 }
 IFJMP
-.loc ../contracts/base/StEverVaultBase.tsol, 229
+.loc ../contracts/base/StEverVaultBase.tsol, 230
 CALLREF {
 	CALL $getLockStateFor_6e42a12d_internal_macro$
 }
 BLKDROP2 2, 1
-.loc ../contracts/base/StEverVaultBase.tsol, 230
+.loc ../contracts/base/StEverVaultBase.tsol, 231
 GETGLOB 15
 MULDIV
 UFITS 128
 .loc ../contracts/base/StEverVaultBase.tsol, 0
+
+.macro unlockAssets
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc ../contracts/base/StEverVaultBase.tsol, 234
+ENDS
+.loc ../contracts/base/StEverVaultBase.tsol, 0
+CALLREF {
+	CALL $unlockAssets_72e2c4a1_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
 
 .globl	unlockAssets_72e2c4a1_internal
 .type	unlockAssets_72e2c4a1_internal, @function
 CALL $unlockAssets_72e2c4a1_internal_macro$
 
 .macro unlockAssets_72e2c4a1_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 234
+.loc ../contracts/base/StEverVaultBase.tsol, 235
 GETGLOB 20
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 235
+	.loc ../contracts/base/StEverVaultBase.tsol, 236
 	GETGLOB 16
 	SETGLOB 19
 	.loc ../contracts/base/StEverVaultBase.tsol, 0
 }
 IFNOTJMP
-.loc ../contracts/base/StEverVaultBase.tsol, 239
+.loc ../contracts/base/StEverVaultBase.tsol, 240
 NOW
 CALLREF {
 	CALL $getLockStateFor_6e42a12d_internal_macro$
@@ -9192,9 +9283,41 @@ XCHG S2
 SETGLOB 20
 SETGLOB 26
 SETGLOB 19
-.loc ../contracts/base/StEverVaultBase.tsol, 240
+.loc ../contracts/base/StEverVaultBase.tsol, 241
 NOW
 SETGLOB 24
+.loc ../contracts/base/StEverVaultBase.tsol, 0
+
+.globl	increaseTotalAssets_7299f503_internal
+.type	increaseTotalAssets_7299f503_internal, @function
+CALL $increaseTotalAssets_7299f503_internal_macro$
+
+.macro increaseTotalAssets_7299f503_internal_macro
+.loc ../contracts/base/StEverVaultBase.tsol, 245
+GETGLOB 16
+ADD
+UFITS 128
+SETGLOB 16
+.loc ../contracts/base/StEverVaultBase.tsol, 246
+CALLREF {
+	CALL $unlockAssets_72e2c4a1_internal_macro$
+}
+.loc ../contracts/base/StEverVaultBase.tsol, 0
+
+.globl	decreaseTotalAssets_9c8287fd_internal
+.type	decreaseTotalAssets_9c8287fd_internal, @function
+CALL $decreaseTotalAssets_9c8287fd_internal_macro$
+
+.macro decreaseTotalAssets_9c8287fd_internal_macro
+.loc ../contracts/base/StEverVaultBase.tsol, 250
+GETGLOB 16
+SUBR
+UFITS 128
+SETGLOB 16
+.loc ../contracts/base/StEverVaultBase.tsol, 251
+CALLREF {
+	CALL $unlockAssets_72e2c4a1_internal_macro$
+}
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
 .macro getLockStateFor
@@ -9206,7 +9329,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 243
+.loc ../contracts/base/StEverVaultBase.tsol, 254
 OVER
 PUSHCONT {
 	LDREF
@@ -9258,19 +9381,19 @@ THROW 0
 CALL $getLockStateFor_6e42a12d_internal_macro$
 
 .macro getLockStateFor_6e42a12d_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 243
+.loc ../contracts/base/StEverVaultBase.tsol, 254
 PUSHINT 0
-.loc ../contracts/base/StEverVaultBase.tsol, 248
+.loc ../contracts/base/StEverVaultBase.tsol, 259
 SWAP
 GETGLOB 24
 SUB
 UFITS 128
-.loc ../contracts/base/StEverVaultBase.tsol, 249
+.loc ../contracts/base/StEverVaultBase.tsol, 260
 GETGLOB 21
 OVER
 MUL
 UFITS 128
-.loc ../contracts/base/StEverVaultBase.tsol, 250
+.loc ../contracts/base/StEverVaultBase.tsol, 261
 GETGLOB 20
 OVER
 GREATER
@@ -9283,7 +9406,7 @@ PUSHCONT {
 }
 IF
 POP S3
-.loc ../contracts/base/StEverVaultBase.tsol, 251
+.loc ../contracts/base/StEverVaultBase.tsol, 262
 DROP
 GETGLOB 26
 OVER
@@ -9297,7 +9420,7 @@ PUSHCONT {
 }
 IF
 NIP
-.loc ../contracts/base/StEverVaultBase.tsol, 252
+.loc ../contracts/base/StEverVaultBase.tsol, 263
 GETGLOB 16
 PUSH S2
 SUB
@@ -9309,11 +9432,11 @@ UFITS 128
 CALL $getAndCheckWithdrawToUserInfo_1a59f3c6_internal_macro$
 
 .macro getAndCheckWithdrawToUserInfo_1a59f3c6_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 256
+.loc ../contracts/base/StEverVaultBase.tsol, 267
 TRUE
-.loc ../contracts/base/StEverVaultBase.tsol, 257
+.loc ../contracts/base/StEverVaultBase.tsol, 268
 NEWDICT
-.loc ../contracts/base/StEverVaultBase.tsol, 259
+.loc ../contracts/base/StEverVaultBase.tsol, 270
 ROT
 DUP
 PUSHINT 64
@@ -9337,19 +9460,19 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 260
+	.loc ../contracts/base/StEverVaultBase.tsol, 271
 	DUP
 	THIRD
 	NOW
 	GREATER
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultBase.tsol, 261
+		.loc ../contracts/base/StEverVaultBase.tsol, 272
 		FALSE
 		POP S6
 		.loc ../contracts/base/StEverVaultBase.tsol, 0
 	}
 	IF
-	.loc ../contracts/base/StEverVaultBase.tsol, 263
+	.loc ../contracts/base/StEverVaultBase.tsol, 274
 	DUP
 	FIRST
 	OVER
@@ -9395,7 +9518,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/base/StEverVaultBase.tsol, 270
+.loc ../contracts/base/StEverVaultBase.tsol, 281
 SWAP
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 
@@ -9404,7 +9527,7 @@ SWAP
 CALL $_buildAccountParams_aabfc73f_internal_macro$
 
 .macro _buildAccountParams_aabfc73f_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 276
+.loc ../contracts/base/StEverVaultBase.tsol, 287
 NEWC
 STSLICE
 ENDC
@@ -9415,7 +9538,7 @@ ENDC
 CALL $_buildInitAccount_6f128368_internal_macro$
 
 .macro _buildInitAccount_6f128368_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 286
+.loc ../contracts/base/StEverVaultBase.tsol, 297
 PUSHINT 0
 NEWC
 STU 256
@@ -9461,7 +9584,7 @@ ENDC
 CALL $deployAccount_da9fc1ae_internal_macro$
 
 .macro deployAccount_da9fc1ae_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 305
+.loc ../contracts/base/StEverVaultBase.tsol, 316
 PUSHINT 35
 GETGLOBVAR
 DUP
@@ -9469,7 +9592,7 @@ NEWC
 STU 32
 STU 32
 ENDC
-.loc ../contracts/base/StEverVaultBase.tsol, 310
+.loc ../contracts/base/StEverVaultBase.tsol, 321
 PUXC S1, S-1
 GETGLOB 13
 ROLL 3
@@ -9539,7 +9662,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 316
+.loc ../contracts/base/StEverVaultBase.tsol, 327
 LDU 32
 GETGLOB 4
 ROT
@@ -9621,7 +9744,7 @@ THROW 0
 CALL $getAccountAddress_5872fe45_internal_macro$
 
 .macro getAccountAddress_5872fe45_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 324
+.loc ../contracts/base/StEverVaultBase.tsol, 335
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -9653,7 +9776,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 328
+.loc ../contracts/base/StEverVaultBase.tsol, 339
 LDREF
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -9680,15 +9803,15 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1015
-.loc ../contracts/base/StEverVaultBase.tsol, 329
+.loc ../contracts/base/StEverVaultBase.tsol, 340
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 331
+.loc ../contracts/base/StEverVaultBase.tsol, 342
 SETGLOB 13
-.loc ../contracts/base/StEverVaultBase.tsol, 332
+.loc ../contracts/base/StEverVaultBase.tsol, 343
 PUSHINT 35
 GETGLOBVAR
 INC
@@ -9696,7 +9819,7 @@ UFITS 32
 DUP
 PUSHINT 35
 SETGLOBVAR
-.loc ../contracts/base/StEverVaultBase.tsol, 334
+.loc ../contracts/base/StEverVaultBase.tsol, 345
 PUSHSLICE xc0000000000000000000000000683a731d
 NEWC
 STSLICE
@@ -9704,7 +9827,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverVaultBase.tsol, 336
+.loc ../contracts/base/StEverVaultBase.tsol, 347
 PUSHINT 34
 GETGLOBVAR
 NEWC
@@ -9726,7 +9849,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 339
+.loc ../contracts/base/StEverVaultBase.tsol, 350
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
 CALLREF {
@@ -9746,18 +9869,18 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1015
-.loc ../contracts/base/StEverVaultBase.tsol, 340
+.loc ../contracts/base/StEverVaultBase.tsol, 351
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 342
+.loc ../contracts/base/StEverVaultBase.tsol, 353
 GETGLOB 9
 CALLREF {
 	CALL $getAccountAddress_5872fe45_internal_macro$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 343
+.loc ../contracts/base/StEverVaultBase.tsol, 354
 GETGLOB 9
 PUSHINT 35
 GETGLOBVAR
@@ -9789,7 +9912,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 346
+.loc ../contracts/base/StEverVaultBase.tsol, 357
 OVER
 PUSHCONT {
 	LDREF
@@ -9828,7 +9951,7 @@ PUSHINT 34
 GETGLOBVAR
 SDEQ
 THROWIFNOT 1001
-.loc ../contracts/base/StEverVaultBase.tsol, 347
+.loc ../contracts/base/StEverVaultBase.tsol, 358
 DEPTH
 ADDCONST -2
 PICK
@@ -9840,13 +9963,13 @@ PUSHINT 1000000000
 ADD
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/base/StEverVaultBase.tsol, 348
+.loc ../contracts/base/StEverVaultBase.tsol, 359
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 349
+.loc ../contracts/base/StEverVaultBase.tsol, 360
 PUSHINT 0
 XCHG S2
 MYADDR
@@ -9883,7 +10006,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 352
+.loc ../contracts/base/StEverVaultBase.tsol, 363
 OVER
 PUSHCONT {
 	LDREF
@@ -9917,15 +10040,15 @@ SDEQ
 THROWIFNOT 1026
 .loc ../contracts/base/StEverVaultBase.tsol, 33
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 353
+	.loc ../contracts/base/StEverVaultBase.tsol, 364
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/base/StEverVaultBase.tsol, 354
+	.loc ../contracts/base/StEverVaultBase.tsol, 365
 	PUSHINT 50
-	.loc ../contracts/base/StEverVaultBase.tsol, 355
+	.loc ../contracts/base/StEverVaultBase.tsol, 366
 	PUSHCONT {
 		PUSH2 S1, S2
 		FIRST
@@ -9935,22 +10058,22 @@ PUSHCONT {
 		AND
 	}
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultBase.tsol, 356
+		.loc ../contracts/base/StEverVaultBase.tsol, 367
 		PUSH2 S1, S2
 		SECOND
 		PUSHINT 32
 		DICTUGET
 		THROWIFNOT 50
-		.loc ../contracts/base/StEverVaultBase.tsol, 357
+		.loc ../contracts/base/StEverVaultBase.tsol, 368
 		OVER
 		DEC
 		UFITS 128
 		POP S2
-		.loc ../contracts/base/StEverVaultBase.tsol, 359
+		.loc ../contracts/base/StEverVaultBase.tsol, 370
 		CALLREF {
 			CALL $getAccountAddress_5872fe45_internal_macro$
 		}
-		.loc ../contracts/base/StEverVaultBase.tsol, 361
+		.loc ../contracts/base/StEverVaultBase.tsol, 372
 		PUSH S4
 		PUSHINT 35
 		GETGLOBVAR
@@ -9971,7 +10094,7 @@ PUSHCONT {
 		ENDC
 		PUSHINT 0
 		SENDRAWMSG
-		.loc ../contracts/base/StEverVaultBase.tsol, 355
+		.loc ../contracts/base/StEverVaultBase.tsol, 366
 		OVER
 		INC
 		UFITS 128
@@ -9979,13 +10102,13 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultBase.tsol, 0
 	}
 	WHILE
-	.loc ../contracts/base/StEverVaultBase.tsol, 366
+	.loc ../contracts/base/StEverVaultBase.tsol, 377
 	DROP
 	PUSH2 S0, S1
 	FIRST
 	LESS
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultBase.tsol, 367
+		.loc ../contracts/base/StEverVaultBase.tsol, 378
 		XCHG S2
 		MYADDR
 		FALSE
@@ -10013,7 +10136,7 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultBase.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/base/StEverVaultBase.tsol, 371
+	.loc ../contracts/base/StEverVaultBase.tsol, 382
 	DROP2
 	NEWC
 	STSLICECONST x42_
@@ -10023,7 +10146,7 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/base/StEverVaultBase.tsol, 352
+	.loc ../contracts/base/StEverVaultBase.tsol, 363
 }
 CALLX
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -10037,7 +10160,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 374
+.loc ../contracts/base/StEverVaultBase.tsol, 385
 OVER
 PUSHCONT {
 	LDREF
@@ -10063,7 +10186,7 @@ CALLREF {
 THROW 0
 
 .macro onAccountUpgraded_446b3865_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 374
+.loc ../contracts/base/StEverVaultBase.tsol, 385
 PUSH S2
 .loc ../contracts/base/StEverVaultBase.tsol, 49
 CALLREF {
@@ -10073,13 +10196,13 @@ CALLREF {
 GETGLOB 9
 SDEQ
 THROWIFNOT 1014
-.loc ../contracts/base/StEverVaultBase.tsol, 376
+.loc ../contracts/base/StEverVaultBase.tsol, 387
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 378
+.loc ../contracts/base/StEverVaultBase.tsol, 389
 ROT
 PUSHSLICE xc000000000000000000000000000ec4c36
 NEWC
@@ -10089,7 +10212,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverVaultBase.tsol, 379
+.loc ../contracts/base/StEverVaultBase.tsol, 390
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -10105,7 +10228,7 @@ SENDRAWMSG
 CALL $_buildClusterParams_d48c5fb9_internal_macro$
 
 .macro _buildClusterParams_d48c5fb9_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 388
+.loc ../contracts/base/StEverVaultBase.tsol, 399
 XCHG S2
 NEWC
 STU 32
@@ -10122,7 +10245,7 @@ ENDC
 CALL $_buildInitCluster_050ad2e2_internal_macro$
 
 .macro _buildInitCluster_050ad2e2_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 402
+.loc ../contracts/base/StEverVaultBase.tsol, 413
 PUSHINT 0
 NEWC
 STU 256
@@ -10168,7 +10291,7 @@ ENDC
 CALL $deployCluster_3cef600d_internal_macro$
 
 .macro deployCluster_3cef600d_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 428
+.loc ../contracts/base/StEverVaultBase.tsol, 439
 REVERSE 5, 0
 PUSHINT 37
 GETGLOBVAR
@@ -10188,7 +10311,7 @@ STSLICE
 STBREFR
 STBREFR
 ENDC
-.loc ../contracts/base/StEverVaultBase.tsol, 438
+.loc ../contracts/base/StEverVaultBase.tsol, 449
 PUXC S2, S-1
 GETGLOB 14
 ROLL 3
@@ -10260,7 +10383,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 451
+.loc ../contracts/base/StEverVaultBase.tsol, 462
 LDU 32
 GETGLOB 4
 ROT
@@ -10343,7 +10466,7 @@ THROW 0
 CALL $getClusterAddress_becce0fa_internal_macro$
 
 .macro getClusterAddress_becce0fa_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 459
+.loc ../contracts/base/StEverVaultBase.tsol, 470
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -10377,7 +10500,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 472
+.loc ../contracts/base/StEverVaultBase.tsol, 483
 LDREF
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -10404,15 +10527,15 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1015
-.loc ../contracts/base/StEverVaultBase.tsol, 473
+.loc ../contracts/base/StEverVaultBase.tsol, 484
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 475
+.loc ../contracts/base/StEverVaultBase.tsol, 486
 SETGLOB 14
-.loc ../contracts/base/StEverVaultBase.tsol, 476
+.loc ../contracts/base/StEverVaultBase.tsol, 487
 PUSHINT 37
 GETGLOBVAR
 INC
@@ -10420,7 +10543,7 @@ UFITS 32
 DUP
 PUSHINT 37
 SETGLOBVAR
-.loc ../contracts/base/StEverVaultBase.tsol, 478
+.loc ../contracts/base/StEverVaultBase.tsol, 489
 PUSHSLICE xc0000000000000000000000000522f3640
 NEWC
 STSLICE
@@ -10428,7 +10551,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverVaultBase.tsol, 480
+.loc ../contracts/base/StEverVaultBase.tsol, 491
 PUSHINT 34
 GETGLOBVAR
 NEWC
@@ -10450,7 +10573,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 483
+.loc ../contracts/base/StEverVaultBase.tsol, 494
 LDU 32
 ENDS
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -10471,19 +10594,19 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWIFNOT 1015
-.loc ../contracts/base/StEverVaultBase.tsol, 484
+.loc ../contracts/base/StEverVaultBase.tsol, 495
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 486
+.loc ../contracts/base/StEverVaultBase.tsol, 497
 GETGLOB 9
 SWAP
 CALLREF {
 	CALL $getClusterAddress_becce0fa_internal_macro$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 487
+.loc ../contracts/base/StEverVaultBase.tsol, 498
 GETGLOB 9
 PUSHINT 37
 GETGLOBVAR
@@ -10515,7 +10638,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 490
+.loc ../contracts/base/StEverVaultBase.tsol, 501
 OVER
 PUSHCONT {
 	LDREF
@@ -10554,7 +10677,7 @@ PUSHINT 34
 GETGLOBVAR
 SDEQ
 THROWIFNOT 1001
-.loc ../contracts/base/StEverVaultBase.tsol, 491
+.loc ../contracts/base/StEverVaultBase.tsol, 502
 DEPTH
 ADDCONST -2
 PICK
@@ -10566,13 +10689,13 @@ PUSHINT 1000000000
 ADD
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/base/StEverVaultBase.tsol, 492
+.loc ../contracts/base/StEverVaultBase.tsol, 503
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 493
+.loc ../contracts/base/StEverVaultBase.tsol, 504
 PUSHINT 0
 XCHG S2
 MYADDR
@@ -10609,7 +10732,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 496
+.loc ../contracts/base/StEverVaultBase.tsol, 507
 OVER
 PUSHCONT {
 	LDREF
@@ -10643,15 +10766,15 @@ SDEQ
 THROWIFNOT 1026
 .loc ../contracts/base/StEverVaultBase.tsol, 33
 PUSHCONT {
-	.loc ../contracts/base/StEverVaultBase.tsol, 497
+	.loc ../contracts/base/StEverVaultBase.tsol, 508
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/base/StEverVaultBase.tsol, 498
+	.loc ../contracts/base/StEverVaultBase.tsol, 509
 	PUSHINT 50
-	.loc ../contracts/base/StEverVaultBase.tsol, 499
+	.loc ../contracts/base/StEverVaultBase.tsol, 510
 	PUSHCONT {
 		PUSH2 S1, S2
 		FIRST
@@ -10661,18 +10784,18 @@ PUSHCONT {
 		AND
 	}
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultBase.tsol, 500
+		.loc ../contracts/base/StEverVaultBase.tsol, 511
 		PUSH2 S1, S2
 		SECOND
 		PUSHINT 32
 		DICTUGET
 		THROWIFNOT 50
-		.loc ../contracts/base/StEverVaultBase.tsol, 501
+		.loc ../contracts/base/StEverVaultBase.tsol, 512
 		OVER
 		DEC
 		UFITS 128
 		POP S2
-		.loc ../contracts/base/StEverVaultBase.tsol, 502
+		.loc ../contracts/base/StEverVaultBase.tsol, 513
 		PUSH S4
 		PUSHINT 37
 		GETGLOBVAR
@@ -10693,7 +10816,7 @@ PUSHCONT {
 		ENDC
 		PUSHINT 0
 		SENDRAWMSG
-		.loc ../contracts/base/StEverVaultBase.tsol, 499
+		.loc ../contracts/base/StEverVaultBase.tsol, 510
 		OVER
 		INC
 		UFITS 128
@@ -10701,13 +10824,13 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultBase.tsol, 0
 	}
 	WHILE
-	.loc ../contracts/base/StEverVaultBase.tsol, 505
+	.loc ../contracts/base/StEverVaultBase.tsol, 516
 	DROP
 	PUSH2 S0, S1
 	FIRST
 	LESS
 	PUSHCONT {
-		.loc ../contracts/base/StEverVaultBase.tsol, 506
+		.loc ../contracts/base/StEverVaultBase.tsol, 517
 		XCHG S2
 		MYADDR
 		FALSE
@@ -10735,7 +10858,7 @@ PUSHCONT {
 		.loc ../contracts/base/StEverVaultBase.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/base/StEverVaultBase.tsol, 510
+	.loc ../contracts/base/StEverVaultBase.tsol, 521
 	DROP2
 	NEWC
 	STSLICECONST x42_
@@ -10745,7 +10868,7 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/base/StEverVaultBase.tsol, 496
+	.loc ../contracts/base/StEverVaultBase.tsol, 507
 }
 CALLX
 .loc ../contracts/base/StEverVaultBase.tsol, 0
@@ -10759,7 +10882,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 513
+.loc ../contracts/base/StEverVaultBase.tsol, 524
 OVER
 PUSHCONT {
 	LDREF
@@ -10786,7 +10909,7 @@ CALLREF {
 THROW 0
 
 .macro onClusterUpgraded_db5fc436_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 513
+.loc ../contracts/base/StEverVaultBase.tsol, 524
 OVER2
 .loc ../contracts/base/StEverVaultBase.tsol, 56
 CALLREF {
@@ -10796,13 +10919,13 @@ CALLREF {
 GETGLOB 9
 SDEQ
 THROWIFNOT 1033
-.loc ../contracts/base/StEverVaultBase.tsol, 515
+.loc ../contracts/base/StEverVaultBase.tsol, 526
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverVaultBase.tsol, 517
+.loc ../contracts/base/StEverVaultBase.tsol, 528
 SWAP2
 SWAP
 PUSHSLICE xc0000000000000000000000000514d4396
@@ -10814,7 +10937,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverVaultBase.tsol, 518
+.loc ../contracts/base/StEverVaultBase.tsol, 529
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -10834,7 +10957,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverVaultBase.tsol, 521
+.loc ../contracts/base/StEverVaultBase.tsol, 532
 LDU 32
 GETGLOB 4
 ROT
@@ -11010,7 +11133,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/base/StEverVaultBase.tsol, 522
+.loc ../contracts/base/StEverVaultBase.tsol, 533
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -11246,8 +11369,6 @@ PUSHCONT {
 	SETGLOB 24
 	PUSHINT 172800
 	SETGLOB 25
-	PUSHINT 172800
-	SETGLOB 26
 	PUSHINT 100000000000
 	SETGLOB 29
 	PUSHINT 100000000000
@@ -11527,7 +11648,7 @@ THROW 0
 
 .macro public_function_selector
 DUP
-PUSHINT 1702180751
+PUSHINT 1688565960
 LEQ
 IFJMPREF {
 	DUP
@@ -11652,7 +11773,7 @@ IFJMPREF {
 		}
 	}
 	DUP
-	PUSHINT 1028607805
+	PUSHINT 1026338858
 	LEQ
 	IFJMPREF {
 		DUP
@@ -11685,7 +11806,7 @@ IFJMPREF {
 			}
 		}
 		DUP
-		PUSHINT 698090426
+		PUSHINT 688603452
 		LEQ
 		IFJMPREF {
 			DUP
@@ -11693,6 +11814,12 @@ IFJMPREF {
 			EQUAL
 			IFJMPREF {
 				CALL $onStrategyDidntHandleDeposit$
+			}
+			DUP
+			PUSHINT 676007569
+			EQUAL
+			IFJMPREF {
+				CALL $setFullUnlockRewardSeconds$
 			}
 			DUP
 			PUSHINT 683267329
@@ -11706,17 +11833,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $depositToStrategies$
 			}
+		}
+		DUP
+		PUSHINT 840220080
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 698090426
 			EQUAL
 			IFJMPREF {
 				CALL $strategyReport$
 			}
-		}
-		DUP
-		PUSHINT 867294797
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 733434185
 			EQUAL
@@ -11735,17 +11862,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $stopEmergencyProcess$
 			}
+		}
+		DUP
+		PUSHINT 1026338858
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 867294797
 			EQUAL
 			IFJMPREF {
 				CALL $setNewClusterCode$
 			}
-		}
-		DUP
-		PUSHINT 1028607805
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 918477020
 			EQUAL
@@ -11764,22 +11891,22 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $withdrawStEverFee$
 			}
+		}
+	}
+	DUP
+	PUSHINT 1284337432
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 1069811872
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1028607805
 			EQUAL
 			IFJMPREF {
 				CALL $getClusterAddress$
 			}
-		}
-	}
-	DUP
-	PUSHINT 1291454150
-	LEQ
-	IFJMPREF {
-		DUP
-		PUSHINT 1118070977
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1066272536
 			EQUAL
@@ -11798,17 +11925,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $withdrawExtraEver$
 			}
+		}
+		DUP
+		PUSHINT 1187817425
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1118070977
 			EQUAL
 			IFJMPREF {
 				CALL $_processEmergencyWithdrawFromStrategy$
 			}
-		}
-		DUP
-		PUSHINT 1192234371
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1126281173
 			EQUAL
@@ -11827,17 +11954,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $nonce$
 			}
+		}
+		DUP
+		PUSHINT 1213362653
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1192234371
 			EQUAL
 			IFJMPREF {
 				CALL $setMinStrategyWithdrawValue$
 			}
-		}
-		DUP
-		PUSHINT 1227148942
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1199535757
 			EQUAL
@@ -11856,17 +11983,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $processWithdrawExtraMoneyFromStrategies$
 			}
+		}
+		DUP
+		PUSHINT 1284337432
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1227148942
 			EQUAL
 			IFJMPREF {
 				CALL $receiveAdditionalTransferFromStrategy$
 			}
-		}
-		DUP
-		PUSHINT 1291454150
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1237820981
 			EQUAL
@@ -11885,22 +12012,22 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $_upgradeStEverClusters$
 			}
+		}
+	}
+	DUP
+	PUSHINT 1688565960
+	LEQ
+	IFJMPREF {
+		DUP
+		PUSHINT 1394485385
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1291454150
 			EQUAL
 			IFJMPREF {
 				CALL $forceStrategyRemove$
 			}
-		}
-	}
-	DUP
-	PUSHINT 1702180751
-	LEQ
-	IFJMPREF {
-		DUP
-		PUSHINT 1417657217
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1303452921
 			EQUAL
@@ -11919,17 +12046,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $setGainFee$
 			}
+		}
+		DUP
+		PUSHINT 1566551745
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1417657217
 			EQUAL
 			IFJMPREF {
 				CALL $setNewAccountCode$
 			}
-		}
-		DUP
-		PUSHINT 1581224653
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1454494244
 			EQUAL
@@ -11948,17 +12075,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $setIsPaused$
 			}
+		}
+		DUP
+		PUSHINT 1586310356
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1581224653
 			EQUAL
 			IFJMPREF {
 				CALL $encodeDepositPayload$
 			}
-		}
-		DUP
-		PUSHINT 1594807316
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1581604281
 			EQUAL
@@ -11977,17 +12104,17 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $delegateStrategies$
 			}
+		}
+		DUP
+		PUSHINT 1688565960
+		LEQ
+		IFJMPREF {
 			DUP
 			PUSHINT 1594807316
 			EQUAL
 			IFJMPREF {
 				CALL $setMinStrategyDepositValue$
 			}
-		}
-		DUP
-		PUSHINT 1702180751
-		LEQ
-		IFJMPREF {
 			DUP
 			PUSHINT 1633734933
 			EQUAL
@@ -12006,12 +12133,6 @@ IFJMPREF {
 			IFJMPREF {
 				CALL $upgrade$
 			}
-			DUP
-			PUSHINT 1702180751
-			EQUAL
-			IFJMPREF {
-				CALL $getLockStateFor$
-			}
 		}
 	}
 }
@@ -12020,9 +12141,15 @@ PUSHINT 2139724725
 LEQ
 IFJMPREF {
 	DUP
-	PUSHINT 1788190136
+	PUSHINT 1748389271
 	LEQ
 	IFJMPREF {
+		DUP
+		PUSHINT 1702180751
+		EQUAL
+		IFJMPREF {
+			CALL $getLockStateFor$
+		}
 		DUP
 		PUSHINT 1716387393
 		EQUAL
@@ -12041,17 +12168,17 @@ IFJMPREF {
 		IFJMPREF {
 			CALL $upgradeStEverClusters$
 		}
+	}
+	DUP
+	PUSHINT 1900952818
+	LEQ
+	IFJMPREF {
 		DUP
 		PUSHINT 1788190136
 		EQUAL
 		IFJMPREF {
 			CALL $addStrategies$
 		}
-	}
-	DUP
-	PUSHINT 1922114273
-	LEQ
-	IFJMPREF {
 		DUP
 		PUSHINT 1817996156
 		EQUAL
@@ -12070,17 +12197,17 @@ IFJMPREF {
 		IFJMPREF {
 			CALL $processSendToUsers$
 		}
+	}
+	DUP
+	PUSHINT 2102327188
+	LEQ
+	IFJMPREF {
 		DUP
 		PUSHINT 1922114273
 		EQUAL
 		IFJMPREF {
 			CALL $startEmergencyRejected$
 		}
-	}
-	DUP
-	PUSHINT 2108961080
-	LEQ
-	IFJMPREF {
 		DUP
 		PUSHINT 2004309943
 		EQUAL
@@ -12099,18 +12226,29 @@ IFJMPREF {
 		IFJMPREF {
 			CALL $onClusterUpgraded$
 		}
+	}
+	DUP
+	PUSHINT 2139724725
+	LEQ
+	IFJMPREF {
 		DUP
 		PUSHINT 2108961080
 		EQUAL
 		IFJMPREF {
 			CALL $upgradeStEverCluster$
 		}
-	}
-	DUP
-	PUSHINT 2139724725
-	EQUAL
-	IFJMPREF {
-		CALL $onStrategyHandledDeposit$
+		DUP
+		PUSHINT 2114972515
+		EQUAL
+		IFJMPREF {
+			CALL $unlockAssets$
+		}
+		DUP
+		PUSHINT 2139724725
+		EQUAL
+		IFJMPREF {
+			CALL $onStrategyHandledDeposit$
+		}
 	}
 }
 

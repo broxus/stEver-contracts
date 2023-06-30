@@ -8,6 +8,7 @@ interface IStEverVault {
     event PausedStateChanged(bool pauseState);
     event StrategyFactoryAddressUpdated(address _strategyFactory);
     event WithdrawHoldTimeUpdated(uint64 withdrawHoldTimeSeconds);
+    event FullUnlockTimeUpdated(uint128 fullUnlockTimeSeconds);
     // Strategy
     event StrategiesAdded(address[] strategy);
     event StrategyRemoved(address strategy);
@@ -258,6 +259,7 @@ interface IStEverVault {
     function setStEverFeePercent(uint32 _stEverFeePercent) external;
     function setIsPaused(bool isPaused) external;
     function setWithdrawHoldTimeInSeconds(uint64 _hold_time) external;
+    function setFullUnlockRewardSeconds(uint128 _fullUnlockSeconds) external;
 
     // ownership
     function transferOwnership(address _newOwner, address _sendGasTo) external;

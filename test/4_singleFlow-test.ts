@@ -6,7 +6,7 @@ import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { createAndRegisterStrategy, makeWithdrawToUsers } from "../utils/highOrderUtils";
+import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
@@ -150,17 +150,21 @@ describe("Single flow", async function () {
     expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());
   });
   it("user should receive requested amount + reward + fee", async () => {
+    await locklift.testing.increaseTime(60 * 60 * 24 * 2);
     const { userBalanceBefore, vaultBalanceBefore } = await Promise.all([
       locklift.provider.getBalance(user1.account.address),
       locklift.provider.getBalance(vault.vaultContract.address),
     ]).then(([userBalanceBefore, vaultBalanceBefore]) => ({ userBalanceBefore, vaultBalanceBefore }));
 
     const { value0: stateBeforeWithdraw } = await vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    const withdrawalRate = new BigNumber(stateBeforeWithdraw.totalAssets).dividedBy(stateBeforeWithdraw.stEverSupply);
 
     const { nonce, amount: withdrawAmount } = (await user1.getWithdrawRequests())[0];
-    const expectedEverAmountWithReward = withdrawalRate.multipliedBy(withdrawAmount).toFixed(0, BigNumber.ROUND_DOWN);
-    console.log(locklift.testing.getCurrentTime());
+    const expectedEverAmountWithReward = await vault.vaultContract.methods
+      .getWithdrawEverAmount({
+        _amount: withdrawAmount,
+      })
+      .call()
+      .then(res => res.value0);
 
     const { traceTree } = await governance.emitWithdraw({
       sendConfig: [[user1.account.address, { nonces: [nonce] }]],
@@ -178,10 +182,6 @@ describe("Single flow", async function () {
       stateAfterWithdraw.totalAssets,
       "totalAssets should be reduced by the amount withdrawn",
     );
-
-    // expect(new BigNumber(stateBeforeWithdraw.totalAssets).minus(success[0].data.amount).toString()).to.be.equals(
-    //   stateAfterWithdraw.totalAssets,
-    // );
 
     expect(new BigNumber(stateBeforeWithdraw.stEverSupply).minus(withdrawAmount).toString()).to.be.equals(
       stateAfterWithdraw.stEverSupply,

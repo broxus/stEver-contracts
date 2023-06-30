@@ -473,6 +473,14 @@
 			]
 		},
 		{
+			"name": "setFullUnlockRewardSeconds",
+			"inputs": [
+				{"name":"_fullUnlockSeconds","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "encodeDepositPayload",
 			"inputs": [
 				{"name":"_nonce","type":"uint64"}
@@ -527,6 +535,13 @@
 			],
 			"outputs": [
 				{"name":"value0","type":"uint128"}
+			]
+		},
+		{
+			"name": "unlockAssets",
+			"inputs": [
+			],
+			"outputs": [
 			]
 		},
 		{
@@ -713,6 +728,14 @@
 			"name": "WithdrawHoldTimeUpdated",
 			"inputs": [
 				{"name":"withdrawHoldTimeSeconds","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "FullUnlockTimeUpdated",
+			"inputs": [
+				{"name":"fullUnlockTimeSeconds","type":"uint128"}
 			],
 			"outputs": [
 			]

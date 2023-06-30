@@ -61,7 +61,7 @@ contract StEverVault is
         unlockAssets();
         uint128 amountToSend = getDepositStEverAmount(_amount);
 
-        totalAssets += _amount;
+        increaseTotalAssets(_amount);
         availableAssets += _amount;
         stEverSupply += amountToSend;
 
@@ -281,7 +281,6 @@ contract StEverVault is
             bool isOk
         ) = getAndCheckWithdrawToUserInfo(_withdrawals);
 
-
         uint128 everAmount = getWithdrawEverAmount(amount);
         // if not enough balance, reset pending to the Account;
         if (availableAssets < everAmount || !isOk) {
@@ -305,7 +304,8 @@ contract StEverVault is
             }(_withdrawals, address(this));
             return;
         }
-        totalAssets -= everAmount;
+
+        decreaseTotalAssets(everAmount);
         availableAssets -= everAmount;
         stEverSupply -= amount;
 
@@ -407,12 +407,26 @@ contract StEverVault is
             platformCode, // TvmCell
             accountCode, // TvmCell
             clusterCode, // TvmCell
+
+
             stEverSupply, // uint128
             totalAssets, // uint128
             availableAssets, // uint128
             totalStEverFee, // uint128
+            effectiveEverAssets, //uint128,
+            remainingLockedAssets, // uint128
+            unlockPerSecond, // uint128
+
+
             stEverWallet, // address
             stTokenRoot, // address
+
+
+            lastUnlockTime, // uint64
+            fullUnlockSeconds, // uint64
+            remainingSeconds, // uint64
+
+
             gainFee, // uint128
             stEverFeePercent, // uint32
             minStrategyDepositValue, // uint128
@@ -420,13 +434,19 @@ contract StEverVault is
             isPaused, // bool
             strategyFactory, // address,
             withdrawHoldTime, // uint64
+
+
             owner, // address
             accountVersion, // uint32
             stEverVaultVersion, // uint32
             clusterVersion, // uint32
+
+
             strategies, // mapping(address => StrategyParams)
             clusterPools, // mapping(address => ClustersPool)
             pendingWithdrawals, // mapping(uint64 => PendingWithdraw)
+
+
             emergencyState // EmergencyState,
 
         );
@@ -504,6 +524,10 @@ contract StEverVault is
                     EmergencyState
                 )
         );
+
+        // set new fields
+        lastUnlockTime = now;
+        fullUnlockSeconds = 2 days;
 
         for ((uint64 oldPendingWithdraw, OldIStEverVault.PendingWithdraw oldPendingParams) : oldPendingWithdrawals) {
             pendingWithdrawals[oldPendingWithdraw] = PendingWithdraw({

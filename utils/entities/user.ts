@@ -98,8 +98,13 @@ export class User {
     const feeBn = new BigNumber(fee);
     const amountBn = new BigNumber(amount);
     const { value0: stateBeforeWithdraw } = await this.vault.vaultContract.methods.getDetails({ answerId: 0 }).call({});
-    const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
-    const expectedStEverAmount = depositRate.isNaN() ? amountBn : depositRate.times(amountBn);
+    // const depositRate = new BigNumber(stateBeforeWithdraw.stEverSupply).dividedBy(stateBeforeWithdraw.totalAssets);
+    const expectedStEverAmount = new BigNumber(
+      await this.vault.vaultContract.methods
+        .getDepositStEverAmount({ _amount: amount })
+        .call()
+        .then(res => res.value0),
+    );
 
     const transaction = await locklift.tracing.trace(
       this.vault.vaultContract.methods
