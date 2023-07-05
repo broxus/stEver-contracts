@@ -157,6 +157,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+
+    function setFullUnlockRewardSeconds(uint128 _fullUnlockSeconds) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+        fullUnlockSeconds = _fullUnlockSeconds;
+        emit FullUnlockTimeUpdated(fullUnlockSeconds);
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
     // predicates
     function canTransferValue(uint128 _amount) internal view returns (bool) {
         return availableAssets > StEverVaultGas.MIN_AVAILABLE_ASSETS_VALUE &&
@@ -201,17 +208,59 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
         // when the user deposits we should calculate the amount of stEver to send
     function getDepositStEverAmount(uint128 _amount) public view returns(uint128) {
-        if(stEverSupply == 0 || totalAssets == 0) {
-            return _amount;
-        }
-        return math.muldiv(_amount, stEverSupply, totalAssets);
+        return getDepositStEverAmountFor(_amount,uint128(now));
     }
         // when the user withdraw we should calculate the amount of ever to send
     function getWithdrawEverAmount(uint128 _amount) public view returns(uint128) {
+        return getWithdrawEverAmountFor(_amount,uint128(now));
+    }
+    // when the user deposits we should calculate the amount of stEver to send
+    function getDepositStEverAmountFor(uint128 _amount, uint128 _time) public view returns(uint128) {
         if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        return math.muldiv(_amount, totalAssets, stEverSupply);
+        (,,uint128 effectiveEverAssets) = getLockStateFor(_time);
+        return math.muldiv(_amount, stEverSupply, effectiveEverAssets);
+    }
+    // when the user withdraw we should calculate the amount of ever to send
+    function getWithdrawEverAmountFor(uint128 _amount, uint128 _time) public view returns(uint128) {
+        if(stEverSupply == 0 || totalAssets == 0) {
+            return _amount;
+        }
+        (,,uint128 effectiveEverAssets) = getLockStateFor(_time);
+        return math.muldiv(_amount, effectiveEverAssets, stEverSupply);
+    }
+
+    function unlockAssets() internal {
+        if  (remainingLockedAssets == 0) {
+            effectiveEverAssets = totalAssets;
+            return;
+        }
+
+        (remainingLockedAssets, remainingSeconds, effectiveEverAssets) = getLockStateFor(uint128(now));
+        lastUnlockTime = now;
+    }
+
+    function increaseTotalAssets(uint128 _update) internal {
+            totalAssets += _update;
+            unlockAssets();
+    }
+
+    function decreaseTotalAssets(uint128 _update) internal {
+            totalAssets -= _update;
+            unlockAssets();
+    }
+
+    function getLockStateFor(uint128 time) public view returns (
+        uint128 _remainingLockedAssets,
+        uint128 _remainingSeconds,
+        uint128 _effectiveEverAssets
+    ) {
+        uint128 timeFromLastUnlock = time - lastUnlockTime;
+        uint128 unlockAmount = unlockPerSecond * timeFromLastUnlock;
+        _remainingLockedAssets = remainingLockedAssets > unlockAmount ? remainingLockedAssets - unlockAmount : 0;
+        _remainingSeconds = remainingSeconds > timeFromLastUnlock ? remainingSeconds - timeFromLastUnlock : 0;
+        _effectiveEverAssets = totalAssets - _remainingLockedAssets;
     }
 
     function getAndCheckWithdrawToUserInfo(mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals) internal view returns(mapping(uint64 => WithdrawToUserInfo), bool) {
@@ -489,8 +538,15 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 totalAssets,
                 availableAssets,
                 totalStEverFee,
+                effectiveEverAssets, //new
+                remainingLockedAssets, //new
+                unlockPerSecond, //new
                 stEverWallet,
                 stTokenRoot,
+
+                lastUnlockTime, //new
+                fullUnlockSeconds, //new
+                remainingSeconds, //new
 
                 gainFee,
                 stEverFeePercent,
