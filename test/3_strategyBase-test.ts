@@ -73,7 +73,6 @@ describe("Strategy base", function () {
 
     const { traceTree: secondTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
     expect(secondTraceTree).to.error(5011);
-    const clusterDetails = await cluster.getDetails();
     const clusterStrategies = await cluster.getStrategies();
     expect(clusterStrategies.length).to.be.eq(1);
     const [strategyAddress, strategyParams] = clusterStrategies[0];
@@ -164,6 +163,8 @@ describe("Strategy base", function () {
         .minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION)
         .toString(),
     );
+    const details = await vault.getDetails();
+    debugger;
     expect(vaultStateAfter.totalAssets.toNumber()).to.be.equals(expectedAvailableBalance.toNumber());
   });
 

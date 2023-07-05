@@ -52,8 +52,8 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             availableAssets -= valueToSend;
 
             // grab fee from total assets, then add it back after receiving response from strategy
-            totalAssets -= depositConfig.fee;
 
+            decreaseTotalAssets(depositConfig.fee);
             IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
         }
         if (!_depositConfigs.empty()) {
@@ -71,7 +71,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         updateTotalAssetsForStrategy(msg.sender, depositingAmount, true);
         // add fee back
         availableAssets += returnedFee;
-        totalAssets += returnedFee;
+        increaseTotalAssets(returnedFee);
         emit StrategyHandledDeposit(msg.sender, depositingAmount);
     }
 
@@ -85,13 +85,15 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         // add fee back to total assets
         if (depositingAmount > msg.value) {
             // if depositing amount gt msg.value therefore we spent more than attached fee
-            totalAssets -= depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+            decreaseTotalAssets(depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
         }
         if (msg.value > depositingAmount) {
-            totalAssets += msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+            increaseTotalAssets(msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
         }
         emit StrategyDidntHandleDeposit(msg.sender, _errcode);
     }
+
+
 
     function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
 
@@ -108,8 +110,25 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         gainWithoutStEverFee - gainFee :
         0;
 
-        totalAssets += gainWithoutGainFee;
+        increaseTotalAssets(gainWithoutGainFee);
 
+        if (gainWithoutGainFee > 0) {
+            if (unlockPerSecond == 0) {
+                unlockPerSecond = gainWithoutGainFee / fullUnlockSeconds;
+                remainingLockedAssets = gainWithoutGainFee;
+            } else {
+                remainingSeconds =
+                    (unlockPerSecond * remainingSeconds + gainWithoutGainFee * fullUnlockSeconds) /
+                        (remainingLockedAssets + gainWithoutGainFee);
+
+                remainingLockedAssets += gainWithoutGainFee;
+
+                unlockPerSecond = remainingLockedAssets / remainingSeconds;
+            }
+        }
+        unlockAssets();
+
+        ///
         updateTotalAssetsForStrategy(msg.sender, gainWithoutGainFee, true);
 
         emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
@@ -117,7 +136,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         uint128 sendValueToStrategy;
         if (_requestedBalance > 0 && canTransferValue(_requestedBalance)) {
-            totalAssets -= _requestedBalance;
+            decreaseTotalAssets(_requestedBalance);
             availableAssets -= _requestedBalance;
             sendValueToStrategy = _requestedBalance;
         }
@@ -159,8 +178,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             // grab fee, then add it back after receiving response from strategy
             availableAssets -= config.fee;
 
-            totalAssets -= config.fee;
-
+            decreaseTotalAssets(config.fee);
             // change withdrawing strategy state
             strategies[strategy].withdrawingAmount = config.amount;
 
@@ -183,7 +201,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
         // set back remaining gas after withdraw request
         availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        totalAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        increaseTotalAssets(msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
     }
 
     /*
@@ -192,7 +210,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
         uint128 decreaseAvailableAssets;
-        uint128 decreaseTotalAssets;
+        uint128 _decreaseTotalAssets;
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
 
@@ -214,7 +232,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             // grab fee, then add it back after receiving response from strategy
             decreaseAvailableAssets += config.fee;
 
-            decreaseTotalAssets += config.fee;
+            _decreaseTotalAssets += config.fee;
 
             // change withdrawing strategy state
             strategies[strategy].withdrawingAmount = config.amount;
@@ -223,8 +241,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
 
         availableAssets -= decreaseAvailableAssets;
-        totalAssets -= decreaseTotalAssets;
-
+        decreaseTotalAssets(_decreaseTotalAssets);
         if (!_withdrawConfig.empty()) {
             this.forceWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_withdrawConfig);
         }
@@ -303,7 +320,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
         // set remaining gas
         availableAssets += notUsedFee;
-        totalAssets += notUsedFee;
+        increaseTotalAssets(notUsedFee);
     }
 
     // extra money from strategies
