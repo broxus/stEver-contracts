@@ -5,7 +5,7 @@ import "./StEverVaultEmergency.tsol";
 import "./StEverStrategiesManager.tsol";
 
 import "../interfaces/IStrategy.tsol";
-import "locklift/src/console.tsol";
+
 
 
 

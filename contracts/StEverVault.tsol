@@ -9,7 +9,6 @@ import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverStrategiesManager.tsol";
 import "./base/StEverVaultStrategiesController.tsol";
 import "./base/StEverVaultValidators.tsol";
-import { IStEverVault as OldIStEverVault} from "./test/v4/interfaces/IStEverVault.tsol";
 
 
 import "./utils/ErrorCodes.tsol";
@@ -448,7 +447,6 @@ contract StEverVault is
 
 
             emergencyState // EmergencyState,
-
         );
 
         // set code after complete this method
@@ -461,83 +459,5 @@ contract StEverVault is
     }
 
     // upgrade to v5
-    function onCodeUpgrade(TvmCell _upgradeData) private {
-        tvm.rawReserve(_reserve(), 0);
-        tvm.resetStorage();
-        address sendGasTo;
-        mapping(uint64 => OldIStEverVault.PendingWithdraw) oldPendingWithdrawals;
-        (
-            stEverVaultVersion,
-            sendGasTo,
-            governance,
-            platformCode,
-            accountCode,
-            clusterCode,
-            stEverSupply,
-            totalAssets,
-            availableAssets,
-            totalStEverFee,
-            stEverWallet,
-            stTokenRoot,
-            gainFee,
-            stEverFeePercent,
-            minStrategyDepositValue,
-            minStrategyWithdrawValue,
-            isPaused,
-            strategyFactory,
-            owner,
-            accountVersion,
-            ,
-            clusterVersion,
-            strategies,
-            clusterPools,
-            oldPendingWithdrawals,
-            emergencyState
-        ) = abi.decode(
-            _upgradeData,
-                (
-                    uint32,
-                    address,
-                    uint256,
-                    TvmCell,
-                    TvmCell,
-                    TvmCell,
-                    uint128,
-                    uint128,
-                    uint128,
-                    uint128,
-                    address,
-                    address,
-                    uint128,
-                    uint32,
-                    uint128,
-                    uint128,
-                    bool,
-                    address,
-                    address,
-                    uint32,
-                    uint32,
-                    uint32,
-                    mapping(address => StrategyParams),
-                    mapping(address => ClustersPool),
-                    mapping(uint64 => OldIStEverVault.PendingWithdraw),
-                    EmergencyState
-                )
-        );
-
-        // set new fields
-        lastUnlockTime = now;
-        fullUnlockSeconds = 2 days;
-
-        for ((uint64 oldPendingWithdraw, OldIStEverVault.PendingWithdraw oldPendingParams) : oldPendingWithdrawals) {
-            pendingWithdrawals[oldPendingWithdraw] = PendingWithdraw({
-                user: oldPendingParams.user,
-                amount: oldPendingParams.amount,
-                remainingGasTo: oldPendingParams.remainingGasTo,
-                unlockTime: 0
-            });
-        }
-
-        sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
+    function onCodeUpgrade(TvmCell _upgradeData) private {}
 }
