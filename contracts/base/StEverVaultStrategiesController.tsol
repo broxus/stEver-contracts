@@ -5,7 +5,7 @@ import "./StEverVaultEmergency.tsol";
 import "./StEverStrategiesManager.tsol";
 
 import "../interfaces/IStrategy.tsol";
-
+import "locklift/src/console.tsol";
 
 
 
@@ -116,9 +116,10 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             if (unlockPerSecond == 0) {
                 unlockPerSecond = gainWithoutGainFee / fullUnlockSeconds;
                 remainingLockedAssets = gainWithoutGainFee;
+                remainingSeconds = fullUnlockSeconds;
             } else {
                 remainingSeconds =
-                    (unlockPerSecond * remainingSeconds + gainWithoutGainFee * fullUnlockSeconds) /
+                    (remainingLockedAssets * remainingSeconds + gainWithoutGainFee * fullUnlockSeconds) /
                         (remainingLockedAssets + gainWithoutGainFee);
 
                 remainingLockedAssets += gainWithoutGainFee;
