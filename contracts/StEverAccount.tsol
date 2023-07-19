@@ -9,7 +9,6 @@ import "./utils/Constants.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
-import {IStEverAccount as OldIStEverAccount} from "./test/v4/interfaces/IStEverAccount.tsol";
 
 
 
@@ -229,18 +228,18 @@ contract StEverAccount is IStEverAccount {
                 address vault,
                 address user,
                 uint32 currentVersion,
-                mapping(uint64 => OldIStEverAccount.WithdrawRequest) oldWithdrawRequests
+                mapping(uint64 => IStEverAccount.WithdrawRequest) oldWithdrawRequests
             ) = abi.decode(
                 s.loadRef(),
                 (
                     address,
                     address,
                     uint32,
-                    mapping(uint64 => OldIStEverAccount.WithdrawRequest)
+                    mapping(uint64 => IStEverAccount.WithdrawRequest)
                 )
             );
 
-            for ((uint64 nonce, OldIStEverAccount.WithdrawRequest oldWithdrawRequest) : oldWithdrawRequests) {
+            for ((uint64 nonce, IStEverAccount.WithdrawRequest oldWithdrawRequest) : oldWithdrawRequests) {
                 withdrawRequests[nonce] = IStEverAccount.WithdrawRequest(oldWithdrawRequest.amount, oldWithdrawRequest.timestamp, 0);
             }
         }

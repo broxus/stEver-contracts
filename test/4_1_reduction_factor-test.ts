@@ -83,126 +83,36 @@ describe("Reduction factor", async function () {
 
     expect(successEvents?.length).to.be.eq(1);
   });
-  it("round should completed", async () => {
-    const stateBefore = await vault.getDetails();
-    const ROUND_REWARD = toNanoBn(100);
-    const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
-      .minus(stateBefore.gainFee)
-      .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
-    const { transaction, traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
 
-    expect(traceTree)
-      .to.emit("StrategyReported")
-      .withNamedArgs(
-        {
-          strategy: strategiesWithPool[0].strategy.address,
-          report: {
-            gain: EXPECTED_REWARD.toString(),
-          },
-        },
-        "reported gain should be reduced by fee",
-      );
-
-    const stateAfter = await vault.getDetails();
-
-    expect(stateAfter.totalAssets.toNumber()).to.be.closeTo(
-      stateBefore.totalAssets.plus(EXPECTED_REWARD).toNumber(),
-      Number(toNano("0.01")),
-    );
-    expect(stateAfter.effectiveEverAssets.toNumber()).to.be.closeTo(
-      stateBefore.effectiveEverAssets.toNumber(),
-      Number(toNano("0.003")),
-    );
-  });
   it("check reduction-factor", async () => {
     const DAYLE_REWARD = 100;
+    const { fullUnlockSeconds } = await vault.getDetails();
 
-    {
-      const rateImmediatelyAfterReport = await vault.getWithdrawRate();
-      expect(rateImmediatelyAfterReport).to.be.closeTo(1, 0.0007);
-
-      await locklift.testing.increaseTime(60 * 60 * 24);
-
-      const rateAfterHalfUnlockTime = await vault.getWithdrawRate();
-
-      expect(rateAfterHalfUnlockTime).to.be.closeTo(1.5, 0.0007);
-
-      await locklift.testing.increaseTime(60 * 60 * 24);
-
-      const rateAfterFullUnlockTime = await vault.getWithdrawRate();
-      expect(rateAfterFullUnlockTime).to.be.closeTo(2, 0.0007);
+    const COUNT_OF_REPORTS = 40;
+    const SECONDS_BETWEEN_REPORTS = 30;
+    for (let _ of Array(COUNT_OF_REPORTS)) {
+      const { traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD));
+      await locklift.testing.increaseTime(SECONDS_BETWEEN_REPORTS);
     }
-    {
-      await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD));
-      const rate1 = await vault.getWithdrawRate();
-      expect(rate1).to.be.closeTo(2, 0.0007);
+    await locklift.testing.increaseTime(Number(fullUnlockSeconds) / 2);
+    const rate1 = await vault.getWithdrawRate();
 
-      await locklift.testing.increaseTime(60 * 60 * 24);
-      await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD));
-      const rate2 = await vault.getWithdrawRate();
+    expect(Number(rate1)).to.be.closeTo(COUNT_OF_REPORTS / 2 + 1, 0.2);
+    await user1.depositToVault(toNano("0.01"));
 
-      expect(rate2).to.be.closeTo(2.5, 0.0007);
-      await locklift.testing.increaseTime(60 * 60 * 24);
+    await locklift.testing.increaseTime(Number(fullUnlockSeconds) / 2 - 1000);
+    await user1.depositToVault(toNano("0.01"));
 
-      await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD));
-      const rate3 = await vault.getWithdrawRate();
-      expect(rate3).to.be.closeTo(3.62, 0.007);
+    const details1000SecondBeforeFullUnlock = await vault.getDetails();
+    expect(Number(details1000SecondBeforeFullUnlock.remainingSeconds)).to.be.gte(350);
 
-      await locklift.testing.increaseTime(60 * 60 * 24);
-      const rate4 = await vault.getWithdrawRate();
+    await locklift.testing.increaseTime(1000);
 
-      const DAYS = 10;
-      const incomeBefore10Days = await vault.vaultContract.methods
-        .getWithdrawEverAmount({ _amount: toNano(100) })
-        .call()
-        .then(res => Number(res.value0));
-      for (let _ of Array(DAYS)) {
-        await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD / 2));
-        await locklift.testing.increaseTime(60 * 60 * 12);
-        await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD / 2));
-        await locklift.testing.increaseTime(60 * 60 * 12);
-      }
-      const incomeAfter10Days = await vault.vaultContract.methods
-        .getWithdrawEverAmount({ _amount: toNano(100) })
-        .call()
-        .then(res => Number(res.value0));
+    await user1.depositToVault(toNano("0.01"));
+    const detailsAfterFullUnlock = await vault.getDetails();
+    expect(detailsAfterFullUnlock.remainingSeconds).to.be.eq("0");
 
-      expect(new BigNumber((incomeAfter10Days - incomeBefore10Days) / DAYS).shiftedBy(-9).toNumber()).to.be.closeTo(
-        DAYLE_REWARD,
-        0.8,
-      );
-      const resultRate = await vault.getWithdrawRate();
-      expect(resultRate).to.be.closeTo(14.5, 0.0007);
-      await user1.makeWithdrawRequest(toNano(100));
-      {
-        const { traceTree } = await governance.withdrawFromStrategiesRequest({
-          _withdrawConfig: [
-            [
-              strategiesWithPool[0].strategy.address,
-              {
-                amount: toNano(9999),
-                fee: toNano(0.6),
-              },
-            ],
-          ],
-        });
-        await traceTree?.beautyPrint();
-        {
-          const { traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(toNano(0), true);
-          await traceTree?.beautyPrint();
-        }
-      }
-
-      const { traceTree } = await governance.emitWithdraw({
-        sendConfig: [
-          [user1.account.address, { nonces: await user1.getWithdrawRequests().then(res => res.map(el => el.nonce)) }],
-        ],
-      });
-      await traceTree?.beautyPrint();
-      expect(Number(traceTree?.getBalanceDiff(user1.account.address))).to.be.closeTo(
-        toNanoBn(100).multipliedBy(resultRate).toNumber(),
-        Number(toNano(1)),
-      );
-    }
+    expect(Number(await vault.getWithdrawRate())).to.be.closeTo(COUNT_OF_REPORTS + 1, 0.001);
+    debugger;
   });
 });

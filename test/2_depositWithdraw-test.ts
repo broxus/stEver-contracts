@@ -48,11 +48,15 @@ describe.skip("Deposit withdraw test without lock time", function () {
   it("user shouldn't withdraw with bad value", async () => {
     const WITHDRAW_AMOUNT = toNanoBn(20);
     const nonce = locklift.utils.getRandomNonce();
+
+    const { state } = await vault.vaultContract.getFullState();
     const withdrawPayload = await vault.vaultContract.methods
       .encodeDepositPayload({
         _nonce: nonce,
       })
-      .call();
+      .call({
+        cachedState: state,
+      });
 
     const transaction = await locklift.tracing.trace(
       user1.wallet.walletContract.methods
@@ -175,7 +179,7 @@ describe.skip("Deposit withdraw test without lock time", function () {
     const { traceTree } = await governance.emitWithdraw({
       sendConfig: [withdrawToUserConfig],
     });
-
+    traceTree?.totalGasUsed();
     await withdrawTraceTree[0]?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess");
     const vaultBalanceAfter = await vault.getDetails();

@@ -5,13 +5,13 @@ import {
   TokenRootUpgradeableAbi,
 } from "../../build/factorySource";
 import { TokenWallet } from "./tokenWallet";
-import { Address, Contract, fromNano, toNano } from "locklift";
+import { Address, Contract, toNano } from "locklift";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-client";
 
 import { Vault } from "./vault";
-import { concatMap, from, lastValueFrom, timer } from "rxjs";
+import { lastValueFrom, timer } from "rxjs";
 
 export class User {
   constructor(
