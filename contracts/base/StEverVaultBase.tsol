@@ -234,6 +234,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function unlockAssets() internal {
         if  (remainingLockedAssets == 0) {
             effectiveEverAssets = totalAssets;
+            lastUnlockTime = now;
+            unlockPerSecond = 0;
             return;
         }
 

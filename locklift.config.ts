@@ -1,7 +1,8 @@
 import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, TestnetGiver } from "./giverSettings";
-
+import "locklift-verifier";
+require("dotenv").config();
 import chai from "chai";
 chai.use(lockliftChai);
 declare global {
@@ -38,13 +39,19 @@ const config: LockliftConfig = {
     // Or specify version of linker
     version: "0.15.48",
   },
+  verifier: {
+    verifierVersion: "latest", // contract verifier binary, see https://github.com/broxus/everscan-verify/releases
+    apiKey: process.env.VERIFY_API_KEY || "",
+    secretKey: process.env.VERIFY_SECRET_KEY || "",
+    // license: "AGPL-3.0-or-later", <- this is default value and can be overrided
+  },
   networks: {
     local: {
       // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: {
-        // id: 1,
         group: "localnet",
         type: "graphql",
+        id: 1,
         data: {
           endpoints: [LOCAL_NETWORK_ENDPOINT],
           latencyDetectionInterval: 1000,
@@ -74,6 +81,7 @@ const config: LockliftConfig = {
       connection: {
         group: "localnet",
         type: "graphql",
+        id: 1,
         data: {
           endpoints: ["http://localhost/graphql"],
           latencyDetectionInterval: 1000,
@@ -99,6 +107,7 @@ const config: LockliftConfig = {
       // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: {
         group: "1",
+        id: 1,
         type: "jrpc",
         data: {
           endpoint: "https://jrpc-broxustestnet.everwallet.net/rpc",
