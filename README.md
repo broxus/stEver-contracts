@@ -7,6 +7,48 @@ has the ability to automatically balance between validators.
 1. Users shouldn't select a validator for them self
 2. Users shouldn't freeze their money, after stake user will receive StEver tokens based on the current rate
 
+## Functional Description
+### Actors
+1. **StEverVault** - a contract that aggregates all validators and provides the ability to stake
+2. **User** - a person who wants to stake his money
+3. **StEverAccount** - a user account that represents user's withdrawal requests
+4. **StEver** - a token that represents the user's stake in the StEverVault
+5. **StEverGovernance** - a software that manage ever tokens between connected validators
+6. **StEverStrategy** - an abstraction that represents a connector to `DePool` contract
+7. **StEverCluster** - a contract that aggregates strategies owned by a validator
+
+### Actors behavior
+#### StEverVault
+This is the main entry point for each user, owner, governance operations. It keeps all ever assets, and also it is the `StEver` token issuer.
+Let's dig into the `StEverVault` functionality:
+1. **Deposit** - `StEver.deposit` user can deposit his ever tokens to the `StEverVault` and receive `StEver` tokens in return
+2. **Withdraw** - `StEver.onAcceptTokensTransfer` user can withdraw his ever tokens from the `StEverVault` by sending `StEver` tokens to the `StEverVault`.
+After it inside the user's **StEverAccount** will be created new withdrawal request (withdraw request can also be canceled by the user).
+When `withfrawHoldTime` will be passed, and `StEverGovernance` will process this request, user will receive his `ever` tokens + reward back
+#### StEverCluster
+If the validator wants to participate to StEver project he should get in touch with StEver admins. After some checks,
+if a validator pass our checks we will create a `StEverCluster` contract for him.
+
+**Integrate validator functionality**
+1. Admin will call `StEver.createCluster`, after this call new cluster will be added to `clusterPools` mapping.
+Then cluster address will be provided to validator
+2. Validator going to deploy his `DePool` contracts and call `StEverCluster.deployStrategies` with `DePool` addresses
+3. Each cluster has its own constrains such as `maxStrategiesCount` and `assurance`. `maxStrategiesCount` is a maximal
+   strategy count that can be created by the `Cluster`. `assurance` is Assurance that should be provided by the
+   `clusterOwner` to his `Cluster`. `assurance` is `StEver` value, so the `clusterOwner` should make a `StEver` token
+   transfer to the `Cluster` address
+4. When all constraints are satisfied, the validator can obtain strategies addresses, and call `StEverCluster.addStrategies` with strategies addresses.
+After its strategies will be added to the `StEverVault` and will be available for staking
+
+#### StEverGovernance
+This is software that has access to re-balance ever tokens between connected strategies, and also it manages withdrawals for users.
+
+**Re-balance functionality**
+1. `StEverVault.depositToStrategies`
+2. `StEverVault.processWithdrawFromStrategies`
+
+**Withdraw request satisfaction**
+1. `StEverVault.processSendToUsers`
  
 ## Deploy
 ```shell
@@ -52,6 +94,20 @@ Now interaction with strategies looks like this:
 3. Attach strategies to the StEver `Cluster.addStrategies(_strategies=strategiesAddresses[])`
 - Remove strategies
 1. `Cluster.removeStrategies(_strategies=strategiesAddresses[])`
+
+### [V4]
+With this update we improve `withfrawHoldTime` for each user. This is anti-abuse mechanism
+that allows to withdraw only after `withfrawHoldTime` from the withdrawal request. 
+#### Added
+- Filed `withfrawHoldTime` - time that should be passed from the withdrawal request to the withdrawal itself
+- Each withdrawal request has its own `unlockTime` that is calculated as `now + withfrawHoldTime`
+
+### [V5]
+This update provide `reduction factor` for rewards. This factor is used to reduce growing of ever/stEver ratio.
+And now users are obtaining their rewards immediately after the stake was made (each second rate are growing).
+Instead of obtaining rewards immediately after strategy report.
+
+
 
 
 
