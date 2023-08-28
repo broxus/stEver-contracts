@@ -24,11 +24,6 @@ import "./utils/ErrorCodes.tsol";
  *
  * It manages the deployment and delegation of strategies, assurance provision
  * by the `clusterOwner`, and the addition of strategies to the `StEverVault`.
- *
- * The `assurance` is a value in `StEver` tokens that the `clusterOwner`
- * must transfer to the `Cluster` address.
- * Once all constraints, including `maxStrategiesCount` and `assurance`, are satisfied,
- * the strategies can be added to the `StEverVault` and made available for staking.
  */
 contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
