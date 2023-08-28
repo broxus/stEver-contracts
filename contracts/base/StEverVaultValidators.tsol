@@ -1,8 +1,28 @@
 pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 
+/**
+ * @title StEverVaultValidators
+ *
+ * @dev This abstract contract extends the {StEverVaultBase} contract with functions
+ * that validate deposit and withdrawal requests.
+ */
 abstract contract StEverVaultValidators is StEverVaultBase {
 
+    /**
+     * @dev See {IStEverVault-validateDepositRequest}.
+     *
+     * @param _depositConfigs The mapping of deposit configurations.
+     * @return ValidationResult[] An array of validation results.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the sum of DEPLOY_CLUSTER_VALUE and MIN_CALL_MSG_VALUE.
+     *
+     * Postconditions:
+     *  - A new cluster is created and added to the clusterPools.
+     *  - The ClusterCreated event is emitted.
+     */
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
 
@@ -39,6 +59,21 @@ abstract contract StEverVaultValidators is StEverVaultBase {
         }
         return validationResults;
     }
+
+    /**
+     * @dev See {IStEverVault-validateWithdrawRequest}.
+     *
+     * @param _withdrawConfig The mapping of withdrawal configurations.
+     * @return ValidationResult[] An array of validation results.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the sum of DEPLOY_CLUSTER_VALUE and MIN_CALL_MSG_VALUE.
+     *
+     * Postconditions:
+     *  - A new cluster is created and added to the clusterPools.
+     *  - The ClusterCreated event is emitted.
+     */
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
         ValidationResult[] validationResults;
 

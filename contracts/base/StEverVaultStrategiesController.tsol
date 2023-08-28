@@ -8,8 +8,28 @@ import "../interfaces/IStrategy.tsol";
 
 
 
-
+/**
+ * @title StEverVaultStrategiesController
+ *
+ * @dev This abstract contract manages strategies in the {StEverVault}.
+ *
+ * It provides methods for various operations such as deposits, withdrawals,
+ * reporting strategy results, and handling failed transactions.
+ * The contract ensures the safety and security of the funds in the vault
+ * and provides transparency through events.
+ */
 abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaultEmergency, StEverStrategiesManager  {
+    /**
+     * @dev See {IStEverVault-depositToStrategies}.
+     *
+     * Preconditions:
+     *  - The caller must be the governance or the contract itself.
+     *  - The value of the message must be greater than or equal to the sum of the deposit amount and the fee.
+     *
+     * Postconditions:
+     *  - Funds are deposited to the strategies according to the deposit configurations.
+     *  - The available assets and total assets are updated accordingly.
+     */
     function depositToStrategies(mapping (address => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 
@@ -61,6 +81,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    /**
+     * @dev See {IStEverVault-onStrategyHandledDeposit}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The depositing amount for the strategy is reset to 0.
+     *  - The total assets for the strategy are updated.
+     *  - The available assets are increased by the returned fee.
+     *  - The StrategyHandledDeposit event is emitted.
+     */
     function onStrategyHandledDeposit() override external onlyStrategy {
         uint128 depositingAmount = strategies[msg.sender].depositingAmount;
         // set init state for depositing
@@ -75,6 +107,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         emit StrategyHandledDeposit(msg.sender, depositingAmount);
     }
 
+    /**
+     * @dev See {IStEverVault-onStrategyDidntHandleDeposit}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The depositing amount for the strategy is reset to 0.
+     *  - The available assets are increased by the remaining gas.
+     *  - The total assets are updated based on the depositing amount and the message value.
+     *  - The StrategyDidntHandleDeposit event is emitted.
+     */
     function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
         uint128 depositingAmount = strategies[msg.sender].depositingAmount;
         // set init state for depositing
@@ -95,6 +139,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
 
 
+    /**
+     * @dev See {IStEverVault-strategyReport}
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The strategy's last report time is updated.
+     *  - The total gain for the strategy is increased by the reported gain.
+     *  - The total assets for the strategy are updated.
+     *  - The StrategyReported event is emitted.
+     */
     function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
 
         strategies[msg.sender].lastReport = now;
@@ -145,6 +201,17 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    /**
+     * @dev See {IStEverVault-processWithdrawFromStrategies}
+     *
+     * Preconditions:
+     *  - The caller must be the governance or the contract itself.
+     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
+     *
+     * Postconditions:
+     *  - Funds are withdrawn from the strategies according to the withdrawal configurations.
+     *  - The available assets and total assets are updated accordingly.
+     */
     function processWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 
@@ -190,6 +257,17 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    /**
+     * @dev See {IStEverVault-onStrategyHandledWithdrawRequest}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The StrategyHandledWithdrawRequest event is emitted.
+     *  - The available assets are increased by the returned fee.
+     *  - The total assets are updated based on the withdrawal amount.
+     */
     function onStrategyHandledWithdrawRequest() override external onlyStrategy {
 
         emit StrategyHandledWithdrawRequest(msg.sender, strategies[msg.sender].withdrawingAmount);
@@ -205,9 +283,17 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         increaseTotalAssets(msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
     }
 
-    /*
-        Method for situation when dePool is stopped emit new rounds, and our deposit there is in the Pooling round
-    */
+    /**
+     * @dev See {IStEverVault-forceWithdrawFromStrategies}.
+     *
+     * Preconditions:
+     *  - The caller must be the governance or the contract itself.
+     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
+     *
+     * Postconditions:
+     *  - Funds are forcibly withdrawn from the strategies according to the withdrawal configurations.
+     *  - The available assets and total assets are updated accordingly.
+     */
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
         uint128 decreaseAvailableAssets;
@@ -248,6 +334,19 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    /**
+     * @dev See {IStEverVault-receiveFromStrategy}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The withdrawing amount for the strategy is reset to 0.
+     *  - The total assets for the strategy are updated.
+     *  - The available assets are increased by the received amount.
+     *  - The StrategyWithdrawSuccess event is emitted.
+     *  - The strategy is removed if it is ready to be deleted.
+     */
     function receiveFromStrategy() override external onlyStrategy {
         // set init state for withdrawing
         strategies[msg.sender].withdrawingAmount = 0;
@@ -265,6 +364,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    /**
+     * @dev See {IStEverVault-receiveAdditionalTransferFromStrategy}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The available assets are increased by the received amount.
+     *  - The total assets for the strategy are updated.
+     *  - The strategy is removed if it is ready to be deleted.
+     *  - The {ReceiveAdditionalTransferFromStrategy} event is emitted.
+     */
     function receiveAdditionalTransferFromStrategy() override external onlyStrategy {
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
@@ -278,11 +389,29 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         emit ReceiveAdditionalTransferFromStrategy(msg.sender, receivedAmount);
     }
 
+    /**
+     * @dev Checks if a strategy is ready to be deleted.
+     *
+     * @param _strategy The address of the strategy.
+     *
+     * Postconditions:
+     *  - Returns true if the strategy is in the removing state and has no total assets.
+     */
     function isStrategyReadyToDelete(address _strategy) internal view returns(bool) {
         StrategyParams strategy = strategies[_strategy];
         return strategy.state == StrategyState.REMOVING && strategy.totalAssets == 0;
     }
 
+    /**
+     * @dev Updates the total assets for a strategy.
+     *
+     * @param _strategy The address of the strategy.
+     * @param _amount The amount to increase or decrease the total assets by.
+     * @param _isIncrease Whether to increase or decrease the total assets.
+     *
+     * Postconditions:
+     *  - The total assets for the strategy are increased or decreased based on the _isIncrease parameter.
+     */
     function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
 
         if (_isIncrease) {
@@ -305,6 +434,18 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
 
     }
 
+    /**
+     * @dev See {IStEverVault-withdrawFromStrategyError}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The StrategyWithdrawError event is emitted.
+     *  - The withdrawing amount for the strategy is reset to 0.
+     *  - The available assets are increased by the remaining gas.
+     *  - The total assets are increased by the remaining gas.
+     */
     function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
         emit StrategyWithdrawError(msg.sender, _errcode);
         // set init state for withdrawing
@@ -324,7 +465,16 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         increaseTotalAssets(notUsedFee);
     }
 
-    // extra money from strategies
+    /**
+     * @dev See {IStEverVault-processWithdrawExtraMoneyFromStrategies}.
+     *
+     * Preconditions:
+     *  - The caller must be the governance or the contract itself.
+     *
+     * Postconditions:
+     *  - Extra money is withdrawn from the strategies.
+     *  - The available assets are decreased by the minimum transaction value for each strategy.
+     */
     function processWithdrawExtraMoneyFromStrategies(address[] _strategies) override external onlyGovernanceOrSelfAndAccept {
 
         for (address strategy : _strategies) {
@@ -344,6 +494,16 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    /**
+     * @dev See {IStEverVault-receiveExtraMoneyFromStrategy}.
+     *
+     * Preconditions:
+     *  - The caller must be the strategy.
+     *
+     * Postconditions:
+     *  - The available assets are increased by the received value.
+     *  - The ReceiveExtraMoneyFromStrategy event is emitted.
+     */
     function receiveExtraMoneyFromStrategy() override external onlyStrategy {
         uint128 receivedValue = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
@@ -355,6 +515,17 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         emit ReceiveExtraMoneyFromStrategy(msg.sender, availableAssetsIncreasedFor);
     }
 
+    /**
+     * @dev See {IStEverVault-setStrategiesTotalAssets}.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the minimum call value.
+     *
+     * Postconditions:
+     *  - The total assets for the strategies are set.
+     *  - The strategy is removed if it is ready to be deleted.
+     */
     function setStrategiesTotalAssets(
         IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig
     ) override external onlyOwner minCallValue {
@@ -375,6 +546,17 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    /**
+     * @dev See {IStEverVault-forceStrategyRemove}.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to StEverVaultGas.REMOVE_STRATEGY_RESERVE.
+     *
+     * Postconditions:
+     *  - If the strategy exists, it is removed.
+     *  - The onStrategyRemoved event is emitted.
+     */
     function forceStrategyRemove(address _strategy, address _cluster) override external onlyOwner {
         require(msg.value >= StEverVaultGas.REMOVE_STRATEGY_RESERVE, ErrorCodes.NOT_ENOUGH_VALUE);
 
@@ -391,3 +573,5 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     }
 
 }
+
+

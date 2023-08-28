@@ -2,13 +2,57 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
 
+/**
+ * This interface represents the DePool contract, which is a part of the `StEver staking platform`.
+ * It provides methods for staking, withdrawing stakes, and managing the state of the `DePool.`
+ */
 interface IDePool {
+    /**
+     * Add an ordinary stake to the DePool.
+     *
+     * @param stake The amount of stake to be added.
+     */
     function addOrdinaryStake(uint64 stake) external;
+
+    /**
+     * Withdraw a specified amount from the pooling round.
+     *
+     * @param withdrawValue The amount to be withdrawn from the pooling round.
+     */
     function withdrawFromPoolingRound(uint64 withdrawValue) external;
+
+    /**
+     * Withdraw a part of the total stake.
+     *
+     * @param withdrawValue The amount to be withdrawn.
+     */
     function withdrawPart(uint64 withdrawValue) external;
+
+    /**
+     * Withdraw all stakes from the DePool.
+     */
     function withdrawAll() external;
+
     // mock methods
+    /**
+     * Complete a round of staking.
+     *
+     * @param _reward The reward for the completed round.
+     * @param includesWithdraw Indicates whether the round includes a withdrawal.
+     */
     function roundComplete(uint64 _reward, bool includesWithdraw) external;
+
+    /**
+     * Set the closed state of the DePool.
+     *
+     * @param _closed The new closed state of the DePool.
+     */
     function setClosed(bool _closed) external;
+
+    /**
+     * Set the withdrawals closed state of the DePool.
+     *
+     * @param _withdrawalsClosed The new withdrawals closed state of the DePool.
+     */
     function setWithdrawalsClosed(bool _withdrawalsClosed) external;
 }

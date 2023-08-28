@@ -4,6 +4,20 @@ pragma AbiHeader expire;
 import "../interfaces/IStEverVault.tsol";
 import "../utils/ClusterLib.tsol";
 
+/**
+ * @title IStEverCluster
+ *
+ * @dev Interface of the essential functionality required by the {StEverCluster} contract
+ * for managing validator strategies in the StEver staking platform.
+ *
+ * This interface includes functions for deploying, delegating, and removing strategies, upgrading cluster code, and
+ * managing cluster details and state.
+ *
+ * Each cluster has a state, and each strategy within a cluster also has a state.
+ *
+ * Events are emitted for new strategy deployments, errors during strategy removal, changes in assurance amounts,
+ * and assurance received.
+ */
 interface IStEverCluster {
 
     enum StrategyState {
@@ -50,22 +64,94 @@ interface IStEverCluster {
     event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
+
+    /**
+     * @dev Sets the assurance.
+     * This function sets the required assurance to the specified value.
+     * @param _newRequiredAssurance The new required assurance.
+     */
     function setAssurance(uint128 _newRequiredAssurance) external;
+
+    /**
+     * @dev Withdraws assurance.
+     * This function withdraws the specified amount of assurance,
+     * or the unlocked assurance if it is less.
+     *
+     * @param _amount The amount of assurance to withdraw.
+     */
     function withdrawAssurance(uint128 amount) external;
 
+    /**
+     * @dev Function to deploy strategies for the cluster.
+     * @param _dePools The addresses of the DePools.
+     */
     function deployStrategies(address[] dePools) external;
+    /**
+     * @dev Handles the deployment of a new strategy.
+     * This function sets the deployed status of the strategy to
+     * true and emits a {NewStrategyDeployed} event.
+     *
+     * @param _strategy The address of the strategy.
+     */
     function onStrategyDeployed(address strategy) external;
+    /**
+     * @dev Handles the addition of strategies to the cluster.
+     * This function sets the state of each strategy to ACTIVE.
+     *
+     * @param _strategies The addresses of the strategies.
+     */
     function onStrategiesAdded(address[] _strategies) external;
 
+    /**
+     * @dev Handles the delegation of strategies to the cluster.
+     * This function checks if each strategy exists in the strategies mapping.
+     * If a strategy does not exist, it is added to the strategies mapping and
+     * the state is set to ACTIVE.
+     *
+     * @param _strategies The addresses of the strategies.
+     */
     function handleDelegateStrategies(address[] _strategies) external;
 
+    /**
+     * @dev Handles the pending removal of strategies from the cluster.
+     * This function sets the state of each strategy to PENDING_REMOVE.
+     *
+     * @param _strategies The addresses of the strategies.
+     */
     function onPendingStrategyRemove(address[] _strategies) external;
 
+    /**
+     * @dev Handles the removal of a strategy from the cluster.
+     * This function deletes the strategy from the strategies mapping and checks if the cluster is in the REMOVING state.
+     *
+     * If the cluster is in the REMOVING state and there are no more strategies,
+     * it calls the {IStEverVault-onClusterRemoved} function.
+     *
+     * @param _strategy The address of the strategy.
+     */
     function onStrategyRemoved(address _strategy) external;
 
+    /**
+     * @dev Retrieves the details of the cluster.
+     * @return Details The details of the cluster.
+     */
     function getDetails() external responsible returns (Details);
 
+    /**
+     * @dev Drops the cluster.
+     * This function checks if the cluster is not already in the REMOVING state, then sets the cluster state to REMOVING.
+     * It then removes all strategies that are in the ACTIVE state.
+     *
+     * @param _isPunish A boolean indicating whether the cluster is being punished.
+     */
     function dropCluster(bool _isPunish) external;
-    // upgrade
+
+    /**
+     * @dev Upgrades the cluster code.
+     *
+     * @param _newCode The new code.
+     * @param _newVersion The new version.
+     * @param _sendGasTo The address to send remaining gas to.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }
