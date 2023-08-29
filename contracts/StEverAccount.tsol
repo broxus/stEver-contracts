@@ -21,11 +21,7 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
  *
  * A user initiates a withdrawal from the StEverVault, creating a withdrawal request in their StEverAccount.
  * The user can also cancel this request.
- *
- * After the withdrawHoldTime has passed and StEverGovernance processes the request,
- * the user receives their ever tokens plus any rewards.
  */
-
 contract StEverAccount is IStEverAccount {
     address vault; // setup from initData
     address user; // setup from initData

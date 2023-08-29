@@ -3,7 +3,9 @@ pragma AbiHeader expire;
 
 
 /**
- * This interface represents the DePool contract, which is a part of the `StEver staking platform`.
+ * @title IDePool
+ *
+ * @dev This interface represents the DePool contract, which is a part of the `StEver staking platform`.
  * It provides methods for staking, withdrawing stakes, and managing the state of the `DePool.`
  */
 interface IDePool {
