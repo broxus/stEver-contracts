@@ -1,0 +1,348 @@
+= StEver Staking Platform
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com
+
+The StEver staking platform is a comprehensive and robust system designed for efficient and secure staking of ever tokens. It incorporates a suite of contracts and interfaces that work together to facilitate token staking, management of validators and strategies, and handling of withdrawal requests.
+
+The StEver platform is composed of a set of core components, abstract contracts, and interfaces that define and implement the necessary functionalities.
+
+TIP: For an overview of the StEver staking platform and a walkthrough on how to interact with the contracts, read our xref:README.adoc[Quick Start].
+
+
+== Core Components
+
+{StEverVault}: is the central contract of the StEver staking platform. It aggregates all validators, manages staking, and issues StEver tokens. Users can deposit their ever tokens into the StEverVault, and in return, they receive StEver tokens. Withdrawal requests are also processed by the StEverVault.
+
+{StEverAccount}: Each user has an associated StEverAccount which tracks their withdrawal requests. A user can initiate a withdrawal from the StEverVault, creating a withdrawal request in their StEverAccount.
+
+{StEverCluster}: The StEverCluster contract aggregates strategies owned by a validator. Validators who wish to participate in the StEver project must have a StEverCluster contract created for them by the StEver admins.
+
+{DepoolStrategyFactory}: The DepoolStrategyFactory contract is used to create new Depool strategies.
+
+{StrategyDePool}: The StrategyDePool is an abstraction that represents a connector to the `DePool` contract. It's part of the system that manages strategies for the StEver staking platform.
+
+{Platform}: The Platform contract is responsible for managing the entire StEver staking platform.
+
+== Abstract Contracts
+
+{StEverStrategiesManager}: The StEverStrategiesManager contract is used to manage the strategies for the StEver staking platform.
+
+{StEverVaultBase}: The StEverVaultBase contract is the base for the StEverVault contract and other related contracts.
+
+{StEverVaultEmergency}: The StEverVaultEmergency contract is used to handle emergency situations in the StEverVault.
+
+{StEverVaultStorage}: The StEverVaultStorage contract is a storage contract for the StEverVault.
+
+{StEverVaultStrategiesController}: The StEverVaultStrategiesController contract manages strategies in the StEverVault.
+
+{StEverVaultValidators}: The StEverVaultValidators contract extends the StEverVaultBase contract with functions that validate deposit and withdrawal requests.
+
+== Interfaces
+
+{IDepool}: The IDePool interface represents the DePool contract, which is a part of the StEver staking platform.
+
+{IDepoolStrategy}: The IDePoolStrategy interface represents the DePool Strategy contract.
+
+{IDepoolStrategyFactory}: The IDePoolStrategyFactory interface represents the DePool Strategy Factory contract.
+
+{IParticipant}: The IParticipant interface represents a participant in the DePool staking platform.
+
+{IStEverAccount}: The IStEverAccount interface defines the necessary functionality required by the StEverAccount contract.
+
+{IStEverCluster}: The IStEverCluster interface defines the essential functionality required by the StEverCluster contract.
+
+{IStEverVault}: The IStEverVault interface defines the necessary functions for depositing and withdrawing ever tokens.
+
+{IStrategy}: The IStrategy interface defines the essential functionalities required by a strategy in the StEver staking platform.
+
+== Quick Start
+=== Deployment
+To deploy the contracts, follow these steps:
+
+[source,shell]
+----
+npm i
+----
+
+[source,shell]
+----
+SEED="{{seed phrase}}" \
+MAIN_GIVER_KEY={{giver secret key}} \
+npx locklift run --disable-build --network mainnet -s scripts/1_deploy-and-setup-stEverVault.ts
+----
+
+=== Upgrade Contracts
+To upgrade the contracts, run the following command:
+
+[source,shell]
+----
+npx locklift run --disable-build --network mainnet -s scripts/2_fix_upgrade.ts
+----
+
+=== StEver Cluster Upgrade Guide
+
+To upgrade the StEver cluster, follow these steps:
+
+[source,shell]
+----
+// 1. Set `StEverVault` to the paused state
+StEverVault.setIsPaused(true) // value=2
+----
+
+[source,shell]
+----
+// 2. Build the contracts
+npx locklift build
+----
+
+[source,shell]
+----
+// 3. Upgrade `StEverVault`
+// Get the new code
+npx locklift code -c StEverVault
+// Run the upgrade
+StEverVault.upgrade(newCode, newVersion=5, _sendGasTo) // value=2
+----
+
+[source,shell]
+----
+// 4. Upgrade accounts
+// Get the new code
+npx locklift code -c StEverAccount
+// Set the new code for accounts
+StEverVault.setNewAccountCode(newCode) // value=2
+// Run the upgrade
+StEverVault.upgradeStEverAccounts(_sendGasTo, _users=address[]) // value=2*usersCount
+----
+
+[source,shell]
+----
+// 5. Upgrade `StEverCluster`
+// Get the new code
+npx locklift code -c StEverCluster
+// Set the new cluster code
+StEverVault.setNewClusterCode(newCode) // value=2
+// Upgrade the clusters
+StEverVault.upgradeStEverClusters(_sendGasTo=admin, _clusters=["0:cedb787c499417abeb88c965594b849485c940dae20035c8279e37a291a361fd","0:86ea048f599734f266d3267a66941cd218dfb8120e4eca8cc055fdba8413fade"]) // value=2
+----
+
+[source,shell]
+----
+// 6. Set `StEverVault` to the active state
+StEverVault.setIsPaused(false) // value=2
+----
+
+=== StEver Platform User Guide
+
+The StEver platform consists of two main contracts:
+
+1. `StEverVault`: This is the main staking contract.
+2. `StEverAccount`: This is the user account contract.
+
+The following methods are available:
+
+==== Deposit
+
+[source,javascript]
+----
+const depositAmount = 100000000000 //100 ever
+const fee = 2000000000 //2 ever
+await StEverVault.methods
+  .deposit({
+    _amount: depositAmount,
+    _nonce: randomNonce,
+  })
+  .send({
+    from: accountAddress,
+    amount: depositAmount + fee,
+  });
+----
+
+==== Withdraw
+
+[source,javascript]
+----
+const withdrawAmount = 1000000000
+const withdrawPayload = await StEverVault.methods
+  .encodeDepositPayload({
+    _nonce: randomNonce,
+    _deposit_owner: userAddress,
+  })
+  .call();
+
+await UserStEverTokenWallet.methods
+  .transfer({
+    remainingGasTo: this.account.address,
+    deployWalletValue: 0,
+    amount: withdrawAmount,
+    notify: true,
+    recipient: this.vault.vaultContract.address,
+    payload: withdrawPayload.depositPayload,
+  })
+  .send({
+    from: this.account.address,
+    amount: 3000000000 // 3 ever, 1 ever will freeze until withdraw won't be completed
+  })
+----
+
+==== Remove Withdraw Request
+
+[source,javascript]
+----
+await StEverVault.methods.removePendingWithdraw({
+  _nonce: nonce //nonce from withdraw request
+}).send({
+  from: this.account.address,
+  amount: 2000000000,//2 ever
+})
+----
+
+==== User Data Info
+
+[source,javascript]
+----
+const { value0: userDataAddress } = await this.vault.vaultContract.methods.getAccountAddress({
+  _user: userAddress,
+  answerId: 0,
+}).call()
+const userDataAccount = new ever.Contract('UserDataAbi', userDataAddress)
+const { withdrawRequests } = await userDataAccount.methods.withdrawRequests().call()
+----
+
+==== StEverVault Info
+
+[source,javascript]
+----
+const { value0: stEverVaultDetails } = await StEverVault.methods.getDetails({ answerId: 0 }).call()
+// calculating the rate
+const stEverToEverRate = stEverVaultDetails.stEverSupply / stEverVaultDetails.totalAssets
+// also provided two methods
+// get how many stEvers we can get for evers
+const { value0: howManyStEverWillReceived } = await StEverVault.methods.getDepositStEverAmount({
+  _amount: 1000000000//e.g. 1 ever
+}).call()
+
+// get how many evers we can get for stEvers
+const { value0: howManyEverWillReceived } = await StEverVault.methods.getWithdrawEverAmount({
+  _amount: 1000000000//e.g. 1 stEver
+}).call()
+----
+
+
+== API Reference
+=== StEverVault
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com/stevervault
+
+The StEverVault contract is the central point of the StEver staking platform. It aggregates all validators, handles staking, and issues StEver tokens. Users can deposit their ever tokens into the StEverVault and receive StEver tokens in return. Withdrawal requests are also processed by the StEverVault.
+
+StEverVault is based on abstractions such as:
+
+  - {StEverVaultBase}
+  - {StEverVaultEmergency}
+  - {StEverVaultStorage}
+  - {StEverVaultStrategiesController}
+  - {StEverVaultValidators}
+
+that add additional functionality to the basic StEverVault contract.
+
+==== Core Components
+
+{{StEverVault}}
+
+{{StEverVaultBase}}
+
+{{StEverVaultStorage}}
+
+==== Abstractions
+
+{{StEverVaultEmergency}}
+
+{{StEverVaultStrategiesController}}
+
+{{StEverVaultValidators}}
+
+==== Interfaces
+
+{{IStEverVault}}
+
+=== StEverAccount
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com/steveraccount
+
+The StEverAccount contract tracks the withdrawal requests of each user. A user can initiate a withdrawal from the StEverVault, creating a withdrawal request in their StEverAccount.
+
+Each user has their own instance of the StEverAccount contract, and withdrawal requests are handled in a decentralized manner.
+
+==== Core Component
+
+{{StEverAccount}}
+
+==== Interface
+
+{{IStEverAccount}}
+
+=== StEverCluster
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com/stevercluster
+
+The StEverCluster contract aggregates strategies owned by a validator. Validators who wish to participate in the StEver project must have a StEverCluster contract created for them by the StEver admins.
+
+Each validator has their own instance of the StEverCluster contract, and strategy management is handled in a decentralized manner.
+
+==== Core Component
+
+{{StEverCluster}}
+
+==== Interface
+
+{{IStEverCluster}}
+
+=== DepoolStrategyFactory
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com/depoolstrategyfactory
+
+The DepoolStrategyFactory contract is used to create new Depool strategies.
+
+==== Core Component
+
+{{DepoolStrategyFactory}}
+
+==== Interface
+
+{{IDepoolStrategyFactory}}
+
+=== StrategyDePool
+
+[.readme-notice]
+
+NOTE: This document is better viewed at https://docs.stever.com/strategydepool
+
+The StrategyDePool is an abstraction that represents a connector to the `DePool` contract. It's part of the system that manages strategies for the StEver staking platform.
+
+==== Core Component
+
+{{StrategyDePool}}
+
+==== Interface
+
+{{IDepool}}
+
+{{IDePoolStrategy}}
+
+{{IStrategy}}
+
+{{IParticipant}}
+
+=== RPlatform
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.stever.com/platform
+
+{{RPlatform}}
+
