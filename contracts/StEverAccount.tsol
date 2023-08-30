@@ -20,14 +20,11 @@ contract StEverAccount is IStEverAccount {
     // mappings
     mapping(uint64 => IStEverAccount.WithdrawRequest) public withdrawRequests;
 
-    //constant
-    uint128 constant MAX_PENDING_COUNT = 50;
-
-
     constructor() public {
         revert();
     }
-
+    /// @dev this function is using instead of constructor
+    /// @param _version - initial version of account
     function _init(uint32 _version) internal {
         currentVersion = _version;
     }
@@ -57,7 +54,11 @@ contract StEverAccount is IStEverAccount {
 			} AccountDetails(user, vault, currentVersion);
 	}
 
-
+    /// @dev function for handling withdraw requests
+    /// @param _nonce - nonce of withdraw request
+    /// @param _amount - amount of withdraw request
+    /// @param _unlockTime - unlock time of withdraw request
+    /// @param _remainingGasTo - address for sending remaining gas
     function addPendingValue(
         uint64 _nonce,
         uint128 _amount,
@@ -65,7 +66,7 @@ contract StEverAccount is IStEverAccount {
         address _remainingGasTo
     ) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-        if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
+        if (withdrawRequests.keys().length < Constants.MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
             withdrawRequests[_nonce] = WithdrawRequest({
                 amount: _amount,
@@ -78,7 +79,9 @@ contract StEverAccount is IStEverAccount {
         }
         IStEverVault(vault).onPendingWithdrawRejected{value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce, user, _amount, _remainingGasTo);
     }
-
+    /// @dev function for reset pending withdraw requests in case of vault reject
+    /// @param rejectedWithdrawals - mapping of rejected withdraw requests
+    /// @param _sendGasTo - address for sending remaining gas
     function resetPendingValues(mapping(uint64 => IStEverAccount.WithdrawRequest) rejectedWithdrawals, address _sendGasTo) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
@@ -88,7 +91,8 @@ contract StEverAccount is IStEverAccount {
 
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    /// @dev function for remove pending withdraw request
+    /// @param _nonce - nonce of withdraw request
     function removePendingWithdraw(uint64 _nonce) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (withdrawRequests.exists(_nonce)) {
@@ -103,7 +107,7 @@ contract StEverAccount is IStEverAccount {
         }
         user.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    /// @dev function for preparing data about withdraw requests that will send to the vault
     function createAndSendWithdrawToUserRequest(uint64[] _satisfiedWithdrawRequests) internal {
 
         uint128 totalAmount = 0;
@@ -128,11 +132,13 @@ contract StEverAccount is IStEverAccount {
         );
     }
 
+    /// @dev function for processing withdraw requests
+    /// @param _satisfiedWithdrawRequests - array of satisfied withdraw requests
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         createAndSendWithdrawToUserRequest(_satisfiedWithdrawRequests);
     }
-
+    /// @dev function for processing withdraw requests in case of emergency
     function onEmergencyWithdrawToUser() override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         uint64[] satisfiedWithdrawRequests;
@@ -145,7 +151,8 @@ contract StEverAccount is IStEverAccount {
         }
         createAndSendWithdrawToUserRequest(satisfiedWithdrawRequests);
     }
-
+    /// @dev function for checking if provided withdraw request has been living more than `timeAfterEmergencyCanBeActivated`
+    /// @param _proofNonce - nonce of withdraw request
     function onStartEmergency(uint64 _proofNonce) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (!withdrawRequests.exists(_proofNonce)) {
@@ -205,12 +212,12 @@ contract StEverAccount is IStEverAccount {
         onCodeUpgrade(mainBuilder.toCell());
     }
 
-    function onCodeUpgrade(TvmCell _upgrade_data) private {
+    function onCodeUpgrade(TvmCell _upgradeData) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = _upgrade_data.toSlice();
+        TvmSlice s = _upgradeData.toSlice();
 
-        (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
+        (address root_, , address sendGasTo, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 
         TvmCell initialData = s.loadRef();
@@ -225,9 +232,9 @@ contract StEverAccount is IStEverAccount {
 
         if  (_newVersion != _currentVersion) {
             (
-                address vault,
-                address user,
-                uint32 currentVersion,
+                ,
+                ,
+                ,
                 mapping(uint64 => IStEverAccount.WithdrawRequest) oldWithdrawRequests
             ) = abi.decode(
                 s.loadRef(),
@@ -238,13 +245,13 @@ contract StEverAccount is IStEverAccount {
                     mapping(uint64 => IStEverAccount.WithdrawRequest)
                 )
             );
-
+            currentVersion = _newVersion;
             for ((uint64 nonce, IStEverAccount.WithdrawRequest oldWithdrawRequest) : oldWithdrawRequests) {
                 withdrawRequests[nonce] = IStEverAccount.WithdrawRequest(oldWithdrawRequest.amount, oldWithdrawRequest.timestamp, 0);
             }
         }
 
 
-        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 }

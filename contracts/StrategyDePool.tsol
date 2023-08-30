@@ -88,14 +88,15 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
 
-    function _reserveWithValue(uint128 _value) internal pure returns (uint128) {
-		return math.max(address(this).balance - msg.value - _value, CONTRACT_MIN_BALANCE);
-	}
-
+    /// @notice Get the details of the contract
+    /// @return The details of the contract
     function getDetails() override external responsible view returns(Details){
-        return {value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion, state);
+        return {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion, state);
     }
 
+
+    /// @notice Deposit a certain amount to the contract
+    /// @param _amount The amount to deposit
     function deposit(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if(state != State.INITIAL) {
@@ -112,24 +113,36 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         depositToDePool(_amount);
     }
 
+
+    /// @notice Withdraw a certain amount from the contract
+    /// @param _amount The amount to withdraw
     function withdraw(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(),0);
         if(state != State.INITIAL) {
-            return depositNotHandled(STRATEGY_NOT_IN_INITIAL_STATE);
+            return withdrawError(STRATEGY_NOT_IN_INITIAL_STATE);
         }
         state = State.WITHDRAWING;
 
         withdrawFromDePool(_amount);
     }
 
+
+    /// @notice Deposit a certain amount to the DePool
+    /// @param _amount The amount to deposit
     function depositToDePool(uint128 _amount) internal view {
         IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
+
+    /// @notice Withdraw a certain amount from the DePool
+    /// @param _amount The amount to withdraw
     function withdrawFromDePool(uint128 _amount) internal view {
         IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
+
+    /// @notice Receive an answer from the DePool
+    /// @param _errcode The error code of the answer
     function receiveAnswer(uint32 _errcode, uint64) override external onlyDepool {
         tvm.rawReserve(_reserve(),0);
 
@@ -158,27 +171,45 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     }
 
+
+    /// @notice Handle a successful deposit
     function depositHandled() internal view {
         IStEverVault(vault).onStrategyHandledDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
     }
 
+
+    /// @notice Handle an unsuccessful deposit
+    /// @param _errcode The error code of the unsuccessful deposit
     function depositNotHandled(uint32 _errcode) internal view {
         IStEverVault(vault).onStrategyDidntHandleDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
+
+    /// @notice Handle a withdrawal error
+    /// @param _errcode The error code of the withdrawal
     function withdrawError(uint32 _errcode) internal view {
         IStEverVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
+
+    /// @notice Handle a transfer
+    /// @param source The source of the transfer
+    /// @param amount The amount of the transfer
     function onTransfer(address source, uint128 amount) override external {}
 
-    // Withdraw from pooling round
+
+    /// @notice Force a withdrawal from the pooling round
+    /// @param _amount The amount to withdraw
+
     function withdrawForce(uint64 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
         state = State.WITHDRAWING_FROM_POOLING_ROUND;
         IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(_amount);
     }
+
+
+    /// @notice Receive a transfer
 
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
@@ -192,6 +223,10 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             IStEverVault(vault).receiveFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
         }
     }
+
+
+    /// @notice Handle a bounce
+    /// @param _slice The slice of the bounce
 
     onBounce(TvmSlice _slice) external onlyDepool {
         tvm.accept();
@@ -217,6 +252,10 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         }
     }
 
+
+    /// @notice Handle the completion of a round
+    /// @param _reward The reward of the round
+    /// @param _ordinaryStake The ordinary stake of the round
     function onRoundComplete(
         uint64,
         uint64 _reward,
@@ -227,17 +266,19 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         uint8
     ) override external onlyDepool {
         tvm.accept();
+        uint128 valueForEvaluatingReport = 0.11 ever;
         /*
-        making free 0.11 ever for evaluating report also full msg.value if report has attached withdraw value
+            making free 0.11 ever for evaluating report also full msg.value if report has attached withdraw value
         */
-        tvm.rawReserve(address(this).balance - 0.11 ever - msg.value, 0);
+        tvm.rawReserve(address(this).balance - valueForEvaluatingReport - msg.value, 0);
 
         uint128 requestedBalance;
-        if (address(this).balance < THRESHOLD_BALANCE) {
+        if (address(this).balance - msg.value < THRESHOLD_BALANCE) {
             requestedBalance = MAX_BALANCE - address(this).balance;
         }
+        uint128 callBackValue = 0.1 ever;
         IStEverVault(vault).strategyReport{
-            value: 0.1 ever,
+            value: callBackValue,
             bounce: false
             }(
                 _reward,
@@ -250,7 +291,7 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
             if (state == State.WITHDRAWING) {
                 state = State.INITIAL;
 
-                IStEverVault(vault).receiveFromStrategy{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}();
+                IStEverVault(vault).receiveFromStrategy{value:0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
                 return;
             }
 
@@ -258,14 +299,23 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         }
     }
 
+
+    /// @notice Check if the DePool is making a withdrawal
+    /// @param _msgValue The message value of the withdrawal
+    /// @return True if the DePool is making a withdrawal, false otherwise
+
     function isDePoolMakingWithdraw(uint128 _msgValue) internal pure returns (bool) {
-        return _msgValue > 0.05 ever;
+        uint128 basicMsgValuePart = 0.05 ever;
+        return _msgValue > basicMsgValuePart;
     }
 
-    function withdrawExtraMoney() override external onlyVault {
-        uint128 balance = address(this).balance;
 
-        if (balance > MAX_BALANCE) {
+    /// @notice Withdraw extra money from the contract
+
+    function withdrawExtraMoney() override external onlyVault {
+        uint128 pureBalance = address(this).balance - msg.value;
+
+        if (pureBalance > MAX_BALANCE) {
             tvm.rawReserve(MAX_BALANCE, 0);
 
             IStEverVault(vault).receiveExtraMoneyFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}();

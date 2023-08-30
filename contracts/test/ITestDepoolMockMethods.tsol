@@ -1,0 +1,9 @@
+pragma ever-solidity >=0.62.0;
+pragma AbiHeader expire;
+
+
+interface ITestDepoolMockMethods {
+    function roundComplete(uint64 _reward, bool includesWithdraw) external;
+    function setClosed(bool _closed) external;
+    function setWithdrawalsClosed(bool _withdrawalsClosed) external;
+}

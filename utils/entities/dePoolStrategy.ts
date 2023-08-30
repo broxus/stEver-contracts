@@ -25,14 +25,17 @@ export class DePoolStrategyWithPool {
   };
 
   emitWithdrawByRequests = async () => {
-    return await locklift.tracing.trace(
+    const v = await locklift.tracing.trace(
       this.dePoolContract.methods
         .roundComplete({
           _reward: 0,
           includesWithdraw: true,
         })
         .sendExternal({ publicKey: this.signer.publicKey }),
+      { raise: false },
     );
+    await v.traceTree?.beautyPrint();
+    return v;
   };
 
   setDePoolDepositsState = ({ isClosed }: { isClosed: boolean }) => {

@@ -2,7 +2,8 @@ pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 
 abstract contract StEverVaultValidators is StEverVaultBase {
-
+    /// @dev function for validating deposit request
+    /// @param _depositConfigs mapping of strategy address to deposit config
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
 
@@ -39,6 +40,8 @@ abstract contract StEverVaultValidators is StEverVaultBase {
         }
         return validationResults;
     }
+    /// @dev function for validating withdraw request
+    /// @param _withdrawConfig mapping of strategy address to withdraw config
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) override public view returns (ValidationResult[]) {
         ValidationResult[] validationResults;
 

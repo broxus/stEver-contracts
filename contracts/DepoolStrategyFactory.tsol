@@ -12,9 +12,6 @@ import "./utils/ErrorCodes.tsol";
 import "./utils/Gas.tsol";
 
 
-
-
-
 contract DepoolStrategyFactory is IDepoolStrategyFactory {
     // static
     uint128 public static nonce;
@@ -68,7 +65,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             factoryVersion: factoryVersion
         });
     }
-
+    /// @dev function for change owner of factory
+    /// @param _newOwner new owner address
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
 
@@ -76,7 +74,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 
         _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    /// @dev function for install new code of strategy
+    /// @param _strategyCode new code of strategy
     function installNewStrategyCode(TvmCell _strategyCode, address _sendGasTo) override external onlyOwner {
         require (msg.value >= DePoolStrategyFactoryGas.UPGRADE_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(),0);
@@ -85,9 +84,10 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         strategyVersion++;
         emit StrategyCodeUpdated(strategyVersion - 1,strategyVersion);
 
-        _sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+    /// @dev function for deploy new strategy
+    /// @param _dePool address of dePool
     function deployStrategy(address _dePool) override external {
         require (msg.value >= DePoolStrategyFactoryGas.STRATEGY_DEPLOY_VALUE + DePoolStrategyFactoryGas.MIN_CALL_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
@@ -118,7 +118,8 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             bounce: false
         }(strategy);
     }
-
+    /// @dev batch strategies upgrade
+    /// @param _strategies array of strategies
     function upgradeStrategies(address[] _strategies) override external onlyOwner {
         require (_strategies.length <= Constants.MAX_STRATEGY_PER_UPGRADE, ErrorCodes.MAX_STRATEGY_THAN_ALLOWED);
         require (
@@ -139,7 +140,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
     }
 
 
-    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner minCallValue {
         if (_newVersion == factoryVersion) {
             tvm.rawReserve(_reserve(), 0);
             _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});

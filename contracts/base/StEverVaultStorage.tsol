@@ -2,6 +2,7 @@ pragma ever-solidity >=0.62.0;
 
 
 import "../interfaces/IStEverVault.tsol";
+import "../utils/Constants.tsol";
 
 abstract contract StEverVaultStorage is IStEverVault {
 
@@ -47,4 +48,5 @@ abstract contract StEverVaultStorage is IStEverVault {
     // emergency
     EmergencyState emergencyState;
 
+    uint64 timeAfterEmergencyCanBeActivated = Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED;
 }

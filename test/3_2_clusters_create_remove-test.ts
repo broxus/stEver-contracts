@@ -157,6 +157,8 @@ describe("Cluster create and remove after one round", () => {
     expect(traceTree).to.emit("StrategyHandledWithdrawRequest").count(strategies.length);
   });
   it("Round should completed and strategies with cluster should be deleted", async () => {
+    const { stEverTokenWallet: clusterStEverTokenWallet } = await cluster.getDetails();
+
     const strategiesWithTraceTree = await lastValueFrom(
       from(strategies).pipe(
         concatMap(strategy =>
@@ -178,9 +180,18 @@ describe("Cluster create and remove after one round", () => {
       clusterOwner: admin.account.address,
       clusterNonce: "0",
     });
+
     const stEverBalanceChange = lastStrategy.traceTree!.tokens.getTokenBalanceChange(
       admin.wallet.walletContract.address,
     );
     expect(stEverBalanceChange).to.be.eq(toNano(10));
+    const clusterContractState = await locklift.provider.getFullContractState({
+      address: cluster.clusterContract.address,
+    });
+    const clusterStEverTokenWalletState = await locklift.provider.getFullContractState({
+      address: clusterStEverTokenWallet,
+    });
+    expect(clusterContractState.state).to.be.undefined;
+    expect(clusterStEverTokenWalletState.state).to.be.undefined;
   });
 });

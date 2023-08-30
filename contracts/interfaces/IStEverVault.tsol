@@ -9,6 +9,7 @@ interface IStEverVault {
     event StrategyFactoryAddressUpdated(address _strategyFactory);
     event WithdrawHoldTimeUpdated(uint64 withdrawHoldTimeSeconds);
     event FullUnlockTimeUpdated(uint128 fullUnlockTimeSeconds);
+    event TimeAfterEmergencyCanBeActivatedValueUpdated(uint64 timeAfterEmergencyCanBeActivated);
     // Strategy
     event StrategiesAdded(address[] strategy);
     event StrategyRemoved(address strategy);
@@ -110,6 +111,7 @@ interface IStEverVault {
         uint32 accountVersion;
         uint32 stEverVaultVersion;
         uint32 clusterVersion;
+        uint64 timeAfterEmergencyCanBeActivated;
         EmergencyState emergencyState;
     }
     struct StrategyReport {

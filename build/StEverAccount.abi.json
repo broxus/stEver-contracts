@@ -92,14 +92,6 @@
 	"data": [
 	],
 	"events": [
-		{
-			"name": "Receive",
-			"inputs": [
-				{"name":"amount","type":"uint128"}
-			],
-			"outputs": [
-			]
-		}
 	],
 	"fields": [
 		{"name":"_pubkey","type":"uint256"},

@@ -3,7 +3,6 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 
-import "./interfaces/IStrategy.tsol";
 import "./StEverAccount.tsol";
 import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverStrategiesManager.tsol";
@@ -38,6 +37,8 @@ contract StEverVault is
     ) public {
         require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUB_KEY);
         require (tvm.pubkey() == msg.pubkey(), ErrorCodes.WRONG_PUB_KEY);
+        require(_gainFee >= StEverVaultGas.MIN_GAIN_FEE, ErrorCodes.GAIN_FEE_SHOULD_BE_GT_MIN);
+        require(_stEverFeePercent <= Constants.ONE_HUNDRED_PERCENT, ErrorCodes.BAD_FEE_PERCENT);
 
         tvm.accept();
         owner = _owner;
@@ -52,7 +53,9 @@ contract StEverVault is
     }
 
 
-    // deposit
+     /// @dev Allows a user to deposit a specified amount of native tokens.
+     /// @param _amount The amount of tokens to deposit.
+     /// @param _nonce The nonce associated with the deposit.
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
         require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
 
@@ -83,7 +86,9 @@ contract StEverVault is
     }
 
 
-    // withdraw
+
+
+    /// @notice Handle stTokens transfer, for withdraw locked native tokens.
     function onAcceptTokensTransfer(
         address,
         uint128 _amount,
@@ -97,6 +102,9 @@ contract StEverVault is
 
         (uint64 _nonce, bool _correct) = decodeDepositPayload(_payload);
 
+        if (pendingWithdrawals.exists(_nonce)) {
+            _correct = false;
+        }
         /*
         StEverVaultGas.WITHDRAW_FEE: reserved as gas that will be used in IStEverAccount.processWithdraw in processSendToUsers method
         StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION: reserved for gas that will be used for iteration through users
@@ -131,6 +139,13 @@ contract StEverVault is
         requestWithdraw(_sender, _amount, _nonce, _remainingGasTo);
     }
 
+
+
+    /// @dev Requests a withdrawal for a user.
+    /// @param _user The address of the user.
+    /// @param _amount The amount to withdraw.
+    /// @param _nonce The nonce associated with the withdrawal.
+    /// @param _remainingGasTo The address to send the remaining gas to.
     function requestWithdraw(address _user, uint128 _amount, uint64 _nonce, address _remainingGasTo) internal {
         // making StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA free
         tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE - StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION), 0);
@@ -147,17 +162,20 @@ contract StEverVault is
         addPendingValueToAccount(_nonce, _amount, accountAddr, unlockTime, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
     }
 
+
+    /// @dev Handles an error when adding a pending value.
+    /// @param _slice The slice to decode.
     function handleAddPendingValueError(TvmSlice _slice) internal view {
         tvm.rawReserve(_reserve(), 0);
 
-        uint64 _withdraw_nonce = _slice.decode(uint64);
+        uint64 _withdrawNonce = _slice.decode(uint64);
 
-        PendingWithdraw pendingWithdraw = pendingWithdrawals[_withdraw_nonce];
+        PendingWithdraw pendingWithdraw = pendingWithdrawals[_withdrawNonce];
 
         address account = deployAccount(pendingWithdraw.user);
 
         addPendingValueToAccount(
-            _withdraw_nonce,
+            _withdrawNonce,
             pendingWithdraw.amount,
             account,
             pendingWithdraw.unlockTime,
@@ -167,27 +185,42 @@ contract StEverVault is
         );
     }
 
+
+     /// @dev Adds a pending value to an account.
+     /// @param _withdrawNonce The nonce associated with the withdrawal.
+     /// @param _amount The amount to add.
+     /// @param _account The account to add the value to.
+     /// @param _unlockTime The time at which the value will be unlocked.
+     /// @param _value The value to add.
+     /// @param _flag The flag associated with the value.
+     /// @param _remainingGasTo The address to send the remaining gas to.
     function addPendingValueToAccount(
-        uint64 _withdraw_nonce,
+        uint64 _withdrawNonce,
         uint128 _amount,
-        address account,
+        address _account,
         uint64 _unlockTime,
         uint128 _value,
         uint8 _flag,
         address _remainingGasTo
     ) internal pure {
-        IStEverAccount(account).addPendingValue{
+        IStEverAccount(_account).addPendingValue{
             value:_value,
             flag: _flag,
             bounce: true
-        }(_withdraw_nonce, _amount, _unlockTime, _remainingGasTo);
+        }(_withdrawNonce, _amount, _unlockTime, _remainingGasTo);
     }
 
+
+    /// @dev Handles the acceptance of a pending withdrawal.
+    /// @param _nonce The nonce associated with the withdrawal.
+    /// @param _user The address of the user.
+    /// @param _unlockTime The time at which the value will be unlocked.
+    /// @param _remainingGasTo The address to send the remaining gas to.
     function onPendingWithdrawAccepted(
         uint64 _nonce,
         address _user,
         uint64 _unlockTime,
-        address remainingGasTo
+        address _remainingGasTo
     ) override external onlyAccount(_user) {
        tvm.rawReserve(_reserve(), 0);
 
@@ -195,19 +228,28 @@ contract StEverVault is
        emit WithdrawRequest(pendingWithdraw.user, pendingWithdraw.amount, pendingWithdraw.unlockTime, _nonce);
        delete pendingWithdrawals[_nonce];
 
-       remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+       _remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+
+    /// @dev Handles the rejection for creating pending withdrawal.
+    /// @param _nonce The nonce associated with the withdrawal.
+    /// @param _user The address of the user.
+    /// @param _amount The amount to withdraw.
+    /// @param _remainingGasTo The address to send the remaining gas to.
     function onPendingWithdrawRejected(uint64 _nonce, address _user, uint128 _amount, address _remainingGasTo) override external onlyAccount(_user) {
-        tvm.rawReserve(_reserveWithValue(StEverVaultGas.WITHDRAW_FEE), 0);
+        tvm.rawReserve(
+            _reserveWithValue(StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION),
+            0
+        );
 
         delete pendingWithdrawals[_nonce];
 
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
-            value:0,
-            flag:MsgFlag.ALL_NOT_RESERVED,
-            bounce:false
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
         }(
             _amount,
             _user,
@@ -218,16 +260,27 @@ contract StEverVault is
         );
     }
 
+
+    /// @dev Removes a pending user withdrawal.
+    /// @param _nonce The nonce associated with the withdrawal.
     function removePendingWithdraw(uint64 _nonce) override external minCallValue {
         tvm.rawReserve(_reserve(), 0);
         address account = getAccountAddress(msg.sender);
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
     }
 
-    function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 _amount) override external onlyAccount(user) {
-        tvm.rawReserve(_reserveWithValue(StEverVaultGas.WITHDRAW_FEE), 0);
 
-        emit WithdrawRequestRemoved(user, nonce);
+    /// @dev success callback for removing withdraw request.
+    /// @param _user The address of the user.
+    /// @param _nonce The nonce associated with the withdrawal.
+    /// @param _amount The amount to withdraw.
+    function onPendingWithdrawRemoved(address _user, uint64 _nonce, uint128 _amount) override external onlyAccount(_user) {
+        tvm.rawReserve(
+            _reserveWithValue(StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION),
+            0
+        );
+
+        emit WithdrawRequestRemoved(_user, _nonce);
 
         TvmCell payload;
         ITokenWallet(stEverWallet).transfer{
@@ -236,19 +289,28 @@ contract StEverVault is
             bounce:false
         }(
             _amount,
-            user,
+            _user,
             0,
-            user,
+            _user,
             false,
             payload
         );
     }
 
+
+    /// @dev Processes of satisfying withdraw requests.
+    /// @param sendConfig The configuration for sending.
     function processSendToUsers(mapping (address => SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 
         for (uint256 i = 0; i < chunkSize && !sendConfig.empty(); i++) {
             (address user, SendToUserConfig config) = sendConfig.delMin().get();
+
+            // if there is more than MAX_PENDING_COUNT nonces, skip this user
+            if (config.nonces.length > Constants.MAX_PENDING_COUNT) {
+                continue;
+            }
+
             address account = getAccountAddress(user);
 
             uint128 unusedIterationFee = (uint128(config.nonces.length) - 1) * StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION;
@@ -264,8 +326,13 @@ contract StEverVault is
         }
     }
 
+
+    /// @dev success withdraw callback from user account.
+    /// @param _amount The amount to withdraw.
+    /// @param _user The address of the user.
+    /// @param _withdrawals The withdrawals to process.
     function withdrawToUser(
-        uint128 amount,
+        uint128 _amount,
         address _user,
         mapping(uint64 => IStEverAccount.WithdrawRequest) _withdrawals
     ) override external onlyAccount(_user) {
@@ -280,12 +347,12 @@ contract StEverVault is
             bool isOk
         ) = getAndCheckWithdrawToUserInfo(_withdrawals);
 
-        uint128 everAmount = getWithdrawEverAmount(amount);
+        uint128 everAmount = getWithdrawEverAmount(_amount);
         // if not enough balance, reset pending to the Account;
         if (availableAssets < everAmount || !isOk) {
             tvm.rawReserve(_reserve(), 0);
 
-            emit WithdrawError(_user, withdrawInfo, amount);
+            emit WithdrawError(_user, withdrawInfo, _amount);
 
             if (isEmergencyProcess()) {
                 IStEverAccount(msg.sender).resetPendingValues{
@@ -306,7 +373,7 @@ contract StEverVault is
 
         decreaseTotalAssets(everAmount);
         availableAssets -= everAmount;
-        stEverSupply -= amount;
+        stEverSupply -= _amount;
 
 
         TvmBuilder builder;
@@ -316,25 +383,29 @@ contract StEverVault is
         tvm.rawReserve(_reserveWithValue(everAmount), 0);
 
         TokenWalletBurnableBase(stEverWallet).burn{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(
-            amount,
+            _amount,
             address(this),
             address(this),
             builder.toCell()
         );
     }
 
+
+     /// @dev last step in withdraw native tokens flow.
+     /// @param _wallet The wallet to burn the tokens from.
+     /// @param _payload The payload associated with the burn.
     function onAcceptTokensBurn(
         uint128,
         address,
-        address wallet,
+        address _wallet,
         address,
-        TvmCell payload
+        TvmCell _payload
     ) override external {
-        require (wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
+        require (_wallet == stEverWallet, ErrorCodes.NOT_ROOT_WALLET);
         require (msg.sender == stTokenRoot, ErrorCodes.NOT_TOKEN_ROOT);
         tvm.rawReserve(_reserve(), 0);
 
-        TvmSlice slice = payload.toSlice();
+        TvmSlice slice = _payload.toSlice();
         address user = slice.decode(address);
         uint128 everAmount = slice.decode(uint128);
         mapping(uint64 => WithdrawToUserInfo) withdrawals = slice.decode(mapping(uint64 => WithdrawToUserInfo));
@@ -343,6 +414,9 @@ contract StEverVault is
         user.transfer({value: 0, flag :MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+
+     /// @dev Handles a bounce.
+     /// @param _slice The slice to decode.
     onBounce(TvmSlice _slice) external view {
 		tvm.accept();
 
@@ -352,13 +426,11 @@ contract StEverVault is
 		}
 	}
 
-
-
-    // withdraw stEver fee
-    function withdrawStEverFee(uint128 _amount) override external onlyGovernanceOrSelfAndAccept {
+    /// @dev Withdraws the stEver fee.
+    /// @param _amount The amount to withdraw.
+    function withdrawStEverFee(uint128 _amount) override external onlyOwner {
         require (totalStEverFee >= _amount, ErrorCodes.NOT_ENOUGH_ST_EVER_FEE);
         require (canTransferValue(_amount), ErrorCodes.NOT_ENOUGH_AVAILABLE_ASSETS);
-
         // fee should payed by admin
         tvm.rawReserve(address(this).balance - _amount, 0);
 
@@ -368,8 +440,9 @@ contract StEverVault is
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    // withdraw extra
-    function withdrawExtraEver() override external onlyOwner {
+    /// @notice Allows the owner to withdraw extra Ever tokens.
+    /// @dev function for withdraw extra Ever tokens from vault
+    function withdrawExtraEver() override external onlyOwner minCallValue {
 
         require (
             availableAssets > totalAssets && (availableAssets - totalAssets) > totalStEverFee,
@@ -446,7 +519,8 @@ contract StEverVault is
             pendingWithdrawals, // mapping(uint64 => PendingWithdraw)
 
 
-            emergencyState // EmergencyState,
+            emergencyState, // EmergencyState,
+            timeAfterEmergencyCanBeActivated
         );
 
         // set code after complete this method
@@ -455,7 +529,6 @@ contract StEverVault is
         tvm.setCurrentCode(_newCode);
 
         onCodeUpgrade(data);
-
     }
 
     // upgrade to v5

@@ -1,18 +1,26 @@
 pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 import "../interfaces/IStEverCluster.tsol";
-import "../utils/ClusterLib.tsol";
 
 
 abstract contract StEverStrategiesManager is StEverVaultBase {
 
-
+    /**
+     * @dev Creates a cluster.
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _assurance count of stEver tokens that should be provided by cluster owner.
+     * @param _maxStrategiesCount The maximum number of strategies in the cluster.
+     */
     function createCluster(
         address _clusterOwner,
         uint128 _assurance,
         uint32 _maxStrategiesCount
     ) override external onlyOwner {
-        require(msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE);
+        require(
+            msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE,
+            ErrorCodes.NOT_ENOUGH_VALUE
+        );
+        require(Utils.isValidAddress(strategyFactory), ErrorCodes.STRATEGY_FACTORY_DID_NOT_SET);
         tvm.rawReserve(_reserve(), 0);
 
 
@@ -42,6 +50,12 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
 
+
+    /**
+     * @dev Removes a cluster.
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _clusterNonce The nonce of the cluster.
+     */
     function onClusterRemoved(
         address _clusterOwner,
         uint32 _clusterNonce
@@ -53,6 +67,12 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         emit ClusterRemoved(msg.sender, _clusterOwner, _clusterNonce);
     }
 
+    /**
+     * @dev Adds strategies to the cluster.
+     * @param _strategies The addresses of the strategies.
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _clusterId The id of the cluster.
+     */
     function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) override external onlyCluster(_clusterOwner, _clusterId)  {
         require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
 
@@ -86,6 +106,12 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategies);
     }
 
+    /**
+     * @dev Removes strategies from the cluster.
+     * @param _strategies The addresses of the strategies.
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _clusterId The id of the cluster.
+     */
     function removeStrategies(
         address[] _strategies,
         address _clusterOwner,
@@ -122,12 +148,21 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(pendingDeleteStrategies);
     }
 
+    /**
+     * @dev Removes a strategy.
+     * @param _strategy The address of the strategy.
+     */
     function removeStrategy(address _strategy) internal pure {
         this._removeStrategy{
             value: StEverVaultGas.REMOVE_STRATEGY_RESERVE,
             bounce: false
         }(_strategy);
     }
+
+    /**
+     * @dev Removes a strategy.
+     * @param _strategy The address of the strategy.
+     */
     function _removeStrategy(address _strategy) external override onlySelf {
         tvm.rawReserve(_reserve(), 0);
 
@@ -142,6 +177,11 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategy);
     }
 
+    /**
+     * @dev Delegates strategies to another cluster (function only for migration).
+     * @param _strategies The addresses of the strategies.
+     * @param _destinationCluster The address of the destination cluster.
+     */
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
         require(
             msg.value >= uint128(_strategies.length) * (StEverVaultGas.MIN_CALL_MSG_VALUE / 2),
@@ -166,6 +206,12 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(transferringStrategies);
     }
 
+    /**
+     * @dev Handles strategies delegation.
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _clusterNonce The nonce of the cluster.
+     * @param _strategies The addresses of handled the strategies.
+     */
     function onStrategiesDelegationHandled(
         address _clusterOwner,
         uint32 _clusterNonce,

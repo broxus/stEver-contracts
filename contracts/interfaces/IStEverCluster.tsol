@@ -1,7 +1,6 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../interfaces/IStEverVault.tsol";
 import "../utils/ClusterLib.tsol";
 
 interface IStEverCluster {
@@ -47,9 +46,9 @@ interface IStEverCluster {
 
 
     event NewStrategyDeployed(address strategy);
-    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
+    function setStEverOwner(address _newClusterOwner) external;
     function setAssurance(uint128 _newRequiredAssurance) external;
     function withdrawAssurance(uint128 amount) external;
 

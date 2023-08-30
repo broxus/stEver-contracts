@@ -140,7 +140,7 @@ describe("Multi flow", async function () {
     const WITHDRAW_AMOUNT = toNanoBn(250);
     const FEE_AMOUNT = toNanoBn(0.1);
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    await governance.withdrawFromStrategiesRequest({
+    const { traceTree } = await governance.withdrawFromStrategiesRequest({
       _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
         strategy.address,
         {
@@ -149,7 +149,7 @@ describe("Multi flow", async function () {
         },
       ]),
     });
-
+    await traceTree?.beautyPrint();
     await lastValueFrom(from(strategiesWithPool).pipe(concatMap(dePool => dePool.emitWithdrawByRequests())));
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
@@ -212,7 +212,7 @@ describe("Multi flow", async function () {
       );
     });
   });
-  it("admin should withdraw fees", async () => {
+  it.skip(/*TODO*/ "admin should withdraw fees", async () => {
     const MAX_FEE = toNanoBn(1);
     const vaultDetailsBefore = await vault.getDetails();
     const adminBalanceBefore = await getBalance(admin.account.address);

@@ -19,6 +19,14 @@
 			]
 		},
 		{
+			"name": "setStEverOwner",
+			"inputs": [
+				{"name":"_newStEverOwner","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "deployStrategies",
 			"inputs": [
 				{"name":"_dePools","type":"address[]"}
@@ -170,15 +178,6 @@
 			"name": "NewStrategyDeployed",
 			"inputs": [
 				{"name":"strategy","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "RemoveStrategyError",
-			"inputs": [
-				{"name":"strategies","type":"address[]"},
-				{"name":"errorCode","type":"uint8"}
 			],
 			"outputs": [
 			]
