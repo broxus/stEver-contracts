@@ -67,7 +67,7 @@ interface IStEverAccount {
      * or the check `getAndCheckWithdrawToUserInfo` fails.
      *
      * @param rejectedWithdrawals The withdrawal requests to reset.
-     * @param _sendGasTo The address to send the gas to.
+     * @param sendGasTo The address to send the gas to.
      */
     function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) external;
 

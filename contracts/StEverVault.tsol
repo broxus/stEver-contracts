@@ -469,11 +469,6 @@ contract StEverVault is
 
     /**
      * @dev Handles the acceptance of a token burn.
-     * This function checks if the caller is the stTokenRoot and if the wallet is the stEverWallet, emits the WithdrawSuccess event, and transfers the remaining gas to the user.
-     * @param _amount The amount of tokens to be burned.
-     * @param _sender The sender of the tokens.
-     * @param wallet The wallet of the tokens.
-     * @param _payload The payload of the burn request.
      *
      * Preconditions:
      *  - The caller must be the stTokenRoot.

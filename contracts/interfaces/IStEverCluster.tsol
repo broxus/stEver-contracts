@@ -77,13 +77,13 @@ interface IStEverCluster {
      * This function withdraws the specified amount of assurance,
      * or the unlocked assurance if it is less.
      *
-     * @param _amount The amount of assurance to withdraw.
+     * @param amount The amount of assurance to withdraw.
      */
     function withdrawAssurance(uint128 amount) external;
 
     /**
      * @dev Function to deploy strategies for the cluster.
-     * @param _dePools The addresses of the DePools.
+     * @param dePools The addresses of the DePools.
      */
     function deployStrategies(address[] dePools) external;
     /**
@@ -91,7 +91,7 @@ interface IStEverCluster {
      * This function sets the deployed status of the strategy to
      * true and emits a {NewStrategyDeployed} event.
      *
-     * @param _strategy The address of the strategy.
+     * @param strategy The address of the strategy.
      */
     function onStrategyDeployed(address strategy) external;
     /**

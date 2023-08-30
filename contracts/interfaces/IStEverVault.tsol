@@ -271,8 +271,8 @@ interface IStEverVault {
     /**
      * @dev Delegates strategies to a different cluster.
      *
-     * @param _strategies The addresses of the strategies to delegate.
-     * @param _destinationCluster The address of the cluster to delegate the strategies to.
+     * @param strategies The addresses of the strategies to delegate.
+     * @param destinationCluster The address of the cluster to delegate the strategies to.
      */
     function delegateStrategies(address[] strategies, address destinationCluster) external;
 
@@ -301,7 +301,7 @@ interface IStEverVault {
 
     /**
      * @dev Deposits funds to the strategies according to the deposit configurations.
-     * @param _depositConfigs The configurations for the deposits.
+     * @param depositConfig Deposit configurations.
      */
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
 
@@ -312,7 +312,7 @@ interface IStEverVault {
 
     /**
      * @dev Processes withdrawals from the strategies according to the withdrawal configurations.
-     * @param _withdrawConfig The configurations for the withdrawals.
+     * @param withdrawConfig The configurations for the withdrawals.
      */
     function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
 
@@ -340,7 +340,7 @@ interface IStEverVault {
     /**
      * @dev Handles the event when a strategy has failed to handle a withdrawal.
      *
-     * @param _errcode The error code of the failed withdrawal.
+     * @param errcode The error code of the failed withdrawal.
      */
     function withdrawFromStrategyError(uint32 errcode) external;
 
@@ -358,14 +358,14 @@ interface IStEverVault {
      * the withdrawal info, and burns the tokens.
      *
      * @param amount The amount to be withdrawn.
-     * @param _user The user to withdraw to.
-     * @param _withdrawals The mapping of withdrawal requests.
+     * @param user The user to withdraw to.
+     * @param withdrawals The mapping of withdrawal requests.
      */
     function withdrawToUser(uint128 amount, address user, mapping(uint64 => IStEverAccount.WithdrawRequest) withdrawals) external;
 
     /**
      * @dev Removes a pending withdrawal.
-     * @param _nonce The nonce of the withdrawal.
+     * @param nonce The nonce of the withdrawal.
      */
     function removePendingWithdraw(uint64 nonce) external;
 
@@ -434,8 +434,8 @@ interface IStEverVault {
     /**
      * @dev Handles the acceptance of a pending withdrawal.
      *
-     * @param _nonce The nonce of the pending withdrawal.
-     * @param _user The user of the account.
+     * @param nonce The nonce of the pending withdrawal.
+     * @param user The user of the account.
      * @param _unlockTime The unlock time of the pending withdrawal.
      * @param remainingGasTo The address to which the remaining gas will be sent.
      */
@@ -444,10 +444,10 @@ interface IStEverVault {
     /**
      * @dev Handles the rejection of a pending withdrawal.
      *
-     * @param _nonce The nonce of the withdrawal.
-     * @param _user The user of the account.
-     * @param _amount The amount of the withdrawal.
-     * @param _remainingGasTo The address to which the remaining gas will be sent.
+     * @param nonce The nonce of the withdrawal.
+     * @param user The user of the account.
+     * @param amount The amount of the withdrawal.
+     * @param remainingGasTo The address to which the remaining gas will be sent.
      */
     function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount, address remainingGasTo) external;
 
@@ -456,7 +456,7 @@ interface IStEverVault {
      *
      * @param user The user of the account.
      * @param nonce The nonce of the pending withdrawal.
-     * @param _amount The amount of the pending withdrawal.
+     * @param amount The amount of the pending withdrawal.
      */
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
 
@@ -465,8 +465,8 @@ interface IStEverVault {
     /**
      * @dev Encodes the deposit payload for a given nonce.
      *
-     * @param _nonce The nonce to encode.
-     * @return The encoded payload.
+     * @param nonce The nonce to encode.
+     * @return deposit_payload The encoded payload.
      */
     function encodeDepositPayload(uint64 nonce) external pure returns (TvmCell deposit_payload);
 
@@ -482,14 +482,14 @@ interface IStEverVault {
     /**
      * @dev Sets the minimum strategy deposit value.
      *
-     * @param _minStrategyDepositValue The new minimum strategy deposit value.
+     * @param minStrategyDepositValue The new minimum strategy deposit value.
      */
     function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
 
     /**
      * @dev Sets the minimum strategy withdraw value.
      *
-     * @param _minStrategyWithdrawValue The new minimum strategy withdraw value.
+     * @param minStrategyWithdrawValue The new minimum strategy withdraw value.
      */
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
 
@@ -503,14 +503,14 @@ interface IStEverVault {
     /**
      * @dev Sets the pause state of the contract.
      *
-     * @param _isPaused The new pause state.
+     * @param isPaused The new pause state.
      */
     function setIsPaused(bool isPaused) external;
 
     /**
      * @dev Sets the withdraw hold time in seconds.
      *
-     * @param _holdTime The new withdraw hold time in seconds.
+     * @param _hold_time The new withdraw hold time in seconds.
      */
     function setWithdrawHoldTimeInSeconds(uint64 _hold_time) external;
 
@@ -629,9 +629,9 @@ interface IStEverVault {
     /**
      * @dev Handles the event of an account being upgraded.
      *
-     * @param _user The user whose account was upgraded.
-     * @param _sendGasTo The address to send gas to.
-     * @param _newVersion The new version of the account.
+     * @param user The user whose account was upgraded.
+     * @param sendGasTo The address to send gas to.
+     * @param newVersion The new version of the account.
      */
     function onAccountUpgraded(address user, address sendGasTo, uint32 newVersion) external;
 
