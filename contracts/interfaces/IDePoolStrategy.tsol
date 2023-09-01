@@ -1,6 +1,17 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
+/**
+ * @title IDePoolStrategy
+ *
+ * @dev This interface represents the DePool Strategy contract, which is a part
+ * of the Strategy system.
+ *
+ * It provides methods for managing the state of the DePool Strategy
+ * and retrieving its details.
+ * The contract ensures the safety and security of the funds in the vault
+ * and provides transparency through events.
+ */
 interface IDePoolStrategy {
     struct Details {
         address vault;
@@ -15,6 +26,11 @@ interface IDePoolStrategy {
         WITHDRAWING,
         WITHDRAWING_FROM_POOLING_ROUND
     }
+
+    /**
+     * @dev Returns the details of the strategy.
+     */
     function getDetails() external responsible view returns(Details);
 
 }
+

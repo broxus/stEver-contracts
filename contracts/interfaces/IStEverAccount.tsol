@@ -1,6 +1,22 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
+import "../interfaces/IStEverVault.tsol";
+
+/**
+ * @title IStEverAccount
+ *
+ * @dev Interface of the necessary functionality required by the {StEverAccount} contract.
+ *
+ * Each user has an associated StEverAccount which tracks their withdrawal requests.
+ * A user can initiate a withdrawal from the {StEverVault}, creating a withdrawal request
+ * in their StEverAccount. The user can also cancel this request. After the withdrawHoldTime
+ * has passed and the StEverGovernance processes the request, the user receives their ever
+ * tokens plus any rewards.
+ *
+ * The StEverVault contract, which interacts with this interface,
+ * manages all ever assets and issues StEver tokens.
+ */
 interface IStEverAccount {
     struct AccountDetails {
         address user;
@@ -14,14 +30,79 @@ interface IStEverAccount {
         uint64 unlockTime;
     }
 
+    /**
+     * @dev Gets the {AccountDetails}.
+     */
     function getDetails() external responsible view returns (AccountDetails);
+
+    /**
+     * @dev Adds a pending value to the withdrawal requests.
+     *
+     * This function is called internally by the {StEverVault-requestWithdraw} function
+     * of the {StEverVault} contract when a user requests a withdrawal.
+     *
+     * @param _nonce The nonce of the withdrawal request.
+     * @param amount The amount to withdraw.
+     * @param _unlockTime The unlock time of the withdrawal request.
+     * @param remainingGasTo The address to send the remaining gas to.
+     */
     function addPendingValue(uint64 _nonce, uint128 amount, uint64 _unlockTime, address remainingGasTo) external;
+
+    /**
+     * @dev Processes the withdrawal requests.
+     *
+     * This function is called by the {StEverVault-processSendToUsers} function of the {StEverVault} contract
+     *
+     * @param _satisfiedWithdrawRequests The withdrawal requests to satisfy.
+     *
+     */
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) external;
+
+    /**
+     * @dev Resets the pending values of the withdrawal requests.
+     *
+     * This function is called by the {StEverVault-withdrawToUser} function of
+     * the {StEverVault} contract when the available assets are insufficient
+     * or the check `getAndCheckWithdrawToUserInfo` fails.
+     *
+     * @param rejectedWithdrawals The withdrawal requests to reset.
+     * @param sendGasTo The address to send the gas to.
+     */
     function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) external;
+
+    /**
+     * @dev Removes a pending value from the withdrawal requests.
+     * This function is called by the {StEverVault-removePendingWithdraw} function
+     * of the {StEverVault} contract.
+     *
+     * @param _nonce The nonce of the withdrawal request to remove.
+     */
     function removePendingWithdraw(uint64 _nonce) external;
-    // emergency
+
+    /**
+     * @dev Calback function to process start an emergency process.
+     * This function is called by the {StEverVaultEmergency-startEmergencyProcess}
+     * function of the {StEverVaultEmergency} contract.
+     *
+     * @param _proofNonce The nonce of the withdrawal request to start an emergency withdrawal for.
+     */
     function onStartEmergency(uint64 _proofNonce) external;
+
+    /**
+     * @dev Callback function to process a emergency withdrawal.
+     *
+     * This function is called by the {StEverVaultEmergency-emergencyWithdrawToUser} function of
+     * the {StEverVaultEmergency} contract when an emergency withdrawal is triggered.
+     *
+     */
     function onEmergencyWithdrawToUser() external;
-    // upgrade
+
+    /**
+     * @dev Upgrades the contract to a new version.
+     *
+     * @param _newCode The new code to set.
+     * @param _newVersion The new version to set.
+     * @param _sendGasTo The address to send the gas to.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

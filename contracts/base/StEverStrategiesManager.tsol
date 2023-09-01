@@ -2,14 +2,26 @@ pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 import "../interfaces/IStEverCluster.tsol";
 
-
+/**
+ * @dev This contract is used to manage the strategies for the StEver staking platform.
+ *
+ * This abstraction extends the functionality of {StEverVaultBase} and provides
+ * the capabilities for managing the strategies for the StEver staking platform.
+ * It allows for the creation and removal of clusters, addition and removal of strategies,
+ * and delegation of strategies to different clusters.
+ */
 abstract contract StEverStrategiesManager is StEverVaultBase {
 
     /**
-     * @dev Creates a cluster.
-     * @param _clusterOwner The address of the cluster owner.
-     * @param _assurance count of stEver tokens that should be provided by cluster owner.
-     * @param _maxStrategiesCount The maximum number of strategies in the cluster.
+     * @dev See {IStEverVault.createCluster}
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the sum of DEPLOY_CLUSTER_VALUE and MIN_CALL_MSG_VALUE.
+     *
+     * Postconditions:
+     *  - A new cluster is created and added to the clusterPools.
+     *  - The ClusterCreated event is emitted.
      */
     function createCluster(
         address _clusterOwner,
@@ -49,12 +61,15 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-
-
     /**
-     * @dev Removes a cluster.
-     * @param _clusterOwner The address of the cluster owner.
-     * @param _clusterNonce The nonce of the cluster.
+     * @dev See {IStEverVault-onClusterRemoved}
+     *
+     * Preconditions:
+     *  - The caller must be the cluster.
+     *
+     * Postconditions:
+     *  - The specified cluster is removed from the clusterPools.
+     *  - The ClusterRemoved event is emitted.
      */
     function onClusterRemoved(
         address _clusterOwner,
@@ -68,10 +83,18 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     /**
-     * @dev Adds strategies to the cluster.
-     * @param _strategies The addresses of the strategies.
-     * @param _clusterOwner The address of the cluster owner.
-     * @param _clusterId The id of the cluster.
+     * @dev See {IStEverVault-addStrategies}
+     *
+     * Preconditions:
+     *  - The caller must be the cluster.
+     *  - The value of the message must be greater than or equal to the product of the length of _strategies and EXPERIMENTAL_FEE.
+     *  - The length of _strategies must be less than or equal to the batchSize.
+     *  - Each strategy in _strategies must not already exist in the strategies.
+     *
+     * Postconditions:
+     *  - The strategies are added to the strategies.
+     *  - The StrategiesAdded event is emitted.
+     *  - The onStrategiesAdded function of the IStEverCluster contract is called.
      */
     function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) override external onlyCluster(_clusterOwner, _clusterId)  {
         require (msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
@@ -79,7 +102,6 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint8 batchSize = 50;
 
         require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
-
 
         for (address strategy : _strategies) {
             require (!strategies.exists(strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
@@ -107,10 +129,15 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     /**
-     * @dev Removes strategies from the cluster.
-     * @param _strategies The addresses of the strategies.
-     * @param _clusterOwner The address of the cluster owner.
-     * @param _clusterId The id of the cluster.
+     * @dev See {IStEverVault-removeStrategies}
+     *
+     * Preconditions:
+     *  - The caller must be the cluster.
+     *
+     * Postconditions:
+     *  - The strategies are removed from the strategies.
+     *  - The StrategiesPendingRemove event is emitted.
+     *  - The onPendingStrategyRemove function of the IStEverCluster contract is called.
      */
     function removeStrategies(
         address[] _strategies,
@@ -150,7 +177,15 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
 
     /**
      * @dev Removes a strategy.
-     * @param _strategy The address of the strategy.
+     * @param _strategy The address of the strategy to remove.
+     *
+     * Preconditions:
+     *  - The caller must be the contract itself.
+     *
+     * Postconditions:
+     *  - The strategy is removed from the strategies.
+     *  - The StrategyRemoved event is emitted.
+     *  - The onStrategyRemoved function of the IStEverCluster contract is called.
      */
     function removeStrategy(address _strategy) internal pure {
         this._removeStrategy{
@@ -161,7 +196,15 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
 
     /**
      * @dev Removes a strategy.
-     * @param _strategy The address of the strategy.
+     * @param _strategy The address of the strategy
+     *
+     * Preconditions:
+     *  - The caller must be the contract itself.
+     *
+     * Postconditions:
+     *  - The strategy is removed from the strategies.
+     *  - The StrategyRemoved event is emitted.
+     *  - The onStrategyRemoved function of the IStEverCluster contract is called.
      */
     function _removeStrategy(address _strategy) external override onlySelf {
         tvm.rawReserve(_reserve(), 0);
@@ -178,9 +221,16 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     /**
-     * @dev Delegates strategies to another cluster (function only for migration).
-     * @param _strategies The addresses of the strategies.
-     * @param _destinationCluster The address of the destination cluster.
+     * @dev See {IStEverVault-delegateStrategies}.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the product of the length 
+     *    of _strategies and half of MIN_CALL_MSG_VALUE.
+     *
+     * Postconditions:
+     *  - The strategies are delegated to the destination cluster.
+     *  - The handleDelegateStrategies function of the IStEverCluster contract is called.
      */
     function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
         require(
@@ -207,10 +257,14 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     /**
-     * @dev Handles strategies delegation.
-     * @param _clusterOwner The address of the cluster owner.
-     * @param _clusterNonce The nonce of the cluster.
-     * @param _strategies The addresses of handled the strategies.
+     * @dev See {IStEverVault-onStrategiesDelegationHandled}
+     *
+     * Preconditions:
+     *  - The caller must be the cluster.
+     *
+     * Postconditions:
+     *  - The strategies are delegated to the cluster.
+     *  - The ClusterHandledStrategiesDelegation event is emitted.
      */
     function onStrategiesDelegationHandled(
         address _clusterOwner,

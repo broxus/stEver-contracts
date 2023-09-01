@@ -1,52 +1,62 @@
 pragma ever-solidity >=0.62.0;
 
-
 import "../interfaces/IStEverVault.tsol";
 import "../utils/Constants.tsol";
 
+/**
+ * @title StEverVaultStorage
+ * @dev This contract is a storage contract for the {StEverVault}.
+ * It contains all the state variables.
+ */
 abstract contract StEverVaultStorage is IStEverVault {
 
-    // static
-    uint128 public static nonce;
-    uint256 static governance;
-    TvmCell static platformCode;
-    TvmCell static accountCode;
-    TvmCell static clusterCode;
+    // Static variables
+    uint128 public static nonce; // Nonce for the contract
+    uint256 static governance; // Governance variable
+    TvmCell static platformCode; // Platform code
+    TvmCell static accountCode; // Account code
+    TvmCell static clusterCode; // Cluster code
 
-    // balances
-    uint128 stEverSupply;
-    uint128 totalAssets;
-    uint128 availableAssets;
-    uint128 totalStEverFee;
-    uint128 effectiveEverAssets;
-    uint128 remainingLockedAssets;
-    uint128 unlockPerSecond;
-    // tokens
-    address stEverWallet;
-    address stTokenRoot;
-    //
-    uint64 lastUnlockTime = now;
-    uint128 fullUnlockSeconds = 2 days;
-    uint128 remainingSeconds;
-    // modifiable field
-    uint128 gainFee;
-    uint32 stEverFeePercent;
-    uint128 minStrategyDepositValue = 100 ever;
-    uint128 minStrategyWithdrawValue = 100 ever;
-    bool isPaused;
-    address strategyFactory;
-    uint64 withdrawHoldTime; // seconds
+    // Balances
+    uint128 stEverSupply; // Total supply of StEver
+    uint128 totalAssets; // Total assets
+    uint128 availableAssets; // Available assets
+    uint128 totalStEverFee; // Total StEver fee
+    uint128 effectiveEverAssets; // Effective Ever assets
+    uint128 remainingLockedAssets; // Remaining locked assets
+    uint128 unlockPerSecond; // Unlock rate per second
 
-    address owner;
-    uint32 accountVersion;
-    uint32 stEverVaultVersion;
-    uint32 clusterVersion;
-    // mappings
-    mapping(address => StrategyParams) public strategies;
-    mapping(address => ClustersPool) public clusterPools;
-    mapping(uint64 => PendingWithdraw) pendingWithdrawals;
-    // emergency
-    EmergencyState emergencyState;
+    // Tokens
+    address stEverWallet; // StEver wallet address
+    address stTokenRoot; // StToken root address
+
+    // Time variables
+    uint64 lastUnlockTime = now; // Last unlock time
+    uint128 fullUnlockSeconds = 2 days; // Full unlock time in seconds
+    uint128 remainingSeconds; // Remaining seconds
+
+    // Modifiable fields
+    uint128 gainFee; // Gain fee
+    uint32 stEverFeePercent; // StEver fee percentage
+    uint128 minStrategyDepositValue = 100 ever; // Minimum strategy deposit value
+    uint128 minStrategyWithdrawValue = 100 ever; // Minimum strategy withdrawal value
+    bool isPaused; // Pause status
+    address strategyFactory; // Strategy factory address
+    uint64 withdrawHoldTime; // Withdraw hold time in seconds
+
+    // Owner and version variables
+    address owner; // Owner address
+    uint32 accountVersion; // Account version
+    uint32 stEverVaultVersion; // StEverVault version
+    uint32 clusterVersion; // Cluster version
+
+    // Mappings
+    mapping(address => StrategyParams) public strategies; // Mapping of strategies
+    mapping(address => ClustersPool) public clusterPools; // Mapping of cluster pools
+    mapping(uint64 => PendingWithdraw) pendingWithdrawals; // Mapping of pending withdrawals
+
+    // Emergency state
+    EmergencyState emergencyState; // Emergency state
 
     uint64 timeAfterEmergencyCanBeActivated = Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED;
 }

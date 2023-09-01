@@ -3,6 +3,13 @@ pragma AbiHeader expire;
 
 import "@broxus/contracts/contracts/platform/Platform.tsol";
 
+/**
+ * @title RPlatform
+ *
+ * @dev This contract is an extension of the {Platform} contract and does not add any additional logic.
+ *
+ * The Platform contract provides an immutable foundation for a contract that can be updated.
+ */
 contract RPlatform is Platform {
     constructor(TvmCell code, TvmCell params, address sendGasTo) public Platform(code, params, sendGasTo) {}
 }

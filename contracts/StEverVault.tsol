@@ -2,13 +2,12 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
-
+import "./interfaces/IStrategy.tsol";
 import "./StEverAccount.tsol";
 import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverStrategiesManager.tsol";
 import "./base/StEverVaultStrategiesController.tsol";
 import "./base/StEverVaultValidators.tsol";
-
 
 import "./utils/ErrorCodes.tsol";
 import "./utils/Constants.tsol";
@@ -21,6 +20,23 @@ import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCa
 import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.tsol";
 
 
+/**
+ * @title StEverVault
+ *
+ * @dev StEverVault is the central contract of the StEver staking platform,
+ * inheriting functionalities from several other contracts and interfaces.
+ *
+ * This contract is an implementation of the IStEverVault interface,
+ * encompassing the essential functionalities required for depositing and
+ * withdrawing ever tokens, managing withdrawal requests, and handling token transfers.
+ *
+ * Additionally, it serves as the main entry point for all user, owner,
+ * and governance operations.
+ *
+ * It is responsible for managing ever assets, issuing StEver tokens, processing withdrawals
+ * after a hold time and governance approval, managing strategies, validating deposit and
+ * withdrawal requests, and handling emergencies.
+ */
 contract StEverVault is
     StEverVaultEmergency,
     StEverStrategiesManager,
@@ -52,10 +68,18 @@ contract StEverVault is
 		}(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
-
-     /// @dev Allows a user to deposit a specified amount of native tokens.
-     /// @param _amount The amount of tokens to deposit.
-     /// @param _nonce The nonce associated with the deposit.
+    /**
+     * @dev See {IStEverVault-deposit}.
+     *
+     * Preconditions:
+     *  - The system must not be paused.
+     *  - The value of the message must be greater than or equal to the sum of the deposit amount and the minimum call message value.
+     *
+     * Postconditions:
+     *  - The total assets, available assets and stEverSupply are increased by the deposit amount.
+     *  - The Deposit event is emitted.
+     *  - The mint function of the stTokenRoot contract is called.
+     */
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
         require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
 
@@ -85,10 +109,25 @@ contract StEverVault is
         );
     }
 
-
-
-
-    /// @notice Handle stTokens transfer, for withdraw locked native tokens.
+    /**
+     * @dev Handles a incoming stTokens transfer, for withdraw locked native tokens.
+     *
+     * This function checks if the withdrawal request is valid by checking if the sender is the stEverWallet,
+     * if the value of the message is greater than or equal to the required attached value, and if the system is not paused.
+     * @param _amount The amount to be withdrawn.
+     * @param _sender The sender of the withdrawal request.
+     * @param _remainingGasTo The address to which the remaining gas will be sent.
+     * @param _payload The payload of the withdrawal request.
+     *
+     * Preconditions:
+     *  - The sender must be the stEverWallet.
+     *  - The value of the message must be greater than or equal to the required attached value.
+     *  - The system must not be paused.
+     *
+     * Postconditions:
+     *  - The requestWithdraw function is called if the conditions are met.
+     *  - If any condition is not met, the transfer function of the stEverWallet contract is called to refund the tokens to the sender.
+     */
     function onAcceptTokensTransfer(
         address,
         uint128 _amount,
@@ -139,13 +178,21 @@ contract StEverVault is
         requestWithdraw(_sender, _amount, _nonce, _remainingGasTo);
     }
 
-
-
-    /// @dev Requests a withdrawal for a user.
-    /// @param _user The address of the user.
-    /// @param _amount The amount to withdraw.
-    /// @param _nonce The nonce associated with the withdrawal.
-    /// @param _remainingGasTo The address to send the remaining gas to.
+    /**
+     * @dev Requests a withdrawal for a user.
+     *
+     * @param _user The user requesting the withdrawal.
+     * @param _amount The amount to be withdrawn.
+     * @param _nonce The nonce of the withdrawal.
+     * @param _remainingGasTo The address to which the remaining gas will be sent.
+     *
+     * Preconditions:
+     *  - The value of the message must be greater than or equal to the required attached value.
+     *
+     * Postconditions:
+     *  - A new pending withdrawal is created and added to the {pendingWithdrawals}.
+     *  - The {addPendingValueToAccount} function is called.
+     */
     function requestWithdraw(address _user, uint128 _amount, uint64 _nonce, address _remainingGasTo) internal {
         // making StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA free
         tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE - StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION), 0);
@@ -162,9 +209,14 @@ contract StEverVault is
         addPendingValueToAccount(_nonce, _amount, accountAddr, unlockTime, 0, MsgFlag.ALL_NOT_RESERVED, _remainingGasTo);
     }
 
-
-    /// @dev Handles an error when adding a pending value.
-    /// @param _slice The slice to decode.
+    /**
+     * @dev Handles the error of adding a pending value to an account.
+     *
+     * @param _slice The slice of the error message.
+     *
+     * Postconditions:
+     *  - The {addPendingValueToAccount} function is called again.
+     */
     function handleAddPendingValueError(TvmSlice _slice) internal view {
         tvm.rawReserve(_reserve(), 0);
 
@@ -185,15 +237,20 @@ contract StEverVault is
         );
     }
 
-
-     /// @dev Adds a pending value to an account.
-     /// @param _withdrawNonce The nonce associated with the withdrawal.
-     /// @param _amount The amount to add.
-     /// @param _account The account to add the value to.
-     /// @param _unlockTime The time at which the value will be unlocked.
-     /// @param _value The value to add.
-     /// @param _flag The flag associated with the value.
-     /// @param _remainingGasTo The address to send the remaining gas to.
+    /**
+     * @dev Adds a pending value to an account.
+     *
+     * @param _withdraw_nonce The nonce of the withdrawal.
+     * @param _amount The amount to be withdrawn.
+     * @param account The account to which the pending value will be added.
+     * @param _unlockTime The unlock time of the withdrawal.
+     * @param _value The value to be added.
+     * @param _flag The flag of the message.
+     * @param _remainingGasTo The address to which the remaining gas will be sent.
+     *
+     * Postconditions:
+     *  - The {StEverAccount-addPendingValue} function is called.
+     */
     function addPendingValueToAccount(
         uint64 _withdrawNonce,
         uint128 _amount,
@@ -210,12 +267,17 @@ contract StEverVault is
         }(_withdrawNonce, _amount, _unlockTime, _remainingGasTo);
     }
 
-
-    /// @dev Handles the acceptance of a pending withdrawal.
-    /// @param _nonce The nonce associated with the withdrawal.
-    /// @param _user The address of the user.
-    /// @param _unlockTime The time at which the value will be unlocked.
-    /// @param _remainingGasTo The address to send the remaining gas to.
+    /**
+     * @dev See {IStEverVault-onPendingWithdrawAccepted}.
+     *
+     * Preconditions:
+     *  - The caller must be the account of the user.
+     *
+     * Postconditions:
+     *  - The pending withdrawal is removed from the pendingWithdrawals.
+     *  - The WithdrawRequest event is emitted.
+     *  - The remaining gas is transferred to the remainingGasTo address.
+     */
     function onPendingWithdrawAccepted(
         uint64 _nonce,
         address _user,
@@ -231,12 +293,17 @@ contract StEverVault is
        _remainingGasTo.transfer({value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-
-    /// @dev Handles the rejection for creating pending withdrawal.
-    /// @param _nonce The nonce associated with the withdrawal.
-    /// @param _user The address of the user.
-    /// @param _amount The amount to withdraw.
-    /// @param _remainingGasTo The address to send the remaining gas to.
+    /**
+     * @dev See {IStEverVault-onPendingWithdrawRejected}.
+     *
+     * Preconditions:
+     *  - The caller must be the account of the user.
+     *
+     * Postconditions:
+     *  - The pending withdrawal is removed from the pendingWithdrawals.
+     *  - The tokens are transferred back to the user.
+     *
+     */
     function onPendingWithdrawRejected(uint64 _nonce, address _user, uint128 _amount, address _remainingGasTo) override external onlyAccount(_user) {
         tvm.rawReserve(
             _reserveWithValue(StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION),
@@ -260,20 +327,33 @@ contract StEverVault is
         );
     }
 
-
-    /// @dev Removes a pending user withdrawal.
-    /// @param _nonce The nonce associated with the withdrawal.
+    /**
+     * @dev See {IStEverVault-removePendingWithdraw}.
+     *
+     * Preconditions:
+     *  - The caller must be the user of the account.
+     *
+     * Postconditions:
+     *  - The removePendingWithdraw function of the StEverAccount contract is called.
+     *
+     */
     function removePendingWithdraw(uint64 _nonce) override external minCallValue {
         tvm.rawReserve(_reserve(), 0);
         address account = getAccountAddress(msg.sender);
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
     }
 
-
-    /// @dev success callback for removing withdraw request.
-    /// @param _user The address of the user.
-    /// @param _nonce The nonce associated with the withdrawal.
-    /// @param _amount The amount to withdraw.
+    /**
+     * @dev See {IStEverVault-onPendingWithdrawRemoved}.
+     *
+     * Preconditions:
+     *  - The caller must be the account of the user.
+     *
+     * Postconditions:
+     *  - The pending withdrawal is removed from the pendingWithdrawals.
+     *  - The WithdrawRequestRemoved event is emitted.
+     *  - The tokens are transferred to the user.
+     */
     function onPendingWithdrawRemoved(address _user, uint64 _nonce, uint128 _amount) override external onlyAccount(_user) {
         tvm.rawReserve(
             _reserveWithValue(StEverVaultGas.WITHDRAW_FEE + StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION),
@@ -297,9 +377,16 @@ contract StEverVault is
         );
     }
 
-
-    /// @dev Processes of satisfying withdraw requests.
-    /// @param sendConfig The configuration for sending.
+    /**
+     * @dev See {IStEverVault-processSendToUsers}.
+     *
+     * Preconditions:
+     *  - The caller must be the governance or the contract itself.
+     *
+     * Postconditions:
+     *  - The {IStEverAccount-processWithdraw} function is called for each user in the `sendConfig` mapping.
+     *  - If the sendConfig mapping is not empty after the iteration, the processSendToUsers function is called again.
+     */
     function processSendToUsers(mapping (address => SendToUserConfig) sendConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
 
@@ -326,11 +413,17 @@ contract StEverVault is
         }
     }
 
-
-    /// @dev success withdraw callback from user account.
-    /// @param _amount The amount to withdraw.
-    /// @param _user The address of the user.
-    /// @param _withdrawals The withdrawals to process.
+    /**
+     * @dev See {IStEverVault-withdrawToUser}.
+     *
+     * Preconditions:
+     *  - The caller must be the account of the user.
+     *
+     * Postconditions:
+     *  - The total assets, available assets and stEverSupply are decreased by the withdrawal amount.
+     *  - The WithdrawError or WithdrawSuccess event is emitted.
+     *  - The tokens are burned.
+     */
     function withdrawToUser(
         uint128 _amount,
         address _user,
@@ -390,10 +483,17 @@ contract StEverVault is
         );
     }
 
-
-     /// @dev last step in withdraw native tokens flow.
-     /// @param _wallet The wallet to burn the tokens from.
-     /// @param _payload The payload associated with the burn.
+    /**
+     * @dev Last step in withdraw native tokens flow.
+     *
+     * Preconditions:
+     *  - The caller must be the stTokenRoot.
+     *  - The wallet must be the stEverWallet.
+     *
+     * Postconditions:
+     *  - The WithdrawSuccess event is emitted.
+     *  - The remaining gas is transferred to the user.
+     */
     function onAcceptTokensBurn(
         uint128,
         address,
@@ -426,8 +526,19 @@ contract StEverVault is
 		}
 	}
 
-    /// @dev Withdraws the stEver fee.
-    /// @param _amount The amount to withdraw.
+    /**
+     * @dev See {IStEverVault-withdrawStEverFee}.
+     *
+     * Preconditions:
+     *  - The caller must be the Owner.
+     *  - The total stEver fee must be greater than or equal to the amount to be withdrawn.
+     *  - The contract must be able to transfer the specified amount.
+     *
+     * Postconditions:
+     *  - The total stEver fee and available assets are decreased by the withdrawal amount.
+     *  - The WithdrawFee event is emitted.
+     *  - The remaining gas is transferred to the owner.
+     */
     function withdrawStEverFee(uint128 _amount) override external onlyOwner {
         require (totalStEverFee >= _amount, ErrorCodes.NOT_ENOUGH_ST_EVER_FEE);
         require (canTransferValue(_amount), ErrorCodes.NOT_ENOUGH_AVAILABLE_ASSETS);
@@ -440,10 +551,20 @@ contract StEverVault is
         owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    /// @notice Allows the owner to withdraw extra Ever tokens.
-    /// @dev function for withdraw extra Ever tokens from vault
+    /**
+     * @dev See {IStEverVault-withdrawExtraEver}.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The value of the message must be greater than or equal to the minimum call value.
+     *  - The available assets must be greater than the total assets and the total stEver fee.
+     *
+     * Postconditions:
+     *  - The available assets are decreased by the extra available assets.
+     *  - The SuccessWithdrawExtraEver event is emitted.
+     *  - The remaining gas is transferred to the owner.
+     */
     function withdrawExtraEver() override external onlyOwner minCallValue {
-
         require (
             availableAssets > totalAssets && (availableAssets - totalAssets) > totalStEverFee,
             ErrorCodes.AVAILABLE_ASSETS_SHOULD_GT_TOTAL_ASSETS
@@ -463,7 +584,17 @@ contract StEverVault is
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    // upgrade
+    /**
+     * @dev See {IStEverVault-upgrade}.
+     *
+     * Preconditions:
+     *  - The caller must be the owner.
+     *  - The call value must be greater than or equal to the minimum call value.
+     *
+     * Postconditions:
+     *  - If the new version is the same as the current version, the remaining gas is sent to the specified address and the function returns.
+     *  - If the new version is different, the contract's state is updated with the new version's data and the contract's code is replaced with the new code.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external minCallValue onlyOwner {
         if (_newVersion == stEverVaultVersion) {
             tvm.rawReserve(_reserve(), 0);

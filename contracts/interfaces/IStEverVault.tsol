@@ -2,7 +2,19 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 import "./IStEverAccount.tsol";
 
-
+/**
+ * @title IStEverVault
+ *
+ * @dev Interface of the essential functionality required by the StEverVault contract,
+ * the central component of the StEver staking platform.
+ *
+ * This interface defines the necessary functions for depositing and withdrawing ever tokens,
+ * managing withdrawal requests, and handling token transfers.
+ *
+ * The {StEverVault} contract, which implements this interface, serves as the main entry point
+ * for all user, owner, and governance operations. It is responsible for managing all ever assets,
+ * issuing StEver tokens, and processing withdrawals after a hold time and governance approval.
+ */
 interface IStEverVault {
     // common
     event PausedStateChanged(bool pauseState);
@@ -189,105 +201,472 @@ interface IStEverVault {
         uint128 totalAssets;
     }
 
+    /**
+     * @dev Gets the details of the contract.
+     * @return Details of the contract.
+     */
     function getDetails() external responsible view returns(Details);
-    // strategy
+
+    /**
+     * @dev Adds strategies to the contract.
+     *
+     * @param _strategies The strategies to be added.
+     * @param _clusterOwner The owner of the cluster.
+     * @param _clusterId The ID of the cluster.
+     */
     function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
+
+    /**
+     * @dev Removes a strategy from the contract.
+     * @param _strategy The strategy to be removed.
+     */
     function _removeStrategy(address _strategy) external;
+
+    /**
+     * @dev Removes strategies from the contract.
+     *
+     * @param _strategies The strategies to be removed.
+     * @param _clusterOwner The owner of the cluster.
+     * @param _clusterId The ID of the cluster.
+     */
     function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
+
+    /**
+     * @dev Reports the strategy.
+     *
+     * @param gain The gain from the strategy.
+     * @param loss The loss from the strategy.
+     * @param totalAssets The total assets in the strategy.
+     * @param requestedValue The requested value from the strategy.
+     */
     function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
+
+    /**
+     * @dev Sets the strategy factory.
+     * @param _strategyFactory The strategy factory to be set.
+     */
     function setStrategyFactory(address _strategyFactory) external;
+
+    /**
+     * @dev Forces the removal of a strategy.
+     *
+     * @param _strategy The strategy to be removed.
+     * @param _cluster The cluster from which the strategy will be removed.
+     */
     function forceStrategyRemove(address _strategy, address _cluster) external;
-        // Migration
+
+    /**
+     * @dev Sets the total assets of the strategies.
+     * @param _totalAssetsConfig The configuration of the total assets.
+     */
     function setStrategiesTotalAssets(IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig) external;
-    // clusters
+
+    /**
+     * @dev Creates a new cluster.
+     *
+     * @param _clusterOwner The address of the cluster owner.
+     * @param _assurance The assurance amount for the cluster.
+     * @param _maxStrategiesCount The maximum number of strategies that can be added to the cluster.
+     */
     function createCluster(address _clusterOwner, uint128 _assurance, uint32 _maxStrategiesCount) external;
+
+    /**
+     * @dev Delegates strategies to a different cluster.
+     *
+     * @param strategies The addresses of the strategies to delegate.
+     * @param destinationCluster The address of the cluster to delegate the strategies to.
+     */
     function delegateStrategies(address[] strategies, address destinationCluster) external;
+
+    /**
+     * @dev Handles the delegation of strategies.
+     * @param _clusterOwner The owner of the cluster.
+     * @param _clusterNonce The nonce of the cluster.
+     * @param _strategies The strategies to be delegated.
+     */
     function onStrategiesDelegationHandled(
         address _clusterOwner,
         uint32 _clusterNonce,
         address[] _strategies
     ) external;
+
+    /**
+     * @dev Handles the removal of a cluster.
+     *
+     * @param _clusterOwner The owner of the cluster.
+     * @param _clusterNonce The nonce of the cluster.
+     */
     function onClusterRemoved(
         address _clusterOwner,
         uint32 _clusterNonce
     ) external;
-    // Deposit to strategy
+
+    /**
+     * @dev Deposits funds to the strategies according to the deposit configurations.
+     * @param depositConfig Deposit configurations.
+     */
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
+
+    /**
+     * @dev Handles the event when a strategy has handled a deposit.
+     */
     function onStrategyHandledDeposit() external;
 
-    // Withdraw from strategies
+    /**
+     * @dev Processes withdrawals from the strategies according to the withdrawal configurations.
+     * @param withdrawConfig The configurations for the withdrawals.
+     */
     function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
+
+    /**
+     * @dev Handles the withdrawal request from strategies.
+     */
     function onStrategyHandledWithdrawRequest() external;
+
+    /**
+     * @dev Handles the event when a strategy has failed to handle a deposit.
+     * @param errcode The error code of the failed deposit.
+     */
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
+
+    /**
+     * @dev Receives funds from a strategy.
+     */
     function receiveFromStrategy() external;
+
+    /**
+     * @dev Receives additional transfers from a strategy.
+     */
     function receiveAdditionalTransferFromStrategy() external;
+
+    /**
+     * @dev Handles the event when a strategy has failed to handle a withdrawal.
+     *
+     * @param errcode The error code of the failed withdrawal.
+     */
     function withdrawFromStrategyError(uint32 errcode) external;
+
+    /**
+     * @dev Forces a withdrawal from the strategies according to the withdrawal configurations.
+     * @param _withdrawConfig The configurations for the withdrawals.
+     */
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) external;
 
     // User interactions
+
+    /**
+     * @dev Withdraws the assets to the user.
+     * This function checks if the _withdrawals mapping is not empty, unlocks the assets, checks
+     * the withdrawal info, and burns the tokens.
+     *
+     * @param amount The amount to be withdrawn.
+     * @param user The user to withdraw to.
+     * @param withdrawals The mapping of withdrawal requests.
+     */
     function withdrawToUser(uint128 amount, address user, mapping(uint64 => IStEverAccount.WithdrawRequest) withdrawals) external;
+
+    /**
+     * @dev Removes a pending withdrawal.
+     * @param nonce The nonce of the withdrawal.
+     */
     function removePendingWithdraw(uint64 nonce) external;
+
+    /**
+     * @dev Deposits.
+     *
+     * This function checks if the deposit request is valid by checking if the system is not paused,
+     * if the value of the message is greater than or equal to the sum of the deposit amount and the minimum call message value.
+     *
+     * @param amount The amount to be deposited.
+     * @param nonce The nonce of the deposit.
+     */
     function deposit(uint128 amount, uint64 nonce) external;
 
-    // Withdraw to user
+    /**
+     * @dev Processes the withdrawal to the user.
+     *
+     * @param sendConfig The mapping of {SendToUserConfig}.
+     */
     function processSendToUsers(mapping(address => SendToUserConfig) sendConfig) external;
 
-    // extra money from strategy
+    /**
+     * @dev Processes the withdrawal of extra money from strategies.
+     *
+     * @param _strategies The array of strategies to withdraw from.
+     */
     function processWithdrawExtraMoneyFromStrategies(address[] _strategies) external;
+
+    /**
+     * @dev Receives extra money from a strategy.
+     */
     function receiveExtraMoneyFromStrategy() external;
 
-    // withdraw fee
+    /**
+     * @dev Withdraws the fee.
+     *
+     * @param _amount The amount of stEver fee to be withdrawn.
+     */
     function withdrawStEverFee(uint128 _amount) external;
 
-    // withdraw extra ever
+    /**
+     * @dev Withdraws the extra available assets.
+     */
     function withdrawExtraEver() external;
 
     // validators
+
+    /**
+     * @dev Validates a deposit request.
+     *
+     * This function checks if the deposit request is valid by checking if the strategy exists,
+     * if the deposit amount is above the minimum, and if there are enough assets to cover the deposit.
+     */
     function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
+
+    /**
+     * @dev Validates a withdrawal request from strategies.
+     *
+     * This function checks if the withdrawal request is valid by checking if the strategy exists,
+     * if the withdrawal amount is above the minimum, and if there are enough assets to cover the withdrawal.
+     */
     function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
 
     // account
+
+    /**
+     * @dev Handles the acceptance of a pending withdrawal.
+     *
+     * @param nonce The nonce of the pending withdrawal.
+     * @param user The user of the account.
+     * @param _unlockTime The unlock time of the pending withdrawal.
+     * @param remainingGasTo The address to which the remaining gas will be sent.
+     */
     function onPendingWithdrawAccepted(uint64 nonce,address user, uint64 _unlockTime, address remainingGasTo) external;
+
+    /**
+     * @dev Handles the rejection of a pending withdrawal.
+     *
+     * @param nonce The nonce of the withdrawal.
+     * @param user The user of the account.
+     * @param amount The amount of the withdrawal.
+     * @param remainingGasTo The address to which the remaining gas will be sent.
+     */
     function onPendingWithdrawRejected(uint64 nonce, address user, uint128 amount, address remainingGasTo) external;
+
+    /**
+     * @dev Handles the removal of a pending withdrawal.
+     *
+     * @param user The user of the account.
+     * @param nonce The nonce of the pending withdrawal.
+     * @param amount The amount of the pending withdrawal.
+     */
     function onPendingWithdrawRemoved(address user, uint64 nonce, uint128 amount) external;
 
     // utils
+
+    /**
+     * @dev Encodes the deposit payload for a given nonce.
+     *
+     * @param nonce The nonce to encode.
+     * @return deposit_payload The encoded payload.
+     */
     function encodeDepositPayload(uint64 nonce) external pure returns (TvmCell deposit_payload);
 
     // setters
+
+    /**
+     * @dev Sets the gain fee.
+     *
+     * @param _gainFee The new gain fee.
+     */
     function setGainFee(uint128 _gainFee) external;
+
+    /**
+     * @dev Sets the minimum strategy deposit value.
+     *
+     * @param minStrategyDepositValue The new minimum strategy deposit value.
+     */
     function setMinStrategyDepositValue(uint128 minStrategyDepositValue) external;
+
+    /**
+     * @dev Sets the minimum strategy withdraw value.
+     *
+     * @param minStrategyWithdrawValue The new minimum strategy withdraw value.
+     */
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
+
+    /**
+     * @dev Sets the fee percent.
+     *
+     * @param _stEverFeePercent The new StEver fee percent.
+     */
     function setStEverFeePercent(uint32 _stEverFeePercent) external;
+
+    /**
+     * @dev Sets the pause state of the contract.
+     *
+     * @param isPaused The new pause state.
+     */
     function setIsPaused(bool isPaused) external;
+
+    /**
+     * @dev Sets the withdraw hold time in seconds.
+     *
+     * @param _hold_time The new withdraw hold time in seconds.
+     */
     function setWithdrawHoldTimeInSeconds(uint64 _hold_time) external;
+
+    /**
+     * @dev Sets the full unlock reward time in seconds.
+     *
+     * @param _fullUnlockSeconds The new full unlock reward time in seconds.
+     */
     function setFullUnlockRewardSeconds(uint128 _fullUnlockSeconds) external;
 
     // ownership
+
+    /**
+     * @dev Transfers ownership of the contract to a new account.
+     *
+     * @param _newOwner The address of the new owner.
+     * @param _sendGasTo The address to send gas to.
+     */
     function transferOwnership(address _newOwner, address _sendGasTo) external;
+
+    /**
+     * @dev Transfers governance of the contract to a new account.
+     &
+     * @param _newGovernance The address of the new governance.
+     * @param _sendGasTo The address to send remaining gas to.
+     */
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;
 
     // emergency
+
+    /**
+     * @dev Starts the emergency process.
+     * @param _poofNonce The nonce for the poof.
+     */
     function startEmergencyProcess(uint64 _poofNonce) external;
+
+    /**
+     * @dev Changes the pause state of the emergency process.
+     *
+     * @param _isPaused A boolean indicating if the emergency process should be paused.
+     */
     function changeEmergencyPauseState(bool _isPaused) external;
+
+    /**
+     * @dev Stops the emergency process.
+     */
     function stopEmergencyProcess() external;
+
+    /**
+     * @dev Handles the rejection of the emergency process by a user account.
+     *
+     * @param _user The address of the user.
+     * @param errcode The error code.
+     */
     function startEmergencyRejected(address _user, uint16 errcode) external;
+
+    /**
+     * @dev Starts the emergency withdrawal process from strategies for a user.
+     * @param _user The address of the user.
+     */
     function emergencyWithdrawFromStrategiesProcess(address _user) external;
+
+    /**
+     * @dev Processes the emergency withdrawal from a strategy.
+     *
+     * @param _user The address of the user.
+     * @param _startPair The starting pair for the withdrawal process.
+     */
     function _processEmergencyWithdrawFromStrategy(address _user, optional(address, StrategyParams) _startPair) external;
+
+    /**
+     * @dev Initiates the emergency withdrawal to a user.
+     */
     function emergencyWithdrawToUser() external;
     // upgrade
+
+    /**
+     * @dev Upgrades the Vault to a new version.
+     *
+     * @param _newCode The new code to use for the upgrade.
+     * @param _newVersion The version of the new code.
+     * @param _sendGasTo The address to which the remaining gas will be sent.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
-    // upgrade
-    // account
+    // upgrade  account
+
+    /**
+     * @dev Sets the new account code.
+     *
+     * @param _newAccountCode The new account code.
+     */
     function setNewAccountCode(TvmCell _newAccountCode) external;
+
+    /**
+     * @dev Upgrades the {StEverAccount}.
+     */
     function upgradeStEverAccount() external;
+
+    /**
+     * @dev Upgrades the {StEverAccount}'s for the provided users.
+     *
+     * @param _sendGasTo The address to send gas to.
+     * @param _users The users to upgrade the StEverAccount for.
+     */
     function upgradeStEverAccounts(address _sendGasTo, address[] _users) external;
+
+    /**
+     * @dev Upgrades the {StEverAccount}'s for the provided users starting from the provided index.
+     *
+     * @param _sendGasTo The address to send gas to.
+     * @param _users The users to upgrade the StEverAccounts for.
+     * @param _startIdx The index to start upgrading from.
+     */
     function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) external;
+
+    /**
+     * @dev Handles the event of an account being upgraded.
+     *
+     * @param user The user whose account was upgraded.
+     * @param sendGasTo The address to send gas to.
+     * @param newVersion The new version of the account.
+     */
     function onAccountUpgraded(address user, address sendGasTo, uint32 newVersion) external;
-    // upgrade cluster
+
+    /**
+     * @dev Sets the new cluster code.
+     *
+     * @param _newClusterCode The new cluster code.
+     */
     function setNewClusterCode(TvmCell _newClusterCode) external;
+
+    /**
+     * @dev Upgrades the {StEverCluster} code.
+     *
+     * @param _clusterNonce The nonce for the cluster to be upgraded.
+     */
     function upgradeStEverCluster(uint32 _clusterNonce) external;
+
+    /**
+     * @dev Upgrades the {StEverCluster}'s for the provided clusters.
+     *
+     * @param _sendGasTo The address to send gas to.
+     * @param _clusters The clusters to upgrade the StEverClusters for.
+     */
     function upgradeStEverClusters(address _sendGasTo, address[] _clusters) external;
+
+    /**
+     * @dev Handles the event of a cluster being upgraded.
+     *
+     * @param _clusterOwner The owner of the cluster.
+     * @param _clusterNonce The nonce for the cluster.
+     * @param _sendGasTo The address to send gas to.
+     * @param _newVersion The new version of the cluster.
+     */
     function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) external;
 }
 
