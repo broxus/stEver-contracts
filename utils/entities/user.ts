@@ -139,7 +139,7 @@ export class User {
     const { traceTree, ...transaction } = await locklift.tracing.trace(
       this.vault.vaultContract.methods
         .startEmergencyProcess({
-          _poofNonce: proofNonce,
+          _proofNonce: proofNonce,
         })
         .send({
           from: this.account.address,

@@ -3,7 +3,6 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 import "@broxus/contracts/contracts/wallets/Account.tsol";
-import "broxus-ton-tokens-contracts/contracts/TokenRoot.tsol";
 
 
 

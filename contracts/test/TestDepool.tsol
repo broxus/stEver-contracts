@@ -2,6 +2,7 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 import "../interfaces/IDePool.tsol";
 import "../interfaces/IParticipant.tsol";
+import "./ITestDepoolMockMethods.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 
@@ -12,7 +13,7 @@ struct Depositor {
     uint128 withdrawValue;
 }
 
-contract TestDepool is IDePool {
+contract TestDepool is IDePool, ITestDepoolMockMethods {
     uint64 constant STAKE_FEE = 0.5 ever;
     uint8 constant DEPOSITOR_NOT_EXISTS = 101;
     uint8 constant BAD_DEPOSIT_VALUE = 102;

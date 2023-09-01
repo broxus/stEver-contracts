@@ -18,7 +18,6 @@ import "../interfaces/IStEverVault.tsol";
  * manages all ever assets and issues StEver tokens.
  */
 interface IStEverAccount {
-    event Receive(uint128 amount);
     struct AccountDetails {
         address user;
         address vault;

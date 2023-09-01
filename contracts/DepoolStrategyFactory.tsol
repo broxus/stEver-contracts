@@ -11,6 +11,7 @@ import "./utils/Constants.tsol";
 import "./utils/ErrorCodes.tsol";
 import "./utils/Gas.tsol";
 
+
 /**
  * @title DepoolStrategyFactory
  *
@@ -19,6 +20,7 @@ import "./utils/Gas.tsol";
  * This contract is responsible for creating and managing DePool strategies.
  * It also handles the upgrade of strategies and the transfer of ownership.
  */
+
 contract DepoolStrategyFactory is IDepoolStrategyFactory {
     // static variables
     uint128 public static nonce;
@@ -99,7 +101,6 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             factoryVersion: factoryVersion
         });
     }
-
     /**
      * @dev See {IDepoolStrategyFactory-transferOwnership}.
      *
@@ -135,7 +136,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         strategyVersion++;
         emit StrategyCodeUpdated(strategyVersion - 1,strategyVersion);
 
-        _sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**

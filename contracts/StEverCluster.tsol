@@ -6,6 +6,7 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/IDestroyable.tsol";
 
 import "./interfaces/IStEverCluster.tsol";
 import "./interfaces/IStEverVault.tsol";
@@ -94,14 +95,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
-
-
     /**
      * @dev Internal function to reserve the minimum balance for the contract.
      * @return The minimum balance for the contract.
      */
     function _reserve() internal pure returns (uint128) {
-        return math.max(address(this).balance - msg.value, StEverAccountGas.CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - msg.value, ClusterGas.CONTRACT_MIN_BALANCE);
     }
 
     /**
@@ -118,6 +117,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         require(msg.sender == stEverOwner,ErrorCodesCluster.NOT_ST_EVER_OWNER);
         _;
     }
+
     /**
      * @dev Modifier to check if the caller is the clusterOwner.
      */
@@ -132,6 +132,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         require(msg.sender == stEverOwner || msg.sender == clusterOwner, ErrorCodesCluster.NOT_ST_EVER_OWNER_OR_CLUSTER_OWNER);
         _;
     }
+
     /**
      * @dev Modifier to check if the caller is the strategyFactory.
      */
@@ -143,7 +144,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @dev Modifier to check if the value of the message is greater than or equal to the minimum call value.
      */
     modifier minCallValue() {
-        require (msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodesCluster.LOW_MSG_VALUE);
+        require (msg.value >= ClusterGas.MIN_CALL_VALUE, ErrorCodesCluster.LOW_MSG_VALUE);
         _;
     }
 
@@ -160,6 +161,21 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     /**
+     * @dev Sets StEverOwner address.
+     * @param address _newStEverOwner Address of new owner.
+     * Preconditions:
+     *  - The caller must be the `StEverVault`
+     *
+     * Postconditions:
+     *  - stEverOwner updated with new address.
+     */
+    function setStEverOwner(address _newStEverOwner) external override onlyStEverVault {
+        tvm.rawReserve(_reserve(), 0);
+        stEverOwner = _newStEverOwner;
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    /**
      * @dev See {IStEverCluster-deployStrategies}.
      *
      * Preconditions:
@@ -172,14 +188,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      */
     function deployStrategies(address[] _dePools) override external onyClusterOwner {
         uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE;
-        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(_dePools.length);
+        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(_dePools.length) + ClusterGas.MIN_CALL_VALUE;
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         for(address dePool : _dePools) {
             IDepoolStrategyFactory(strategyFactory).deployStrategy{
                 value: valueForDeployOneStrategy,
-                flag: 1,
+                flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
             }(dePool);
         }
@@ -206,8 +222,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-
-
     /**
      * @dev Adds strategies to the cluster.
      * This function checks if the assurance is sufficient and if the strategies limit is not reached.
@@ -226,7 +240,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - The strategies are added to the StEverVault.
      */
     function addStrategies(address[] _strategies) public view onyClusterOwner {
-
         if (currentAssurance < requiredAssurance) {
             revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);
         }
@@ -258,7 +271,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         IStEverVault(stEverVault).addStrategies{
             value: uint128(_strategies.length) * StEverVaultGas.EXPERIMENTAL_FEE,
-            flag: 1,
+            flag: MsgFlag.SENDER_PAYS_FEES,
             bounce: false
         }(_strategies, clusterOwner, _nonce);
 
@@ -283,7 +296,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
 
     /**
      * @dev Removes strategies from the cluster.
@@ -372,17 +384,19 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - If the cluster is in the REMOVING state and there are no more strategies, the {IStEverVault-onClusterRemoved} function is called.
      */
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
-        tvm.rawReserve(_reserve(), 0);
+
+        uint128 callBackMsgValue = 0.2 ever;
 
         delete strategies[_strategy];
         uint256 strategiesCount = strategies.keys().length;
         if (clusterState == ClusterState.REMOVING && strategiesCount == 0) {
 
-            IStEverVault(stEverVault).onClusterRemoved{value: 0.2 ever, bounce: false}(clusterOwner, _nonce);
+            IStEverVault(stEverVault).onClusterRemoved{value: callBackMsgValue, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
                 address assuranceTo = isPunished ? stEverOwner : clusterOwner;
                 TvmCell empty;
-                ITokenWallet(stEverTokenWallet).transfer{value: 0.2 ever, bounce: false}(
+                // send remaining tokens
+                ITokenWallet(stEverTokenWallet).transfer{value: callBackMsgValue, bounce: false}(
                     currentAssurance,
                     assuranceTo,
                     0,
@@ -390,15 +404,20 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                     false,
                     empty
                 );
+                // destroy wallet
+                IDestroyable(stEverTokenWallet).destroy{value: callBackMsgValue, bounce: false}(assuranceTo);
             }
-
-            clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+            // self destruct
+            clusterOwner.transfer({
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO,
+                bounce: false
+            });
             return;
         }
-
+        tvm.rawReserve(_reserve(), 0);
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
 
     /**
      * @dev See {IStEverCluster-handleDelegateStrategies}.
@@ -431,7 +450,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             bounce: false
         }(clusterOwner, _nonce, handledStrategies);
     }
-
+ 
     /**
      * @dev See {IStEverCluster-handleUndelegateStrategies}.
      *
@@ -538,6 +557,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         stEverOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+
     /**
      * @dev Retrieves the free assurance.
      * @return uint128 The free assurance.
@@ -551,11 +571,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      * Preconditions:
      *  - The caller must be the clusterOwner.
+     *  - The value of the message must be greater than or equal to the minimum call value.
      *
      * Postconditions:
      *  - The specified amount of assurance is withdrawn, or the unlocked assurance if it is less.
      */
-    function withdrawAssurance(uint128 _amount) override external onyClusterOwner {
+    function withdrawAssurance(uint128 _amount) override external onyClusterOwner minCallValue {
         uint128 unlockedAssurance = freeAssurance();
 
         uint128 amountToWithdraw = math.min(_amount, unlockedAssurance);
@@ -681,7 +702,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function onCodeUpgrade(TvmCell _upgrade_data) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = _upgrade_data.toSlice();
+        TvmSlice s = _upgradeData.toSlice();
 
         (,, address sendGasTo,) = s.decode(address,uint8,address, TvmCell);
         TvmCell initialData = s.loadRef();

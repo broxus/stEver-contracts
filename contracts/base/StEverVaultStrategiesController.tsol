@@ -137,8 +137,6 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         emit StrategyDidntHandleDeposit(msg.sender, _errcode);
     }
 
-
-
     /**
      * @dev See {IStEverVault-strategyReport}
      *
@@ -228,6 +226,11 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
+            if (config.fee < StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
+                continue;
+            }
+
             if (!canTransferValue(config.fee)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
                 continue;
@@ -296,8 +299,6 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      */
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
         uint256 chunkSize = 50;
-        uint128 decreaseAvailableAssets;
-        uint128 _decreaseTotalAssets;
         for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
             (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
 
@@ -317,18 +318,14 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
             }
 
             // grab fee, then add it back after receiving response from strategy
-            decreaseAvailableAssets += config.fee;
-
-            _decreaseTotalAssets += config.fee;
+            availableAssets -= config.fee;
+            decreaseTotalAssets(config.fee);
 
             // change withdrawing strategy state
             strategies[strategy].withdrawingAmount = config.amount;
 
             IStrategy(strategy).withdrawForce{value:config.fee, bounce: false}(uint64(config.amount));
         }
-
-        availableAssets -= decreaseAvailableAssets;
-        decreaseTotalAssets(_decreaseTotalAssets);
         if (!_withdrawConfig.empty()) {
             this.forceWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_withdrawConfig);
         }
@@ -483,14 +480,14 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (!canTransferValue(Constants.MIN_TRANSACTION_VALUE)) {
+            if (!canTransferValue(StEverVaultGas.MIN_CALL_MSG_VALUE)) {
                 emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE);
                 continue;
             }
 
-            availableAssets -= Constants.MIN_TRANSACTION_VALUE;
+            availableAssets -= StEverVaultGas.MIN_CALL_MSG_VALUE;
 
-            IStrategy(strategy).withdrawExtraMoney{value: Constants.MIN_TRANSACTION_VALUE, bounce: false}();
+            IStrategy(strategy).withdrawExtraMoney{value: StEverVaultGas.MIN_CALL_MSG_VALUE, bounce: false}();
         }
     }
 
@@ -505,12 +502,15 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The ReceiveExtraMoneyFromStrategy event is emitted.
      */
     function receiveExtraMoneyFromStrategy() override external onlyStrategy {
-        uint128 receivedValue = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+        uint128 receivedValue = msg.value > StEverVaultGas.HANDLING_STRATEGY_CB_FEE
+            ? msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE
+            : 0;
 
         availableAssets += receivedValue;
 
-        uint128 availableAssetsIncreasedFor = receivedValue > Constants.MIN_TRANSACTION_VALUE ?
-        receivedValue - Constants.MIN_TRANSACTION_VALUE : 0;
+        uint128 availableAssetsIncreasedFor = receivedValue > StEverVaultGas.MIN_CALL_MSG_VALUE
+            ? receivedValue - StEverVaultGas.MIN_CALL_MSG_VALUE
+            : 0;
 
         emit ReceiveExtraMoneyFromStrategy(msg.sender, availableAssetsIncreasedFor);
     }
@@ -558,7 +558,10 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The onStrategyRemoved event is emitted.
      */
     function forceStrategyRemove(address _strategy, address _cluster) override external onlyOwner {
-        require(msg.value >= StEverVaultGas.REMOVE_STRATEGY_RESERVE, ErrorCodes.NOT_ENOUGH_VALUE);
+        require(
+            msg.value >= StEverVaultGas.REMOVE_STRATEGY_RESERVE + Constants.MIN_TRANSACTION_VALUE,
+            ErrorCodes.NOT_ENOUGH_VALUE
+        );
 
         tvm.rawReserve(_reserve(), 0);
 

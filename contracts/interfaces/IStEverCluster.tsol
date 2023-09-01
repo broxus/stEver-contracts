@@ -1,7 +1,6 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../interfaces/IStEverVault.tsol";
 import "../utils/ClusterLib.tsol";
 
 /**
@@ -61,9 +60,18 @@ interface IStEverCluster {
 
 
     event NewStrategyDeployed(address strategy);
-    event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
+     
+    /**
+     * @dev Sets the StEver owner.
+     *
+     * This function is called by the {StEverVault-setStEverOwner}.
+     *
+     * @param _newClusterOwner The address of the new StEver owner.
+     */
+    function setStEverOwner(address _newClusterOwner) external;
+
 
     /**
      * @dev Sets the assurance.

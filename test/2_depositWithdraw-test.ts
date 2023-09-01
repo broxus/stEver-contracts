@@ -9,7 +9,7 @@ import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
 import { ITERATION_FEE } from "../utils/constants";
 
-describe.skip("Deposit withdraw test without lock time", function () {
+describe("Deposit withdraw test without lock time", function () {
   let signer: Signer;
   let admin: User;
   let governance: Governance;

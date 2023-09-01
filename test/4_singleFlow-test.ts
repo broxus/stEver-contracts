@@ -137,7 +137,7 @@ describe("Single flow", async function () {
           strategiesWithPool[0].strategy.address,
           {
             amount: WITHDRAW_AMOUNT.toString(),
-            fee: locklift.utils.toNano(0.1),
+            fee: locklift.utils.toNano(0.6),
           },
         ],
       ],

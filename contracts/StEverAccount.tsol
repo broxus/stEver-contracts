@@ -30,10 +30,6 @@ contract StEverAccount is IStEverAccount {
     // Mapping of withdrawal requests
     mapping(uint64 => IStEverAccount.WithdrawRequest) public withdrawRequests;
 
-    // Maximum number of pending withdrawal requests
-    uint128 constant MAX_PENDING_COUNT = 50;
-
-
     constructor() public {
         revert();
     }
@@ -108,7 +104,7 @@ contract StEverAccount is IStEverAccount {
         address _remainingGasTo
     ) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-        if (withdrawRequests.keys().length < MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
+        if (withdrawRequests.keys().length < Constants.MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
             withdrawRequests[_nonce] = WithdrawRequest({
                 amount: _amount,
@@ -141,7 +137,7 @@ contract StEverAccount is IStEverAccount {
 
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
+  
     /**
      * @dev See {IStEverAccount-removePendingWithdraw}.
      *
@@ -334,9 +330,9 @@ contract StEverAccount is IStEverAccount {
     function onCodeUpgrade(TvmCell _upgrade_data) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = _upgrade_data.toSlice();
+        TvmSlice s = _upgradeData.toSlice();
 
-        (address root_, , address send_gas_to, ) = s.decode(address, uint8, address,TvmCell);
+        (address root_, , address sendGasTo, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;
 
         TvmCell initialData = s.loadRef();
@@ -351,9 +347,9 @@ contract StEverAccount is IStEverAccount {
 
         if  (_newVersion != _currentVersion) {
             (
-                address vault,
-                address user,
-                uint32 currentVersion,
+                ,
+                ,
+                ,
                 mapping(uint64 => IStEverAccount.WithdrawRequest) oldWithdrawRequests
             ) = abi.decode(
                 s.loadRef(),
@@ -364,13 +360,13 @@ contract StEverAccount is IStEverAccount {
                     mapping(uint64 => IStEverAccount.WithdrawRequest)
                 )
             );
-
+            currentVersion = _newVersion;
             for ((uint64 nonce, IStEverAccount.WithdrawRequest oldWithdrawRequest) : oldWithdrawRequests) {
                 withdrawRequests[nonce] = IStEverAccount.WithdrawRequest(oldWithdrawRequest.amount, oldWithdrawRequest.timestamp, 0);
             }
         }
 
 
-        send_gas_to.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
+        sendGasTo.transfer({value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED});
     }
 }

@@ -18,10 +18,9 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
  * in those contracts as well.
  */
 abstract contract StEverVaultEmergency is StEverVaultBase {
-
     /**
      * @dev Enables the emergency state.
-     * @param _emergencyEmitter The address that triggered the emergency state.
+     * @param _emergencyEmitter The address that start the emergency state.
      */
     function enableEmergencyState(address _emergencyEmitter) internal {
         emergencyState = EmergencyState({
@@ -52,7 +51,6 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
      * @dev See {IStEverVault-startEmergencyProcess}.
      *
      * Preconditions:
-     *  - The call value must be greater than or equal to the minimum call value.
      *  - The contract must not be is paused state.
      *  - The contract must not be in an emergency state.
      *  - The value of the message must be greater than or equal to the required message value.
@@ -61,18 +59,18 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
      *  - The emergency process is started.
      *  - The {EmergencyProcessStarted} event is emitted.
      */
-    function startEmergencyProcess(uint64 _poofNonce) override external minCallValue notPaused {
+    function startEmergencyProcess(uint64 _poofNonce) override external notPaused {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         uint128 countOfStrategies = uint128(strategies.keys().length);
         uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPERIMENTAL_FEE;
-        uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy;
+        uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy + StEverVaultGas.MIN_CALL_MSG_VALUE;
 
         require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address accountAddress = getAccountAddress(msg.sender);
-        IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_poofNonce);
+        IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_proofNonce);
     }
 
     /**
@@ -96,7 +94,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
 
         emit EmergencyStopped();
 
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**
@@ -122,13 +120,12 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
      * Preconditions:
      *  - The caller must be the user account.
      *  - The contract must not be in an emergency state.
-     *  - The call value must be greater than or equal to the minimum call value.
      *
      * Postconditions:
      *  - The emergency withdrawal process is started.
      *  - The {EmergencyProcessStarted} event is emitted.
      */
-    function emergencyWithdrawFromStrategiesProcess(address _user) override external onlyAccount(_user) minCallValue {
+    function emergencyWithdrawFromStrategiesProcess(address _user) override external onlyAccount(_user) {
         require (!isEmergencyProcess(), ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         tvm.rawReserve(_reserve(), 0);
@@ -138,7 +135,6 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         optional(address, StrategyParams) startPair = strategies.min();
         this._processEmergencyWithdrawFromStrategy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_user, startPair);
     }
-
 
     /**
      * @dev See {IStEverVault-_processEmergencyWithdrawFromStrategy}.

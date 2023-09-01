@@ -1,7 +1,6 @@
 pragma ever-solidity >=0.62.0;
 import "./StEverVaultBase.tsol";
 import "../interfaces/IStEverCluster.tsol";
-import "../utils/ClusterLib.tsol";
 
 /**
  * @dev This contract is used to manage the strategies for the StEver staking platform.
@@ -29,7 +28,11 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint128 _assurance,
         uint32 _maxStrategiesCount
     ) override external onlyOwner {
-        require(msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE);
+        require(
+            msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE,
+            ErrorCodes.NOT_ENOUGH_VALUE
+        );
+        require(Utils.isValidAddress(strategyFactory), ErrorCodes.STRATEGY_FACTORY_DID_NOT_SET);
         tvm.rawReserve(_reserve(), 0);
 
 
@@ -190,8 +193,10 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
             bounce: false
         }(_strategy);
     }
+
     /**
      * @dev Removes a strategy.
+     * @param _strategy The address of the strategy
      *
      * Preconditions:
      *  - The caller must be the contract itself.

@@ -4,14 +4,13 @@ pragma ever-solidity >=0.62.0;
 import "./StEverVaultStorage.tsol";
 import "../interfaces/IStEverVault.tsol";
 import "../interfaces/IStEverCluster.tsol";
-
 import "../StEverAccount.tsol";
 import "../Platform.tsol";
 import "../utils/ErrorCodes.tsol";
 import "../utils/Gas.tsol";
+import "../utils/Utils.tsol";
 import "../utils/Constants.tsol";
 
-import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 /**
@@ -25,17 +24,6 @@ import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
  * and {StEverStrategiesManager}, which includes the main functionalities of the StEver staking platform.
  */
 abstract contract StEverVaultBase is StEverVaultStorage {
-    // modifiers
-
-    /**
-     * @dev Modifier to make a function callable only by the governance.
-     */
-    modifier onlyGovernanceAndAccept() {
-        require (msg.pubkey() == governance, ErrorCodes.NOT_GOVERNANCE);
-        tvm.accept();
-        _;
-    }
-
     /**
      * @dev Modifier to make a function callable only by the governance or the contract itself.
      */
@@ -62,18 +50,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     /**
-     * @dev Modifier to make a function callable only by the admin or the cluster owner.
-     * @param _clusterId The id of the cluster.
-     */
-    modifier adminOrClusterOwner(uint32 _clusterId) {
-        bool isAdmin = msg.sender == owner;
-        bool isClusterOwner = clusterPools[msg.sender].clusters.exists(_clusterId);
-        require (isAdmin || isClusterOwner,ErrorCodes.NOT_OWNER);
-        _;
-    }
-
-    /**
-     * @dev Modifier to make a function callable only by the account.
+     * @dev Modifier for checking if the msg.sender is account that is deployed by this vault
      * @param _user The address of the user.
      */
     modifier onlyAccount(address _user) {
@@ -130,11 +107,35 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - Gas is sent to `_sendGasTo`.
      */
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
+        require(Utils.isValidAddress(_newOwner), ErrorCodes.BAD_INPUT);
+
+        uint countOfClusters;
+        for ((,ClustersPool clusterPool) : clusterPools) {
+            countOfClusters += clusterPool.clusters.keys().length;
+        }
+
+        require(msg.value > countOfClusters * (StEverVaultGas.MIN_CALL_MSG_VALUE + Constants.MIN_TRANSACTION_VALUE), ErrorCodes.LOW_MSG_VALUE);
+
         tvm.rawReserve(_reserve(), 0);
 
         owner = _newOwner;
 
-        _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo);
+    }
+    // todo
+    function self_setStEverOwnerForClusters(address _sendGasTo) public onlySelf {
+        tvm.rawReserve(_reserve(), 0);
+
+        for ((,ClustersPool clusterPool) : clusterPools) {
+            for((,address clusterAddress) : clusterPool.clusters) {
+                IStEverCluster(clusterAddress).setStEverOwner{
+                    value: StEverVaultGas.MIN_CALL_MSG_VALUE,
+                    bounce: false
+                }(owner);
+            }
+        }
+
+        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     // ownership
@@ -149,13 +150,14 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - Gas is sent to `_sendGasTo`.
      */
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) override external onlyOwner {
+        require(Utils.isValidPubKey(_newGovernance), ErrorCodes.BAD_INPUT);
+
         tvm.rawReserve(_reserve(), 0);
 
         governance = _newGovernance;
 
         _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
 
     /**
      * @dev Receives the token wallet address (`_wallet`).
@@ -184,6 +186,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - The gain fee is set to `_gainFee`.
      */
     function setGainFee(uint128 _gainFee) override external onlyOwner {
+        require (_gainFee >= StEverVaultGas.MIN_GAIN_FEE, ErrorCodes.BAD_INPUT);
         tvm.rawReserve(_reserve(), 0);
 
         gainFee = _gainFee;
@@ -241,7 +244,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         tvm.rawReserve(_reserve(), 0);
 
         stEverFeePercent = _stEverFeePercent;
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
     }
 
     /**
@@ -257,11 +260,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      */
     function setIsPaused(bool _isPaused) override external onlyOwner minCallValue {
         tvm.rawReserve(_reserve(), 0);
-
+        bool isNeedToEmit = isPaused != _isPaused;
         isPaused = _isPaused;
 
-        emit PausedStateChanged(_isPaused);
-
+        if  (isNeedToEmit){
+            emit PausedStateChanged(_isPaused);
+        }
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -277,6 +281,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - The StrategyFactoryAddressUpdated event is emitted.
      */
     function setStrategyFactory(address _strategyFactory) override external onlyOwner minCallValue {
+        require(Utils.isValidAddress(_strategyFactory), ErrorCodes.BAD_INPUT);
         tvm.rawReserve(_reserve(), 0);
 
         strategyFactory = _strategyFactory;
@@ -297,6 +302,10 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - The WithdrawHoldTimeUpdated event is emitted.
      */
     function setWithdrawHoldTimeInSeconds(uint64 _holdTime) override external onlyOwner minCallValue {
+        require(
+            _holdTime <= timeAfterEmergencyCanBeActivated - Constants.TIME_INTERVAL_BETWEEN_WITHDRAW_HOLD_TIME_AND_EMERGENCY,
+            ErrorCodes.WITHDRAW_HOLD_TIME_SHOULD_BE_LESS_THAN_EMERGENCY_THRESHOLD
+        );
         tvm.rawReserve(_reserve(), 0);
 
         withdrawHoldTime = _holdTime;
@@ -317,9 +326,26 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *  - The FullUnlockTimeUpdated event is emitted.
      */
     function setFullUnlockRewardSeconds(uint128 _fullUnlockSeconds) override external onlyOwner minCallValue {
+        require(_fullUnlockSeconds > 0, ErrorCodes.BAD_INPUT);
+
         tvm.rawReserve(_reserve(), 0);
         fullUnlockSeconds = _fullUnlockSeconds;
         emit FullUnlockTimeUpdated(fullUnlockSeconds);
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    /// @dev function for setting period of time after emergency can be activated
+    /// @param _newTimeAfterEmergencyCanBeActivated uint64 new period of time
+    function setTimeAfterEmergencyCanBeActivated(
+        uint64 _newTimeAfterEmergencyCanBeActivated
+    ) public minCallValue onlyOwner  {
+        tvm.rawReserve(_reserve(), 0);
+        require(
+            _newTimeAfterEmergencyCanBeActivated > Constants.TIME_INTERVAL_BETWEEN_WITHDRAW_HOLD_TIME_AND_EMERGENCY,
+            ErrorCodes.EMERGENCY_THRESHOLD_SHOULD_MORE_THAN_2_DAYS
+        );
+        timeAfterEmergencyCanBeActivated = _newTimeAfterEmergencyCanBeActivated;
+        emit TimeAfterEmergencyCanBeActivatedValueUpdated(timeAfterEmergencyCanBeActivated);
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
     // predicates
@@ -359,6 +385,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
             (isAllowedNotActiveState || strategy.state == StrategyState.ACTIVE);
     }
 
+
     // utils
 
     /**
@@ -380,15 +407,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 	}
 
     /**
-     * @dev Returns the maximum between the contract balance minus the message value and the input fee, and the minimum contract balance.
-     * @param _fee The fee to subtract from the contract balance.
-     * @return The maximum value.
-     */
-    function _reserveExceptFee(uint128 _fee) internal pure returns (uint128) {
-		return math.max(address(this).balance - (msg.value - _fee), StEverVaultGas.CONTRACT_MIN_BALANCE);
-	}
-
-    /**
      * @dev See {IStEverVault-encodedDepositPayload}.
      */
     function encodeDepositPayload(uint64 _nonce) external override pure returns (TvmCell depositPayload) {
@@ -396,7 +414,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     /**
-     * @dev Decodes the input payload.
+     * @dev Decodes the deposit payload.
      * @param _payload The payload to decode.
      * @return nonce The nonce decoded from the payload.
      * @return correct A boolean indicating if the payload was correctly decoded.
@@ -415,6 +433,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return (nonce, true);
     }
         // when the user deposits we should calculate the amount of stEver to send
+
     /**
      * @dev Calculates the amount of stEver to send when the user deposits.
      * @param _amount The amount the user deposits.
@@ -427,6 +446,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return getDepositStEverAmountFor(_amount,uint128(now));
     }
         // when the user withdraw we should calculate the amount of ever to send
+
     /**
      * @dev Calculates the amount of ever to send when the user withdraws.
      * @param _amount The amount the user withdraws.
@@ -439,6 +459,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return getWithdrawEverAmountFor(_amount,uint128(now));
     }
     // when the user deposits we should calculate the amount of stEver to send
+
     /**
      * @dev Calculates the amount of stEver to send when the user deposits for a specific time.
      * @param _amount The amount the user deposits.
@@ -452,10 +473,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        (,,uint128 effectiveEverAssets) = getLockStateFor(_time);
-        return math.muldiv(_amount, stEverSupply, effectiveEverAssets);
+        (,,uint128 _effectiveEverAssets) = getLockStateFor(_time);
+        return math.muldiv(_amount, stEverSupply, _effectiveEverAssets);
     }
     // when the user withdraw we should calculate the amount of ever to send
+
     /**
      * @dev Calculates the amount of ever to send when the user withdraws for a specific time.
      * @param _amount The amount the user withdraws.
@@ -469,8 +491,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         if(stEverSupply == 0 || totalAssets == 0) {
             return _amount;
         }
-        (,,uint128 effectiveEverAssets) = getLockStateFor(_time);
-        return math.muldiv(_amount, effectiveEverAssets, stEverSupply);
+        (,,uint128 _effectiveEverAssets) = getLockStateFor(_time);
+        return math.muldiv(_amount, _effectiveEverAssets, stEverSupply);
     }
 
     /**
@@ -552,11 +574,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         bool isOk = true;
         mapping(uint64 => WithdrawToUserInfo) withdrawInfo;
 
-        for ((uint64 nonce, IStEverAccount.WithdrawRequest withdrawRequest) : _withdrawals) {
+        for ((uint64 _nonce, IStEverAccount.WithdrawRequest withdrawRequest) : _withdrawals) {
             if (withdrawRequest.unlockTime > now) {
                 isOk = false;
             }
-            withdrawInfo[nonce] = WithdrawToUserInfo({
+            withdrawInfo[_nonce] = WithdrawToUserInfo({
                 stEverAmount: withdrawRequest.amount,
                 everAmount: getWithdrawEverAmount(withdrawRequest.amount),
                 unlockTime: withdrawRequest.unlockTime
@@ -569,7 +591,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // account utils
     /**
-     * @dev Builds the account parameters for a given user.
+     * @dev Builds the account parameters that will be used for building init data for account.
      * @param _user The user to build the account parameters for.
      * @return The account parameters.
      */
@@ -613,7 +635,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         view
 		returns (address)
 	{
-        TvmCell constructor_params = abi.encode(
+        TvmCell constructorParams = abi.encode(
             accountVersion,
             accountVersion
         );
@@ -621,11 +643,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         return new Platform{
             stateInit: _buildInitAccount(_buildAccountParams(_user)),
             value: StEverVaultGas.USER_DATA_DEPLOY_VALUE
-        }(accountCode, constructor_params, _user);
+        }(accountCode, constructorParams, _user);
 	}
 
     /**
-     * @dev Returns the account address for a given user.
+     * @dev Returns the account address based on user address.
      * @param _user The user to get the account address for.
      * @return The account address.
      */
@@ -641,6 +663,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 				tvm.hash(_buildInitAccount(_buildAccountParams(_user)))
 			);
 	}
+
     /**
      * @dev See {IStEverVault-setNewAccountCode}.
      *
@@ -673,18 +696,20 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * Postconditions:
      *  - The StEverAccount is upgraded.
      */
-    function upgradeStEverAccount() override external minCallValue {
+    function upgradeStEverAccount() override external {
+        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address userData = getAccountAddress(msg.sender);
-        IStEverAccount(userData).upgrade{value: StEverVaultGas.MIN_CALL_MSG_VALUE}(accountCode, accountVersion, msg.sender);
+        IStEverAccount(userData).upgrade{
+            value: StEverVaultGas.MIN_CALL_MSG_VALUE,
+            bounce: false
+        }(accountCode, accountVersion, msg.sender);
     }
-
-    /**
+     /**
      * @dev See {IStEverVault-upgradeStEverAccounts}.
      *
      * Preconditions:
-     *  - The value of the message must be greater than or equal to the minimum call message value.
      *  - The caller must be the owner.
      *  - The value of the message must be greater than or equal to the sum of the length
      *    of users times {StEverVaultGas-MIN_CALL_MSG_VALUE} and {StEverVaultGas-MIN_CALL_MSG_VALUE}.
@@ -692,14 +717,17 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * Postconditions:
      *  - The StEverAccounts for the provided users are upgraded.
      */
-    function upgradeStEverAccounts(address _sendGasTo, address[] _users) override external minCallValue onlyOwner {
-        require(msg.value >= _users.length * StEverVaultGas.MIN_CALL_MSG_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_VALUE);
+    function upgradeStEverAccounts(address _sendGasTo, address[] _users) override external onlyOwner {
+        require(msg.value >= _users.length * StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         this._upgradeStEverAccounts{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _users, 0);
     }
 
     /**
      * @dev See {IStEverVault-_upgradeStEverAccounts}.
+     *
+     * Function for batch upgrade of accounts that can be called only by this contract
+     * in case of batches more than 50.
      *
      * Preconditions:
      *  - The caller must be the contract itself.
@@ -748,7 +776,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     // Cluster
     /**
-     * @dev Builds the cluster parameters for a given nonce, StEverVault, and cluster owner.
+     * @dev Builds the cluster parameters that will be used for building init data for cluster.
      * @param _clusterNonce The nonce for the cluster.
      * @param _stEverVault The StEverVault for the cluster.
      * @param _clusterOwner The owner of the cluster.
@@ -846,7 +874,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     /**
-     * @dev Returns the address of a cluster contract.
+     * @dev Returns the address of a cluster contract based on cluster owner and cluster nonce.
      *
      * @param _clusterOwner The owner of the cluster.
      * @param _clusterNonce The nonce for the cluster.
@@ -893,6 +921,10 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
+    /// @dev function that can be used for self-upgrade
+    /// @param _clusterNonce uint32 nonce of the cluster
+    function upgradeStEverCluster(uint32 _clusterNonce) override external {
+        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
 
     /**
      * @dev See {IStEverVault-upgradeStEverCluster}.
@@ -928,11 +960,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
 
     /**
-     * @dev Upgrades the {StEverCluster} for the provided clusters (`_clusters`) starting from the provided index (`_startIdx`).
+     * @dev Function for batch upgrade of clusters that can be called only by this contract in case of batches more than 50
      * @dev Can only be called by the contract itself.
      * @param _sendGasTo The address to send gas to.
      * @param _clusters The clusters to upgrade the StEverClusters for.
-     * @param _startIdx The index to start upgrading from.
+     * @param _startIdx The start index of the array in case of recursive call.
      *
      * Preconditions:
      *  - The caller must be the contract itself.
@@ -956,7 +988,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-
     /**
      * @dev See {IStEverVault-onClusterUpgraded}.
      *
@@ -966,8 +997,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * Postconditions:
      *  - The {ClusterUpgraded} event is emitted.
      */
-    function onClusterUpgraded(address _clusterOwner, uint32 _clusterNonce, address _sendGasTo, uint32 _newVersion) override external onlyCluster(_clusterOwner, _clusterNonce) {
-
+    function onClusterUpgraded(
+        address _clusterOwner,
+        uint32 _clusterNonce,
+        address _sendGasTo,
+        uint32 _newVersion
+    ) override external onlyCluster(_clusterOwner, _clusterNonce) {
         tvm.rawReserve(_reserve(), 0);
 
         emit ClusterUpgraded(_clusterOwner, _clusterNonce, _newVersion);
@@ -978,7 +1013,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * @dev Returns the details of the contract.
      */
     function getDetails() override external responsible view returns(Details) {
-        return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} Details(
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(
                 nonce,
                 governance,
 
@@ -1009,6 +1044,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 accountVersion,
                 stEverVaultVersion,
                 clusterVersion,
+                timeAfterEmergencyCanBeActivated, //new
                 emergencyState
             );
     }

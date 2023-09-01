@@ -44,7 +44,7 @@ describe("Reduction factor", async function () {
   });
   it("Vault should be initialized", async () => {
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
-    await vault.setGainFee({ ginFee: "0" });
+    await vault.setGainFee({ ginFee: toNano(1) });
     await vault.setStEverFeePercent({ percentFee: 0 });
     cluster = await Cluster.create({
       vault,
@@ -85,7 +85,7 @@ describe("Reduction factor", async function () {
   });
 
   it("check reduction-factor", async () => {
-    const DAYLE_REWARD = 100;
+    const DAYLE_REWARD = 101;
     const { fullUnlockSeconds } = await vault.getDetails();
 
     const COUNT_OF_REPORTS = 40;
@@ -113,6 +113,5 @@ describe("Reduction factor", async function () {
     expect(detailsAfterFullUnlock.remainingSeconds).to.be.eq("0");
 
     expect(Number(await vault.getWithdrawRate())).to.be.closeTo(COUNT_OF_REPORTS + 1, 0.001);
-    debugger;
   });
 });
