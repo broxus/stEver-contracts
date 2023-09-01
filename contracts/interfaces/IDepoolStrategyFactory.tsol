@@ -45,7 +45,7 @@ interface IDepoolStrategyFactory {
     function installNewStrategyCode(TvmCell strategyCode,address sendGasTo) external;
 
     /**
-     * @dev Upgrades the strategies.
+     * @dev Upgrades the strategies in a batch.
      * @param _strategies The addresses of the strategies to upgrade.
      */
     function upgradeStrategies(address[] _strategies) external;

@@ -233,6 +233,8 @@ interface IStEverVault {
 
     /**
      * @dev Reports the strategy.
+     * This function is called by strategies after each round.
+     * It doesn't carry any value, only information.
      *
      * @param gain The gain from the strategy.
      * @param loss The loss from the strategy.
@@ -257,6 +259,8 @@ interface IStEverVault {
 
     /**
      * @dev Sets the total assets of the strategies.
+     * It's migration function.
+     *
      * @param _totalAssetsConfig The configuration of the total assets.
      */
     function setStrategiesTotalAssets(IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig) external;
@@ -302,13 +306,13 @@ interface IStEverVault {
     ) external;
 
     /**
-     * @dev Deposits funds to the strategies according to the deposit configurations.
-     * @param depositConfig Deposit configurations.
+     * @dev Deposits to strategies. Can be called recursively if mapping contains more than 50 elements.
+     * @param depositConfig Mapping of strategy address to deposit config.
      */
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
 
     /**
-     * @dev Handles the event when a strategy has handled a deposit.
+     * @dev Handles the call from the strategy after a deposit has been handled.
      */
     function onStrategyHandledDeposit() external;
 
@@ -319,23 +323,26 @@ interface IStEverVault {
     function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
 
     /**
-     * @dev Handles the withdrawal request from strategies.
+     * @dev Handles the withdrawal request from strategies, after accepting withdraw request.
      */
     function onStrategyHandledWithdrawRequest() external;
 
     /**
-     * @dev Handles the event when a strategy has failed to handle a deposit.
+     * @dev Handles the call from the strategy after a failed deposit
      * @param errcode The error code of the failed deposit.
      */
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
 
     /**
      * @dev Receives funds from a strategy.
+     *
+     * This is a callback function that carries the requested value,
+     * that was requested by `processWithdrawFromStrategies` or `forceWithdrawFromStrategies`.
      */
     function receiveFromStrategy() external;
 
     /**
-     * @dev Receives additional transfers from a strategy.
+     * @dev Fallback method for handling unexpected value.
      */
     function receiveAdditionalTransferFromStrategy() external;
 
@@ -347,8 +354,11 @@ interface IStEverVault {
     function withdrawFromStrategyError(uint32 errcode) external;
 
     /**
-     * @dev Forces a withdrawal from the strategies according to the withdrawal configurations.
-     * @param _withdrawConfig The configurations for the withdrawals.
+     * @dev Method for situation when dePool is stopped emit new rounds, and our
+     * deposit there is in the Pooling round.
+     * Forces a withdrawal from the strategies according to the withdrawal configurations.
+     *
+     * @param _withdrawConfig - mapping of strategy address to withdraw config.
      */
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) external;
 
@@ -417,6 +427,8 @@ interface IStEverVault {
 
     /**
      * @dev Validates a deposit request.
+     *
+     * @param _depositConfigs The mapping of strategy address to deposit config.
      *
      * This function checks if the deposit request is valid by checking if the strategy exists,
      * if the deposit amount is above the minimum, and if there are enough assets to cover the deposit.
@@ -545,7 +557,8 @@ interface IStEverVault {
 
     /**
      * @dev Starts the emergency process.
-     * @param _poofNonce The nonce for the poof.
+     * @param _poofNonce The nonce of withdraw request for proving that withdraw
+     * request is living more than `timeAfterEmergencyCanBeActivated`
      */
     function startEmergencyProcess(uint64 _poofNonce) external;
 
@@ -564,14 +577,16 @@ interface IStEverVault {
     /**
      * @dev Handles the rejection of the emergency process by a user account.
      *
-     * @param _user The address of the user.
+     * @param _user The address of the account owner.
      * @param errcode The error code.
      */
     function startEmergencyRejected(address _user, uint16 errcode) external;
 
     /**
-     * @dev Starts the emergency withdrawal process from strategies for a user.
-     * @param _user The address of the user.
+     * @dev Triggers the emergency withdrawal process from all strategies
+     * if the emergency process was accepted by the user account.
+     *
+     * @param _user The address of the account owner.
      */
     function emergencyWithdrawFromStrategiesProcess(address _user) external;
 
