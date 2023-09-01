@@ -52,6 +52,7 @@ interface IDepoolStrategyFactory {
 
     /**
      * @dev Upgrades the factory code.
+     *
      * @param _newCode The new code of the factory.
      * @param _newVersion The new version of the factory.
      * @param _sendGasTo The address to send remaining gas.
@@ -60,6 +61,7 @@ interface IDepoolStrategyFactory {
 
     /**
      * @dev Transfers the ownership of the factory to a new address.
+     *
      * @param _newOwner The address of the new owner.
      * @param _sendGasTo The address to send gas to.
      */

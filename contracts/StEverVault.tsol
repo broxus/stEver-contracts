@@ -240,9 +240,9 @@ contract StEverVault is
     /**
      * @dev Adds a pending value to an account.
      *
-     * @param _withdraw_nonce The nonce of the withdrawal.
+     * @param _withdrawNonce The nonce of the withdrawal.
      * @param _amount The amount to be withdrawn.
-     * @param account The account to which the pending value will be added.
+     * @param _account The account to which the pending value will be added.
      * @param _unlockTime The unlock time of the withdrawal.
      * @param _value The value to be added.
      * @param _flag The flag of the message.

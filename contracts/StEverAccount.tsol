@@ -165,7 +165,7 @@ contract StEverAccount is IStEverAccount {
     }
 
     /**
-     * @dev Creates and sends a withdrawal request to the user.
+     * @dev Prepares data about withdraw requests that will send to the vault.
      *
      * @param _satisfiedWithdrawRequests The withdrawal requests to satisfy.
      *
@@ -330,7 +330,7 @@ contract StEverAccount is IStEverAccount {
     function onCodeUpgrade(TvmCell _upgrade_data) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = _upgradeData.toSlice();
+        TvmSlice s = _upgrade_data.toSlice();
 
         (address root_, , address sendGasTo, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;

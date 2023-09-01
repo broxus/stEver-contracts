@@ -162,7 +162,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     /**
      * @dev Sets StEverOwner address.
-     * @param address _newStEverOwner Address of new owner.
+     * @param _newStEverOwner Address of new owner.
      * Preconditions:
      *  - The caller must be the `StEverVault`
      *
@@ -691,7 +691,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
     /**
      * @dev Called when the code is upgraded.
-     * @param _upgrade_data The data to use for the upgrade.
+     * @param _upgradeData The data to use for the upgrade.
      *
      * Postconditions:
      *  - The contract's storage is reset.
@@ -699,7 +699,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - If the new version is the same as the current version, the contract is initialized with the new version.
      *  - Otherwise, the contract's state is updated with the new version's data.
      */
-    function onCodeUpgrade(TvmCell _upgrade_data) private {
+    function onCodeUpgrade(TvmCell _upgradeData) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
         TvmSlice s = _upgradeData.toSlice();

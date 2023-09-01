@@ -350,7 +350,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     }
     // predicates
     /**
-     * @dev Checks if the contract can transfer a certain value.
+     * @dev Checks if the amount is available to transfer
      *
      * @param _amount The value to check.
      * @return Returns true if the contract can transfer the value, false otherwise.
@@ -370,7 +370,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * @dev Checks if a strategy is in its initial state.
      *
      * @param _strategy The address of the strategy.
-     * @param isAllowedNotActiveState A flag indicating if a not active state is allowed.
+     * @param isAllowedNotActiveState A flag the secondary rule that allows to check strategy in not active state.
      * @return Returns true if the strategy is in its initial state, false otherwise.
      *
      * Preconditions:
@@ -415,9 +415,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
     /**
      * @dev Decodes the deposit payload.
+     *
      * @param _payload The payload to decode.
      * @return nonce The nonce decoded from the payload.
+     *
      * @return correct A boolean indicating if the payload was correctly decoded.
+     *
      * Preconditions:
      *  - The payload must be correctly assembled.
      */
@@ -432,7 +435,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         return (nonce, true);
     }
+
         // when the user deposits we should calculate the amount of stEver to send
+        // when the user deposits we should calculate the amount of stEver to send
+
+    // when the user deposits we should calculate the amount of stEver to send
 
     /**
      * @dev Calculates the amount of stEver to send when the user deposits.
@@ -445,7 +452,11 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function getDepositStEverAmount(uint128 _amount) public view returns(uint128) {
         return getDepositStEverAmountFor(_amount,uint128(now));
     }
+
         // when the user withdraw we should calculate the amount of ever to send
+        // when the user withdraw we should calculate the amount of ever to send
+
+    // when the user withdraw we should calculate the amount of ever to send
 
     /**
      * @dev Calculates the amount of ever to send when the user withdraws.
@@ -458,8 +469,8 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function getWithdrawEverAmount(uint128 _amount) public view returns(uint128) {
         return getWithdrawEverAmountFor(_amount,uint128(now));
     }
-    // when the user deposits we should calculate the amount of stEver to send
 
+    // when the user deposits we should calculate the amount of stEver to send
     /**
      * @dev Calculates the amount of stEver to send when the user deposits for a specific time.
      * @param _amount The amount the user deposits.
@@ -921,22 +932,16 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    /// @dev function that can be used for self-upgrade
-    /// @param _clusterNonce uint32 nonce of the cluster
-    function upgradeStEverCluster(uint32 _clusterNonce) override external {
-        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
 
     /**
      * @dev See {IStEverVault-upgradeStEverCluster}.
      *
-     * Preconditions:
-     *  - The caller must be the owner.
-     *  - The value of the message must be greater than or equal to the minimum call message value.
-     *
      * Postconditions:
-     *  - The StEverCluster is upgraded.
+     *  - The {StEverCluster} is upgraded.
      */
-    function upgradeStEverCluster(uint32 _clusterNonce) override external minCallValue {
+    function upgradeStEverCluster(uint32 _clusterNonce) override external {
+        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
+
         tvm.rawReserve(_reserve(), 0);
 
         address cluster = getClusterAddress(msg.sender, _clusterNonce);

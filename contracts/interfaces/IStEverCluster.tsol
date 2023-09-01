@@ -62,7 +62,7 @@ interface IStEverCluster {
     event NewStrategyDeployed(address strategy);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
-     
+
     /**
      * @dev Sets the StEver owner.
      *
@@ -82,6 +82,7 @@ interface IStEverCluster {
 
     /**
      * @dev Withdraws assurance.
+     *
      * This function withdraws the specified amount of assurance,
      * or the unlocked assurance if it is less.
      *
@@ -96,6 +97,7 @@ interface IStEverCluster {
     function deployStrategies(address[] dePools) external;
     /**
      * @dev Handles the deployment of a new strategy.
+     *
      * This function sets the deployed status of the strategy to
      * true and emits a {NewStrategyDeployed} event.
      *
@@ -106,12 +108,13 @@ interface IStEverCluster {
      * @dev Handles the addition of strategies to the cluster.
      * This function sets the state of each strategy to ACTIVE.
      *
-     * @param _strategies The addresses of the strategies.
+     * @param _strategies The array of addresses of the strategies.
      */
     function onStrategiesAdded(address[] _strategies) external;
 
     /**
      * @dev Handles the delegation of strategies to the cluster.
+     *
      * This function checks if each strategy exists in the strategies mapping.
      * If a strategy does not exist, it is added to the strategies mapping and
      * the state is set to ACTIVE.
