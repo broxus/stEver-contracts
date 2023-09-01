@@ -11,7 +11,7 @@ pragma AbiHeader expire;
  */
 interface IParticipant {
     /**
-     * @dev Notifies a participant when a round is completed
+     * @dev Notifies a participant when a round is completed.
      *
      * @param roundId The ID of the completed round
      * @param reward The Participant's reward in the completed round (in nanotons)
@@ -31,8 +31,7 @@ interface IParticipant {
         uint8 reason) external;
 
     /**
-     * @dev Sends a status message and a certain value to the participant
-     * as a result of a DePool operation.
+     * @dev Receives an answer from the DePool
      *
      * @param errcode The error code of the operation
      * @param comment An additional value for a certain error code

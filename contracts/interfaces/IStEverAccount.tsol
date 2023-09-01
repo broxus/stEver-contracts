@@ -36,7 +36,7 @@ interface IStEverAccount {
     function getDetails() external responsible view returns (AccountDetails);
 
     /**
-     * @dev Adds a pending value to the withdrawal requests.
+     * @dev Handles a withdrawal requests.
      *
      * This function is called internally by the {StEverVault-requestWithdraw} function
      * of the {StEverVault} contract when a user requests a withdrawal.
@@ -59,21 +59,21 @@ interface IStEverAccount {
     function processWithdraw(uint64[] _satisfiedWithdrawRequests) external;
 
     /**
-     * @dev Resets the pending values of the withdrawal requests.
+     * @dev Resets the pending withdraw requests in case of vault reject
      *
      * This function is called by the {StEverVault-withdrawToUser} function of
      * the {StEverVault} contract when the available assets are insufficient
      * or the check `getAndCheckWithdrawToUserInfo` fails.
      *
-     * @param rejectedWithdrawals The withdrawal requests to reset.
-     * @param sendGasTo The address to send the gas to.
+     * @param rejectedWithdrawals The mapping of rejected withdraw requests.
+     * @param sendGasTo The address to send the remaining gas to.
      */
     function resetPendingValues(mapping(uint64 => WithdrawRequest) rejectedWithdrawals, address sendGasTo) external;
 
     /**
-     * @dev Removes a pending value from the withdrawal requests.
-     * This function is called by the {StEverVault-removePendingWithdraw} function
-     * of the {StEverVault} contract.
+     * @dev Removes a pending withdrawal requests.
+     *
+     * This function is called by the {StEverVault-removePendingWithdraw}.
      *
      * @param _nonce The nonce of the withdrawal request to remove.
      */
@@ -81,6 +81,7 @@ interface IStEverAccount {
 
     /**
      * @dev Calback function to process start an emergency process.
+     *
      * This function is called by the {StEverVaultEmergency-startEmergencyProcess}
      * function of the {StEverVaultEmergency} contract.
      *
@@ -98,7 +99,7 @@ interface IStEverAccount {
     function onEmergencyWithdrawToUser() external;
 
     /**
-     * @dev Upgrades the contract to a new version.
+     * @dev Upgrades the StEverAccount to a new version.
      *
      * @param _newCode The new code to set.
      * @param _newVersion The new version to set.

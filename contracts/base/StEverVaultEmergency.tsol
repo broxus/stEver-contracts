@@ -59,7 +59,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
      *  - The emergency process is started.
      *  - The {EmergencyProcessStarted} event is emitted.
      */
-    function startEmergencyProcess(uint64 _poofNonce) override external notPaused {
+    function startEmergencyProcess(uint64 _proofNonce) override external notPaused {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         uint128 countOfStrategies = uint128(strategies.keys().length);

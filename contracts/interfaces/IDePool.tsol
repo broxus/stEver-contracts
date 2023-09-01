@@ -10,7 +10,7 @@ pragma AbiHeader expire;
  */
 interface IDePool {
     /**
-     * Add an ordinary stake to the DePool.
+     * @dev Add an ordinary stake to the DePool.
      *
      * @param stake The amount of stake to be added.
      */

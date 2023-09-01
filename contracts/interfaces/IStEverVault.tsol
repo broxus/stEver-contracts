@@ -202,13 +202,12 @@ interface IStEverVault {
     }
 
     /**
-     * @dev Gets the details of the contract.
-     * @return Details of the contract.
+     * @dev Gets the details of the cluster.
      */
     function getDetails() external responsible view returns(Details);
 
     /**
-     * @dev Adds strategies to the contract.
+     * @dev Adds strategies to the cluster.
      *
      * @param _strategies The strategies to be added.
      * @param _clusterOwner The owner of the cluster.
@@ -217,13 +216,13 @@ interface IStEverVault {
     function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
 
     /**
-     * @dev Removes a strategy from the contract.
+     * @dev Removes a strategy from the cluster.
      * @param _strategy The strategy to be removed.
      */
     function _removeStrategy(address _strategy) external;
 
     /**
-     * @dev Removes strategies from the contract.
+     * @dev Removes strategies from the cluster.
      *
      * @param _strategies The strategies to be removed.
      * @param _clusterOwner The owner of the cluster.
@@ -233,6 +232,8 @@ interface IStEverVault {
 
     /**
      * @dev Reports the strategy.
+     * This function is called by strategies after each round.
+     * It doesn't carry any value, only information.
      *
      * @param gain The gain from the strategy.
      * @param loss The loss from the strategy.
@@ -257,6 +258,8 @@ interface IStEverVault {
 
     /**
      * @dev Sets the total assets of the strategies.
+     * It's migration function.
+     *
      * @param _totalAssetsConfig The configuration of the total assets.
      */
     function setStrategiesTotalAssets(IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig) external;
@@ -271,7 +274,7 @@ interface IStEverVault {
     function createCluster(address _clusterOwner, uint128 _assurance, uint32 _maxStrategiesCount) external;
 
     /**
-     * @dev Delegates strategies to a different cluster.
+     * @dev Delegates strategies to another cluster (function only for migration).
      *
      * @param strategies The addresses of the strategies to delegate.
      * @param destinationCluster The address of the cluster to delegate the strategies to.
@@ -302,13 +305,13 @@ interface IStEverVault {
     ) external;
 
     /**
-     * @dev Deposits funds to the strategies according to the deposit configurations.
-     * @param depositConfig Deposit configurations.
+     * @dev Deposits to strategies. Can be called recursively if mapping contains more than 50 elements.
+     * @param depositConfig Mapping of strategy address to deposit config.
      */
     function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
 
     /**
-     * @dev Handles the event when a strategy has handled a deposit.
+     * @dev Handles the call from the strategy after a deposit has been handled.
      */
     function onStrategyHandledDeposit() external;
 
@@ -319,23 +322,26 @@ interface IStEverVault {
     function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
 
     /**
-     * @dev Handles the withdrawal request from strategies.
+     * @dev Handles the withdrawal request from strategies, after accepting withdraw request.
      */
     function onStrategyHandledWithdrawRequest() external;
 
     /**
-     * @dev Handles the event when a strategy has failed to handle a deposit.
+     * @dev Handles the call from the strategy after a failed deposit
      * @param errcode The error code of the failed deposit.
      */
     function onStrategyDidntHandleDeposit(uint32 errcode) external;
 
     /**
      * @dev Receives funds from a strategy.
+     *
+     * This is a callback function that carries the requested value,
+     * that was requested by `processWithdrawFromStrategies` or `forceWithdrawFromStrategies`.
      */
     function receiveFromStrategy() external;
 
     /**
-     * @dev Receives additional transfers from a strategy.
+     * @dev Fallback method for handling unexpected value.
      */
     function receiveAdditionalTransferFromStrategy() external;
 
@@ -347,8 +353,11 @@ interface IStEverVault {
     function withdrawFromStrategyError(uint32 errcode) external;
 
     /**
-     * @dev Forces a withdrawal from the strategies according to the withdrawal configurations.
-     * @param _withdrawConfig The configurations for the withdrawals.
+     * @dev Method for situation when dePool is stopped emit new rounds, and our
+     * deposit there is in the Pooling round.
+     * Forces a withdrawal from the strategies according to the withdrawal configurations.
+     *
+     * @param _withdrawConfig - mapping of strategy address to withdraw config.
      */
     function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) external;
 
@@ -418,6 +427,8 @@ interface IStEverVault {
     /**
      * @dev Validates a deposit request.
      *
+     * @param _depositConfigs The mapping of strategy address to deposit config.
+     *
      * This function checks if the deposit request is valid by checking if the strategy exists,
      * if the deposit amount is above the minimum, and if there are enough assets to cover the deposit.
      */
@@ -465,7 +476,7 @@ interface IStEverVault {
     // utils
 
     /**
-     * @dev Encodes the deposit payload for a given nonce.
+     * @dev Encodes the deposit payload.
      *
      * @param nonce The nonce to encode.
      * @return deposit_payload The encoded payload.
@@ -496,28 +507,28 @@ interface IStEverVault {
     function setMinStrategyWithdrawValue(uint128 minStrategyWithdrawValue) external;
 
     /**
-     * @dev Sets the fee percent.
+     * @dev Sets the StEver fee percent.
      *
      * @param _stEverFeePercent The new StEver fee percent.
      */
     function setStEverFeePercent(uint32 _stEverFeePercent) external;
 
     /**
-     * @dev Sets the pause state of the contract.
+     * @dev Sets the pause state of the vault.
      *
      * @param isPaused The new pause state.
      */
     function setIsPaused(bool isPaused) external;
 
     /**
-     * @dev Sets the withdraw hold time in seconds.
+     * @dev Sets the hold time for user withdraw.
      *
      * @param _hold_time The new withdraw hold time in seconds.
      */
     function setWithdrawHoldTimeInSeconds(uint64 _hold_time) external;
 
     /**
-     * @dev Sets the full unlock reward time in seconds.
+     * @dev Sets the period of time after all rewards will be unlocked.
      *
      * @param _fullUnlockSeconds The new full unlock reward time in seconds.
      */
@@ -526,7 +537,7 @@ interface IStEverVault {
     // ownership
 
     /**
-     * @dev Transfers ownership of the contract to a new account.
+     * @dev Transfers ownership of the vault.
      *
      * @param _newOwner The address of the new owner.
      * @param _sendGasTo The address to send gas to.
@@ -534,7 +545,7 @@ interface IStEverVault {
     function transferOwnership(address _newOwner, address _sendGasTo) external;
 
     /**
-     * @dev Transfers governance of the contract to a new account.
+     * @dev Transfers governance of the vault.
      &
      * @param _newGovernance The address of the new governance.
      * @param _sendGasTo The address to send remaining gas to.
@@ -542,10 +553,10 @@ interface IStEverVault {
     function transferGovernance(uint256 _newGovernance, address _sendGasTo) external;
 
     // emergency
-
     /**
      * @dev Starts the emergency process.
-     * @param _poofNonce The nonce for the poof.
+     * @param _poofNonce The nonce of withdraw request for proving that withdraw
+     * request is living more than `timeAfterEmergencyCanBeActivated`
      */
     function startEmergencyProcess(uint64 _poofNonce) external;
 
@@ -564,14 +575,16 @@ interface IStEverVault {
     /**
      * @dev Handles the rejection of the emergency process by a user account.
      *
-     * @param _user The address of the user.
+     * @param _user The address of the account owner.
      * @param errcode The error code.
      */
     function startEmergencyRejected(address _user, uint16 errcode) external;
 
     /**
-     * @dev Starts the emergency withdrawal process from strategies for a user.
-     * @param _user The address of the user.
+     * @dev Triggers the emergency withdrawal process from all strategies
+     * if the emergency process was accepted by the user account.
+     *
+     * @param _user The address of the account owner.
      */
     function emergencyWithdrawFromStrategiesProcess(address _user) external;
 
@@ -584,7 +597,7 @@ interface IStEverVault {
     function _processEmergencyWithdrawFromStrategy(address _user, optional(address, StrategyParams) _startPair) external;
 
     /**
-     * @dev Initiates the emergency withdrawal to a user.
+     * @dev Satisfies user withdrawal requests
      */
     function emergencyWithdrawToUser() external;
     // upgrade
@@ -647,7 +660,7 @@ interface IStEverVault {
     /**
      * @dev Upgrades the {StEverCluster} code.
      *
-     * @param _clusterNonce The nonce for the cluster to be upgraded.
+     * @param _clusterNonce The nonce of the cluster.
      */
     function upgradeStEverCluster(uint32 _clusterNonce) external;
 
