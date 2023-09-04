@@ -1,0 +1,180 @@
+= Quick Start
+== Deployment
+To deploy the contracts, follow these steps:
+
+[source,sh]
+----
+$ npm i
+----
+
+[source,sh]
+----
+$ SEED="{{seed_phrase}}" \
+$ MAIN_GIVER_KEY={{giver_secret_key}} \
+$ npx locklift run --disable-build --network mainnet -s scripts/1_deploy-and-setup-stEverVault.ts
+----
+
+== Upgrade Contracts
+To upgrade the contracts, run the following command:
+
+[source,sh]
+----
+$ npx locklift run --disable-build --network mainnet -s scripts/2_fix_upgrade.ts
+----
+
+== StEver Cluster Upgrade Guide
+
+To upgrade the StEver cluster, follow these steps:
+
+=== 1. Set `StEverVault` to the paused state
+
+[source,sh]
+----
+$ StEverVault.setIsPaused(true) // value=2
+----
+
+=== 2. Build the contracts
+
+[source,sh]
+----
+$ npx locklift build
+----
+
+=== 3. Upgrade `StEverVault`
+
+[source,sh]
+----
+// Get the new code
+$ npx locklift code -c StEverVault
+// Run the upgrade
+$ StEverVault.upgrade(newCode, newVersion=5, _sendGasTo) // value=2
+----
+
+=== 4. Upgrade accounts
+
+[source,sh]
+----
+// Get the new code
+$ npx locklift code -c StEverAccount
+// Set the new code for accounts
+$ StEverVault.setNewAccountCode(newCode) // value=2
+// Run the upgrade
+StEverVault.upgradeStEverAccounts(_sendGasTo, _users=address[]) // value=2*usersCount
+----
+
+=== 5. Upgrade `StEverCluster`
+
+[source,sh]
+----
+// Get the new code
+npx locklift code -c StEverCluster
+// Set the new cluster code
+StEverVault.setNewClusterCode(newCode) // value=2
+// Upgrade the clusters
+StEverVault.upgradeStEverClusters(_sendGasTo=admin, _clusters=["0:cedb787c499417abeb88c965594b849485c940dae20035c8279e37a291a361fd","0:86ea048f599734f266d3267a66941cd218dfb8120e4eca8cc055fdba8413fade"]) // value=2
+----
+
+=== 6. Set `StEverVault` to the active state
+
+[source,sh]
+----
+$ StEverVault.setIsPaused(false) // value=2
+----
+
+== StEver Platform User Guide
+
+The StEver platform consists of two main contracts:
+
+1. `StEverVault`: This is the main staking contract.
+2. `StEverAccount`: This is the user account contract.
+
+The following methods are available:
+
+==== Deposit
+
+[source,javascript]
+----
+const depositAmount = 100000000000 //100 ever
+const fee = 2000000000 //2 ever
+await StEverVault.methods
+  .deposit({
+    _amount: depositAmount,
+    _nonce: randomNonce,
+  })
+  .send({
+    from: accountAddress,
+    amount: depositAmount + fee,
+  });
+----
+
+==== Withdraw
+
+[source,javascript]
+----
+const withdrawAmount = 1000000000
+const withdrawPayload = await StEverVault.methods
+  .encodeDepositPayload({
+    _nonce: randomNonce,
+    _deposit_owner: userAddress,
+  })
+  .call();
+
+await UserStEverTokenWallet.methods
+  .transfer({
+    remainingGasTo: this.account.address,
+    deployWalletValue: 0,
+    amount: withdrawAmount,
+    notify: true,
+    recipient: this.vault.vaultContract.address,
+    payload: withdrawPayload.depositPayload,
+  })
+  .send({
+    from: this.account.address,
+    amount: 3000000000 // 3 ever, 1 ever will freeze until withdraw won't be completed
+  })
+----
+
+==== Remove Withdraw Request
+
+[source,javascript]
+----
+await StEverVault.methods.removePendingWithdraw({
+  _nonce: nonce //nonce from withdraw request
+}).send({
+  from: this.account.address,
+  amount: 2000000000,//2 ever
+})
+----
+
+==== User Data Info
+
+[source,javascript]
+----
+const { value0: userDataAddress } = await this.vault.vaultContract.methods.getAccountAddress({
+  _user: userAddress,
+  answerId: 0,
+}).call()
+const userDataAccount = new ever.Contract('UserDataAbi', userDataAddress)
+const { withdrawRequests } = await userDataAccount.methods.withdrawRequests().call()
+----
+
+==== StEverVault Info
+
+[source,javascript]
+----
+const { value0: stEverVaultDetails } = await StEverVault.methods.getDetails({ answerId: 0 }).call()
+// calculating the rate
+const stEverToEverRate = stEverVaultDetails.stEverSupply / stEverVaultDetails.totalAssets
+// also provided two methods
+// get how many stEvers we can get for evers
+const { value0: howManyStEverWillReceived } = await StEverVault.methods.getDepositStEverAmount({
+  _amount: 1000000000//e.g. 1 ever
+}).call()
+
+// get how many evers we can get for stEvers
+const { value0: howManyEverWillReceived } = await StEverVault.methods.getWithdrawEverAmount({
+  _amount: 1000000000//e.g. 1 stEver
+}).call()
+----
+
+

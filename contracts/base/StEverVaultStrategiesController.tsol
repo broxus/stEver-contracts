@@ -22,11 +22,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-depositToStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the governance or the contract itself.
      *  - The value of the message must be greater than or equal to the sum of the deposit amount and the fee.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Funds are deposited to the strategies according to the deposit configurations.
      *  - The available assets and total assets are updated accordingly.
      */
@@ -84,10 +86,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-onStrategyHandledDeposit}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The depositing amount for the strategy is reset to 0.
      *  - The total assets for the strategy are updated.
      *  - The available assets are increased by the returned fee.
@@ -110,10 +114,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-onStrategyDidntHandleDeposit}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The depositing amount for the strategy is reset to 0.
      *  - The available assets are increased by the remaining gas.
      *  - The total assets are updated based on the depositing amount and the message value.
@@ -140,10 +146,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-strategyReport}
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The strategy's last report time is updated.
      *  - The total gain for the strategy is increased by the reported gain.
      *  - The total assets for the strategy are updated.
@@ -202,11 +210,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-processWithdrawFromStrategies}
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the governance or the contract itself.
      *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Funds are withdrawn from the strategies according to the withdrawal configurations.
      *  - The available assets and total assets are updated accordingly.
      */
@@ -263,10 +273,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-onStrategyHandledWithdrawRequest}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The StrategyHandledWithdrawRequest event is emitted.
      *  - The available assets are increased by the returned fee.
      *  - The total assets are updated based on the withdrawal amount.
@@ -289,11 +301,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-forceWithdrawFromStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the governance or the contract itself.
      *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Funds are forcibly withdrawn from the strategies according to the withdrawal configurations.
      *  - The available assets and total assets are updated accordingly.
      */
@@ -334,10 +348,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-receiveFromStrategy}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The withdrawing amount for the strategy is reset to 0.
      *  - The total assets for the strategy are updated.
      *  - The available assets are increased by the received amount.
@@ -364,10 +380,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-receiveAdditionalTransferFromStrategy}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The available assets are increased by the received amount.
      *  - The total assets for the strategy are updated.
      *  - The strategy is removed if it is ready to be deleted.
@@ -391,7 +409,8 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *
      * @param _strategy The address of the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Returns true if the strategy is in the removing state and has no total assets.
      */
     function isStrategyReadyToDelete(address _strategy) internal view returns(bool) {
@@ -406,7 +425,8 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      * @param _amount The amount to increase or decrease the total assets by.
      * @param _isIncrease Whether to increase or decrease the total assets.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The total assets for the strategy are increased or decreased based on the _isIncrease parameter.
      */
     function updateTotalAssetsForStrategy(address _strategy, uint128 _amount, bool _isIncrease) internal {
@@ -434,10 +454,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-withdrawFromStrategyError}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The StrategyWithdrawError event is emitted.
      *  - The withdrawing amount for the strategy is reset to 0.
      *  - The available assets are increased by the remaining gas.
@@ -465,10 +487,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-processWithdrawExtraMoneyFromStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the governance or the contract itself.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Extra money is withdrawn from the strategies.
      *  - The available assets are decreased by the minimum transaction value for each strategy.
      */
@@ -494,10 +518,12 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-receiveExtraMoneyFromStrategy}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the strategy.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The available assets are increased by the received value.
      *  - The ReceiveExtraMoneyFromStrategy event is emitted.
      */
@@ -518,11 +544,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-setStrategiesTotalAssets}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The value of the message must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The total assets for the strategies are set.
      *  - The strategy is removed if it is ready to be deleted.
      */
@@ -549,11 +577,13 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     /**
      * @dev See {IStEverVault-forceStrategyRemove}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The value of the message must be greater than or equal to StEverVaultGas.REMOVE_STRATEGY_RESERVE.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - If the strategy exists, it is removed.
      *  - The onStrategyRemoved event is emitted.
      */

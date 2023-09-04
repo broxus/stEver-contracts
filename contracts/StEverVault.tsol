@@ -71,11 +71,13 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-deposit}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The system must not be paused.
      *  - The value of the message must be greater than or equal to the sum of the deposit amount and the minimum call message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The total assets, available assets and stEverSupply are increased by the deposit amount.
      *  - The Deposit event is emitted.
      *  - The mint function of the stTokenRoot contract is called.
@@ -119,12 +121,14 @@ contract StEverVault is
      * @param _remainingGasTo The address to which the remaining gas will be sent.
      * @param _payload The payload of the withdrawal request.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The sender must be the stEverWallet.
      *  - The value of the message must be greater than or equal to the required attached value.
      *  - The system must not be paused.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The requestWithdraw function is called if the conditions are met.
      *  - If any condition is not met, the transfer function of the stEverWallet contract is called to refund the tokens to the sender.
      */
@@ -186,10 +190,12 @@ contract StEverVault is
      * @param _nonce The nonce of the withdrawal.
      * @param _remainingGasTo The address to which the remaining gas will be sent.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The value of the message must be greater than or equal to the required attached value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - A new pending withdrawal is created and added to the {pendingWithdrawals}.
      *  - The {addPendingValueToAccount} function is called.
      */
@@ -214,7 +220,8 @@ contract StEverVault is
      *
      * @param _slice The slice of the error message.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The {addPendingValueToAccount} function is called again.
      */
     function handleAddPendingValueError(TvmSlice _slice) internal view {
@@ -248,7 +255,8 @@ contract StEverVault is
      * @param _flag The flag of the message.
      * @param _remainingGasTo The address to which the remaining gas will be sent.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The {StEverAccount-addPendingValue} function is called.
      */
     function addPendingValueToAccount(
@@ -270,10 +278,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-onPendingWithdrawAccepted}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the account of the user.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The pending withdrawal is removed from the pendingWithdrawals.
      *  - The WithdrawRequest event is emitted.
      *  - The remaining gas is transferred to the remainingGasTo address.
@@ -281,7 +291,6 @@ contract StEverVault is
     function onPendingWithdrawAccepted(
         uint64 _nonce,
         address _user,
-        uint64 _unlockTime,
         address _remainingGasTo
     ) override external onlyAccount(_user) {
        tvm.rawReserve(_reserve(), 0);
@@ -296,10 +305,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-onPendingWithdrawRejected}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the account of the user.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The pending withdrawal is removed from the pendingWithdrawals.
      *  - The tokens are transferred back to the user.
      *
@@ -330,10 +341,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-removePendingWithdraw}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the user of the account.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The removePendingWithdraw function of the StEverAccount contract is called.
      *
      */
@@ -346,10 +359,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-onPendingWithdrawRemoved}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the account of the user.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The pending withdrawal is removed from the pendingWithdrawals.
      *  - The WithdrawRequestRemoved event is emitted.
      *  - The tokens are transferred to the user.
@@ -380,10 +395,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-processSendToUsers}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the governance or the contract itself.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The {IStEverAccount-processWithdraw} function is called for each user in the `sendConfig` mapping.
      *  - If the sendConfig mapping is not empty after the iteration, the processSendToUsers function is called again.
      */
@@ -416,10 +433,12 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-withdrawToUser}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the account of the user.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The total assets, available assets and stEverSupply are decreased by the withdrawal amount.
      *  - The WithdrawError or WithdrawSuccess event is emitted.
      *  - The tokens are burned.
@@ -486,11 +505,13 @@ contract StEverVault is
     /**
      * @dev Last step in withdraw native tokens flow.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the stTokenRoot.
      *  - The wallet must be the stEverWallet.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The WithdrawSuccess event is emitted.
      *  - The remaining gas is transferred to the user.
      */
@@ -529,12 +550,14 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-withdrawStEverFee}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the Owner.
      *  - The total stEver fee must be greater than or equal to the amount to be withdrawn.
      *  - The contract must be able to transfer the specified amount.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The total stEver fee and available assets are decreased by the withdrawal amount.
      *  - The WithdrawFee event is emitted.
      *  - The remaining gas is transferred to the owner.
@@ -554,12 +577,14 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-withdrawExtraEver}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The value of the message must be greater than or equal to the minimum call value.
      *  - The available assets must be greater than the total assets and the total stEver fee.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The available assets are decreased by the extra available assets.
      *  - The SuccessWithdrawExtraEver event is emitted.
      *  - The remaining gas is transferred to the owner.
@@ -587,11 +612,13 @@ contract StEverVault is
     /**
      * @dev See {IStEverVault-upgrade}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The call value must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - If the new version is the same as the current version, the remaining gas is sent to the specified address and the function returns.
      *  - If the new version is different, the contract's state is updated with the new version's data and the contract's code is replaced with the new code.
      */

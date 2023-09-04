@@ -50,12 +50,14 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-startEmergencyProcess}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The contract must not be is paused state.
      *  - The contract must not be in an emergency state.
      *  - The value of the message must be greater than or equal to the required message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The emergency process is started.
      *  - The {EmergencyProcessStarted} event is emitted.
      */
@@ -76,12 +78,14 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-stopEmergencyProcess}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The contract must be in an emergency state.
      *  - The call value must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The emergency process is stopped.
      *  - The {EmergencyStopped} event is emitted.
      */
@@ -100,10 +104,12 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-startEmergencyRejected}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *   - The caller must be the user account.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The {EmergencyProcessRejectedByAccount} event is emitted.
      */
     function startEmergencyRejected(address _user, uint16 errcode) override external onlyAccount(_user) {
@@ -117,11 +123,13 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-emergencyWithdrawFromStrategiesProcess}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the user account.
      *  - The contract must not be in an emergency state.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The emergency withdrawal process is started.
      *  - The {EmergencyProcessStarted} event is emitted.
      */
@@ -139,10 +147,12 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-_processEmergencyWithdrawFromStrategy}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the itself.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The emergency withdrawal from a strategy is processed.
      *  - The {ProcessWithdrawFromStrategyError} event may be emitted.
      */
@@ -178,12 +188,14 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-changeEmergencyPauseState}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The call value must be greater than or equal to the minimum call value.
      *  - The contract must be in an emergency state.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The pause state of the emergency process is changed.
      *  - The {EmergencyStatePaused} or {EmergencyStateContinued} event is emitted.
      */
@@ -205,11 +217,13 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
     /**
      * @dev See {IStEverVault-emergencyWithdrawToUser}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The contract must be in an emergency state.
      *  - The call value must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The emergency withdrawal to a user is initiated.
      */
     function emergencyWithdrawToUser() override external onlyEmergencyState minCallValue {
