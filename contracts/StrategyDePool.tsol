@@ -75,7 +75,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Modifier to check if the caller is the vault.
      * Throws an error if the caller is not the vault.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      */
     modifier onlyVault() {
@@ -87,7 +88,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Modifier to check if the caller is the dePool.
      * Throws an error if the caller is not the dePool.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the dePool.
      */
     modifier onlyDepool() {
@@ -99,7 +101,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Modifier to check if the caller is the factory.
      * Throws an error if the caller is not the factory.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the factory.
      */
     modifier onlyFactory() {
@@ -111,7 +114,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Modifier to check if the caller is the dePool or the vault.
      * Throws an error if the caller is not the dePool or the vault.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the dePool or the vault.
      */
     modifier onlyDepoolOrVault() {
@@ -139,13 +143,15 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev See {IStrategy-deposit}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      *  - The state must be initial.
      *  - The message value must be greater than or equal to the amount plus the deposit stake dePool fee and the deposit stake strategy fee.
      *  - The amount must be greater than or equal to the minimum stake.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state is set to depositing.
      *  - The depositToDePool function is called with the amount.
      */
@@ -168,11 +174,13 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev See {IStrategy-withdraw}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      *  - The state must be initial.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state is set to withdrawing.
      *  - The withdrawFromDePool function is called with the amount.
      */
@@ -211,10 +219,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * If the error code is not 0 and the state is not depositing, the state is set to initial and the withdrawError function is called with the error code.
      * @param _errcode The error code received from the dePool.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the dePool.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state is set to initial.
      *  - The depositHandled, onStrategyHandledWithdrawRequest, depositNotHandled, or withdrawError function is called depending on the error code and the state.
      */
@@ -250,7 +260,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Handles a successful deposit.
      * This function calls the onStrategyHandledDeposit function of the vault.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The onStrategyHandledDeposit function of the vault is called.
      */
     function depositHandled() internal view {
@@ -261,7 +272,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @dev Handles a unsuccessful deposit.
      * @param _errcode The error code.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The onStrategyDidntHandleDeposit function of the vault is called with the error code.
      */
     function depositNotHandled(uint32 _errcode) internal view {
@@ -273,7 +285,8 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * This function calls the withdrawFromStrategyError function of the vault with the error code.
      * @param _errcode The error code.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The withdrawFromStrategyError function of the vault is called with the error code.
      */
     function withdrawError(uint32 _errcode) internal view {
@@ -289,10 +302,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev See {IStrategy-withdrawForce}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state is set to withdrawing from the pooling round.
      *  - The {IDePool-withdrawFromPoolingRound} function is called with the amount.
      */
@@ -306,10 +321,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev Receives a transfer from the dePool or the vault.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the dePool or the vault.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state is set to initial if the sender is the dePool and the state is withdrawing from the pooling round.
      *  - The receiveFromStrategy function of the vault is called.
      */
@@ -362,10 +379,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
      * @param _reward The reward for the round.
      * @param _ordinaryStake The ordinary stake for the round.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the dePool.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - A strategy report is sent to the vault.
      *  - If the dePool is making a withdrawal, the withdrawal is handled.
      */
@@ -426,10 +445,12 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev See {IStrategy-withdrawExtraMoney}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The {IStEverVault-receiveExtraMoneyFromStrategy} function of the vault is called.
      */
     function withdrawExtraMoney() override external onlyVault {
@@ -451,11 +472,13 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /**
      * @dev See {IStEverVault-upgrade}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The call value must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - If the new version is the same as the current version, the remaining gas
      *    is sent to the specified address and the function returns.
      *  - If the new version is different, the contract's state is updated with

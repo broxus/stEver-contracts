@@ -449,10 +449,9 @@ interface IStEverVault {
      *
      * @param nonce The nonce of the pending withdrawal.
      * @param user The user of the account.
-     * @param _unlockTime The unlock time of the pending withdrawal.
      * @param remainingGasTo The address to which the remaining gas will be sent.
      */
-    function onPendingWithdrawAccepted(uint64 nonce,address user, uint64 _unlockTime, address remainingGasTo) external;
+    function onPendingWithdrawAccepted(uint64 nonce,address user, address remainingGasTo) external;
 
     /**
      * @dev Handles the rejection of a pending withdrawal.

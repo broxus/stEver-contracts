@@ -64,11 +64,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @param _stEverTokenRoot The address of the StEver token root contract.
      * @param _stEverOwner The address of the StEver owner.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the owner.
      *  - The value of the message must be greater than or equal to the sum of DEPLOY_CLUSTER_VALUE and MIN_CALL_MSG_VALUE.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - A new cluster is created and added to the clusterPools.
      *  - The ClusterCreated event is emitted.
      */
@@ -152,7 +154,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @dev Function to handle the StEver token wallet address.
      * @param _tokenWallet The address of the token wallet.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEver token root contract.
      */
     function handleStEverTokenWalletAddress(address _tokenWallet) public {
@@ -163,10 +166,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev Sets StEverOwner address.
      * @param _newStEverOwner Address of new owner.
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the `StEverVault`
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - stEverOwner updated with new address.
      */
     function setStEverOwner(address _newStEverOwner) external override onlyStEverVault {
@@ -178,11 +183,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-deployStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the clusterOwner.
      *  - The value of the message must be greater than or equal to the required message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - Calls the {IDepoolStrategyFactory-deployStrategy} function of the strategy
      *    factory contract for each DePool.
      */
@@ -205,10 +212,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-onStrategyDeployed}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the {DepoolStrategyFactory}.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The deployed status of the strategy is set to true.
      *  - The NewStrategyDeployed event is emitted.
      */
@@ -229,14 +238,16 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * Finally, it calls the addStrategies function of the StEverVault contract.
      * @param _strategies The addresses of the strategies.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the clusterOwner.
      *  - The assurance must be sufficient.
      *  - The strategies limit must not be reached.
      *  - Each strategy must be deployed and not already added.
      *  - The value of the message must be greater than or equal to the required message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The strategies are added to the StEverVault.
      */
     function addStrategies(address[] _strategies) public view onyClusterOwner {
@@ -281,10 +292,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-onStrategiesAdded}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the {StEverVault} contract.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state of each strategy is set to ACTIVE.
      */
     function onStrategiesAdded(address[] _strategies) override external onlyStEverVault {
@@ -303,12 +316,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * It then calls the _removeStrategies internal function.
      * @param _strategies The addresses of the strategies.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEverOwner or the clusterOwner.
      *  - Each strategy must exist and be in the ACTIVE state.
      *  - The value of the message must be greater than or equal to the required message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The strategies are removed from the cluster.
      */
     function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner {
@@ -331,10 +346,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * This function sets the state of each strategy to REMOVING and calls the removeStrategies function of the StEverVault contract.
      * @param _strategies The addresses of the strategies.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - Each strategy must exist and be in the ACTIVE state.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state of each strategy is set to REMOVING.
      *  - The removeStrategies function of the StEverVault contract is called.
      */
@@ -355,10 +372,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-onPendingStrategyRemove}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the {StEverVault} contract.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The state of each strategy is set to PENDING_REMOVE.
      */
     function onPendingStrategyRemove(address[] _strategies) override external onlyStEverVault {
@@ -376,10 +395,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-onStrategyRemoved}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the {StEverVault} contract.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The strategy is removed from the strategies mapping.
      *  - If the cluster is in the REMOVING state and there are no more strategies, the {IStEverVault-onClusterRemoved} function is called.
      */
@@ -422,10 +443,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-handleDelegateStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEverVault contract.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The strategies are added to the strategies mapping and the state is set to ACTIVE.
      */
     function handleDelegateStrategies(address[] _strategies) override external onlyStEverVault {
@@ -454,12 +477,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-handleUndelegateStrategies}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEverOwner.
      *  - The cluster must not already be in the REMOVING state.
      *  - The value of the message must be greater than or equal to the required message value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The cluster state is set to REMOVING.
      *  - All strategies in the ACTIVE state are removed.
      */
@@ -514,10 +539,12 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * This function increases the current assurance by the amount of the transfer.
      * @param _amount The amount of the transfer.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEver token wallet.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The current assurance is increased by the amount of the transfer.
      */
     function onAcceptTokensTransfer(
@@ -541,11 +568,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-setAssurance}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the StEverOwner.
      *  - The value of the message must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The required assurance is set to the specified value.
      */
     function setAssurance(uint128 _newRequiredAssurance) override external onlyStEverOwner minCallValue {
@@ -569,11 +598,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-withdrawAssurance}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the clusterOwner.
      *  - The value of the message must be greater than or equal to the minimum call value.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The specified amount of assurance is withdrawn, or the unlocked assurance if it is less.
      */
     function withdrawAssurance(uint128 _amount) override external onyClusterOwner minCallValue {
@@ -604,11 +635,13 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev See {IStEverCluster-upgrade}.
      *
-     * Preconditions:
+     * **Preconditions**:
+     *
      *  - The caller must be the vault.
      *  - The new version must not be the same as the current version.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The code is upgraded.
      */
     function upgrade(
@@ -693,7 +726,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @dev Called when the code is upgraded.
      * @param _upgradeData The data to use for the upgrade.
      *
-     * Postconditions:
+     * **Postconditions**:
+     *
      *  - The contract's storage is reset.
      *  - The gas is sent to the specified address.
      *  - If the new version is the same as the current version, the contract is initialized with the new version.
