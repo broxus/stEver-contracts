@@ -52,7 +52,7 @@ PUSHCONT {
 IFELSE
 .loc ../node_modules/@broxus/contracts/contracts/platform/Platform.tsol, 0
 BLKDROP 3
-.loc ../contracts/Platform.tsol, 0
+.loc ../contracts/RPlatform.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }

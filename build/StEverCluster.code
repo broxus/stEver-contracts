@@ -19,27 +19,27 @@ THROW 100
 CALL $_init_28104f57_internal_macro$
 
 .macro _init_28104f57_internal_macro
-.loc ../contracts/StEverCluster.tsol, 83
+.loc ../contracts/StEverCluster.tsol, 85
 ROLL 4
 SETGLOB 14
-.loc ../contracts/StEverCluster.tsol, 84
+.loc ../contracts/StEverCluster.tsol, 86
 ROLL 3
 SETGLOB 15
-.loc ../contracts/StEverCluster.tsol, 85
+.loc ../contracts/StEverCluster.tsol, 87
 ROLL 3
 SETGLOB 16
-.loc ../contracts/StEverCluster.tsol, 86
+.loc ../contracts/StEverCluster.tsol, 88
 ROT
 SETGLOB 17
-.loc ../contracts/StEverCluster.tsol, 87
+.loc ../contracts/StEverCluster.tsol, 89
 SWAP
 SETGLOB 20
-.loc ../contracts/StEverCluster.tsol, 88
+.loc ../contracts/StEverCluster.tsol, 90
 PUSHINT 0
 SETGLOB 19
-.loc ../contracts/StEverCluster.tsol, 89
-SETGLOB 13
 .loc ../contracts/StEverCluster.tsol, 91
+SETGLOB 13
+.loc ../contracts/StEverCluster.tsol, 93
 PUSHINT 100000000
 MYADDR
 GETGLOB 20
@@ -68,7 +68,7 @@ SENDRAWMSG
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/StEverCluster.tsol, 103
+.loc ../contracts/StEverCluster.tsol, 105
 GETPARAM 7
 FIRST
 DEPTH
@@ -89,7 +89,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 158
+.loc ../contracts/StEverCluster.tsol, 161
 OVER
 PUSHCONT {
 	LDREF
@@ -114,13 +114,13 @@ THROW 0
 CALL $handleStEverTokenWalletAddress_9147b763_internal_macro$
 
 .macro handleStEverTokenWalletAddress_9147b763_internal_macro
-.loc ../contracts/StEverCluster.tsol, 159
+.loc ../contracts/StEverCluster.tsol, 162
 PUSHINT 5008
 GETGLOB 9
 GETGLOB 20
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 160
+.loc ../contracts/StEverCluster.tsol, 163
 SETGLOB 21
 .loc ../contracts/StEverCluster.tsol, 0
 
@@ -133,7 +133,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 172
+.loc ../contracts/StEverCluster.tsol, 177
 OVER
 PUSHCONT {
 	LDREF
@@ -154,21 +154,21 @@ CALLREF {
 THROW 0
 
 .macro setStEverOwner_71764374_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 173
+.loc ../contracts/StEverCluster.tsol, 178
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 174
+.loc ../contracts/StEverCluster.tsol, 179
 SETGLOB 13
-.loc ../contracts/StEverCluster.tsol, 175
+.loc ../contracts/StEverCluster.tsol, 180
 GETGLOB 12
 NEWC
 STSLICECONST x42_
@@ -189,7 +189,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 189
+.loc ../contracts/StEverCluster.tsol, 196
 LDU 32
 LDDICT
 ROTREV
@@ -207,18 +207,18 @@ CALLREF {
 THROW 0
 
 .macro deployStrategies_6a2bc5c5_internal_macro
-.loc ../contracts/StEverCluster.tsol, 125
+.loc ../contracts/StEverCluster.tsol, 127
 PUSHINT 5003
 GETGLOB 9
 GETGLOB 12
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 190
+.loc ../contracts/StEverCluster.tsol, 197
 PUSHINT 20000000000
 PUSHINT 1000000000
 ADD
 UFITS 128
-.loc ../contracts/StEverCluster.tsol, 191
+.loc ../contracts/StEverCluster.tsol, 198
 PUSH2 S0, S1
 FIRST
 UFITS 128
@@ -227,7 +227,7 @@ UFITS 128
 PUSHINT 1000000000
 ADD
 UFITS 128
-.loc ../contracts/StEverCluster.tsol, 192
+.loc ../contracts/StEverCluster.tsol, 199
 PUSHINT 5007
 DEPTH
 ADDCONST -2
@@ -235,13 +235,13 @@ PICK
 ROT
 GEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 193
+.loc ../contracts/StEverCluster.tsol, 200
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 195
+.loc ../contracts/StEverCluster.tsol, 202
 SWAP
 SECOND
 PUSHINT 0
@@ -258,7 +258,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 196
+	.loc ../contracts/StEverCluster.tsol, 203
 	PUSH2 S0, S3
 	GETGLOB 17
 	FALSE
@@ -286,7 +286,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverCluster.tsol, 202
+.loc ../contracts/StEverCluster.tsol, 209
 GETGLOB 12
 NEWC
 STSLICECONST x42_
@@ -307,7 +307,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 215
+.loc ../contracts/StEverCluster.tsol, 224
 OVER
 PUSHCONT {
 	LDREF
@@ -328,19 +328,19 @@ CALLREF {
 THROW 0
 
 .macro onStrategyDeployed_8ec1be8d_internal_macro
-.loc ../contracts/StEverCluster.tsol, 140
+.loc ../contracts/StEverCluster.tsol, 142
 PUSHINT 5005
 GETGLOB 9
 GETGLOB 17
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 216
+.loc ../contracts/StEverCluster.tsol, 225
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 218
+.loc ../contracts/StEverCluster.tsol, 227
 DUP
 GETGLOB 24
 NEWC
@@ -349,7 +349,7 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 24
-.loc ../contracts/StEverCluster.tsol, 220
+.loc ../contracts/StEverCluster.tsol, 229
 PUSHSLICE xc000000000000000000000000060cfd077
 NEWC
 STSLICE
@@ -357,7 +357,7 @@ STSLICE
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/StEverCluster.tsol, 222
+.loc ../contracts/StEverCluster.tsol, 231
 GETGLOB 12
 NEWC
 STSLICECONST x42_
@@ -378,7 +378,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 242
+.loc ../contracts/StEverCluster.tsol, 253
 LDU 32
 LDDICT
 ROTREV
@@ -399,24 +399,24 @@ THROW 0
 CALL $addStrategies_c0c0b602_internal_macro$
 
 .macro addStrategies_c0c0b602_internal_macro
-.loc ../contracts/StEverCluster.tsol, 125
+.loc ../contracts/StEverCluster.tsol, 127
 PUSHINT 5003
 GETGLOB 9
 GETGLOB 12
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 243
+.loc ../contracts/StEverCluster.tsol, 254
 GETGLOB 18
 GETGLOB 14
 LESS
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 244
+	.loc ../contracts/StEverCluster.tsol, 255
 	PUSHINT 5009
 	THROWANY
 	.loc ../contracts/StEverCluster.tsol, 0
 }
 IF
-.loc ../contracts/StEverCluster.tsol, 247
+.loc ../contracts/StEverCluster.tsol, 258
 PUSHINT 0
 NEWDICT
 PAIR
@@ -477,13 +477,13 @@ ADD
 GETGLOB 15
 GREATER
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 248
+	.loc ../contracts/StEverCluster.tsol, 259
 	PUSHINT 5010
 	THROWANY
 	.loc ../contracts/StEverCluster.tsol, 0
 }
 IF
-.loc ../contracts/StEverCluster.tsol, 251
+.loc ../contracts/StEverCluster.tsol, 262
 DEPTH
 ADDCONST -2
 PICK
@@ -495,21 +495,21 @@ PUSHINT 1000000000
 ADD
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/StEverCluster.tsol, 256
+.loc ../contracts/StEverCluster.tsol, 267
 PUSHINT 50
-.loc ../contracts/StEverCluster.tsol, 258
+.loc ../contracts/StEverCluster.tsol, 269
 OVER
 FIRST
 OVER
 LEQ
 THROWIFNOT 1030
-.loc ../contracts/StEverCluster.tsol, 260
+.loc ../contracts/StEverCluster.tsol, 271
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 262
+.loc ../contracts/StEverCluster.tsol, 273
 OVER
 SECOND
 PUSHINT 0
@@ -526,7 +526,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 264
+	.loc ../contracts/StEverCluster.tsol, 275
 	DUP
 	GETGLOB 23
 	PUSHINT 267
@@ -534,13 +534,13 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 265
+		.loc ../contracts/StEverCluster.tsol, 276
 		PUSHINT 5011
 		THROWANY
 		.loc ../contracts/StEverCluster.tsol, 0
 	}
 	IF
-	.loc ../contracts/StEverCluster.tsol, 267
+	.loc ../contracts/StEverCluster.tsol, 278
 	DUP
 	GETGLOB 24
 	PUSHINT 267
@@ -548,7 +548,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 268
+		.loc ../contracts/StEverCluster.tsol, 279
 		PUSHINT 5012
 		THROWANY
 		.loc ../contracts/StEverCluster.tsol, 0
@@ -561,7 +561,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverCluster.tsol, 272
+.loc ../contracts/StEverCluster.tsol, 283
 GETGLOB 10
 GETGLOB 12
 PUSH S2
@@ -596,7 +596,7 @@ STBREFR
 ENDC
 PUSHINT 1
 SENDRAWMSG
-.loc ../contracts/StEverCluster.tsol, 278
+.loc ../contracts/StEverCluster.tsol, 289
 GETGLOB 12
 NEWC
 STSLICECONST x42_
@@ -617,7 +617,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 290
+.loc ../contracts/StEverCluster.tsol, 303
 LDU 32
 LDDICT
 ROTREV
@@ -635,19 +635,19 @@ CALLREF {
 THROW 0
 
 .macro onStrategiesAdded_4b074cec_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 291
+.loc ../contracts/StEverCluster.tsol, 304
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 293
+.loc ../contracts/StEverCluster.tsol, 306
 SECOND
 PUSHINT 0
 NULL
@@ -663,7 +663,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 294
+	.loc ../contracts/StEverCluster.tsol, 307
 	DUP
 	GETGLOB 23
 	DUP2
@@ -700,7 +700,7 @@ IFREFELSEREF
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/StEverCluster.tsol, 297
+.loc ../contracts/StEverCluster.tsol, 310
 GETGLOB 12
 NEWC
 STSLICECONST x42_
@@ -721,7 +721,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 314
+.loc ../contracts/StEverCluster.tsol, 329
 LDU 32
 LDDICT
 ROTREV
@@ -743,7 +743,7 @@ THROW 0
 CALL $removeStrategies_70814eeb_internal_macro$
 
 .macro removeStrategies_70814eeb_internal_macro
-.loc ../contracts/StEverCluster.tsol, 132
+.loc ../contracts/StEverCluster.tsol, 134
 PUSHINT 5004
 GETGLOB 9
 GETGLOB 13
@@ -753,7 +753,7 @@ GETGLOB 12
 SDEQ
 OR
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 316
+.loc ../contracts/StEverCluster.tsol, 331
 PUSHINT 5006
 DEPTH
 ADDCONST -2
@@ -769,7 +769,7 @@ MUL
 UFITS 128
 GEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 321
+.loc ../contracts/StEverCluster.tsol, 336
 DUP
 SECOND
 PUSHINT 0
@@ -786,7 +786,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 322
+	.loc ../contracts/StEverCluster.tsol, 337
 	PUSHINT 5014
 	OVER
 	GETGLOB 23
@@ -795,7 +795,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	THROWANYIFNOT
-	.loc ../contracts/StEverCluster.tsol, 323
+	.loc ../contracts/StEverCluster.tsol, 338
 	PUSHINT 5013
 	OVER
 	GETGLOB 23
@@ -824,7 +824,7 @@ IFREFELSEREF
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/StEverCluster.tsol, 326
+.loc ../contracts/StEverCluster.tsol, 341
 CALLREF {
 	CALL $_removeStrategies_5f385030_internal_macro$
 }
@@ -835,13 +835,13 @@ CALLREF {
 CALL $_removeStrategies_5f385030_internal_macro$
 
 .macro _removeStrategies_5f385030_internal_macro
-.loc ../contracts/StEverCluster.tsol, 342
+.loc ../contracts/StEverCluster.tsol, 359
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 344
+.loc ../contracts/StEverCluster.tsol, 361
 DUP
 SECOND
 PUSHINT 0
@@ -858,7 +858,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 345
+	.loc ../contracts/StEverCluster.tsol, 362
 	DUP
 	GETGLOB 23
 	DUP2
@@ -895,7 +895,7 @@ IFREFELSEREF
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/StEverCluster.tsol, 348
+.loc ../contracts/StEverCluster.tsol, 365
 GETGLOB 10
 GETGLOB 12
 ROT
@@ -933,7 +933,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 364
+.loc ../contracts/StEverCluster.tsol, 383
 LDU 32
 LDDICT
 ROTREV
@@ -951,19 +951,19 @@ CALLREF {
 THROW 0
 
 .macro onPendingStrategyRemove_f55037eb_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 365
+.loc ../contracts/StEverCluster.tsol, 384
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 367
+.loc ../contracts/StEverCluster.tsol, 386
 SECOND
 PUSHINT 0
 NULL
@@ -979,7 +979,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 368
+	.loc ../contracts/StEverCluster.tsol, 387
 	DUP
 	GETGLOB 23
 	DUP2
@@ -1016,7 +1016,7 @@ IFREFELSEREF
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/StEverCluster.tsol, 371
+.loc ../contracts/StEverCluster.tsol, 390
 GETGLOB 22
 PUSHCONT {
 	GETGLOB 13
@@ -1025,7 +1025,7 @@ PUSHCONT {
 	GETGLOB 12
 }
 IFELSE
-.loc ../contracts/StEverCluster.tsol, 373
+.loc ../contracts/StEverCluster.tsol, 392
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -1045,7 +1045,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 386
+.loc ../contracts/StEverCluster.tsol, 407
 OVER
 PUSHCONT {
 	LDREF
@@ -1066,24 +1066,24 @@ CALLREF {
 THROW 0
 
 .macro onStrategyRemoved_9377ed70_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 111
+.loc ../contracts/StEverCluster.tsol, 113
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 388
+	.loc ../contracts/StEverCluster.tsol, 409
 	PUSHINT 200000000
-	.loc ../contracts/StEverCluster.tsol, 390
+	.loc ../contracts/StEverCluster.tsol, 411
 	SWAP
 	GETGLOB 23
 	PUSHINT 267
 	DICTDEL
 	DROP
 	SETGLOB 23
-	.loc ../contracts/StEverCluster.tsol, 391
+	.loc ../contracts/StEverCluster.tsol, 412
 	PUSHINT 0
 	NEWDICT
 	PAIR
@@ -1138,14 +1138,14 @@ PUSHCONT {
 	WHILE
 	DROP2
 	FIRST
-	.loc ../contracts/StEverCluster.tsol, 392
+	.loc ../contracts/StEverCluster.tsol, 413
 	GETGLOB 19
 	EQINT 2
 	SWAP
 	EQINT 0
 	AND
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 394
+		.loc ../contracts/StEverCluster.tsol, 415
 		GETGLOB 10
 		GETGLOB 12
 		PUSH S2
@@ -1169,10 +1169,10 @@ PUSHCONT {
 		ENDC
 		PUSHINT 0
 		SENDRAWMSG
-		.loc ../contracts/StEverCluster.tsol, 395
+		.loc ../contracts/StEverCluster.tsol, 416
 		GETGLOB 18
 		PUSHCONT {
-			.loc ../contracts/StEverCluster.tsol, 396
+			.loc ../contracts/StEverCluster.tsol, 417
 			GETGLOB 22
 			PUSHCONT {
 				GETGLOB 13
@@ -1181,10 +1181,10 @@ PUSHCONT {
 				GETGLOB 12
 			}
 			IFELSE
-			.loc ../contracts/StEverCluster.tsol, 397
+			.loc ../contracts/StEverCluster.tsol, 418
 			PUSHREF {
 			}
-			.loc ../contracts/StEverCluster.tsol, 399
+			.loc ../contracts/StEverCluster.tsol, 420
 			FALSE
 			PUSH S2
 			PUSHINT 0
@@ -1218,7 +1218,7 @@ PUSHCONT {
 			ENDC
 			PUSHINT 0
 			SENDRAWMSG
-			.loc ../contracts/StEverCluster.tsol, 408
+			.loc ../contracts/StEverCluster.tsol, 429
 			OVER
 			GETGLOB 21
 			FALSE
@@ -1242,7 +1242,7 @@ PUSHCONT {
 			.loc ../contracts/StEverCluster.tsol, 0
 		}
 		IF
-		.loc ../contracts/StEverCluster.tsol, 411
+		.loc ../contracts/StEverCluster.tsol, 432
 		GETGLOB 12
 		NEWC
 		STSLICECONST x42_
@@ -1254,19 +1254,19 @@ PUSHCONT {
 		ADDCONST 32
 		UFITS 8
 		SENDRAWMSG
-		.loc ../contracts/StEverCluster.tsol, 416
+		.loc ../contracts/StEverCluster.tsol, 437
 		DROP
 		.loc ../contracts/StEverCluster.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/StEverCluster.tsol, 418
+	.loc ../contracts/StEverCluster.tsol, 439
 	DROP
 	CALLREF {
 		CALL $_reserve_413ab4a8_internal_macro$
 	}
 	PUSHINT 0
 	RAWRESERVE
-	.loc ../contracts/StEverCluster.tsol, 419
+	.loc ../contracts/StEverCluster.tsol, 440
 	GETGLOB 12
 	NEWC
 	STSLICECONST x42_
@@ -1276,7 +1276,7 @@ PUSHCONT {
 	ENDC
 	PUSHPOW2 7
 	SENDRAWMSG
-	.loc ../contracts/StEverCluster.tsol, 386
+	.loc ../contracts/StEverCluster.tsol, 407
 }
 CALLX
 .loc ../contracts/StEverCluster.tsol, 0
@@ -1290,7 +1290,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 431
+.loc ../contracts/StEverCluster.tsol, 454
 LDU 32
 LDDICT
 ROTREV
@@ -1308,23 +1308,23 @@ CALLREF {
 THROW 0
 
 .macro handleDelegateStrategies_d34f9d6d_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 432
+.loc ../contracts/StEverCluster.tsol, 455
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 434
+.loc ../contracts/StEverCluster.tsol, 457
 PUSHINT 0
 NEWDICT
 PAIR
-.loc ../contracts/StEverCluster.tsol, 436
+.loc ../contracts/StEverCluster.tsol, 459
 SWAP
 SECOND
 PUSHINT 0
@@ -1341,7 +1341,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 438
+	.loc ../contracts/StEverCluster.tsol, 461
 	DUP
 	GETGLOB 23
 	PUSHINT 267
@@ -1349,7 +1349,7 @@ PUSHCONT {
 	NULLSWAPIFNOT
 	NIP
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 439
+		.loc ../contracts/StEverCluster.tsol, 462
 		PUSHINT 1
 		SINGLE
 		OVER
@@ -1364,7 +1364,7 @@ PUSHCONT {
 		PUSHINT 267
 		DICTSETB
 		SETGLOB 23
-		.loc ../contracts/StEverCluster.tsol, 442
+		.loc ../contracts/StEverCluster.tsol, 465
 		DUP
 		GETGLOB 24
 		NEWC
@@ -1373,7 +1373,7 @@ PUSHCONT {
 		PUSHINT 267
 		DICTSETB
 		SETGLOB 24
-		.loc ../contracts/StEverCluster.tsol, 443
+		.loc ../contracts/StEverCluster.tsol, 466
 		PUSH2 S0, S3
 		UNPAIR
 		OVER
@@ -1393,7 +1393,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/StEverCluster.tsol, 447
+.loc ../contracts/StEverCluster.tsol, 470
 GETGLOB 10
 GETGLOB 12
 GETGLOB 11
@@ -1430,7 +1430,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 466
+.loc ../contracts/StEverCluster.tsol, 491
 LDI 1
 ENDS
 .loc ../contracts/StEverCluster.tsol, 0
@@ -1444,28 +1444,28 @@ CALLREF {
 THROW 0
 
 .macro dropCluster_d1e29af5_internal_macro
-.loc ../contracts/StEverCluster.tsol, 117
+.loc ../contracts/StEverCluster.tsol, 119
 PUSHINT 5002
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 468
+.loc ../contracts/StEverCluster.tsol, 493
 PUSHINT 5017
 GETGLOB 19
 NEQINT 2
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 470
+.loc ../contracts/StEverCluster.tsol, 495
 DUP
 SETGLOB 22
-.loc ../contracts/StEverCluster.tsol, 471
+.loc ../contracts/StEverCluster.tsol, 496
 PUSHINT 2
 SETGLOB 19
-.loc ../contracts/StEverCluster.tsol, 473
+.loc ../contracts/StEverCluster.tsol, 498
 PUSHINT 0
 NEWDICT
 PAIR
-.loc ../contracts/StEverCluster.tsol, 475
+.loc ../contracts/StEverCluster.tsol, 500
 GETGLOB 23
 DUP
 PUSHINT 267
@@ -1491,12 +1491,12 @@ PUSHCONT {
 }
 PUSHCONT {
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 476
+		.loc ../contracts/StEverCluster.tsol, 501
 		DUP
 		FIRST
 		NEQINT 1
 		IFRET
-		.loc ../contracts/StEverCluster.tsol, 479
+		.loc ../contracts/StEverCluster.tsol, 504
 		PUSH2 S1, S4
 		UNPAIR
 		OVER
@@ -1530,7 +1530,7 @@ IFREFELSE {
 }
 WHILE
 BLKDROP 4
-.loc ../contracts/StEverCluster.tsol, 482
+.loc ../contracts/StEverCluster.tsol, 507
 PUSHINT 5006
 DEPTH
 ADDCONST -2
@@ -1541,7 +1541,7 @@ PUSHINT 1000000000
 MUL
 GEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 487
+.loc ../contracts/StEverCluster.tsol, 512
 CALLREF {
 	CALL $_removeStrategies_5f385030_internal_macro$
 }
@@ -1557,7 +1557,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 493
+.loc ../contracts/StEverCluster.tsol, 518
 LDU 32
 GETGLOB 4
 ROT
@@ -1690,7 +1690,7 @@ CALLREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/StEverCluster.tsol, 494
+.loc ../contracts/StEverCluster.tsol, 519
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -1779,7 +1779,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 523
+.loc ../contracts/StEverCluster.tsol, 550
 OVER
 PUSHCONT {
 	LDREF
@@ -1814,27 +1814,27 @@ CALLREF {
 THROW 0
 
 .macro onAcceptTokensTransfer_e63f2284_internal_macro
-.loc ../contracts/StEverCluster.tsol, 531
+.loc ../contracts/StEverCluster.tsol, 558
 DROP
 PUSHINT 5015
 GETGLOB 9
 GETGLOB 21
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 532
+.loc ../contracts/StEverCluster.tsol, 559
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 534
+.loc ../contracts/StEverCluster.tsol, 561
 GETGLOB 18
 PUSH S4
 ADD
 UFITS 128
 DUP
 SETGLOB 18
-.loc ../contracts/StEverCluster.tsol, 536
+.loc ../contracts/StEverCluster.tsol, 563
 ROLL 4
 PUSHSLICE xc00000000000000000000000004b4959ab
 NEWC
@@ -1844,7 +1844,7 @@ STU 128
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/StEverCluster.tsol, 538
+.loc ../contracts/StEverCluster.tsol, 565
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -1865,7 +1865,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 551
+.loc ../contracts/StEverCluster.tsol, 580
 OVER
 PUSHCONT {
 	LDREF
@@ -1886,13 +1886,13 @@ CALLREF {
 THROW 0
 
 .macro setAssurance_90529b7e_internal_macro
-.loc ../contracts/StEverCluster.tsol, 117
+.loc ../contracts/StEverCluster.tsol, 119
 PUSHINT 5002
 GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 147
+.loc ../contracts/StEverCluster.tsol, 149
 PUSHINT 5007
 DEPTH
 ADDCONST -2
@@ -1900,16 +1900,16 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 552
+.loc ../contracts/StEverCluster.tsol, 581
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 554
+.loc ../contracts/StEverCluster.tsol, 583
 DUP
 SETGLOB 14
-.loc ../contracts/StEverCluster.tsol, 556
+.loc ../contracts/StEverCluster.tsol, 585
 PUSHSLICE xc0000000000000000000000000076c1702
 NEWC
 STSLICE
@@ -1917,7 +1917,7 @@ STU 128
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/StEverCluster.tsol, 558
+.loc ../contracts/StEverCluster.tsol, 587
 GETGLOB 13
 NEWC
 STSLICECONST x42_
@@ -1938,7 +1938,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 565
+.loc ../contracts/StEverCluster.tsol, 594
 ENDS
 .loc ../contracts/StEverCluster.tsol, 0
 CALLREF {
@@ -1976,7 +1976,7 @@ THROW 0
 CALL $freeAssurance_3e743181_internal_macro$
 
 .macro freeAssurance_3e743181_internal_macro
-.loc ../contracts/StEverCluster.tsol, 566
+.loc ../contracts/StEverCluster.tsol, 595
 GETGLOB 18
 GETGLOB 14
 GEQ
@@ -1999,7 +1999,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 579
+.loc ../contracts/StEverCluster.tsol, 610
 OVER
 PUSHCONT {
 	LDREF
@@ -2020,13 +2020,13 @@ CALLREF {
 THROW 0
 
 .macro withdrawAssurance_2f3884a7_internal_macro
-.loc ../contracts/StEverCluster.tsol, 125
+.loc ../contracts/StEverCluster.tsol, 127
 PUSHINT 5003
 GETGLOB 9
 GETGLOB 12
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 147
+.loc ../contracts/StEverCluster.tsol, 149
 PUSHINT 5007
 DEPTH
 ADDCONST -2
@@ -2034,28 +2034,28 @@ PICK
 PUSHINT 1000000000
 GEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 580
+.loc ../contracts/StEverCluster.tsol, 611
 CALLREF {
 	CALL $freeAssurance_3e743181_internal_macro$
 }
-.loc ../contracts/StEverCluster.tsol, 582
+.loc ../contracts/StEverCluster.tsol, 613
 MIN
-.loc ../contracts/StEverCluster.tsol, 584
+.loc ../contracts/StEverCluster.tsol, 615
 GETGLOB 18
 OVER
 SUB
 UFITS 128
 SETGLOB 18
-.loc ../contracts/StEverCluster.tsol, 586
+.loc ../contracts/StEverCluster.tsol, 617
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 587
+.loc ../contracts/StEverCluster.tsol, 618
 PUSHREF {
 }
-.loc ../contracts/StEverCluster.tsol, 589
+.loc ../contracts/StEverCluster.tsol, 620
 TRUE
 GETGLOB 9
 PUSHINT 0
@@ -2097,7 +2097,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/StEverCluster.tsol, 614
+.loc ../contracts/StEverCluster.tsol, 647
 OVER
 PUSHCONT {
 	LDREF
@@ -2124,26 +2124,26 @@ CALLREF {
 THROW 0
 
 .macro upgrade_fb9d1513_internal_macro
-.loc ../contracts/StEverCluster.tsol, 110
+.loc ../contracts/StEverCluster.tsol, 112
 PUSHINT 5001
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/StEverCluster.tsol, 111
+.loc ../contracts/StEverCluster.tsol, 113
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 621
+	.loc ../contracts/StEverCluster.tsol, 654
 	OVER
 	GETGLOB 16
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/StEverCluster.tsol, 622
+		.loc ../contracts/StEverCluster.tsol, 655
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/StEverCluster.tsol, 623
+		.loc ../contracts/StEverCluster.tsol, 656
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -2152,25 +2152,25 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/StEverCluster.tsol, 624
+		.loc ../contracts/StEverCluster.tsol, 657
 		DROP2
 		.loc ../contracts/StEverCluster.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/StEverCluster.tsol, 629
+	.loc ../contracts/StEverCluster.tsol, 662
 	GETGLOB 11
 	NEWC
 	STSLICE
-	.loc ../contracts/StEverCluster.tsol, 630
+	.loc ../contracts/StEverCluster.tsol, 663
 	STSLICECONST x00
-	.loc ../contracts/StEverCluster.tsol, 631
+	.loc ../contracts/StEverCluster.tsol, 664
 	STSLICE
-	.loc ../contracts/StEverCluster.tsol, 634
+	.loc ../contracts/StEverCluster.tsol, 667
 	PUSHREF {
 	}
 	SWAP
 	STREF
-	.loc ../contracts/StEverCluster.tsol, 637
+	.loc ../contracts/StEverCluster.tsol, 670
 	GETGLOB 11
 	GETGLOB 10
 	NEWC
@@ -2181,7 +2181,7 @@ PUSHCONT {
 	STSLICE
 	STBREFR
 	ENDC
-	.loc ../contracts/StEverCluster.tsol, 644
+	.loc ../contracts/StEverCluster.tsol, 677
 	GETGLOB 13
 	GETGLOB 20
 	GETGLOB 17
@@ -2204,14 +2204,14 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	ENDC
-	.loc ../contracts/StEverCluster.tsol, 654
+	.loc ../contracts/StEverCluster.tsol, 687
 	PUSH S2
 	ROT
 	STREFR
 	POP S2
-	.loc ../contracts/StEverCluster.tsol, 655
+	.loc ../contracts/StEverCluster.tsol, 688
 	STREFR
-	.loc ../contracts/StEverCluster.tsol, 657
+	.loc ../contracts/StEverCluster.tsol, 690
 	GETGLOB 24
 	GETGLOB 23
 	GETGLOB 22
@@ -2261,10 +2261,10 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	STBREFR
-	.loc ../contracts/StEverCluster.tsol, 685
+	.loc ../contracts/StEverCluster.tsol, 718
 	OVER
 	SETCODE
-	.loc ../contracts/StEverCluster.tsol, 687
+	.loc ../contracts/StEverCluster.tsol, 720
 	SWAP
 	CTOS
 	DUP
@@ -2279,19 +2279,19 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/StEverCluster.tsol, 689
+	.loc ../contracts/StEverCluster.tsol, 722
 	ENDC
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
-	.loc ../contracts/StEverCluster.tsol, 614
+	.loc ../contracts/StEverCluster.tsol, 647
 }
 CALLX
 .loc ../contracts/StEverCluster.tsol, 0
 
 .internal-alias :onCodeUpgrade, 2
 .internal :onCodeUpgrade
-.loc ../contracts/StEverCluster.tsol, 703
+.loc ../contracts/StEverCluster.tsol, 737
 PUSHINT 0
 SETGLOB 10
 PUSHREFSLICE {
@@ -2334,15 +2334,15 @@ NEWDICT
 SETGLOB 23
 NEWDICT
 SETGLOB 24
-.loc ../contracts/StEverCluster.tsol, 704
+.loc ../contracts/StEverCluster.tsol, 738
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/StEverCluster.tsol, 705
+.loc ../contracts/StEverCluster.tsol, 739
 CTOS
-.loc ../contracts/StEverCluster.tsol, 707
+.loc ../contracts/StEverCluster.tsol, 741
 DUP
 LDMSGADDR
 LDU 8
@@ -2351,11 +2351,11 @@ LDREF
 POP S5
 DROP
 BLKDROP2 2, 1
-.loc ../contracts/StEverCluster.tsol, 708
+.loc ../contracts/StEverCluster.tsol, 742
 OVER
 LDREF
 POP S3
-.loc ../contracts/StEverCluster.tsol, 710
+.loc ../contracts/StEverCluster.tsol, 744
 CTOS
 LDU 32
 LDMSGADDR
@@ -2368,11 +2368,11 @@ XCHG S2
 SETGLOB 10
 SETGLOB 11
 SETGLOB 12
-.loc ../contracts/StEverCluster.tsol, 719
+.loc ../contracts/StEverCluster.tsol, 753
 OVER
 LDREF
 POP S3
-.loc ../contracts/StEverCluster.tsol, 721
+.loc ../contracts/StEverCluster.tsol, 755
 CTOS
 LDU 32
 LDU 32
@@ -2388,26 +2388,26 @@ ENDS
 CTOS
 LDMSGADDR
 ENDS
-.loc ../contracts/StEverCluster.tsol, 742
+.loc ../contracts/StEverCluster.tsol, 776
 PUSH S6
 ROLL 6
 EQUAL
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 743
+	.loc ../contracts/StEverCluster.tsol, 777
 	BLKPUSH 6, 5
 	CALLREF {
 		CALL $_init_28104f57_internal_macro$
 	}
 }
 PUSHCONT {
-	.loc ../contracts/StEverCluster.tsol, 752
+	.loc ../contracts/StEverCluster.tsol, 786
 	PUSH S7
 	LDREF
 	POP S9
-	.loc ../contracts/StEverCluster.tsol, 753
+	.loc ../contracts/StEverCluster.tsol, 787
 	PUSH S6
 	SETGLOB 16
-	.loc ../contracts/StEverCluster.tsol, 754
+	.loc ../contracts/StEverCluster.tsol, 788
 	CTOS
 	LDU 32
 	LDMSGADDR
@@ -2461,7 +2461,7 @@ PUSHCONT {
 	SETGLOB 24
 }
 IFELSE
-.loc ../contracts/StEverCluster.tsol, 802
+.loc ../contracts/StEverCluster.tsol, 836
 BLKDROP 6
 NEWC
 STSLICECONST x42_
