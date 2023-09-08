@@ -127,7 +127,8 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
     /// @dev function for satisfy user withdraw requests
-    function emergencyWithdrawToUser() override external onlyEmergencyState minCallValue {
+    function emergencyWithdrawToUser() override external onlyEmergencyState  {
+        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         address accountAddress = getAccountAddress(msg.sender);
         IStEverAccount(accountAddress).onEmergencyWithdrawToUser{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();

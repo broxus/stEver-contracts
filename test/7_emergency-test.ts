@@ -7,7 +7,6 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, switchMap, toArray } from "rxjs";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
@@ -24,6 +23,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
+const COUNT_OF_WITHDRAW_REQUESTS = 49;
 let strategies: DePoolStrategyWithPool[] = [];
 describe("Emergency testing", function () {
   before(async () => {
@@ -83,8 +83,8 @@ describe("Emergency testing", function () {
   });
   it("user should activate emergency", async () => {
     await lastValueFrom(
-      range(3).pipe(
-        concatMap(() => user1.makeWithdrawRequest(toNano(15))),
+      range(COUNT_OF_WITHDRAW_REQUESTS).pipe(
+        concatMap(() => user1.makeWithdrawRequest(toNano(20))),
         toArray(),
       ),
     );
@@ -111,6 +111,7 @@ describe("Emergency testing", function () {
       proofNonce: Number(nonce),
       attachedValue: ATTACHED_VALUE.toString(),
     });
+
     expect(successTraceTree).to.emit("EmergencyProcessStarted").count(1).withNamedArgs({
       emitter: user1.account.address,
     });
@@ -137,7 +138,52 @@ describe("Emergency testing", function () {
       true,
       "emergency state should includes correct emitter address",
     );
+  });
+  it("admin should paused emergency state", async () => {
+    const turnEmergencyPausedOnTx = await vault.changeEmergencyPausedState({ isPaused: true });
+    const turnEmergencyPausedOnEvents = await vault.getEventsAfterTransaction({
+      eventName: "EmergencyStatePaused",
+      parentTransaction: turnEmergencyPausedOnTx,
+    });
+    expect(turnEmergencyPausedOnEvents.length).to.be.equals(1);
+    const { emergencyState } = await vault.getDetails();
+    expect(emergencyState.isEmergency).to.be.equals(true);
+    expect(emergencyState.isPaused).to.be.equals(true);
+  });
+  it("user shouldn't make emergency withdraw request when emergency is paused", async () => {
+    const result = await user1.emergencyWithdraw();
+    expect(result.traceTree).to.have.error(1025);
+  });
+  it("admin should remove paused state from emergency", async () => {
+    const turnEmergencyPausedOffTx = await vault.changeEmergencyPausedState({ isPaused: false });
+    const turnEmergencyPausedOffEvents = await vault.getEventsAfterTransaction({
+      eventName: "EmergencyStateContinued",
+      parentTransaction: turnEmergencyPausedOffTx,
+    });
+    expect(turnEmergencyPausedOffEvents.length).to.be.equals(1);
+    const { emergencyState } = await vault.getDetails();
+    expect(emergencyState.isEmergency).to.be.equals(true);
+    expect(emergencyState.isPaused).to.be.equals(false);
+  });
+  it("user shouldn't withdraw because vault doesn't have enough available evers", async () => {
+    const pendingWithdrawRequestsBefore = await user1.getWithdrawRequests();
+    expect(pendingWithdrawRequestsBefore.length).to.be.equals(COUNT_OF_WITHDRAW_REQUESTS);
 
+    const emergencyWithdrawTransaction = await user1.emergencyWithdraw();
+    await emergencyWithdrawTransaction.traceTree?.beautyPrint();
+    const errorWithdrawEvents = await vault.getEventsAfterTransaction({
+      eventName: "WithdrawError",
+      parentTransaction: emergencyWithdrawTransaction,
+    });
+
+    const pendingWithdrawRequests = await user1.getWithdrawRequests();
+    expect(pendingWithdrawRequests.length).to.be.equals(
+      COUNT_OF_WITHDRAW_REQUESTS,
+      "all withdraw requests should be reset",
+    );
+    expect(errorWithdrawEvents.length).to.be.equals(1);
+  });
+  it("emit round complete", async () => {
     const [{ transaction: roundCompleteTransaction }] = await lastValueFrom(
       from(strategies).pipe(
         concatMap(strategyWithDePool => strategyWithDePool.emitDePoolRoundComplete(toNano(10), true)),
@@ -156,39 +202,14 @@ describe("Emergency testing", function () {
       "all strategies should received value from their dePools",
     );
   });
-  it("admin should paused emergency state", async () => {
-    const turnEmergencyPausedOnTx = await vault.changeEmergencyPausedState({ isPaused: true });
-    const turnEmergencyPausedOnEvents = await vault.getEventsAfterTransaction({
-      eventName: "EmergencyStatePaused",
-      parentTransaction: turnEmergencyPausedOnTx,
-    });
-    expect(turnEmergencyPausedOnEvents.length).to.be.equals(1);
-    const { emergencyState } = await vault.getDetails();
-    expect(emergencyState.isEmergency).to.be.equals(true);
-    expect(emergencyState.isPaused).to.be.equals(true);
-  });
-  it("user shouldn't make emergency withdraw request when emergency is paused", async () => {
-    const result = await user1.emergencyWithdraw();
-
-    expect(result.traceTree).to.have.error(1025);
-  });
-  it("admin should remove paused state from emergency", async () => {
-    const turnEmergencyPausedOffTx = await vault.changeEmergencyPausedState({ isPaused: false });
-    const turnEmergencyPausedOffEvents = await vault.getEventsAfterTransaction({
-      eventName: "EmergencyStateContinued",
-      parentTransaction: turnEmergencyPausedOffTx,
-    });
-    expect(turnEmergencyPausedOffEvents.length).to.be.equals(1);
-    const { emergencyState } = await vault.getDetails();
-    expect(emergencyState.isEmergency).to.be.equals(true);
-    expect(emergencyState.isPaused).to.be.equals(false);
-  });
   it("user should emergency withdraw his pending withdrawals", async () => {
     const emergencyWithdrawTransaction = await user1.emergencyWithdraw();
+    await emergencyWithdrawTransaction.traceTree?.beautyPrint();
     const successWithdrawEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawSuccess",
       parentTransaction: emergencyWithdrawTransaction,
     });
+
     const pendingWithdrawRequests = await user1.getWithdrawRequests();
     expect(pendingWithdrawRequests.length).to.be.equals(0, "all withdraw requests should resolved");
     expect(successWithdrawEvents.length).to.be.equals(1);
