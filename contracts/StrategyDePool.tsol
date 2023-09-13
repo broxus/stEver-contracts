@@ -9,7 +9,15 @@ import "./utils/ErrorCodes.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
-
+/**
+ * @title StrategyDePool
+ *
+ * @dev Implementation of the {IStrategy}, {IDePoolStrategy}, and {IParticipant} interfaces.
+ *
+ * This contract represents a connector to the DePool contract and is part of the StEver staking platform.
+ * It provides functionalities required for interacting with the DePool
+ * and is deployed by the {DepoolStrategyFactory} contract.
+ */
 contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     // constant
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
@@ -63,40 +71,90 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         dePool = _dePool;
     }
 
+    /**
+     * @dev Modifier to check if the caller is the vault.
+     * Throws an error if the caller is not the vault.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the vault.
+     */
     modifier onlyVault() {
         require (msg.sender == vault,ErrorCodes.NOT_VAULT);
         _;
     }
 
+    /**
+     * @dev Modifier to check if the caller is the dePool.
+     * Throws an error if the caller is not the dePool.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the dePool.
+     */
     modifier onlyDepool() {
         require (msg.sender == dePool, ErrorCodes.NOT_DEPOOL);
         _;
     }
 
+    /**
+     * @dev Modifier to check if the caller is the factory.
+     * Throws an error if the caller is not the factory.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the factory.
+     */
     modifier onlyFactory() {
         require (msg.sender == factory, ErrorCodes.NOT_FABRIC);
         _;
     }
 
+    /**
+     * @dev Modifier to check if the caller is the dePool or the vault.
+     * Throws an error if the caller is not the dePool or the vault.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the dePool or the vault.
+     */
     modifier onlyDepoolOrVault() {
         require (msg.sender == dePool || msg.sender == vault, ErrorCodes.NOT_DEPOOL_OR_VAULT);
         _;
     }
 
+    /**
+     * @dev Returns the maximum of the contract balance minus the message value and the minimum contract balance.
+     * @return The maximum of the contract balance minus the message value and the minimum contract balance.
+     */
     function _reserve() internal pure returns (uint128) {
 		return
 			math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
 	}
 
-    /// @notice Get the details of the contract
-    /// @return The details of the contract
+
+    /**
+     * @dev See {IDePoolStrategy-getDetails}.
+     */
     function getDetails() override external responsible view returns(Details){
         return {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(vault, dePool, strategyVersion, state);
     }
 
-
-    /// @notice Deposit a certain amount to the contract
-    /// @param _amount The amount to deposit
+    /**
+     * @dev See {IStrategy-deposit}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the vault.
+     *  - The state must be initial.
+     *  - The message value must be greater than or equal to the amount plus the deposit stake dePool fee and the deposit stake strategy fee.
+     *  - The amount must be greater than or equal to the minimum stake.
+     *
+     * **Postconditions**:
+     *
+     *  - The state is set to depositing.
+     *  - The depositToDePool function is called with the amount.
+     */
     function deposit(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if(state != State.INITIAL) {
@@ -113,9 +171,19 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         depositToDePool(_amount);
     }
 
-
-    /// @notice Withdraw a certain amount from the contract
-    /// @param _amount The amount to withdraw
+    /**
+     * @dev See {IStrategy-withdraw}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the vault.
+     *  - The state must be initial.
+     *
+     * **Postconditions**:
+     *
+     *  - The state is set to withdrawing.
+     *  - The withdrawFromDePool function is called with the amount.
+     */
     function withdraw(uint128 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(),0);
         if(state != State.INITIAL) {
@@ -126,23 +194,40 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         withdrawFromDePool(_amount);
     }
 
-
-    /// @notice Deposit a certain amount to the DePool
-    /// @param _amount The amount to deposit
+    /**
+     * @dev Deposits a certain amount to the DePool.
+     * @param _amount The amount to deposit into the dePool.
+     */
     function depositToDePool(uint128 _amount) internal view {
         IDePool(dePool).addOrdinaryStake{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
-
-    /// @notice Withdraw a certain amount from the DePool
-    /// @param _amount The amount to withdraw
+    /**
+     * @dev Withdraws a certain amount from the dePool.
+     * @param _amount The amount to withdraw from the dePool.
+     */
     function withdrawFromDePool(uint128 _amount) internal view {
         IDePool(dePool).withdrawPart{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(uint64(_amount));
     }
 
-
-    /// @notice Receive an answer from the DePool
-    /// @param _errcode The error code of the answer
+    /**
+     * @dev Receives an answer from the dePool.
+     * This function checks if the error code is 0 and if the state is depositing or withdrawing.
+     * If the error code is 0 and the state is depositing, the state is set to initial and the depositHandled function is called.
+     * If the error code is 0 and the state is withdrawing, the onStrategyHandledWithdrawRequest function is called.
+     * If the error code is not 0 and the state is depositing, the state is set to initial and the depositNotHandled function is called with the error code.
+     * If the error code is not 0 and the state is not depositing, the state is set to initial and the withdrawError function is called with the error code.
+     * @param _errcode The error code received from the dePool.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the dePool.
+     *
+     * **Postconditions**:
+     *
+     *  - The state is set to initial.
+     *  - The depositHandled, onStrategyHandledWithdrawRequest, depositNotHandled, or withdrawError function is called depending on the error code and the state.
+     */
     function receiveAnswer(uint32 _errcode, uint64) override external onlyDepool {
         tvm.rawReserve(_reserve(),0);
 
@@ -171,22 +256,39 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
 
     }
 
-
-    /// @notice Handle a successful deposit
+    /**
+     * @dev Handles a successful deposit.
+     * This function calls the onStrategyHandledDeposit function of the vault.
+     *
+     * **Postconditions**:
+     *
+     *  - The onStrategyHandledDeposit function of the vault is called.
+     */
     function depositHandled() internal view {
         IStEverVault(vault).onStrategyHandledDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();
     }
 
-
-    /// @notice Handle an unsuccessful deposit
-    /// @param _errcode The error code of the unsuccessful deposit
+    /**
+     * @dev Handles a unsuccessful deposit.
+     * @param _errcode The error code.
+     *
+     * **Postconditions**:
+     *
+     *  - The onStrategyDidntHandleDeposit function of the vault is called with the error code.
+     */
     function depositNotHandled(uint32 _errcode) internal view {
         IStEverVault(vault).onStrategyDidntHandleDeposit{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
 
-
-    /// @notice Handle a withdrawal error
-    /// @param _errcode The error code of the withdrawal
+    /**
+     * @dev Handles a withdrawal error.
+     * This function calls the withdrawFromStrategyError function of the vault with the error code.
+     * @param _errcode The error code.
+     *
+     * **Postconditions**:
+     *
+     *  - The withdrawFromStrategyError function of the vault is called with the error code.
+     */
     function withdrawError(uint32 _errcode) internal view {
         IStEverVault(vault).withdrawFromStrategyError{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_errcode);
     }
@@ -197,10 +299,18 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     /// @param amount The amount of the transfer
     function onTransfer(address source, uint128 amount) override external {}
 
-
-    /// @notice Force a withdrawal from the pooling round
-    /// @param _amount The amount to withdraw
-
+    /**
+     * @dev See {IStrategy-withdrawForce}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the vault.
+     *
+     * **Postconditions**:
+     *
+     *  - The state is set to withdrawing from the pooling round.
+     *  - The {IDePool-withdrawFromPoolingRound} function is called with the amount.
+     */
     function withdrawForce(uint64 _amount) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
 
@@ -208,9 +318,18 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         IDePool(dePool).withdrawFromPoolingRound{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: true}(_amount);
     }
 
-
-    /// @notice Receive a transfer
-
+    /**
+     * @dev Receives a transfer from the dePool or the vault.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the dePool or the vault.
+     *
+     * **Postconditions**:
+     *
+     *  - The state is set to initial if the sender is the dePool and the state is withdrawing from the pooling round.
+     *  - The receiveFromStrategy function of the vault is called.
+     */
     receive() external onlyDepoolOrVault {
         tvm.rawReserve(_reserve(),0);
 
@@ -252,10 +371,23 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         }
     }
 
-
-    /// @notice Handle the completion of a round
-    /// @param _reward The reward of the round
-    /// @param _ordinaryStake The ordinary stake of the round
+    /**
+     * @dev Handles the completion of a round.
+     * This function sends a strategy report to the vault and handles a withdrawal
+     * if the dePool is making a withdrawal.
+     *
+     * @param _reward The reward for the round.
+     * @param _ordinaryStake The ordinary stake for the round.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the dePool.
+     *
+     * **Postconditions**:
+     *
+     *  - A strategy report is sent to the vault.
+     *  - If the dePool is making a withdrawal, the withdrawal is handled.
+     */
     function onRoundComplete(
         uint64,
         uint64 _reward,
@@ -299,19 +431,28 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         }
     }
 
-
-    /// @notice Check if the DePool is making a withdrawal
-    /// @param _msgValue The message value of the withdrawal
-    /// @return True if the DePool is making a withdrawal, false otherwise
-
+    /**
+     * @dev Checks if the dePool is making a withdrawal.
+     *
+     * @param _msgValue The message value.
+     * @return A boolean indicating if the dePool is making a withdrawal.
+     */
     function isDePoolMakingWithdraw(uint128 _msgValue) internal pure returns (bool) {
         uint128 basicMsgValuePart = 0.05 ever;
         return _msgValue > basicMsgValuePart;
     }
 
-
-    /// @notice Withdraw extra money from the contract
-
+    /**
+     * @dev See {IStrategy-withdrawExtraMoney}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the vault.
+     *
+     * **Postconditions**:
+     *
+     *  - The {IStEverVault-receiveExtraMoneyFromStrategy} function of the vault is called.
+     */
     function withdrawExtraMoney() override external onlyVault {
         uint128 pureBalance = address(this).balance - msg.value;
 
@@ -328,7 +469,21 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
     }
 
 
-
+    /**
+     * @dev See {IStEverVault-upgrade}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the owner.
+     *  - The call value must be greater than or equal to the minimum call value.
+     *
+     * **Postconditions**:
+     *
+     *  - If the new version is the same as the current version, the remaining gas
+     *    is sent to the specified address and the function returns.
+     *  - If the new version is different, the contract's state is updated with
+     *    the new version's data and the contract's code is replaced with the new code.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyFactory {
         if (_newVersion == strategyVersion) {
             tvm.rawReserve(_reserve(), 0);
@@ -356,6 +511,9 @@ contract StrategyDePool is IStrategy, IDePoolStrategy, IParticipant {
         onCodeUpgrade(data);
     }
 
+    /**
+     * @dev Handles the upgrade of the contract's code.
+     */
     function onCodeUpgrade(TvmCell _upgradeData) private {}
 
 }

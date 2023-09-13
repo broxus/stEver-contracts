@@ -1,15 +1,26 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
+/**
+ * @title IParticipant
+ *
+ * @dev This interface represents a participant in the DePool staking platform.
+ * It provides methods for handling completed rounds, receiving operation status, and managing transfers.
+ *
+ * Implemented by the {StrategyDePool} contract.
+ */
 interface IParticipant {
-    /// @dev send a notification from DePool to Participant when round is completed
-    /// @param roundId Id of completed round.
-    /// @param reward Participant's reward in completed round in nanotons.
-    /// @param ordinaryStake Ordinary stake in completed round.
-    /// @param vestingStake Vesting stake in completed round.
-    /// @param lockStake Lock stake in completed round.
-    /// @param reinvest Is ordinary stake automatically reinvested (prolonged)?
-    /// @param reason Reason why round is completed (See enum CompletionReason).
+    /**
+     * @dev Notifies a participant when a round is completed.
+     *
+     * @param roundId The ID of the completed round
+     * @param reward The Participant's reward in the completed round (in nanotons)
+     * @param ordinaryStake The ordinary stake in the completed round
+     * @param vestingStake The vesting stake in the completed round
+     * @param lockStake The lock stake in the completed round
+     * @param reinvest Whether the ordinary stake is automatically reinvested (prolonged)
+     * @param reason The reason the round is completed (See enum CompletionReason)
+     */
     function onRoundComplete(
         uint64 roundId,
         uint64 reward,
@@ -19,10 +30,19 @@ interface IParticipant {
         bool reinvest,
         uint8 reason) external;
 
-    /// @dev Send a message with status code and certain value to participant as a result of DePool operation.
-    /// @param errcode Error code of operation.
-    /// @param comment Additional value for certain error code.
+    /**
+     * @dev Receives an answer from the DePool
+     *
+     * @param errcode The error code of the operation
+     * @param comment An additional value for a certain error code
+     */
     function receiveAnswer(uint32 errcode, uint64 comment) external;
 
+    /**
+     * @dev Handles a transfers.
+     *
+     * @param source The address from which the transfer originated
+     * @param amount The amount transferred
+     */
     function onTransfer(address source, uint128 amount) external;
 }

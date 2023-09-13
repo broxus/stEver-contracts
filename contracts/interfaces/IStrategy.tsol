@@ -1,14 +1,55 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
+/**
+ * @title IStrategy
+ *
+ * @dev Interface defining the essential functionalities required by a strategy
+ * in the StEver staking platform.
+ *
+ * This includes depositing and withdrawing specific amounts, forcibly withdrawing
+ * from pooling rounds, withdrawing extra money, and upgrading the strategy code.
+ *
+ * The implementing contract, {StrategyDePool}, serves as a connector to the DePool
+ * contract and provides the necessary functionalities for interacting with
+ * the DePool as part of the StEver staking platform.
+ */
 interface IStrategy {
     event Deposit(uint128 amount);
     event Withdraw(uint128 amount);
 
+    /**
+     * @dev Deposits a specified amount into the contract.
+     *
+     * @param amount The amount to deposit into the contract.
+     */
     function deposit(uint128 amount) external;
+
+    /**
+     * @dev Withdraws a specified amount from the contract.
+     *
+     * @param amount The amount to withdraw from the contract.
+     */
     function withdraw(uint128 amount) external;
+
+    /**
+     * @dev Withdraws extra money from the contract.
+     */
     function withdrawExtraMoney() external;
+
+    /**
+     * @dev Forces a withdrawal of a specified amount from the pooling round.
+     *
+     * @param _amount The amount to withdraw from the pooling round.
+     */
     function withdrawForce(uint64 _amount) external;
-    // upgrade
+
+    /**
+     * @dev Upgrades the strategy code.
+     *
+     * @param _newCode The new code to upgrade to.
+     * @param _newVersion The new version to upgrade to.
+     * @param _sendGasTo The address to send remaining gas to.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

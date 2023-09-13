@@ -1,6 +1,19 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
+/**
+ * @title IDepoolStrategyFactory
+ *
+ * @dev Interface of the necessary functionality required by the {DepoolStrategyFactory} contract.
+ * This interface defines the functions needed for deploying and managing DePool strategies
+ * in the StEver staking platform.
+ *
+ * The DepoolStrategyFactory contract, which implements this interface,
+ * is responsible for deploying new strategies,
+ * installing new strategy codes, upgrading strategies, upgrading factory code,
+ * and transferring ownership of the factory.
+ *
+ */
 interface IDepoolStrategyFactory {
     event NewStrategyDeployed(address strategy,address dePool, uint32 version);
     event StrategyCodeUpdated(uint32 prevStrategyVersion, uint32 newStrategyVersion);
@@ -13,11 +26,45 @@ interface IDepoolStrategyFactory {
         uint32 factoryVersion;
     }
 
+    /**
+     * @dev Returns the details of the factory.
+     */
     function getDetails() external responsible view returns (FactoryDetails);
+
+    /**
+     * @dev Deploys a new strategy.
+     * @param dePool The address of the DePool.
+     */
     function deployStrategy(address dePool) external;
+
+    /**
+     * @dev Installs a new strategy code.
+     * @param strategyCode The new strategy code.
+     * @param sendGasTo The address to send gas to.
+     */
     function installNewStrategyCode(TvmCell strategyCode,address sendGasTo) external;
+
+    /**
+     * @dev Upgrades the strategies in a batch.
+     * @param _strategies The addresses of the strategies to upgrade.
+     */
     function upgradeStrategies(address[] _strategies) external;
+
+    /**
+     * @dev Upgrades the factory code.
+     *
+     * @param _newCode The new code of the factory.
+     * @param _newVersion The new version of the factory.
+     * @param _sendGasTo The address to send remaining gas.
+     */
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
+
+    /**
+     * @dev Transfers the ownership of the factory to a new address.
+     *
+     * @param _newOwner The address of the new owner.
+     * @param _sendGasTo The address to send gas to.
+     */
     function transferOwnership(address _newOwner, address _sendGasTo) external;
 
 }

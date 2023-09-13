@@ -12,25 +12,41 @@ import "./utils/ErrorCodes.tsol";
 import "./utils/Gas.tsol";
 
 
+/**
+ * @title DepoolStrategyFactory
+ *
+ * @dev Implementation of the {IDepoolStrategyFactory} interface.
+ *
+ * This contract is responsible for creating and managing DePool strategies.
+ * It also handles the upgrade of strategies and the transfer of ownership.
+ */
+
 contract DepoolStrategyFactory is IDepoolStrategyFactory {
-    // static
+    // static variables
     uint128 public static nonce;
     TvmCell public static dePoolStrategyCode;
     address public static stEverVault;
 
-    // state
+    // state variables
     address owner;
     uint32 public strategyVersion;
     uint32 public strategyCount;
     uint32 public factoryVersion;
 
-
-    // errors
+    // error codes
     uint16 constant NOT_OWNER = 5001;
     uint16 constant LOW_MSG_VALUE = 5002;
     uint16 constant WRONG_PUBKEY = 5003;
 
-
+    /**
+     * @dev Sets the initial owner of the contract.
+     * @param _owner The address of the initial owner.
+     *
+     * **Preconditions**:
+     *
+     * - The contract must be deployed with a non-zero public key.
+     * - The contract must be deployed with the same public key as the message.
+     */
     constructor(address _owner) public {
 
         require (tvm.pubkey() != 0, WRONG_PUBKEY);
@@ -41,21 +57,42 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         owner = _owner;
     }
 
+    /**
+     * @dev Modifier to make a function callable only when the caller is the owner.
+     */
     modifier onlyOwner() {
         require(msg.sender == owner,NOT_OWNER);
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only when the call value is above a certain threshold.
+     */
     modifier minCallValue() {
         require (msg.value >= DePoolStrategyFactoryGas.MIN_CALL_VALUE, ErrorCodes.NOT_ENOUGH_VALUE_FACTORY);
         _;
     }
-        // utils
+
+    /**
+    * @dev Calculates the reserve by taking the maximum of the contract's
+    * current balance minus the value sent in the message
+    * (i.e., the amount of native coins sent with the current transaction) and the
+    * minimum balance of the contract (as determined by the {DePoolStrategyFactoryGas.CONTRACT_MIN_BALANCE} constant).
+    *
+    * This ensures that the reserve is set to the higher of the contract's
+    * current balance minus the message value or its minimum balance, ensuring that the contract
+    * does not spend more native coins than it has available.
+    *
+    * @return The calculated reserve.
+    */
     function _reserve() internal pure returns (uint128) {
 		return
 			math.max(address(this).balance - msg.value, DePoolStrategyFactoryGas.CONTRACT_MIN_BALANCE);
 	}
 
+    /**
+     * @dev See {IDepoolStrategyFactory-getDetails}.
+     */
     function getDetails() override external responsible view returns (FactoryDetails) {
         return {value:0, bounce: false, flag: MsgFlag.REMAINING_GAS} FactoryDetails({
             stEverVault: stEverVault,
@@ -65,8 +102,16 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             factoryVersion: factoryVersion
         });
     }
-    /// @dev function for change owner of factory
-    /// @param _newOwner new owner address
+    /**
+     * @dev See {IDepoolStrategyFactory-transferOwnership}.
+     *
+     * **Preconditions**:
+     *
+     *  - Only the owner can call this function.
+     *
+     * Postcondition:
+     *  - The owner is set to `_newOwner`.
+     */
     function transferOwnership(address _newOwner, address _sendGasTo) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
 
@@ -74,8 +119,18 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 
         _sendGasTo.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    /// @dev function for install new code of strategy
-    /// @param _strategyCode new code of strategy
+
+    /**
+     * @dev See {IDepoolStrategyFactory-installNewStrategyCode}.
+     *
+     * **Preconditions**:
+     *
+     *  - The call value must be greater than or equal to {DePoolStrategyFactoryGas.UPGRADE_VALUE}.
+     *  - Only the owner can call this function.
+     *
+     * Postcondition:
+     *  - The strategy code is set to `_strategyCode`.
+     */
     function installNewStrategyCode(TvmCell _strategyCode, address _sendGasTo) override external onlyOwner {
         require (msg.value >= DePoolStrategyFactoryGas.UPGRADE_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(),0);
@@ -86,8 +141,23 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
 
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
-    /// @dev function for deploy new strategy
-    /// @param _dePool address of dePool
+
+    /**
+     * @dev See {IDepoolStrategyFactory-deployStrategy}.
+     *
+     * **Preconditions**:
+     *
+     *  - The call value must be greater than or equal to
+     *    {DePoolStrategyFactoryGas.STRATEGY_DEPLOY_VALUE} + {DePoolStrategyFactoryGas.MIN_CALL_VALUE}.
+     *  - Only the owner can call this function.
+     *
+     * Postcondition:
+     *  - A new strategy is deployed.
+     *  - The strategy count is incremented.
+     *  - The strategy is initialized.
+     *  - Calls `onStrategyDeployed` on the StEverCluster contract, registering the strategy.
+     *
+     */
     function deployStrategy(address _dePool) override external {
         require (msg.value >= DePoolStrategyFactoryGas.STRATEGY_DEPLOY_VALUE + DePoolStrategyFactoryGas.MIN_CALL_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
@@ -118,8 +188,20 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
             bounce: false
         }(strategy);
     }
-    /// @dev batch strategies upgrade
-    /// @param _strategies array of strategies
+
+    /**
+     * @dev See {IDepoolStrategyFactory-upgradeStrategies}.
+     *
+     * **Preconditions**:
+     *
+     *  - Only the owner can call this function.
+     *  - The number of strategies to upgrade must be less than or equal to Constants.MAX_STRATEGY_PER_UPGRADE.
+     *  - The call value must be greater than or equal to
+     *    DePoolStrategyFactoryGas.MIN_CALL_VALUE * _strategies.length + DePoolStrategyFactoryGas.MIN_CALL_VALUE.
+     *
+     * Postcondition:
+     * - Calls `upgrade` on each strategy in `_strategies`.
+     */
     function upgradeStrategies(address[] _strategies) override external onlyOwner {
         require (_strategies.length <= Constants.MAX_STRATEGY_PER_UPGRADE, ErrorCodes.MAX_STRATEGY_THAN_ALLOWED);
         require (
@@ -139,8 +221,16 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-
-    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner minCallValue {
+    /**
+     * @dev See {IDepoolStrategyFactory-upgrade}.
+     *
+     * Precondition:
+     *  - Should be called only by the owner.
+     *
+     * Postcondition:
+     * - Factory code is changed to `_newCode`.
+     */
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
         if (_newVersion == factoryVersion) {
             tvm.rawReserve(_reserve(), 0);
             _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});
@@ -167,6 +257,10 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
         onCodeUpgrade(data);
     }
 
+    /**
+     * @dev Handles the code upgrade.
+     * @param _upgradeData The data of the upgrade.
+     */
     function onCodeUpgrade(TvmCell _upgradeData) private {}
 
 }
