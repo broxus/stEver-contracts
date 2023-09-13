@@ -5,7 +5,7 @@ import "./StEverVaultStorage.tsol";
 import "../interfaces/IStEverVault.tsol";
 import "../interfaces/IStEverCluster.tsol";
 import "../StEverAccount.tsol";
-import "../RPlatform.tsol";
+import "../Platform.tsol";
 import "../utils/ErrorCodes.tsol";
 import "../utils/Gas.tsol";
 import "../utils/Utils.tsol";
@@ -125,7 +125,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo);
     }
-    // todo
+
     function self_setStEverOwnerForClusters(address _sendGasTo) public onlySelf {
         tvm.rawReserve(_reserve(), 0);
 
