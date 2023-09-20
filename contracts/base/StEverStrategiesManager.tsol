@@ -249,46 +249,6 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
     }
 
     /**
-     * @dev See {IStEverVault-delegateStrategies}.
-     *
-     * **Preconditions**:
-     *
-     * - The caller must be the owner.
-     *
-     * - The value of the message must be greater than or equal to the product of the length
-     *    of _strategies and half of MIN_CALL_MSG_VALUE.
-     *
-     * **Postconditions**:
-     *
-     * - The strategies are delegated to the destination cluster.
-     *
-     * - The handleDelegateStrategies function of the IStEverCluster contract is called.
-     */
-    function delegateStrategies(address[] _strategies, address _destinationCluster) override external onlyOwner {
-        require(
-            msg.value >= uint128(_strategies.length) * (StEverVaultGas.MIN_CALL_MSG_VALUE / 2),
-            ErrorCodes.NOT_ENOUGH_VALUE
-        );
-
-        tvm.rawReserve(_reserve(), 0);
-
-        address[] transferringStrategies;
-        for (address _strategy : _strategies) {
-            StrategyParams strategy = strategies[_strategy];
-            if (strategy.state == StrategyState.ACTIVE && strategy.cluster == address(0)) {
-                strategies[_strategy].state = StrategyState.TRANSFERRING;
-                transferringStrategies.push(_strategy);
-            }
-        }
-
-        IStEverCluster(_destinationCluster).handleDelegateStrategies{
-                value: 0,
-                flag: MsgFlag.ALL_NOT_RESERVED,
-                bounce: false
-        }(transferringStrategies);
-    }
-
-    /**
      * @dev See {IStEverVault-onStrategiesDelegationHandled}
      *
      * **Preconditions**:

@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { toNanoBn } from "../utils";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, toArray } from "rxjs";
+import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";

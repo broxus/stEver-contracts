@@ -208,14 +208,18 @@ describe("Multi flow", async function () {
       );
     });
   });
-  it.skip(/*TODO*/ "admin should withdraw fees", async () => {
+  it("admin should withdraw fees", async () => {
     const MAX_FEE = toNanoBn(1);
     const vaultDetailsBefore = await vault.getDetails();
     const adminBalanceBefore = await getBalance(admin.account.address);
     const withdrawingAmount = vaultDetailsBefore.totalStEverFee;
-    const { transaction } = await locklift.tracing.trace(
-      governance.withdrawFee({ amount: withdrawingAmount.toNumber() }),
+    const transaction = await locklift.tracing.trace(
+      vault.vaultContract.methods.withdrawStEverFee({ _amount: withdrawingAmount.toNumber() }).send({
+        from: admin.account.address,
+        amount: toNano(1),
+      }),
     );
+    await transaction.traceTree?.beautyPrint();
     const [event] = await vault.getEventsAfterTransaction({
       eventName: "WithdrawFee",
       parentTransaction: transaction,

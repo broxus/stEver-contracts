@@ -83,14 +83,6 @@
 			]
 		},
 		{
-			"name": "handleDelegateStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "dropCluster",
 			"inputs": [
 				{"name":"_isPunish","type":"bool"}

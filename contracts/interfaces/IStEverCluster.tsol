@@ -112,17 +112,6 @@ interface IStEverCluster {
     function onStrategiesAdded(address[] _strategies) external;
 
     /**
-     * @dev Handles the delegation of strategies to the cluster.
-     *
-     * This function checks if each strategy exists in the strategies mapping.
-     * If a strategy does not exist, it is added to the strategies mapping and
-     * the state is set to ACTIVE.
-     *
-     * @param _strategies The addresses of the strategies.
-     */
-    function handleDelegateStrategies(address[] _strategies) external;
-
-    /**
      * @dev Handles the pending removal of strategies from the cluster.
      * This function sets the state of each strategy to PENDING_REMOVE.
      *

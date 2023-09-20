@@ -566,12 +566,12 @@ contract StEverVault is
         require (totalStEverFee >= _amount, ErrorCodes.NOT_ENOUGH_ST_EVER_FEE);
         require (canTransferValue(_amount), ErrorCodes.NOT_ENOUGH_AVAILABLE_ASSETS);
         // fee should payed by admin
-        tvm.rawReserve(address(this).balance - _amount, 0);
+        tvm.rawReserve(address(this).balance - (_amount + msg.value), 0);
 
         totalStEverFee -= _amount;
         availableAssets -= _amount;
         emit WithdrawFee(_amount);
-        owner.transfer({value: 0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**

@@ -257,14 +257,6 @@ interface IStEverVault {
     function forceStrategyRemove(address _strategy, address _cluster) external;
 
     /**
-     * @dev Sets the total assets of the strategies.
-     * It's migration function.
-     *
-     * @param _totalAssetsConfig The configuration of the total assets.
-     */
-    function setStrategiesTotalAssets(IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig) external;
-
-    /**
      * @dev Creates a new cluster.
      *
      * @param _clusterOwner The address of the cluster owner.
@@ -272,14 +264,6 @@ interface IStEverVault {
      * @param _maxStrategiesCount The maximum number of strategies that can be added to the cluster.
      */
     function createCluster(address _clusterOwner, uint128 _assurance, uint32 _maxStrategiesCount) external;
-
-    /**
-     * @dev Delegates strategies to another cluster (function only for migration).
-     *
-     * @param strategies The addresses of the strategies to delegate.
-     * @param destinationCluster The address of the cluster to delegate the strategies to.
-     */
-    function delegateStrategies(address[] strategies, address destinationCluster) external;
 
     /**
      * @dev Handles the delegation of strategies.

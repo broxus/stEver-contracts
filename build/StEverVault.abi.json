@@ -243,14 +243,6 @@
 			]
 		},
 		{
-			"name": "setStrategiesTotalAssets",
-			"inputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"totalAssets","type":"uint128"}],"name":"_totalAssetsConfig","type":"tuple[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "forceStrategyRemove",
 			"inputs": [
 				{"name":"_strategy","type":"address"},
@@ -302,15 +294,6 @@
 			"name": "_removeStrategy",
 			"inputs": [
 				{"name":"_strategy","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "delegateStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"},
-				{"name":"_destinationCluster","type":"address"}
 			],
 			"outputs": [
 			]

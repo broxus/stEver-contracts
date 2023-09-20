@@ -547,39 +547,6 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
     }
 
     /**
-     * @dev See {IStEverVault-setStrategiesTotalAssets}.
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the owner.
-     *  - The value of the message must be greater than or equal to the minimum call value.
-     *
-     * **Postconditions**:
-     *
-     *  - The total assets for the strategies are set.
-     *  - The strategy is removed if it is ready to be deleted.
-     */
-    function setStrategiesTotalAssets(
-        IStEverVault.SetStrategyTotalAssetsConfig[] _totalAssetsConfig
-    ) override external onlyOwner minCallValue {
-        tvm.rawReserve(_reserve(), 0);
-        for (IStEverVault.SetStrategyTotalAssetsConfig strategyTotalAssetsConfig : _totalAssetsConfig) {
-            (address strategy, uint128 _strategyTotalAssets) = strategyTotalAssetsConfig.unpack();
-            require(strategies.exists(strategy));
-
-            strategies[strategy].totalAssets = _strategyTotalAssets >= Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION ?
-            _strategyTotalAssets - Constants.INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION :
-            _strategyTotalAssets;
-
-            if (isStrategyReadyToDelete(strategy)) {
-                removeStrategy(strategy);
-            }
-        }
-
-        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    /**
      * @dev See {IStEverVault-forceStrategyRemove}.
      *
      * **Preconditions**:

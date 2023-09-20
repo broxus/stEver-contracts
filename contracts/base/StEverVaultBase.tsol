@@ -126,7 +126,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, clusterPools);
     }
 
-    function self_setStEverOwnerForClusters(address _sendGasTo, mapping(address => ClustersPool) _clusterPools) public onlySelf {
+    function self_setStEverOwnerForClusters(address _sendGasTo, mapping(address => ClustersPool) _clusterPools) public view onlySelf {
         tvm.rawReserve(_reserve(), 0);
         uint256 chunkSize = 25;
         while (chunkSize != 0 && !_clusterPools.empty()) {
@@ -135,7 +135,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
             while (chunkSize != 0 && !clusters.empty()) {
                 chunkSize--;
-                (uint32 clusterNonce, address clusterAddress)  = clusters.delMin().get();
+                (, address clusterAddress)  = clusters.delMin().get();
                 IStEverCluster(clusterAddress).setStEverOwner{
                     value: StEverVaultGas.MIN_CALL_MSG_VALUE,
                     bounce: false
@@ -1061,7 +1061,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      *
      * - The StEverClusters for the provided clusters are upgraded starting from the provided index.
      */
-    function _upgradeStEverClusters(address _sendGasTo, address[] _clusters, uint128 _startIdx) external onlySelf {
+    function _upgradeStEverClusters(address _sendGasTo, address[] _clusters, uint128 _startIdx) external view onlySelf {
         tvm.rawReserve(_reserve(), 0);
         uint128 batchSize = 50;
         for (; _startIdx < _clusters.length && batchSize != 0; _startIdx++) {

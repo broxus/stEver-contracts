@@ -441,40 +441,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     }
 
     /**
-     * @dev See {IStEverCluster-handleDelegateStrategies}.
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the StEverVault contract.
-     *
-     * **Postconditions**:
-     *
-     *  - The strategies are added to the strategies mapping and the state is set to ACTIVE.
-     */
-    function handleDelegateStrategies(address[] _strategies) override external onlyStEverVault {
-        tvm.rawReserve(_reserve(), 0);
-
-        address[] handledStrategies;
-
-        for (address strategy : _strategies) {
-
-            if (!strategies.exists(strategy)) {
-                strategies[strategy] = Strategy({
-                        state: StrategyState.ACTIVE
-                });
-                deployedStrategies[strategy] = true;
-                handledStrategies.push(strategy);
-            }
-        }
-
-        IStEverVault(stEverVault).onStrategiesDelegationHandled{
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED,
-            bounce: false
-        }(clusterOwner, _nonce, handledStrategies);
-    }
-
-    /**
      * @dev See {IStEverCluster-handleUndelegateStrategies}.
      *
      * **Preconditions**:
