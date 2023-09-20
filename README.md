@@ -8,6 +8,36 @@ has the ability to automatically balance between validators.
 2. Users shouldn't freeze their money, after stake user will receive StEver tokens based on the current rate
 
 ## Functional Description
+### Roles
++ StEverVault
+  - User - Permitted to deposit and withdraw from the StEverVault.
+  Additionally, the user can invoke an emergency state if the
+  Governance system becomes inactive.
+  - Owner - Has the authority to create new Cluster accounts for
+  validators, approve strategies, and oversee the upgradability
+  of contracts.
+  - Governance - Tasked with processing withdrawal requests for
+  users. It also manages the rebalancing of deposits among
+  Validator strategies.
++ StEverAccount
+  - Vault - All functions inside the StEverAccount are executed by
+  the StEverVault.
++ StEverCluster
+  - ClusterOwner - Empowered to deploy new strategies and add these
+  deployed strategies to the StEverVault.
+  - StEverOwner - Has the authority to remove a Cluster from the
+  system, with an option to penalize the validator. Can also set
+  the assurance limit value.
+  - Vault - Validates responses to contract actions, ensuring they
+  originate from the StEverVault.
++ StrategyDePool
+  - Vault - Ensures that function calls made to StrategyDePool are
+  initiated by StEverVault.
+  - DePool - Ensures that function calls made to StrategyDePool are
+  initiated by DePool.
++ DepoolStrategyFactory
+  - Owner - Granted the capability to introduce new StrategyDePool
+  code and upgrade existing strategies to the latest code
 ### Actors
 1. **StEverVault** - a contract that aggregates all validators and provides the ability to stake
 2. **User** - a person who wants to stake his money
