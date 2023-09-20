@@ -5,3 +5,4 @@ node_modules
 dePools
 addresses
 .env
+.cache
