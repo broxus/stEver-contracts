@@ -111,8 +111,6 @@ describe("Strategy Total assets", function () {
       _withdrawConfig: [[strategy.strategy.address, { amount: withdrawValue.toString(), fee: DEPOSIT_FEE.toString() }]],
     });
 
-    await traceTree?.beautyPrint();
-
     const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
 
     expect(Number(strategyInfo.totalAssets))

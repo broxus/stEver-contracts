@@ -230,7 +230,7 @@ contract DepoolStrategyFactory is IDepoolStrategyFactory {
      * Postcondition:
      * - Factory code is changed to `_newCode`.
      */
-    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner {
+    function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) override external onlyOwner minCallValue {
         if (_newVersion == factoryVersion) {
             tvm.rawReserve(_reserve(), 0);
             _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce:false});

@@ -170,7 +170,6 @@ describe("Single flow", async function () {
       sendConfig: [[user1.account.address, { nonces: [nonce] }]],
     });
 
-    await traceTree?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
       user: user1.account.address,
       amount: expectedEverAmountWithReward,

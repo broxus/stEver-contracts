@@ -285,7 +285,7 @@ contract StEverAccount is IStEverAccount {
      *
      * - Otherwise, the {IStEverVault-emergencyWithdrawFromStrategiesProcess} is called.
      */
-    function onStartEmergency(uint64 _proofNonce) override external onlyVault {
+    function onStartEmergency(uint64 _proofNonce, uint64 _timeAfterEmergencyCanBeActivated) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
         if (!withdrawRequests.exists(_proofNonce)) {
             IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.REQUEST_NOT_EXISTS);
@@ -293,7 +293,7 @@ contract StEverAccount is IStEverAccount {
         }
 
         IStEverAccount.WithdrawRequest withdrawRequest = withdrawRequests[_proofNonce];
-        if ((withdrawRequest.timestamp + Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED) > now) {
+        if ((withdrawRequest.timestamp + _timeAfterEmergencyCanBeActivated) > now) {
             IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.EMERGENCY_CANT_BE_ACTIVATED);
             return;
         }
@@ -361,7 +361,7 @@ contract StEverAccount is IStEverAccount {
 
     /**
      * @dev Called when the factory code is upgraded for rewriting the storage.
-     * @param _upgrade_data The data to use for the upgrade.
+     * @param _upgradeData The data to use for the upgrade.
      *
      * **Postconditions**:
      *
@@ -373,10 +373,10 @@ contract StEverAccount is IStEverAccount {
      *
      * - Otherwise, the contract is upgraded to the new code and the new version.
      */
-    function onCodeUpgrade(TvmCell _upgrade_data) private {
+    function onCodeUpgrade(TvmCell _upgradeData) private {
         tvm.resetStorage();
         tvm.rawReserve(_reserve(), 0);
-        TvmSlice s = _upgrade_data.toSlice();
+        TvmSlice s = _upgradeData.toSlice();
 
         (address root_, , address sendGasTo, ) = s.decode(address, uint8, address,TvmCell);
         vault = root_;

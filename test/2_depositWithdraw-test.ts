@@ -74,7 +74,6 @@ describe("Deposit withdraw test without lock time", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    await transaction.traceTree?.beautyPrint();
     expect(transaction.traceTree)
       .to.emit("BadWithdrawRequest")
       .and.to.call("acceptTransfer")
@@ -116,7 +115,6 @@ describe("Deposit withdraw test without lock time", function () {
         }),
       { allowedCodes: { compute: [null] } },
     );
-    await transaction.traceTree!.beautyPrint();
 
     console.log(transaction.traceTree?.tokens.getTokenBalanceChange(user1.wallet.walletContract));
 
@@ -180,7 +178,6 @@ describe("Deposit withdraw test without lock time", function () {
       sendConfig: [withdrawToUserConfig],
     });
     traceTree?.totalGasUsed();
-    await withdrawTraceTree[0]?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess");
     const vaultBalanceAfter = await vault.getDetails();
     const additionalBalanceAfterWithdraw = vaultBalanceAfter.contractBalance.minus(
@@ -313,7 +310,6 @@ describe("Deposit withdraw test with lock time", function () {
       sendConfig: [withdrawToUserConfig],
     });
 
-    await traceTree?.beautyPrint();
     console.log(locklift.testing.getCurrentTime());
     expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
       user: user1.account.address,

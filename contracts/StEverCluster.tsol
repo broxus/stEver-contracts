@@ -123,7 +123,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev Modifier to check if the caller is the clusterOwner.
      */
-    modifier onyClusterOwner() {
+    modifier onlyClusterOwner() {
         require(msg.sender == clusterOwner, ErrorCodesCluster.NOT_CLUSTER_OWNER);
         _;
     }
@@ -138,7 +138,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev Modifier to check if the caller is the strategyFactory.
      */
-    modifier onyStrategyFactory() {
+    modifier onlyStrategyFactory() {
         require(msg.sender == strategyFactory, ErrorCodesCluster.NOT_STRATEGY_FACTORY);
         _;
     }
@@ -193,7 +193,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - Calls the {IDepoolStrategyFactory-deployStrategy} function of the strategy
      *    factory contract for each DePool.
      */
-    function deployStrategies(address[] _dePools) override external onyClusterOwner {
+    function deployStrategies(address[] _dePools) override external onlyClusterOwner {
         uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE;
         uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(_dePools.length) + ClusterGas.MIN_CALL_VALUE;
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
@@ -221,7 +221,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - The deployed status of the strategy is set to true.
      *  - The NewStrategyDeployed event is emitted.
      */
-    function onStrategyDeployed(address _strategy) override external onyStrategyFactory {
+    function onStrategyDeployed(address _strategy) override external onlyStrategyFactory {
         tvm.rawReserve(_reserve(), 0);
 
         deployedStrategies[_strategy] = true;
@@ -250,7 +250,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The strategies are added to the StEverVault.
      */
-    function addStrategies(address[] _strategies) public view onyClusterOwner {
+    function addStrategies(address[] _strategies) public view onlyClusterOwner {
         if (currentAssurance < requiredAssurance) {
             revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);
         }
@@ -473,7 +473,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             bounce: false
         }(clusterOwner, _nonce, handledStrategies);
     }
- 
+
     /**
      * @dev See {IStEverCluster-handleUndelegateStrategies}.
      *
@@ -607,7 +607,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The specified amount of assurance is withdrawn, or the unlocked assurance if it is less.
      */
-    function withdrawAssurance(uint128 _amount) override external onyClusterOwner minCallValue {
+    function withdrawAssurance(uint128 _amount) override external onlyClusterOwner minCallValue {
         uint128 unlockedAssurance = freeAssurance();
 
         uint128 amountToWithdraw = math.min(_amount, unlockedAssurance);

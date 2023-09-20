@@ -670,7 +670,15 @@ GETGLOB 9
 GETGLOB 13
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/DepoolStrategyFactory.tsol, 65
+.loc ../contracts/DepoolStrategyFactory.tsol, 72
+PUSHINT 4002
+DEPTH
+ADDCONST -2
+PICK
+PUSHINT 1000000000
+GEQ
+THROWANYIFNOT
+.loc ../contracts/DepoolStrategyFactory.tsol, 73
 PUSHCONT {
 	.loc ../contracts/DepoolStrategyFactory.tsol, 234
 	OVER

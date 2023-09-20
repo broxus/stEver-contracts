@@ -46,6 +46,21 @@ const config: LockliftConfig = {
     // license: "AGPL-3.0-or-later", <- this is default value and can be overrided
   },
   networks: {
+    locklift: {
+      connection: {
+        id: 1001,
+        // @ts-ignore
+        type: "proxy",
+        // @ts-ignore
+        data: {},
+      },
+      keys: {
+        // Use everdev to generate your phrase
+        // !!! Never commit it in your repos !!!
+        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        amount: 20,
+      },
+    },
     local: {
       // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: {
@@ -66,9 +81,6 @@ const config: LockliftConfig = {
         key: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
       },
 
-      tracing: {
-        endpoint: LOCAL_NETWORK_ENDPOINT,
-      },
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
@@ -95,9 +107,7 @@ const config: LockliftConfig = {
         address: "0:ece57bcc6c530283becbbd8a3b24d3c5987cdddc3c8b7b33be6e4a6312490415",
         key: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
       },
-      tracing: {
-        endpoint: "http://localhost/graphql",
-      },
+
       keys: {
         phrase: "another floor talent month change gorilla bronze clip august cabbage earn enact",
         amount: 20,

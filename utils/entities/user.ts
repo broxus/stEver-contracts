@@ -117,7 +117,6 @@ export class User {
           amount: amountBn.plus(feeBn).toString(),
         }),
     );
-    await transaction.traceTree?.beautyPrint();
     const depositEvents = await this.vault.getEventsAfterTransaction({
       eventName: "Deposit",
       parentTransaction: transaction,

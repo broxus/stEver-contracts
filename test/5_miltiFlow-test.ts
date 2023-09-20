@@ -89,7 +89,6 @@ describe("Multi flow", async function () {
   it("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(130);
     const DEPOSIT_FEE = toNanoBn(0.6);
-    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
     await governance.depositToStrategies({
       _depositConfigs: strategiesWithPool.map(({ strategy }) => [
         strategy.address,
@@ -99,7 +98,6 @@ describe("Multi flow", async function () {
         },
       ]),
     });
-    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
@@ -149,7 +147,6 @@ describe("Multi flow", async function () {
         },
       ]),
     });
-    await traceTree?.beautyPrint();
     await lastValueFrom(from(strategiesWithPool).pipe(concatMap(dePool => dePool.emitWithdrawByRequests())));
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
@@ -201,7 +198,6 @@ describe("Multi flow", async function () {
     } = await governance.emitWithdraw({
       sendConfig: withdrawNonces.map(({ nonces, user }) => [user.account.address, { nonces }]),
     });
-    await traceTree!.beautyPrint();
 
     const balancesAfterWithdraw = await getBalances(users.map(user => user.account.address));
 

@@ -8,6 +8,7 @@ import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { Cluster } from "../utils/entities/cluster";
 import BigNumber from "bignumber.js";
+import { concatMap, from, lastValueFrom, mergeMap, range, toArray } from "rxjs";
 
 let signer: Signer;
 let admin: User;
@@ -16,7 +17,8 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let cluster: Cluster;
+let clusters: Array<Cluster>;
+
 describe("Initialize testing", function () {
   before(async () => {
     const s1 = await locklift.keystore.getSigner("0");
@@ -26,7 +28,7 @@ describe("Initialize testing", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(10) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(1_000_000) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -36,12 +38,23 @@ describe("Initialize testing", function () {
     tokenRoot = tr;
   });
   it("create a cluster", async () => {
-    cluster = await Cluster.create({
-      vault,
-      clusterOwner: admin.account,
-      assurance: toNano(0),
-      maxStrategiesCount: 10,
-    });
+    clusters = await lastValueFrom(
+      from([admin, user1, user2]).pipe(
+        concatMap(user =>
+          range(10).pipe(
+            concatMap(() =>
+              Cluster.create({
+                vault,
+                clusterOwner: user.account,
+                assurance: toNano(0),
+                maxStrategiesCount: 10,
+              }),
+            ),
+          ),
+        ),
+        toArray(),
+      ),
+    );
   });
   it("negative test transfer governance", async () => {
     const { traceTree } = await locklift.tracing.trace(
@@ -97,8 +110,11 @@ describe("Initialize testing", function () {
     expect(traceTree).to.have.error(1005);
   });
   it("test transfer ownership", async () => {
-    const clusterInfo = await cluster.getDetails();
-    expect(clusterInfo.stEverOwner.toString()).to.be.equal(admin.account.address.toString());
+    const clustersInfo = await Promise.all(clusters.map(cluster => cluster.getDetails()));
+
+    clustersInfo.forEach(clusterInfo => {
+      expect(clusterInfo.stEverOwner.toString()).to.be.equal(admin.account.address.toString());
+    });
 
     const { traceTree } = await locklift.tracing.trace(
       vault.vaultContract.methods
@@ -108,22 +124,30 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(2.01 * clustersInfo.length),
         }),
     );
+
     expect(traceTree)
       .to.call("self_setStEverOwnerForClusters")
+      .count(Math.ceil(clusters.length / 25))
       .withNamedArgs({
         _sendGasTo: admin.account.address,
-      })
-      .and.call("setStEverOwner", cluster.clusterContract.address)
-      .withNamedArgs({
+      });
+
+    clusters.reduce((assertion, cluster) => {
+      return assertion.and.call("setStEverOwner", cluster.clusterContract.address).withNamedArgs({
         _newStEverOwner: user1.account.address,
       });
+    }, expect(traceTree));
+
     {
-      const clusterInfo = await cluster.getDetails();
+      const clustersInfo = await Promise.all(clusters.map(cluster => cluster.getDetails()));
+
       const vaultDetails = await vault.getDetails();
-      expect(clusterInfo.stEverOwner.toString()).to.be.equal(user1.account.address.toString());
+      clustersInfo.forEach(clusterInfo => {
+        expect(clusterInfo.stEverOwner.toString()).to.be.equal(user1.account.address.toString());
+      });
       expect(vaultDetails.owner.toString()).to.be.equal(user1.account.address.toString());
     }
     // move owner back
@@ -135,7 +159,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(2.01),
+          amount: toNano(2.01 * 70),
         }),
     );
   });

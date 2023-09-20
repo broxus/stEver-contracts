@@ -554,10 +554,10 @@ interface IStEverVault {
     // emergency
     /**
      * @dev Starts the emergency process.
-     * @param _poofNonce The nonce of withdraw request for proving that withdraw
+     * @param _proofNonce The nonce of withdraw request for proving that withdraw
      * request is living more than `timeAfterEmergencyCanBeActivated`
      */
-    function startEmergencyProcess(uint64 _poofNonce) external;
+    function startEmergencyProcess(uint64 _proofNonce) external;
 
     /**
      * @dev Changes the pause state of the emergency process.

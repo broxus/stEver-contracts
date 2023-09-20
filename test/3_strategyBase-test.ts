@@ -93,7 +93,6 @@ describe("Strategy base", function () {
     await user1.depositToVault(toNanoBn(140).toString());
     const vaultStateBefore = await vault.getDetails();
 
-    console.log(`vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
     const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: [
         [
@@ -105,7 +104,6 @@ describe("Strategy base", function () {
         ],
       ],
     });
-    await traceTree!.beautyPrint();
     expect(traceTree).and.emit("StrategyHandledDeposit").count(1).withNamedArgs({
       strategy: strategy.strategy.address,
       depositValue: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
@@ -134,7 +132,6 @@ describe("Strategy base", function () {
     expect(strategyInfo.totalGain).to.be.equals("0");
     expect(strategyInfo.lastReport).to.be.equals("0");
     expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.minus(toNano("0.3")).toString());
-    console.log(`vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
 
   it("strategy and vault state should be changed after report", async () => {
@@ -416,7 +413,6 @@ describe("Strategy base", function () {
     );
 
     await user1.depositToVault(locklift.utils.toNano(1000));
-    console.log(`Vault balance before ${await getAddressEverBalance(vault.vaultContract.address)}`);
 
     const { traceTree } = await governance.depositToStrategies({
       _depositConfigs: clustersWithStrategies
@@ -429,9 +425,6 @@ describe("Strategy base", function () {
           },
         ]),
     });
-    await traceTree!.beautyPrint();
     console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
-
-    console.log(`Vault balance after ${await getAddressEverBalance(vault.vaultContract.address)}`);
   });
 });

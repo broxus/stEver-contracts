@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "npx locklift build",
-    "test": "npx locklift test --network local",
+    "test": "npx locklift test -n local",
     "test-initialize": "npx locklift test --network local --tests test/1_initialize-test.ts",
     "test-depositWithdraw": "npx locklift test --network local --tests test/2_depositWithdraw-test.ts",
     "test-strategyBase": "npx locklift test --network local --tests test/3_strategyBase-test.ts",
@@ -50,7 +50,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "everscale-standalone-client": "^2.0.31",
-    "locklift": "^2.5.0",
+    "locklift": "^2.8.3",
     "locklift-verifier": "^1.0.4",
     "lodash": "^4.17.21",
     "ora": "^6.1.2",

@@ -123,19 +123,37 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner = _newOwner;
 
-        this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo);
+        this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, clusterPools);
     }
 
-    function self_setStEverOwnerForClusters(address _sendGasTo) public onlySelf {
+    function self_setStEverOwnerForClusters(address _sendGasTo, mapping(address => ClustersPool) _clusterPools) public onlySelf {
         tvm.rawReserve(_reserve(), 0);
+        uint256 chunkSize = 25;
+        while (chunkSize != 0 && !_clusterPools.empty()) {
+            (address clusterOwner, ClustersPool clusterPool) = _clusterPools.min().get();
+            mapping(uint32 => address) clusters = clusterPool.clusters;
 
-        for ((,ClustersPool clusterPool) : clusterPools) {
-            for((,address clusterAddress) : clusterPool.clusters) {
+            while (chunkSize != 0 && !clusters.empty()) {
+                chunkSize--;
+                (uint32 clusterNonce, address clusterAddress)  = clusters.delMin().get();
                 IStEverCluster(clusterAddress).setStEverOwner{
                     value: StEverVaultGas.MIN_CALL_MSG_VALUE,
                     bounce: false
                 }(owner);
             }
+
+            if (clusters.empty()) {
+                _clusterPools.delMin();
+            } else {
+                _clusterPools[clusterOwner] = ClustersPool({
+                    clusters: clusters,
+                    currentClusterNonce: clusterPool.currentClusterNonce
+                });
+            }
+        }
+        if (!_clusterPools.empty()) {
+            this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusterPools);
+            return;
         }
 
         _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
@@ -220,6 +238,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function setMinStrategyDepositValue(uint128 _minStrategyDepositValue) override external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
 
+        require(_minStrategyDepositValue >= StEverVaultGas.MIN_STRATEGY_DEPOSIT_VALUE, ErrorCodes.BAD_INPUT);
         minStrategyDepositValue = _minStrategyDepositValue;
 
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});

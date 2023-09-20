@@ -36,6 +36,8 @@ library ErrorCodes {
     uint16 constant STRATEGY_ALREADY_EXISTS = 1031;
     uint16 constant NOT_TOKEN_ROOT = 1032;
     uint16 constant NOT_CLUSTER_ACCOUNT = 1033;
+    uint16 constant BAD_DEPOSIT_TO_STRATEGY_FEE = 1034;
+
 
 
     // StEverAccount

@@ -56,6 +56,11 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
+            if (depositConfig.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
+                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_FEE);
+                continue;
+            }
+
             if (totalAssets < depositConfig.fee) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
                 continue;
@@ -236,7 +241,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (config.fee < StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE) {
+            if (config.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
                 continue;
             }

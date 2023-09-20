@@ -401,7 +401,8 @@
 		{
 			"name": "self_setStEverOwnerForClusters",
 			"inputs": [
-				{"name":"_sendGasTo","type":"address"}
+				{"name":"_sendGasTo","type":"address"},
+				{"components":[{"name":"currentClusterNonce","type":"uint32"},{"name":"clusters","type":"map(uint32,address)"}],"name":"_clusterPools","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]

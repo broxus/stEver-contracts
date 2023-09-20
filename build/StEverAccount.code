@@ -872,10 +872,11 @@ IFREF {
 }
 .loc ../contracts/StEverAccount.tsol, 288
 LDU 64
+LDU 64
 ENDS
 .loc ../contracts/StEverAccount.tsol, 0
 CALLREF {
-	CALL $onStartEmergency_ea20263b_internal_macro$
+	CALL $onStartEmergency_999c70e0_internal_macro$
 }
 DROP
 CALLREF {
@@ -883,7 +884,7 @@ CALLREF {
 }
 THROW 0
 
-.macro onStartEmergency_ea20263b_internal_macro
+.macro onStartEmergency_999c70e0_internal_macro
 .loc ../contracts/StEverAccount.tsol, 52
 GETGLOB 9
 GETGLOB 10
@@ -898,7 +899,7 @@ PUSHCONT {
 	PUSHINT 0
 	RAWRESERVE
 	.loc ../contracts/StEverAccount.tsol, 290
-	DUP
+	OVER
 	GETGLOB 13
 	PUSHINT 64
 	DICTUGET
@@ -927,11 +928,12 @@ PUSHCONT {
 		PUSHPOW2 7
 		SENDRAWMSG
 		.loc ../contracts/StEverAccount.tsol, 292
-		DROP
+		DROP2
 		.loc ../contracts/StEverAccount.tsol, 0
 	}
 	IFNOTJMP
 	.loc ../contracts/StEverAccount.tsol, 295
+	SWAP
 	GETGLOB 13
 	PUSHINT 64
 	DICTUGET
@@ -950,7 +952,6 @@ IFREFELSEREF
 }
 	.loc ../contracts/StEverAccount.tsol, 296
 	SECOND
-	PUSHINT 604800
 	ADD
 	UFITS 64
 	NOW
@@ -1557,16 +1558,16 @@ IFJMPREF {
 		CALL $getDetails$
 	}
 	DUP
-	PUSHINT 927199066
-	EQUAL
-	IFJMPREF {
-		CALL $onStartEmergency$
-	}
-	DUP
 	PUSHINT 1018088721
 	EQUAL
 	IFJMPREF {
 		CALL $processWithdraw$
+	}
+	DUP
+	PUSHINT 1213953534
+	EQUAL
+	IFJMPREF {
+		CALL $onStartEmergency$
 	}
 	DUP
 	PUSHINT 1688565960

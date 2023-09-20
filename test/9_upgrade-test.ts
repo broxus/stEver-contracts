@@ -129,7 +129,6 @@ describe("Upgrade testing", function () {
         }),
       { raise: true },
     );
-    await traceTree?.beautyPrint();
     newVault = await creteVault({
       adminAccount: admin.account,
       vaultContract: locklift.factory.getDeployedContract("StEverVault", oldVault.vaultContract.address),

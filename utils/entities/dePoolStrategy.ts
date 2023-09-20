@@ -34,7 +34,6 @@ export class DePoolStrategyWithPool {
         .sendExternal({ publicKey: this.signer.publicKey }),
       { raise: false },
     );
-    await v.traceTree?.beautyPrint();
     return v;
   };
 
@@ -52,15 +51,13 @@ export class DePoolStrategyWithPool {
   };
 
   terminateDePool = (remainingGasTo: Address) => {
-    return locklift.tracing.trace(
-      this.dePoolContract.methods
-        .terminator({
-          _sendGasTo: remainingGasTo,
-        })
-        .sendExternal({
-          publicKey: this.signer.publicKey,
-        }),
-    );
+    return this.dePoolContract.methods
+      .terminator({
+        _sendGasTo: remainingGasTo,
+      })
+      .sendExternal({
+        publicKey: this.signer.publicKey,
+      });
   };
 
   getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);

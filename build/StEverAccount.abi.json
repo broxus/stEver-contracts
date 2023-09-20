@@ -65,7 +65,8 @@
 		{
 			"name": "onStartEmergency",
 			"inputs": [
-				{"name":"_proofNonce","type":"uint64"}
+				{"name":"_proofNonce","type":"uint64"},
+				{"name":"_timeAfterEmergencyCanBeActivated","type":"uint64"}
 			],
 			"outputs": [
 			]

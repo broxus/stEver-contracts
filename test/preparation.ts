@@ -205,7 +205,6 @@ const deployVault = async ({
       initParams: deployArgs.initParams,
     }),
   );
-  console.log(`Vault contract deployed: ${vaultContract.address.toString()}`);
   expect(await locklift.provider.getBalance(vaultContract.address).then(Number)).to.be.above(0);
 
   const newOwner = await tokenRoot.methods.rootOwner({ answerId: 0 }).call({});

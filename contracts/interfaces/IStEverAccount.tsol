@@ -1,7 +1,6 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../interfaces/IStEverVault.tsol";
 
 /**
  * @title IStEverAccount
@@ -86,8 +85,9 @@ interface IStEverAccount {
      * function of the {StEverVaultEmergency} contract.
      *
      * @param _proofNonce The nonce of the withdrawal request to start an emergency withdrawal for.
+     * @param timeAfterEmergencyCanBeActivated The time after which the emergency can be activated.
      */
-    function onStartEmergency(uint64 _proofNonce) external;
+    function onStartEmergency(uint64 _proofNonce, uint64 timeAfterEmergencyCanBeActivated) external;
 
     /**
      * @dev Callback function to process a emergency withdrawal.

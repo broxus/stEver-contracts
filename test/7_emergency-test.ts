@@ -122,7 +122,6 @@ describe("Emergency testing", function () {
     const maxWastedFee = MAX_WASTED_FEE_PER_STRATEGY.multipliedBy(strategies.length);
     // expect(new BigNumber(balanceChange)).to.be.lt(maxWastedFee.toNumber(), "user should spent less than max fee");
 
-    await traceTree?.beautyPrint();
     console.log(balanceChange);
     console.log(`user balance ${userBalanceBeforeActivatingEmergency} -> ${userBalanceAfterActivatingEmergency}`);
     const { emergencyState: emergencyAfter } = await vault.getDetails();
@@ -170,7 +169,6 @@ describe("Emergency testing", function () {
     expect(pendingWithdrawRequestsBefore.length).to.be.equals(COUNT_OF_WITHDRAW_REQUESTS);
 
     const emergencyWithdrawTransaction = await user1.emergencyWithdraw();
-    await emergencyWithdrawTransaction.traceTree?.beautyPrint();
     const errorWithdrawEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawError",
       parentTransaction: emergencyWithdrawTransaction,
@@ -204,7 +202,6 @@ describe("Emergency testing", function () {
   });
   it("user should emergency withdraw his pending withdrawals", async () => {
     const emergencyWithdrawTransaction = await user1.emergencyWithdraw();
-    await emergencyWithdrawTransaction.traceTree?.beautyPrint();
     const successWithdrawEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawSuccess",
       parentTransaction: emergencyWithdrawTransaction,

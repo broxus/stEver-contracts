@@ -65,14 +65,17 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         uint128 countOfStrategies = uint128(strategies.keys().length);
-        uint128 feeForOneStrategy = StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE + StEverVaultGas.EXPERIMENTAL_FEE;
+        uint128 feeForOneStrategy = StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE + StEverVaultGas.EXPERIMENTAL_FEE;
         uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy + StEverVaultGas.MIN_CALL_MSG_VALUE;
 
         require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address accountAddress = getAccountAddress(msg.sender);
-        IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_proofNonce);
+        IStEverAccount(accountAddress).onStartEmergency{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(
+            _proofNonce,
+            timeAfterEmergencyCanBeActivated
+        );
     }
 
     /**
@@ -174,7 +177,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
 
             strategies[strategy].withdrawingAmount = Constants.MAX_UINT_64;
 
-            IStrategy(strategy).withdraw{value: StEverVaultGas.MIN_WITHDRAW_FROM_STRATEGY_FEE, bounce: false}(uint64(Constants.MAX_UINT_64));
+            IStrategy(strategy).withdraw{value: StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE, bounce: false}(uint64(Constants.MAX_UINT_64));
         }
 
         if (pair.hasValue()) {

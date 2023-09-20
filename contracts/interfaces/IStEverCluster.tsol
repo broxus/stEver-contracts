@@ -1,7 +1,6 @@
 pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 
-import "../utils/ClusterLib.tsol";
 
 /**
  * @title IStEverCluster
