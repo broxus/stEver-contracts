@@ -322,32 +322,11 @@ describe("Initialize testing", function () {
     const details = await vault.getDetails();
     expect(details.strategyFactory.equals(user1.account.address)).to.be.true;
   });
-  it("negative test setWithdrawHoldTimeInSeconds", async () => {
-    const vaultDetails = await vault.getDetails();
-    const oneDay = 60 * 60 * 24;
-    const { traceTree } = await locklift.tracing.trace(
-      vault.vaultContract.methods
-        .setWithdrawHoldTimeInSeconds({
-          _holdTime: new BigNumber(vaultDetails.timeAfterEmergencyCanBeActivated).minus(oneDay).toString(),
-        })
-        .send({
-          from: admin.account.address,
-          amount: toNano(2.01),
-        }),
-      {
-        allowedCodes: {
-          compute: [1007],
-        },
-      },
-    );
-    expect(traceTree).to.have.error(1007);
-  });
+
   it("test setWithdrawHoldTimeInSeconds", async () => {
     const vaultDetails = await vault.getDetails();
     const oneDay = 60 * 60 * 24;
-    const newHoldTime = new BigNumber(vaultDetails.timeAfterEmergencyCanBeActivated)
-      .minus(new BigNumber(oneDay).multipliedBy(2))
-      .toString();
+    const newHoldTime = oneDay * 7;
     const { traceTree } = await locklift.tracing.trace(
       vault.vaultContract.methods
         .setWithdrawHoldTimeInSeconds({
@@ -395,7 +374,7 @@ describe("Initialize testing", function () {
     const details = await vault.getDetails();
     expect(details.fullUnlockSeconds).to.be.equal(newFullUnlockTime);
   });
-  it("negative test setTimeAfterEmergencyCanBeActivated try to set less then 2 days", async () => {
+  it("negative test setTimeAfterEmergencyCanBeActivated try to set less then 7 days", async () => {
     const oneDay = 60 * 60 * 24;
 
     const { traceTree } = await locklift.tracing.trace(
@@ -409,15 +388,15 @@ describe("Initialize testing", function () {
         }),
       {
         allowedCodes: {
-          compute: [1003],
+          compute: [1005],
         },
       },
     );
-    expect(traceTree).to.have.error(1003);
+    expect(traceTree).to.have.error(1005);
   });
   it("test setTimeAfterEmergencyCanBeActivated", async () => {
     const oneDay = 60 * 60 * 24;
-    const newTimeAfterEmergencyCanBeActivated = oneDay * 3;
+    const newTimeAfterEmergencyCanBeActivated = oneDay * 7;
     const { traceTree } = await locklift.tracing.trace(
       vault.vaultContract.methods
         .setTimeAfterEmergencyCanBeActivated({

@@ -293,7 +293,7 @@ contract StEverAccount is IStEverAccount {
         }
 
         IStEverAccount.WithdrawRequest withdrawRequest = withdrawRequests[_proofNonce];
-        if ((withdrawRequest.timestamp + _timeAfterEmergencyCanBeActivated) > now) {
+        if ((withdrawRequest.unlockTime + _timeAfterEmergencyCanBeActivated) > now) {
             IStEverVault(vault).startEmergencyRejected{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(user, ErrorCodes.EMERGENCY_CANT_BE_ACTIVATED);
             return;
         }

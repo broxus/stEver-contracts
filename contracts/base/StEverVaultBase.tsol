@@ -352,10 +352,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * - The {WithdrawHoldTimeUpdated} event is emitted.
      */
     function setWithdrawHoldTimeInSeconds(uint64 _holdTime) override external onlyOwner minCallValue {
-        require(
-            _holdTime <= timeAfterEmergencyCanBeActivated - Constants.TIME_INTERVAL_BETWEEN_WITHDRAW_HOLD_TIME_AND_EMERGENCY,
-            ErrorCodes.WITHDRAW_HOLD_TIME_SHOULD_BE_LESS_THAN_EMERGENCY_THRESHOLD
-        );
         tvm.rawReserve(_reserve(), 0);
 
         withdrawHoldTime = _holdTime;
@@ -395,8 +391,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     ) public minCallValue onlyOwner  {
         tvm.rawReserve(_reserve(), 0);
         require(
-            _newTimeAfterEmergencyCanBeActivated > Constants.TIME_INTERVAL_BETWEEN_WITHDRAW_HOLD_TIME_AND_EMERGENCY,
-            ErrorCodes.EMERGENCY_THRESHOLD_SHOULD_MORE_THAN_2_DAYS
+            _newTimeAfterEmergencyCanBeActivated >= Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED &&
+            _newTimeAfterEmergencyCanBeActivated <= Constants.TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED_MAX,
+            ErrorCodes.BAD_INPUT
         );
         timeAfterEmergencyCanBeActivated = _newTimeAfterEmergencyCanBeActivated;
         emit TimeAfterEmergencyCanBeActivatedValueUpdated(timeAfterEmergencyCanBeActivated);

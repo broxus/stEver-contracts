@@ -10,7 +10,8 @@ library Constants {
     uint128 constant INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION = 0.3 ever;
         // Emergency
     uint64 constant TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED = 7 days;
-    uint64 constant TIME_INTERVAL_BETWEEN_WITHDRAW_HOLD_TIME_AND_EMERGENCY = 2 days;
+    uint64 constant TIME_AFTER_EMERGENCY_CAN_BE_ACTIVATED_MAX = 365 days;
+
     // DePooLStrategyFactory
     uint128 constant MAX_STRATEGY_PER_UPGRADE = 50;
     // StEverAccount

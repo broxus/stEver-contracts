@@ -6,7 +6,6 @@ library ErrorCodes {
     uint16 constant WRONG_PUB_KEY = 1000;
     uint16 constant NOT_OWNER = 1001;
     uint16 constant NOT_GOVERNANCE = 1002;
-    uint16 constant EMERGENCY_THRESHOLD_SHOULD_MORE_THAN_2_DAYS = 1003;
     uint16 constant NOT_ENOUGH_VALUE = 1004;
     uint16 constant BAD_INPUT = 1005;
     uint16 constant NOT_ROOT_WALLET = 1006;
