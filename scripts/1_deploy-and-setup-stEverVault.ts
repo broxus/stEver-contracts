@@ -29,7 +29,9 @@ const deployAndSetupStEverVault = async ({
   const { code: clusterCode } = locklift.factory.getContractArtifacts("StEverCluster");
 
   logger.startStep("StEverVault is deploying...");
-  const { contract: vaultContract } = await locklift.transactions.waitFinalized(
+  const {
+    extTransaction: { contract: vaultContract },
+  } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "StEverVault",
       value: deployVaultValue,
@@ -55,7 +57,9 @@ const deployAndSetupStEverVault = async ({
   logger.successStep(`Vault deployed: ${vaultContract.address.toString()}`);
 
   logger.startStep("Deploying DePoolStrategyFactory");
-  const { contract: dePoolStrategyFactoryContract } = await locklift.transactions.waitFinalized(
+  const {
+    extTransaction: { contract: dePoolStrategyFactoryContract },
+  } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "DepoolStrategyFactory",
       value: locklift.utils.toNano(2),
