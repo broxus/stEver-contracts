@@ -1,4 +1,4 @@
-import { Address, fromNano, Signer, toNano } from "locklift";
+import { Address, fromNano, Signer, toNano, WalletTypes } from "locklift";
 import { getVaultInfo, isValidAddress, logger } from "./utils";
 import prompts from "prompts";
 import BigNumber from "bignumber.js";
@@ -28,13 +28,20 @@ const deployAndSetupStEverVault = async ({
   const { code: strategyDePoolCode } = locklift.factory.getContractArtifacts("StrategyDePool");
   const { code: clusterCode } = locklift.factory.getContractArtifacts("StEverCluster");
 
+  const tempAdmin = await locklift.factory.accounts.addNewAccount({
+    type: WalletTypes.EverWallet,
+    value: toNano(1.5),
+    publicKey: signer.publicKey,
+    nonce: locklift.utils.getRandomNonce(),
+  });
+
   logger.startStep("StEverVault is deploying...");
   const {
     extTransaction: { contract: vaultContract },
   } = await locklift.transactions.waitFinalized(
     locklift.factory.deployContract({
       contract: "StEverVault",
-      value: deployVaultValue,
+      value: deployVaultValue.toString(),
       initParams: {
         clusterCode,
         nonce: locklift.utils.getRandomNonce(),
@@ -45,7 +52,7 @@ const deployAndSetupStEverVault = async ({
       publicKey: signer.publicKey,
 
       constructorParams: {
-        _owner: adminAddress,
+        _owner: tempAdmin.account.address,
         _gainFee: gainFee,
         _stEverFeePercent: stEverFeePercent,
         _stTokenRoot: tokenRoot,
@@ -76,6 +83,33 @@ const deployAndSetupStEverVault = async ({
   );
   logger.successStep(`DePoolStrategyFactory deployed ${dePoolStrategyFactoryContract.address.toString()}`);
 
+  const { extTransaction } = await locklift.transactions.waitFinalized(
+    vaultContract.methods
+      .setStrategyFactory({
+        _strategyFactory: dePoolStrategyFactoryContract.address,
+      })
+      .send({
+        from: tempAdmin.account.address,
+        amount: toNano(1),
+      }),
+  );
+  logger.successStep(`StrategyFactory added to the vault, tx: ${extTransaction.id.hash}`);
+
+  {
+    const { extTransaction } = await locklift.transactions.waitFinalized(
+      vaultContract.methods
+        .transferOwnership({
+          _sendGasTo: adminAddress,
+          _newOwner: adminAddress,
+        })
+        .send({
+          from: tempAdmin.account.address,
+          amount: toNano(1),
+        }),
+    );
+    logger.successStep(`Ownership transferred to ${adminAddress.toString()}, tx: ${extTransaction.id.hash}`);
+  }
+
   logger.info("Summary");
   logger.info(
     `${JSON.stringify(
@@ -93,13 +127,10 @@ const main = async () => {
   const ONE_HANDED_PERCENT = 1000;
 
   const MIN_GAIN_FEE = toNano(1);
-  const signer = await locklift.keystore.getSigner("0");
+  const signer = (await locklift.keystore.getSigner("0"))!;
 
-  if (!process.env.SEED || !process.env.MAIN_GIVER_KEY) {
+  if (!process.env.MAIN_GIVER_KEY) {
     throw new Error("SEED phrase and MAIN_GIVER_KEY should be provided as env parameters");
-  }
-  if (!signer) {
-    throw new Error("Bad SEED phrase");
   }
 
   console.log("\x1b[1m", "\n\nSetting StEverVault params:");
@@ -165,8 +196,8 @@ const main = async () => {
 
   await deployAndSetupStEverVault({
     adminAddress,
-    signer,
     tokenRoot,
+    signer,
     deployVaultValue,
     gainFee,
     stEverFeePercent,
