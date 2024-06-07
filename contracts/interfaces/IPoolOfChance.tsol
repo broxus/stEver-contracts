@@ -1,0 +1,81 @@
+pragma ever-solidity >=0.62.0;
+
+import {IStEverVault} from "IStEverVault.tsol";
+
+interface IPoolOfChance {
+
+    struct DepositData {
+        uint128 deposit;
+        uint128 reward;
+        uint32 depositTime;
+    }
+
+    struct PoolInfo {
+        address stEverVault;
+        uint128 everReserves;
+        uint128 totalSupply;
+        uint128 totalStSupply;
+        uint128 lockedStAssets;
+        uint32 maxDepositsAmount;
+    }
+
+    struct RewardInfo {
+        uint128 minDepositValue;
+        uint32 noRewardPeriod;
+        uint32 rewardPeriod;
+        uint128 lastRewardTimestamp;
+        uint128 rewardFeeNumerator;
+    }
+
+
+    event UpdateMinDepositValue(uint128 current, uint128 previous);
+
+    event UpdateRewardPeriod(uint32 current, uint32 previous);
+
+    event UpdateNoRewardPeriod(uint32 current, uint32 previous);
+
+    event UpdateRewardFeeNumerator(uint128 current, uint128 previous);
+
+    event UpdateMaxDepositsAmount(uint32 current, uint32 previous);
+
+    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp);
+
+    event Withdrawal(address user, uint128 amount, uint128 reward, uint128 totalSupply, uint128 currentStSupply);
+
+    event AssignReward(address assignee, IStEverVault.Details vaultDetails, uint128 reward, uint128 fee, uint128 stReward);
+
+
+    function getDepositData(address user) responsible external returns(optional(DepositData));
+
+    function getRewardInfo() responsible external returns(IPoolOfChance.RewardInfo);
+
+    function getPoolInfo() responsible external returns(PoolInfo);
+
+
+    function setMinDepositValue(uint128 _minDepositValue) external;
+
+    function setRewardPeriod(uint32 _rewardPeriod) external;
+
+    function setNoRewardPeriod(uint32 _noRewardPeriod) external;
+
+    function setRewardFeeNumerator(uint128 _rewardFeeNumerator) external;
+
+    function setMaxDepositsAmount(uint32 _maxDepositsAmount) external;
+
+
+    function deposit(uint128 _amount, uint64 _nonce) external;
+
+    function claimReward() external;
+
+    function withdraw() external;
+
+    function calculateReward() external;
+
+    function withdrawRemainingStAssets() external;
+
+    function withdrawRemainingAssets() external;
+
+    function addToEverReserves(uint128 _amount) external;
+
+    function forceWithdrawalOfAllDeposits() external;
+}

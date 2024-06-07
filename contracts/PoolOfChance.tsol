@@ -1,0 +1,493 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma ever-solidity >= 0.62.0;
+
+pragma AbiHeader time;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "@broxus/contracts/contracts/access/InternalOwner.tsol";
+import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import {ErrorCodesPoolOfChance} from "./utils/ErrorCodes.tsol";
+import {PoolOfChanceGas} from "./utils/Gas.tsol";
+
+import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensMintCallback.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import {IPoolOfChance} from "./interfaces/IPoolOfChance.tsol";
+import {IPoolOfChanceCallback} from "./interfaces/IPoolOfChanceCallback.tsol";
+import {IStEverVault} from "./interfaces/IStEverVault.tsol";
+
+contract PoolOfChance is
+    InternalOwner,
+    RandomNonce,
+    IPoolOfChance,
+    IAcceptTokensMintCallback
+{
+
+    uint128 constant DENOMINATOR = 1000000;
+
+    address stEverVault;
+
+    uint32 maxDepositsAmount;
+    uint128 minDepositValue;
+    uint32 noRewardPeriod;
+    uint32 rewardPeriod; // минимальный временной промежуток между двумя наградами
+    uint128 rewardFeeNumerator; // берется от финального расчета реворда в веномах
+
+    uint128 lastRewardTimestamp; // время начисления последнего реворда
+    IStEverVault.Details lastStEverDetails;
+
+    mapping(address => DepositData) depositsData; // user -> {venom deposit, venom reward minus fee}
+    mapping(uint64 => address) pendingDeposits; // nonce -> user
+
+    uint128 totalSupply; // сумма всех текущих депозитов в веномах
+    uint128 totalStSupply; // баланс stVenom-ов на кошельке
+
+    uint128 everReserves;
+
+    uint128 lockedStAssets; // эквивалент в stVenom-ах суммы всех уже начисленных ревордов (для расчёта награды)
+
+    address stEverWallet; // StEver wallet address
+    address stTokenRoot; // StToken root address
+
+    modifier reserve() {
+        tvm.rawReserve(
+            math.max(
+                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                address(this).balance - msg.value
+            ),
+            0
+        );
+        _;
+    }
+
+    modifier onlyOwnerOrSelf() {
+        require((msg.sender == owner || msg.sender == address(this)) && msg.sender.value != 0, _ErrorCodes.NOT_OWNER);
+        _;
+    }
+
+    constructor(
+        address _owner,
+        address _stTokenRoot,
+        address _stEverVault,
+        uint128 _minDepositValue,
+        uint32 _rewardPeriod,
+        uint128 _rewardFeeNumerator
+    ) public {
+        tvm.rawReserve(1 ever, 0);
+        tvm.accept();
+
+        setOwnership(_owner);
+        stEverVault = _stEverVault;
+        stTokenRoot = _stTokenRoot;
+
+        minDepositValue = _minDepositValue;
+        rewardPeriod = _rewardPeriod;
+        rewardFeeNumerator = _rewardFeeNumerator;
+
+        noRewardPeriod = _rewardPeriod;
+        maxDepositsAmount = 1000;
+
+        ITokenRoot(stTokenRoot)
+            .deployWallet{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                callback: PoolOfChance.onTokenWallet,
+                bounce: false
+            }(address(this), PoolOfChanceGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
+    }
+
+    function onTokenWallet(address _wallet) external reserve() {
+        require (msg.sender == stTokenRoot, ErrorCodesPoolOfChance.NOT_TOKEN_ROOT);
+        stEverWallet = _wallet;
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS
+        });
+    }
+
+
+    function getDepositData(address user) override responsible external returns(optional(DepositData)) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} depositsData.fetch(user);
+    }
+
+    function getPoolInfo() override responsible external returns(PoolInfo) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} PoolInfo(
+            stEverVault,
+            everReserves,
+            totalSupply,
+            totalStSupply,
+            lockedStAssets,
+            maxDepositsAmount
+        );
+    }
+
+    function getRewardInfo() override responsible external returns(IPoolOfChance.RewardInfo) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} RewardInfo(
+            minDepositValue,
+            noRewardPeriod,
+            rewardPeriod,
+            lastRewardTimestamp,
+            rewardFeeNumerator
+        );
+    }
+
+
+    function setMinDepositValue(uint128 _minDepositValue) override external onlyOwner reserve() {
+        emit UpdateMinDepositValue(_minDepositValue, minDepositValue);
+        minDepositValue = _minDepositValue;
+    }
+
+    function setRewardPeriod(uint32 _rewardPeriod) override external onlyOwner reserve() {
+        emit UpdateRewardPeriod(_rewardPeriod, rewardPeriod);
+        rewardPeriod = _rewardPeriod;
+    }
+
+    function setNoRewardPeriod(uint32 _noRewardPeriod) override external onlyOwner reserve() {
+        emit UpdateNoRewardPeriod(_noRewardPeriod, noRewardPeriod);
+        noRewardPeriod = _noRewardPeriod;
+    }
+
+    function setRewardFeeNumerator(uint128 _rewardFeeNumerator) override external onlyOwner reserve() {
+        emit UpdateRewardFeeNumerator(_rewardFeeNumerator, rewardFeeNumerator);
+        rewardFeeNumerator = _rewardFeeNumerator;
+    }
+
+    function setMaxDepositsAmount(uint32 _maxDepositsAmount) override external onlyOwner reserve() {
+        emit UpdateMaxDepositsAmount(_maxDepositsAmount, maxDepositsAmount);
+        maxDepositsAmount = _maxDepositsAmount;
+    }
+
+
+    function deposit(
+        uint128 _amount,
+        uint64 _nonce
+    )
+        override
+        external
+        reserve()
+    {
+        require(msg.value >= _amount + PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+        require(!pendingDeposits.exists(_nonce), ErrorCodesPoolOfChance.NONCE_ALREADY_EXISTS);
+        require(depositsData.keys().length < maxDepositsAmount, ErrorCodesPoolOfChance.DEPOSITS_POOL_IS_FULL);
+
+        totalSupply += _amount;
+
+        if (!depositsData.exists(msg.sender)) {
+            depositsData[msg.sender] = DepositData(_amount, 0, now);
+        } else {
+            DepositData depositData = depositsData[msg.sender];
+            if (depositData.deposit < minDepositValue) {
+                depositData.depositTime = now;
+            }
+            depositData.deposit += _amount;
+
+            depositsData[msg.sender] = depositData;
+        }
+
+        pendingDeposits[_nonce] = msg.sender;
+
+        IStEverVault(stEverVault).deposit{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED
+        }(
+            _amount,
+            _nonce
+        );
+    }
+
+    function onAcceptTokensMint(
+        address /* _tokenRoot */,
+        uint128 _amount,
+        address /* _remainingGasTo */,
+        TvmCell _payload
+    )
+        external
+        override
+        reserve()
+    {
+        require(msg.sender == stEverWallet, ErrorCodesPoolOfChance.NOT_ROOT_WALLET);
+
+        totalStSupply += _amount;
+
+        (uint64 nonce) = _payload.toSlice().decode(uint64);
+//        address user = tempDeposits.getDel(nonce).get();
+        address user = pendingDeposits[nonce];
+        delete pendingDeposits[nonce];
+
+        DepositData data = depositsData[user];
+        emit Deposit(user, data.deposit, _amount, data.depositTime);
+
+        IPoolOfChanceCallback(user).onDepositSuccess{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED
+        }(_amount, nonce);
+    }
+
+    function claimReward() override external {
+        require(depositsData.exists(msg.sender), ErrorCodesPoolOfChance.NOT_ACTIVE_USER);
+
+        uint128 reward = depositsData[msg.sender].reward;
+        require(everReserves >= reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        require(reward > 0, ErrorCodesPoolOfChance.ZERO_REWARD);
+
+        tvm.rawReserve(address(this).balance - msg.value - reward, 0);
+
+        depositsData[msg.sender].reward = 0;
+
+        msg.sender.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED
+        });
+    }
+
+    function withdraw() override external {
+        require(depositsData.exists(msg.sender), ErrorCodesPoolOfChance.NOT_ACTIVE_USER);
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        DepositData depositData = depositsData[msg.sender];
+        uint128 withdrawal = depositData.deposit + depositData.reward;
+
+        require(everReserves >= withdrawal, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        tvm.rawReserve(address(this).balance - msg.value - withdrawal, 0);
+
+        delete depositsData[msg.sender];
+        totalSupply -= withdrawal;
+        everReserves -= withdrawal;
+
+        lockedStAssets = math.min(totalStSupply, lockedStAssets + _getStEverAmountFor(withdrawal));
+
+        emit Withdrawal(
+            msg.sender,
+            depositData.deposit,
+            depositData.reward,
+            totalSupply,
+            _currentStSupply()
+        );
+
+        msg.sender.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    function forceWithdrawalOfAllDeposits() override external onlyOwnerOrSelf {
+
+        uint64 offset = 9;
+
+        uint128 rewardSum;
+        uint128 depositsAmount;
+        for ((, DepositData depositData): depositsData) {
+            rewardSum += depositData.reward;
+            depositsAmount++;
+        }
+        require(
+            msg.value >= depositsAmount / (offset + 1) * PoolOfChanceGas.WITHDRAW_VALUE,
+            ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
+        );
+        require(everReserves >= totalSupply + rewardSum, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        uint128 supplyWithdrawal;
+        uint128 totalWithdrawal;
+        mapping(address => DepositData) tempDeposits = depositsData;
+
+        for ((address user, DepositData depositData): depositsData) {
+
+            user.transfer({
+                value: depositData.deposit + depositData.reward,
+                flag: MsgFlag.SENDER_PAYS_FEES,
+                bounce: false
+            });
+
+            supplyWithdrawal += depositData.deposit;
+            totalWithdrawal += depositData.deposit + depositData.reward;
+            delete tempDeposits[user];
+
+            if (offset == 0) break;
+            --offset;
+        }
+        depositsData = tempDeposits;
+        everReserves -= totalWithdrawal;
+        lockedStAssets = math.min(totalStSupply, lockedStAssets + _getStEverAmountFor(supplyWithdrawal));
+
+        tvm.rawReserve(address(this).balance - msg.value - totalWithdrawal, 0);
+
+        if (!depositsData.empty()) {
+            IPoolOfChance(address(this)).forceWithdrawalOfAllDeposits{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                 bounce: false
+            }();
+        } else {
+            owner.transfer({
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+                bounce: false
+            });
+        }
+    }
+
+    function calculateReward()
+        override
+        external
+        reserve()
+    {
+        require(!depositsData.empty(), ErrorCodesPoolOfChance.DEPOSITS_POOL_IS_EMPTY);
+        require(msg.value >= PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+        require(
+            lastRewardTimestamp == 0 || now - lastRewardTimestamp >= rewardPeriod,
+            ErrorCodesPoolOfChance.NOT_ENOUGH_TIME_FROM_PREVIOUS_REWARD
+        );
+
+        lastRewardTimestamp = now;
+
+        IStEverVault(stEverVault)
+            .getDetails{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                callback: PoolOfChance.onStEverVaultDetails,
+                bounce: false
+            }();
+    }
+
+    function onStEverVaultDetails(IStEverVault.Details _details) external reserve() {
+        require (msg.sender == stEverVault, ErrorCodesPoolOfChance.NOT_ST_EVER_VAULT);
+
+        lastStEverDetails = _details;
+
+        uint128 stAmountForTotalSupply = _getStEverAmountFor(totalSupply);
+        uint128 stReward = _currentStSupply() - stAmountForTotalSupply;
+        uint128 reward = _getEverAmountFor(stReward);
+
+        uint128 rewardFee = math.muldivc(reward, rewardFeeNumerator, DENOMINATOR);
+
+        rnd.shuffle();
+        address[] users;
+        for ((address user, DepositData depositData): depositsData) {
+            if (
+                depositData.deposit >= minDepositValue &&
+                depositData.depositTime + noRewardPeriod >= lastRewardTimestamp
+            ) {
+                users.push(user);
+            }
+        }
+        uint256 n = users.length;
+        uint256 randomIdx = rnd.next(n);
+
+        uint128 rewardWithoutFee = reward - rewardFee;
+        depositsData[users[randomIdx]].reward += rewardWithoutFee;
+        lockedStAssets += stReward;
+
+        everReserves -= rewardWithoutFee;
+
+        emit AssignReward(
+            users[randomIdx],
+            _details,
+            rewardWithoutFee,
+            rewardFee,
+            stReward
+        );
+    }
+
+    function _getEverAmountFor(uint128 _amount) internal view returns(uint128) {
+        if(lastStEverDetails.stEverSupply == 0 || lastStEverDetails.totalAssets == 0) {
+            return _amount;
+        }
+        (,,uint128 _effectiveEverAssets) = _getLockStateFor();
+        return math.muldiv(_amount, _effectiveEverAssets, lastStEverDetails.stEverSupply);
+    }
+
+    function _getStEverAmountFor(uint128 _amount) internal view returns(uint128) {
+        if(lastStEverDetails.stEverSupply == 0 || lastStEverDetails.totalAssets == 0) {
+            return _amount;
+        }
+        (,,uint128 _effectiveEverAssets) = _getLockStateFor();
+        return math.muldiv(_amount, lastStEverDetails.stEverSupply, _effectiveEverAssets);
+    }
+
+    function _getLockStateFor() internal view returns (
+        uint128 _remainingLockedAssets,
+        uint128 _remainingSeconds,
+        uint128 _effectiveEverAssets
+    ) {
+        uint128 timeFromLastUnlock = lastRewardTimestamp - lastStEverDetails.lastUnlockTime;
+        uint128 unlockAmount = lastStEverDetails.unlockPerSecond * timeFromLastUnlock;
+        _remainingLockedAssets = lastStEverDetails.remainingLockedAssets > unlockAmount
+            ? lastStEverDetails.remainingLockedAssets - unlockAmount
+            : 0;
+        _remainingSeconds = lastStEverDetails.remainingSeconds > timeFromLastUnlock
+            ? lastStEverDetails.remainingSeconds - timeFromLastUnlock
+            : 0;
+        _effectiveEverAssets = lastStEverDetails.totalAssets - _remainingLockedAssets;
+    }
+
+    function withdrawRemainingStAssets()
+        override
+        external
+        onlyOwner
+        reserve()
+    {
+        uint128 withdrawal = depositsData.empty() ? totalStSupply : lockedStAssets;
+
+        totalSupply -= withdrawal;
+        lockedStAssets -= withdrawal;
+
+        TvmCell empty;
+        ITokenWallet(stEverWallet)
+            .transfer{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(
+                withdrawal,
+                owner,
+                PoolOfChanceGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE,
+                owner,
+                true,
+                empty
+            );
+    }
+
+    function withdrawRemainingAssets()
+        override
+        external
+        onlyOwner
+    {
+        require(depositsData.empty(), ErrorCodesPoolOfChance.ACTIVE_DEPOSITS_EXISTS);
+
+        tvm.rawReserve(PoolOfChanceGas.CONTRACT_MIN_BALANCE, 0);
+
+        everReserves = 0;
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
+
+    function addToEverReserves(uint128 _amount) override external {
+        require(
+            msg.value >= _amount + PoolOfChanceGas.ADD_TO_RESERVES_VALUE,
+            ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
+        );
+
+        tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
+
+        everReserves += _amount;
+
+        msg.sender.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
+
+    function _currentStSupply() internal view returns(uint128) {
+        return totalStSupply - lockedStAssets;
+    }
+}

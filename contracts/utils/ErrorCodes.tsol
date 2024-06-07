@@ -74,3 +74,18 @@ library ErrorCodesCluster {
     uint16 constant NOT_ST_EVER_TOKEN_WALLET = 5015;
     uint16 constant CLUSTER_IS_REMOVING = 5017;
 }
+
+library ErrorCodesPoolOfChance {
+    uint16 constant NOT_ENOUGH_VALUE = 7001;
+    uint16 constant NOT_TOKEN_ROOT = 7002;
+    uint16 constant NOT_ROOT_WALLET = 7003;
+    uint16 constant NONCE_ALREADY_EXISTS = 7004;
+    uint16 constant ACTIVE_DEPOSITS_EXISTS = 7005;
+    uint16 constant NOT_ENOUGH_TIME_FROM_PREVIOUS_REWARD = 7006;
+    uint16 constant NOT_ST_EVER_VAULT = 7007;
+    uint16 constant NOT_ACTIVE_USER = 7008;
+    uint16 constant ZERO_REWARD = 7009;
+    uint16 constant NOT_ENOUGH_FUNDS = 7010;
+    uint16 constant DEPOSITS_POOL_IS_FULL = 7011;
+    uint16 constant DEPOSITS_POOL_IS_EMPTY = 7012;
+}
