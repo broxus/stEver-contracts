@@ -33,21 +33,21 @@ contract PoolOfChance is
     uint32 maxDepositsAmount;
     uint128 minDepositValue;
     uint32 noRewardPeriod;
-    uint32 rewardPeriod; // минимальный временной промежуток между двумя наградами
-    uint128 rewardFeeNumerator; // берется от финального расчета реворда в веномах
+    uint32 rewardPeriod;
+    uint128 rewardFeeNumerator;
 
-    uint128 lastRewardTimestamp; // время начисления последнего реворда
+    uint128 lastRewardTimestamp;
     IStEverVault.Details lastStEverDetails;
 
-    mapping(address => DepositData) depositsData; // user -> {venom deposit, venom reward minus fee}
+    mapping(address => DepositData) depositsData; // user -> {Ever deposit, Ever reward minus fee}
     mapping(uint64 => address) pendingDeposits; // nonce -> user
 
-    uint128 totalSupply; // сумма всех текущих депозитов в веномах
-    uint128 totalStSupply; // баланс stVenom-ов на кошельке
+    uint128 totalSupply; // sum of all Ever deposits
+    uint128 totalStSupply; // StEver balance
 
     uint128 everReserves;
 
-    uint128 lockedStAssets; // эквивалент в stVenom-ах суммы всех уже начисленных ревордов (для расчёта награды)
+    uint128 lockedStAssets;
 
     address stEverWallet; // StEver wallet address
     address stTokenRoot; // StToken root address
@@ -295,7 +295,7 @@ contract PoolOfChance is
                 depositsAmount++;
             }
             require(
-                msg.value >= depositsAmount / (offset + 1) * PoolOfChanceGas.WITHDRAW_VALUE,
+                msg.value >= depositsAmount / (offset + 1) * PoolOfChanceGas.MIN_CALL_VALUE,
                 ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
             );
             require(everReserves >= totalSupply + rewardSum, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
