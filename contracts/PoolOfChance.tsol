@@ -99,6 +99,10 @@ contract PoolOfChance is
             }(address(this), PoolOfChanceGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
     }
 
+    receive() external pure {
+        revert();
+    }
+
     function onTokenWallet(address _wallet) external reserve() {
         require (msg.sender == stTokenRoot, ErrorCodesPoolOfChance.NOT_TOKEN_ROOT);
         stEverWallet = _wallet;
@@ -172,7 +176,10 @@ contract PoolOfChance is
     {
         require(msg.value >= _amount + PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
         require(!pendingDeposits.exists(_nonce), ErrorCodesPoolOfChance.NONCE_ALREADY_EXISTS);
-        require(depositsData.keys().length < maxDepositsAmount, ErrorCodesPoolOfChance.DEPOSITS_POOL_IS_FULL);
+        require(
+            depositsData.keys().length < maxDepositsAmount || depositsData.exists(msg.sender),
+            ErrorCodesPoolOfChance.DEPOSITS_POOL_IS_FULL
+        );
 
         totalSupply += _amount;
 
@@ -280,17 +287,19 @@ contract PoolOfChance is
 
         uint64 offset = 9;
 
-        uint128 rewardSum;
-        uint128 depositsAmount;
-        for ((, DepositData depositData): depositsData) {
-            rewardSum += depositData.reward;
-            depositsAmount++;
+        if (msg.sender == owner) {
+            uint128 rewardSum;
+            uint128 depositsAmount;
+            for ((, DepositData depositData): depositsData) {
+                rewardSum += depositData.reward;
+                depositsAmount++;
+            }
+            require(
+                msg.value >= depositsAmount / (offset + 1) * PoolOfChanceGas.WITHDRAW_VALUE,
+                ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
+            );
+            require(everReserves >= totalSupply + rewardSum, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
         }
-        require(
-            msg.value >= depositsAmount / (offset + 1) * PoolOfChanceGas.WITHDRAW_VALUE,
-            ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
-        );
-        require(everReserves >= totalSupply + rewardSum, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
         uint128 supplyWithdrawal;
         uint128 totalWithdrawal;
@@ -489,5 +498,104 @@ contract PoolOfChance is
 
     function _currentStSupply() internal view returns(uint128) {
         return totalStSupply - lockedStAssets;
+    }
+
+    function upgrade(TvmCell code)
+        external
+        override
+        reserve()
+        onlyOwner
+    {
+        require(msg.value >= PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        emit PoolUpgraded();
+
+        TvmCell data = abi.encode(
+            owner,
+            stEverVault,
+
+            maxDepositsAmount,
+            minDepositValue,
+            noRewardPeriod,
+            rewardPeriod,
+            rewardFeeNumerator,
+
+            lastRewardTimestamp,
+            lastStEverDetails,
+
+            depositsData,
+            pendingDeposits,
+
+            totalSupply,
+            totalStSupply,
+
+            everReserves,
+
+            lockedStAssets,
+
+            stEverWallet,
+            stTokenRoot
+        );
+
+        tvm.setcode(code);
+        tvm.setCurrentCode(code);
+
+        onCodeUpgrade(data);
+    }
+
+    function onCodeUpgrade(TvmCell _data) private {
+        tvm.resetStorage();
+
+        (
+            owner,
+            stEverVault,
+
+            maxDepositsAmount,
+            minDepositValue,
+            noRewardPeriod,
+            rewardPeriod,
+            rewardFeeNumerator,
+
+            lastRewardTimestamp,
+            lastStEverDetails,
+
+            depositsData,
+            pendingDeposits,
+
+            totalSupply,
+            totalStSupply,
+
+            everReserves,
+
+            lockedStAssets,
+
+            stEverWallet,
+            stTokenRoot
+        ) = abi.decode(_data, (
+            address,
+            address,
+
+            uint32,
+            uint128,
+            uint32,
+            uint32,
+            uint128,
+
+            uint128,
+            IStEverVault.Details,
+
+            mapping(address => DepositData),
+            mapping(uint64 => address),
+
+            uint128,
+            uint128,
+
+            uint128,
+
+            uint128,
+
+            address,
+            address
+        ));
     }
 }

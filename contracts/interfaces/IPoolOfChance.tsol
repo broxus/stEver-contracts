@@ -44,6 +44,8 @@ interface IPoolOfChance {
 
     event AssignReward(address assignee, IStEverVault.Details vaultDetails, uint128 reward, uint128 fee, uint128 stReward);
 
+    event PoolUpgraded();
+
 
     function getDepositData(address user) responsible external returns(optional(DepositData));
 
@@ -78,4 +80,6 @@ interface IPoolOfChance {
     function addToEverReserves(uint128 _amount) external;
 
     function forceWithdrawalOfAllDeposits() external;
+
+    function upgrade(TvmCell code) external;
 }
