@@ -106,7 +106,7 @@ contract StEverVault is
             msg.sender,
             StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
             msg.sender,
-            false,
+            true,
             builder.toCell()
         );
     }

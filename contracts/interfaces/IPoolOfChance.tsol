@@ -1,7 +1,5 @@
 pragma ever-solidity >=0.62.0;
 
-import {IStEverVault} from "IStEverVault.tsol";
-
 interface IPoolOfChance {
 
     struct DepositData {
@@ -38,11 +36,13 @@ interface IPoolOfChance {
 
     event UpdateMaxDepositsAmount(uint32 current, uint32 previous);
 
-    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp);
+    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp, uint128 totalSupply, uint128 currentStSupply);
 
     event Withdrawal(address user, uint128 amount, uint128 reward, uint128 totalSupply, uint128 currentStSupply);
 
-    event AssignReward(address assignee, IStEverVault.Details vaultDetails, uint128 reward, uint128 fee, uint128 stReward);
+    event AssignReward(address assignee, uint128 reward, uint128 fee, uint128 stReward);
+
+    event EverReservesSync(uint128 amount);
 
     event PoolUpgraded();
 

@@ -74,9 +74,10 @@ contract PoolOfChance is
         address _stEverVault,
         uint128 _minDepositValue,
         uint32 _rewardPeriod,
-        uint128 _rewardFeeNumerator
+        uint128 _rewardFeeNumerator,
+        uint32 _maxDepositsAmount
     ) public {
-        tvm.rawReserve(1 ever, 0);
+        tvm.rawReserve(PoolOfChanceGas.CONTRACT_MIN_BALANCE, 0);
         tvm.accept();
 
         setOwnership(_owner);
@@ -86,9 +87,9 @@ contract PoolOfChance is
         minDepositValue = _minDepositValue;
         rewardPeriod = _rewardPeriod;
         rewardFeeNumerator = _rewardFeeNumerator;
+        maxDepositsAmount = _maxDepositsAmount;
 
         noRewardPeriod = _rewardPeriod;
-        maxDepositsAmount = 1000;
 
         ITokenRoot(stTokenRoot)
             .deployWallet{
@@ -226,11 +227,12 @@ contract PoolOfChance is
         delete pendingDeposits[nonce];
 
         DepositData data = depositsData[user];
-        emit Deposit(user, data.deposit, _amount, data.depositTime);
+        emit Deposit(user, data.deposit, _amount, data.depositTime, totalSupply, _currentStSupply());
 
         IPoolOfChanceCallback(user).onDepositSuccess{
             value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
         }(_amount, nonce);
     }
 
@@ -275,6 +277,8 @@ contract PoolOfChance is
             totalSupply,
             _currentStSupply()
         );
+
+        emit EverReservesSync(everReserves);
 
         msg.sender.transfer({
             value: 0,
@@ -325,6 +329,8 @@ contract PoolOfChance is
         lockedStAssets = math.min(totalStSupply, lockedStAssets + _getStEverAmountFor(supplyWithdrawal));
 
         tvm.rawReserve(address(this).balance - msg.value - totalWithdrawal, 0);
+
+        emit EverReservesSync(everReserves);
 
         if (!depositsData.empty()) {
             IPoolOfChance(address(this)).forceWithdrawalOfAllDeposits{
@@ -380,27 +386,29 @@ contract PoolOfChance is
         for ((address user, DepositData depositData): depositsData) {
             if (
                 depositData.deposit >= minDepositValue &&
-                depositData.depositTime + noRewardPeriod >= lastRewardTimestamp
+                depositData.depositTime + noRewardPeriod <= lastRewardTimestamp
             ) {
                 users.push(user);
             }
         }
         uint256 n = users.length;
-        uint256 randomIdx = rnd.next(n);
 
-        uint128 rewardWithoutFee = reward - rewardFee;
-        depositsData[users[randomIdx]].reward += rewardWithoutFee;
-        lockedStAssets += stReward;
+        if (n > 0) {
+            uint256 randomIdx = rnd.next(n);
 
-        everReserves -= rewardWithoutFee;
+            uint128 rewardWithoutFee = reward - rewardFee;
+            depositsData[users[randomIdx]].reward += rewardWithoutFee;
+            lockedStAssets += stReward;
 
-        emit AssignReward(
-            users[randomIdx],
-            _details,
-            rewardWithoutFee,
-            rewardFee,
-            stReward
-        );
+            everReserves -= rewardWithoutFee;
+
+            emit AssignReward(
+                users[randomIdx],
+                rewardWithoutFee,
+                rewardFee,
+                stReward
+            );
+        }
     }
 
     function _getEverAmountFor(uint128 _amount) internal view returns(uint128) {
@@ -424,7 +432,8 @@ contract PoolOfChance is
         uint128 _remainingSeconds,
         uint128 _effectiveEverAssets
     ) {
-        uint128 timeFromLastUnlock = lastRewardTimestamp - lastStEverDetails.lastUnlockTime;
+        uint128 timeFromLastUnlock = lastRewardTimestamp >= lastStEverDetails.lastUnlockTime
+            ? lastRewardTimestamp - lastStEverDetails.lastUnlockTime : 0;
         uint128 unlockAmount = lastStEverDetails.unlockPerSecond * timeFromLastUnlock;
         _remainingLockedAssets = lastStEverDetails.remainingLockedAssets > unlockAmount
             ? lastStEverDetails.remainingLockedAssets - unlockAmount
@@ -488,6 +497,8 @@ contract PoolOfChance is
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
 
         everReserves += _amount;
+
+        emit EverReservesSync(everReserves);
 
         msg.sender.transfer({
             value: 0,
