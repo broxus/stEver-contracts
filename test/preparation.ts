@@ -220,3 +220,38 @@ const deployVault = async ({
   // });
   return vaultContract;
 };
+
+export const deployPoolOfChance = async ({
+  owner,
+  stVault,
+  stTokenRoot,
+  publicKey,
+}: {
+  owner: Account;
+  stVault: Address;
+  stTokenRoot: Address;
+  publicKey: string;
+}) => {
+  const { contract: poolContract, tx } = await locklift.tracing.trace(
+    locklift.factory.deployContract({
+      contract: "PoolOfChance",
+      value: locklift.utils.toNano(10),
+      constructorParams: {
+        _owner: owner.address,
+        _stTokenRoot: stTokenRoot,
+        _stEverVault: stVault,
+        _minDepositValue: toNano(10),
+        _rewardPeriod: 100,
+        _rewardFeeNumerator: 20000, // 0.02
+        _maxDepositsAmount: 1000,
+      },
+      publicKey: publicKey,
+      initParams: {
+        _randomNonce: getRandomNonce(),
+      },
+    }),
+  );
+  expect(await locklift.provider.getBalance(poolContract.address).then(Number)).to.be.above(0);
+
+  return poolContract;
+};
