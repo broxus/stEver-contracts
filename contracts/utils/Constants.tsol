@@ -22,3 +22,8 @@ library PlatformType {
     uint8 constant ACCOUNT = 0;
     uint8 constant CLUSTER = 1;
 }
+
+library PrizeTokenRewardType {
+    uint8 constant EQUAL_TO_EVER_REWARD = 1;
+    uint8 constant FIXED_REWARD = 2;
+}

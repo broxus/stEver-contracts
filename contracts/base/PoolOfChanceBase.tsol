@@ -1,0 +1,327 @@
+pragma ever-solidity >= 0.62.0;
+
+import "@broxus/contracts/contracts/access/InternalOwner.tsol";
+import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import {PoolOfChanceGas} from "../utils/Gas.tsol";
+import {ErrorCodesPoolOfChance} from "../utils/ErrorCodes.tsol";
+import {PrizeTokenRewardType} from "../utils/Constants.tsol";
+
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+
+import {IPoolOfChance} from "../interfaces/IPoolOfChance.tsol";
+import {IStEverVault} from "../interfaces/IStEverVault.tsol";
+
+abstract contract PoolOfChanceBase is
+    InternalOwner,
+    RandomNonce,
+    IPoolOfChance
+{
+    uint128 constant DENOMINATOR = 1000000;
+
+    address stEverVault;
+
+    address stEverWallet; // StEver wallet address
+    address stTokenRoot; // StToken root address
+    address prizeTokenWallet; // Prize token wallet address
+    address prizeTokenRoot; // Prize token root address
+
+    uint32 minDepositsAmountForReward;
+
+    uint128 everReserves; // Ever reserves for deposits and reward payout
+    uint128 totalSupply; // sum of all Ever deposits
+    uint128 totalStSupply; // StEver balance
+    uint128 totalPrizeTokenSupply; // Prize token root balance
+
+    uint128 minDepositValueForReward;
+    uint128 minDepositValue;
+
+    uint128 rewardTimestamp;
+    uint32 rewardPeriod;
+
+    uint128 fundFeeNumerator;
+    uint128 poolFeeNumerator;
+    address fundAddress;
+    address poolFeeReceiverAddress;
+
+    uint8 prizeTokenRewardType;
+    optional(uint128) prizeTokenRewardValue;
+
+    uint128 withdrawFee;
+
+    uint128 accFundFee;
+    uint128 accPoolFee;
+
+    mapping(address => DepositData) depositsData; // user -> {Ever deposit, Ever reward minus fee}
+    mapping(uint64 => address) pendingDeposits; // nonce -> user
+
+    bool isLocked;
+
+    modifier reserve() {
+        tvm.rawReserve(
+            math.max(
+                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                address(this).balance - msg.value
+            ),
+            0
+        );
+        _;
+    }
+
+    modifier notLocked() {
+        require(!isLocked, ErrorCodesPoolOfChance.LOCKED);
+        _;
+    }
+
+    modifier locked() {
+        require(isLocked, ErrorCodesPoolOfChance.NOT_LOCKED);
+        _;
+    }
+
+    receive() external pure {
+        revert();
+    }
+
+    function onTokenWallet(address _wallet) external reserve() {
+        require (msg.sender == stTokenRoot || msg.sender == prizeTokenRoot, ErrorCodesPoolOfChance.NOT_TOKEN_ROOT);
+
+        if (msg.sender == stTokenRoot) {
+            stEverWallet = _wallet;
+        } else {
+            prizeTokenWallet = _wallet;
+        }
+    }
+
+
+    function getDepositData(address user) override responsible external returns(optional(DepositData)) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} depositsData.fetch(user);
+    }
+
+    function getPoolFeeReceiverAddress() override responsible external returns(address) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} poolFeeReceiverAddress;
+    }
+
+    function getFundAddress() override responsible external returns(address) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} fundAddress;
+    }
+
+    function getPoolInfo() override responsible external returns(PoolInfo) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} PoolInfo(
+            stEverVault,
+            everReserves,
+            totalSupply,
+            stTokenRoot,
+            totalStSupply,
+            prizeTokenRoot,
+            totalPrizeTokenSupply,
+            minDepositValue,
+            withdrawFee
+        );
+    }
+
+    function getRewardInfo() override responsible external returns(IPoolOfChance.RewardInfo) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} RewardInfo(
+            minDepositValueForReward,
+            rewardPeriod,
+            rewardTimestamp,
+            poolFeeNumerator,
+            fundFeeNumerator,
+            minDepositsAmountForReward,
+            prizeTokenRewardType,
+            prizeTokenRewardValue
+        );
+    }
+
+    function isPoolLocked() override responsible external returns(bool) {
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} isLocked;
+    }
+
+
+    function setPoolFeeReceiverAddress(address _poolFeeReceiver) override external onlyOwner reserve() {
+        emit UpdatePoolFeeReceiverAddress(_poolFeeReceiver, poolFeeReceiverAddress);
+        poolFeeReceiverAddress = _poolFeeReceiver;
+    }
+
+    function setFundAddress(address _fundAddress) override external onlyOwner reserve() {
+        emit UpdateFundAddress(fundAddress, _fundAddress);
+        fundAddress = _fundAddress;
+    }
+
+    function addToEverReserves(uint128 _amount) override external {
+        require(
+            msg.value >= _amount + PoolOfChanceGas.ADD_TO_RESERVES_VALUE,
+            ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
+        );
+
+        tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
+
+        everReserves += _amount;
+
+        emit EverReservesSync(everReserves);
+
+        msg.sender.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
+
+    function withdrawPrizeTokenAssets()
+        override
+        external
+        onlyOwner
+        reserve()
+        locked
+    {
+        uint128 reward = 0;
+        for ((, DepositData depositData): depositsData) {
+            if (depositData.reward > 0) {
+                reward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
+                    ? depositData.reward
+                    : prizeTokenRewardValue.get();
+
+                break;
+            }
+        }
+        require(totalPrizeTokenSupply >= reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        uint128 withdrawal = totalPrizeTokenSupply - reward;
+        totalPrizeTokenSupply = reward;
+
+        emit PrizeTokenReservesSync(totalPrizeTokenSupply);
+
+        TvmCell empty;
+        ITokenWallet(prizeTokenWallet)
+            .transfer{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(
+                withdrawal,
+                owner,
+                PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
+                owner,
+                true,
+                empty
+        );
+    }
+
+    function withdrawRemainingStAssets()
+        override
+        external
+        onlyOwner
+        reserve()
+    {
+        TvmCell empty;
+        ITokenWallet(stEverWallet)
+            .transfer{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(
+                totalStSupply,
+                owner,
+                PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
+                owner,
+                true,
+                empty
+        );
+
+        totalStSupply = 0;
+    }
+
+    function withdrawRemainingAssets()
+        override
+        external
+        onlyOwner
+        locked
+    {
+        uint128 sumOfUsersWithdrawals = 0;
+        for ((, DepositData depositData): depositsData) {
+            sumOfUsersWithdrawals += math.max(depositData.deposit + depositData.reward, withdrawFee) - withdrawFee;
+        }
+        require(everReserves >= sumOfUsersWithdrawals, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        uint128 withdrawal = everReserves - sumOfUsersWithdrawals;
+        tvm.rawReserve(address(this).balance - msg.value - withdrawal, 0);
+
+        everReserves = sumOfUsersWithdrawals;
+        emit EverReservesSync(everReserves);
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
+
+    function withdrawFees()
+        override
+        external
+        onlyOwner
+    {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+        require(everReserves >= accFundFee + accPoolFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        require(poolFeeReceiverAddress.value != 0 && fundAddress.value != 0, ErrorCodesPoolOfChance.WRONG_ADDRESS);
+
+        tvm.rawReserve(address(this).balance - msg.value - accFundFee - accPoolFee , 0);
+
+        if (accPoolFee > 0) {
+            poolFeeReceiverAddress.transfer({
+                value: accPoolFee,
+                flag: MsgFlag.SENDER_PAYS_FEES,
+                bounce: false
+            });
+
+            accPoolFee = 0;
+        }
+
+        if (accFundFee > 0) {
+            fundAddress.transfer({
+                value: accFundFee,
+                flag: MsgFlag.SENDER_PAYS_FEES,
+                bounce: false
+            });
+
+            accFundFee = 0;
+        }
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
+
+    function _getEverAmountFor(uint128 _amount, IStEverVault.Details _details) internal view returns(uint128) {
+        if(_details.stEverSupply == 0 || _details.totalAssets == 0) {
+            return _amount;
+        }
+        (,,uint128 _effectiveEverAssets) = _getLockStateFor(_details);
+        return math.muldiv(_amount, _effectiveEverAssets, _details.stEverSupply);
+    }
+
+    function _getStEverAmountFor(uint128 _amount, IStEverVault.Details _details) internal view returns(uint128) {
+        if(_details.stEverSupply == 0 || _details.totalAssets == 0) {
+            return _amount;
+        }
+        (,,uint128 _effectiveEverAssets) = _getLockStateFor(_details);
+        return math.muldiv(_amount, _details.stEverSupply, _effectiveEverAssets);
+    }
+
+    function _getLockStateFor(IStEverVault.Details _details) internal view returns (
+        uint128 _remainingLockedAssets,
+        uint128 _remainingSeconds,
+        uint128 _effectiveEverAssets
+    ) {
+        uint128 timeFromLastUnlock = rewardTimestamp >= _details.lastUnlockTime
+        ? rewardTimestamp - _details.lastUnlockTime : 0;
+        uint128 unlockAmount = _details.unlockPerSecond * timeFromLastUnlock;
+        _remainingLockedAssets = _details.remainingLockedAssets > unlockAmount
+        ? _details.remainingLockedAssets - unlockAmount
+        : 0;
+        _remainingSeconds = _details.remainingSeconds > timeFromLastUnlock
+        ? _details.remainingSeconds - timeFromLastUnlock
+        : 0;
+        _effectiveEverAssets = _details.totalAssets - _remainingLockedAssets;
+    }
+}

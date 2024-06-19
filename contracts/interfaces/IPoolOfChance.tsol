@@ -12,37 +12,83 @@ interface IPoolOfChance {
         address stEverVault;
         uint128 everReserves;
         uint128 totalSupply;
+        address stTokenRoot;
         uint128 totalStSupply;
-        uint128 lockedStAssets;
-        uint32 maxDepositsAmount;
+        address prizeTokenRoot;
+        uint128 prizeTokenSupply;
+        uint128 minDepositValue;
+        uint128 withdrawFee;
     }
 
     struct RewardInfo {
-        uint128 minDepositValue;
-        uint32 noRewardPeriod;
+        uint128 minDepositValueForReward;
         uint32 rewardPeriod;
-        uint128 lastRewardTimestamp;
-        uint128 rewardFeeNumerator;
+        uint128 rewardTimestamp;
+        uint128 poolFeeNumerator;
+        uint128 fundFeeNumerator;
+        uint32 minDepositsAmountForReward;
+        uint8 prizeTokenRewardType;
+        optional(uint128) prizeTokenRewardValue;
+    }
+
+    struct PoolOfChanceStorage {
+        address owner;
+        address stEverVault;
+
+        address stEverWallet;
+        address stTokenRoot;
+        address prizeTokenWallet;
+        address prizeTokenRoot;
+
+        uint32 minDepositsAmountForReward;
+
+        uint128 everReserves;
+        uint128 totalSupply;
+        uint128 totalStSupply;
+        uint128 totalPrizeTokenSupply;
+
+        uint128 minDepositValueForReward;
+        uint128 minDepositValue;
+
+        uint128 rewardTimestamp;
+        uint32 rewardPeriod;
+
+        uint128 fundFeeNumerator;
+        uint128 poolFeeNumerator;
+        address fundAddress;
+        address poolFeeReceiverAddress;
+
+        uint8 prizeTokenRewardType;
+        optional(uint128) prizeTokenRewardValue;
+
+        uint128 withdrawFee;
+
+        uint128 accFundFee;
+        uint128 accPoolFee;
+
+        mapping(address => DepositData) depositsData;
+        mapping(uint64 => address) pendingDeposits;
+
+        bool locked;
     }
 
 
     event UpdateMinDepositValue(uint128 current, uint128 previous);
 
-    event UpdateRewardPeriod(uint32 current, uint32 previous);
+    event UpdatePoolFeeReceiverAddress(address current, address previous);
 
-    event UpdateNoRewardPeriod(uint32 current, uint32 previous);
+    event UpdateFundAddress(address current, address previous);
 
-    event UpdateRewardFeeNumerator(uint128 current, uint128 previous);
+    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp, uint128 totalSupply, uint128 totalStSupply);
 
-    event UpdateMaxDepositsAmount(uint32 current, uint32 previous);
+    event Withdrawal(address user, uint128 amount, uint128 reward, uint128 totalSupply, uint128 withdrawFee, uint128 withdrawal);
 
-    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp, uint128 totalSupply, uint128 currentStSupply);
-
-    event Withdrawal(address user, uint128 amount, uint128 reward, uint128 totalSupply, uint128 currentStSupply);
-
-    event AssignReward(address assignee, uint128 reward, uint128 fee, uint128 stReward);
+    event AssignReward(address assignee, uint128 reward, uint128 poolFee, uint128 fundFee, uint128 stReward, uint128 everReserves);
+    event CancelRewardAssignment(uint128 depositsAmount);
 
     event EverReservesSync(uint128 amount);
+
+    event PrizeTokenReservesSync(uint128 amount);
 
     event PoolUpgraded();
 
@@ -53,33 +99,32 @@ interface IPoolOfChance {
 
     function getPoolInfo() responsible external returns(PoolInfo);
 
+    function getPoolFeeReceiverAddress() responsible external returns(address);
 
-    function setMinDepositValue(uint128 _minDepositValue) external;
+    function getFundAddress() responsible external returns(address);
 
-    function setRewardPeriod(uint32 _rewardPeriod) external;
+    function isPoolLocked() responsible external returns(bool);
 
-    function setNoRewardPeriod(uint32 _noRewardPeriod) external;
 
-    function setRewardFeeNumerator(uint128 _rewardFeeNumerator) external;
+    function setPoolFeeReceiverAddress(address _poolFeeReceiver) external;
 
-    function setMaxDepositsAmount(uint32 _maxDepositsAmount) external;
-
+    function setFundAddress(address _fundAddress) external;
 
     function deposit(uint128 _amount, uint64 _nonce) external;
-
-    function claimReward() external;
 
     function withdraw() external;
 
     function calculateReward() external;
 
+    function withdrawPrizeTokenAssets() external;
+
     function withdrawRemainingStAssets() external;
 
     function withdrawRemainingAssets() external;
 
-    function addToEverReserves(uint128 _amount) external;
+    function withdrawFees() external;
 
-    function forceWithdrawalOfAllDeposits() external;
+    function addToEverReserves(uint128 _amount) external;
 
     function upgrade(TvmCell code) external;
 }

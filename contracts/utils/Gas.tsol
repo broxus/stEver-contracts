@@ -42,8 +42,10 @@ library ClusterGas {
 
 library PoolOfChanceGas {
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
-    uint128 constant ST_EVER_WALLET_DEPLOY_GRAMS_VALUE = 0.1 ever;
+    uint128 constant WALLET_DEPLOY_VALUE = 0.5 ever;
+    uint128 constant WALLET_DEPLOY_GRAMS_VALUE = 0.1 ever;
     uint128 constant MIN_CALL_VALUE = 2 ever;
     uint128 constant ADD_TO_RESERVES_VALUE = 0.5 ever;
     uint128 constant WITHDRAW_VALUE = 1 ever;
+    uint128 constant TRANSFER_VALUE = 0.2 ever;
 }
