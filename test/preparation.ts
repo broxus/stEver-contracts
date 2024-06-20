@@ -221,15 +221,58 @@ const deployVault = async ({
   return vaultContract;
 };
 
+export const deployPrizeTokenRoot = async ({
+  signer,
+  owner,
+}: DeployRootParams): Promise<Contract<TokenRootUpgradeableAbi>> => {
+  const TOKEN_ROOT_NAME = "PrizeToken";
+  const TOKEN_ROOT_SYMBOL = "PTR";
+  const ZERO_ADDRESS = new Address("0:0000000000000000000000000000000000000000000000000000000000000000");
+  const tokenWalletCode = locklift.factory.getContractArtifacts("TokenWalletUpgradeable");
+  const platformCode = locklift.factory.getContractArtifacts("TokenWalletPlatform");
+
+  const { contract } = await locklift.factory.deployContract({
+    contract: "TokenRootUpgradeable",
+    initParams: {
+      name_: TOKEN_ROOT_NAME,
+      symbol_: TOKEN_ROOT_SYMBOL,
+      decimals_: 9,
+      rootOwner_: owner,
+      walletCode_: tokenWalletCode.code,
+      randomNonce_: locklift.utils.getRandomNonce(),
+      deployer_: ZERO_ADDRESS,
+      platformCode_: platformCode.code,
+    },
+    publicKey: signer.publicKey,
+    value: locklift.utils.toNano(2),
+    constructorParams: {
+      initialSupplyTo: owner,
+      initialSupply: toNano(10000000),
+      deployWalletValue: toNano(0.1),
+      mintDisabled: false,
+      burnByRootDisabled: false,
+      burnPaused: false,
+      remainingGasTo: owner,
+    },
+  });
+  return contract;
+};
+
 export const deployPoolOfChance = async ({
   owner,
   stVault,
   stTokenRoot,
+  prizeTokenRoot,
+  poolFeeReceiver,
+  fund,
   publicKey,
 }: {
   owner: Account;
   stVault: Address;
   stTokenRoot: Address;
+  prizeTokenRoot: Address;
+  poolFeeReceiver: Address;
+  fund: Address;
   publicKey: string;
 }) => {
   const { contract: poolContract, tx } = await locklift.tracing.trace(
@@ -242,8 +285,16 @@ export const deployPoolOfChance = async ({
         _stEverVault: stVault,
         _minDepositValue: toNano(10),
         _rewardPeriod: 100,
-        _rewardFeeNumerator: 20000, // 0.02
-        _maxDepositsAmount: 1000,
+        _poolFeeNumerator: 20000, // 0.02
+        _fundFeeNumerator: 10000, // 0.02
+        _prizeTokenRoot: prizeTokenRoot,
+        _minDepositValueForReward: toNano(10),
+        _minDepositsAmountForReward: 1,
+        _poolFeeReceiverAddress: poolFeeReceiver,
+        _fundAddress: fund,
+        _withdrawFee: toNano(0.5),
+        _prizeTokenRewardType: 2,
+        _prizeTokenRewardValue: toNano(100),
       },
       publicKey: publicKey,
       initParams: {
