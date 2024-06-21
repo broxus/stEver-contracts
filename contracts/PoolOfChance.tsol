@@ -214,7 +214,13 @@ contract PoolOfChance is
             ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS
         );
 
-        tvm.rawReserve(address(this).balance - msg.value - withdrawal, 0);
+        tvm.rawReserve(
+            math.max(
+                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                address(this).balance - msg.value - withdrawal
+            ),
+            0
+        );
 
         delete depositsData[msg.sender];
         totalSupply -= depositData.deposit;

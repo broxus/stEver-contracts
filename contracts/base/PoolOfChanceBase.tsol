@@ -239,10 +239,16 @@ abstract contract PoolOfChanceBase is
         for ((, DepositData depositData): depositsData) {
             sumOfUsersWithdrawals += math.max(depositData.deposit + depositData.reward, withdrawFee) - withdrawFee;
         }
-        require(everReserves >= sumOfUsersWithdrawals, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        require(everReserves >= sumOfUsersWithdrawals + accPoolFee + accFundFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
-        uint128 withdrawal = everReserves - sumOfUsersWithdrawals;
-        tvm.rawReserve(address(this).balance - msg.value - withdrawal, 0);
+        uint128 withdrawal = everReserves - sumOfUsersWithdrawals - accPoolFee - accFundFee;
+        tvm.rawReserve(
+            math.max(
+                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                address(this).balance - msg.value - withdrawal - accPoolFee - accFundFee
+            ),
+            0
+        );
 
         everReserves = sumOfUsersWithdrawals;
         emit EverReservesSync(everReserves);
@@ -263,7 +269,13 @@ abstract contract PoolOfChanceBase is
         require(everReserves >= accFundFee + accPoolFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
         require(poolFeeReceiverAddress.value != 0 && fundAddress.value != 0, ErrorCodesPoolOfChance.WRONG_ADDRESS);
 
-        tvm.rawReserve(address(this).balance - msg.value - accFundFee - accPoolFee , 0);
+        tvm.rawReserve(
+            math.max(
+                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                address(this).balance - msg.value - accFundFee - accPoolFee
+            ),
+            0
+        );
 
         if (accPoolFee > 0) {
             poolFeeReceiverAddress.transfer({
