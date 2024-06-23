@@ -264,4 +264,67 @@ describe("Pool of chance", async function () {
       rewardInfo.prizeTokenRewardType == "1" ? depositDataOld!.reward : rewardInfo.prizeTokenRewardValue,
     );
   });
+
+  it("withdraw stAssets", async () => {
+    const poolInfo = await pool.methods
+      .getPoolInfo({ answerId: 0 })
+      .call()
+      .then(a => a.value0);
+
+    const { traceTree } = await locklift.tracing.trace(
+      pool.methods.withdrawRemainingStAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+      { allowedCodes: { compute: [60] } },
+    );
+
+    const stBalChange = traceTree?.tokens.getTokenBalanceChange(
+      await tokenRoot.methods
+        .walletOf({ answerId: 0, walletOwner: admin.account.address })
+        .call()
+        .then(a => a.value0),
+    );
+    expect(stBalChange).to.eq(poolInfo.totalStSupply);
+
+    expect(
+      await pool.methods
+        .getPoolInfo({ answerId: 0 })
+        .call()
+        .then(a => a.value0.totalStSupply),
+    ).to.eq("0");
+  });
+
+  it("withdraw prizeTokenAssets", async () => {
+    const poolInfo = await pool.methods
+      .getPoolInfo({ answerId: 0 })
+      .call()
+      .then(a => a.value0);
+
+    const { traceTree } = await locklift.tracing.trace(
+      pool.methods.withdrawPrizeTokenAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+      { allowedCodes: { compute: [60] } },
+    );
+
+    const prizeTokenBalChange = traceTree?.tokens.getTokenBalanceChange(
+      await prizeTokenRoot.methods
+        .walletOf({ answerId: 0, walletOwner: admin.account.address })
+        .call()
+        .then(a => a.value0),
+    );
+    expect(prizeTokenBalChange).to.eq(poolInfo.prizeTokenSupply);
+    expect(traceTree).to.emit("PrizeTokenReservesSync").withNamedArgs({ amount: "0" });
+  });
+
+  it("withdraw everAssets", async () => {
+    const poolInfo = await pool.methods
+      .getPoolInfo({ answerId: 0 })
+      .call()
+      .then(a => a.value0);
+
+    const { traceTree } = await locklift.tracing.trace(
+      pool.methods.withdrawRemainingAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+    );
+
+    const balanceChange = traceTree?.getBalanceDiff(admin.account.address);
+    expect(Number(balanceChange)).to.greaterThanOrEqual(Number(poolInfo.everReserves));
+    expect(traceTree).to.emit("EverReservesSync").withNamedArgs({ amount: "0" });
+  });
 });

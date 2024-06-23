@@ -239,18 +239,15 @@ abstract contract PoolOfChanceBase is
         for ((, DepositData depositData): depositsData) {
             sumOfUsersWithdrawals += math.max(depositData.deposit + depositData.reward, withdrawFee) - withdrawFee;
         }
-        require(everReserves >= sumOfUsersWithdrawals + accPoolFee + accFundFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        uint128 reservesInUse = sumOfUsersWithdrawals + accPoolFee + accFundFee;
+        require(everReserves >= reservesInUse, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
-        uint128 withdrawal = everReserves - sumOfUsersWithdrawals - accPoolFee - accFundFee;
         tvm.rawReserve(
-            math.max(
-                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
-                address(this).balance - msg.value - withdrawal - accPoolFee - accFundFee
-            ),
+            PoolOfChanceGas.CONTRACT_MIN_BALANCE + reservesInUse,
             0
         );
 
-        everReserves = sumOfUsersWithdrawals;
+        everReserves = reservesInUse;
         emit EverReservesSync(everReserves);
 
         owner.transfer({
