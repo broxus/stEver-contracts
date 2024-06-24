@@ -91,7 +91,7 @@ async function main() {
       message: "number of users who must deposit for the reward to be assigned",
     },
     {
-      type: "number",
+      type: "text",
       name: "withdrawFee",
       message: "withdraw fee (ever)",
     },
@@ -104,16 +104,16 @@ async function main() {
       validate: (value: number) => value == 1 || value == 2,
     },
     {
-      type: prev => (prev == 2 ? "number" : null),
+      type: prev => (prev == 2 ? "text" : null),
       name: "prizeTokenRewardValue",
-      message: "prize token reward value",
+      message: "prize token reward value (in smallest units of tokens)",
     },
   ]);
   const signer = (await locklift.keystore.getSigner("0"))!;
 
   const { contract } = await locklift.factory.deployContract({
     contract: "PoolOfChance",
-    value: locklift.utils.toNano(10),
+    value: locklift.utils.toNano(5),
     constructorParams: {
       _owner: response.owner,
       _stTokenRoot: response.stTokenRoot,
@@ -127,7 +127,7 @@ async function main() {
       _depositsAmountForReward: response.depositsAmountForReward,
       _poolFeeReceiverAddress: response.poolFeeReceiver,
       _fundAddress: response.fund,
-      _withdrawFee: toNano(response.withdrawFee),
+      _withdrawFee: toNano(Number(response.withdrawFee)),
       _prizeTokenRewardType: response.prizeTokenRewardType,
       _prizeTokenRewardValue: response.prizeTokenRewardValue,
     },

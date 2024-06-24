@@ -40,7 +40,7 @@ async function main() {
     value: locklift.utils.toNano(2),
     constructorParams: {
       initialSupplyTo: response.owner,
-      initialSupply: toNano(10000000),
+      initialSupply: toNano(1000000),
       deployWalletValue: toNano(0.1),
       mintDisabled: false,
       burnByRootDisabled: false,
