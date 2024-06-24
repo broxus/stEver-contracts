@@ -32,7 +32,7 @@ contract PoolOfChance is
         address _prizeTokenRoot,
         uint128 _minDepositValue,
         uint128 _minDepositValueForReward,
-        uint32 _minDepositsAmountForReward,
+        uint32 _depositsAmountForReward,
         uint32 _rewardPeriod,
         uint128 _poolFeeNumerator,
         uint128 _fundFeeNumerator,
@@ -59,7 +59,7 @@ contract PoolOfChance is
         poolFeeReceiverAddress = _poolFeeReceiverAddress;
         fundAddress = _fundAddress;
 
-        minDepositsAmountForReward = _minDepositsAmountForReward;
+        depositsAmountForReward = _depositsAmountForReward;
 
         withdrawFee = _withdrawFee;
 
@@ -135,7 +135,7 @@ contract PoolOfChance is
             }
         }
         require(
-            n < minDepositsAmountForReward || depositsData.exists(msg.sender),
+            n < depositsAmountForReward || depositsData.exists(msg.sender),
             ErrorCodesPoolOfChance.DEPOSITS_POOL_IS_FULL
         );
 
@@ -293,7 +293,7 @@ contract PoolOfChance is
         }
         uint256 n = users.length;
 
-        if (n >= minDepositsAmountForReward) {
+        if (n >= depositsAmountForReward) {
 
             uint128 stAmountForTotalSupply = _getStEverAmountFor(totalSupply, _details);
             uint128 stReward = totalStSupply - stAmountForTotalSupply;
@@ -369,7 +369,7 @@ contract PoolOfChance is
             prizeTokenWallet,
             prizeTokenRoot,
 
-            minDepositsAmountForReward,
+            depositsAmountForReward,
 
             everReserves,
             totalSupply,
@@ -420,7 +420,7 @@ contract PoolOfChance is
         prizeTokenWallet = data.prizeTokenWallet;
         prizeTokenRoot = data.prizeTokenRoot;
 
-        minDepositsAmountForReward = data.minDepositsAmountForReward;
+        depositsAmountForReward = data.depositsAmountForReward;
 
         everReserves = data.everReserves;
         totalSupply = data.totalSupply;

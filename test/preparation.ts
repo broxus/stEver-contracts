@@ -289,7 +289,7 @@ export const deployPoolOfChance = async ({
         _fundFeeNumerator: 10000, // 0.02
         _prizeTokenRoot: prizeTokenRoot,
         _minDepositValueForReward: toNano(10),
-        _minDepositsAmountForReward: 1,
+        _depositsAmountForReward: 1,
         _poolFeeReceiverAddress: poolFeeReceiver,
         _fundAddress: fund,
         _withdrawFee: toNano(0.5),

@@ -27,7 +27,7 @@ abstract contract PoolOfChanceBase is
     address prizeTokenWallet; // Prize token wallet address
     address prizeTokenRoot; // Prize token root address
 
-    uint32 minDepositsAmountForReward;
+    uint32 depositsAmountForReward;
 
     uint128 everReserves; // Ever reserves for deposits and reward payout
     uint128 totalSupply; // sum of all Ever deposits
@@ -127,7 +127,7 @@ abstract contract PoolOfChanceBase is
             rewardTimestamp,
             poolFeeNumerator,
             fundFeeNumerator,
-            minDepositsAmountForReward,
+            depositsAmountForReward,
             prizeTokenRewardType,
             prizeTokenRewardValue
         );

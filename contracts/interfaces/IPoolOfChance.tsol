@@ -26,7 +26,7 @@ interface IPoolOfChance {
         uint128 rewardTimestamp;
         uint128 poolFeeNumerator;
         uint128 fundFeeNumerator;
-        uint32 minDepositsAmountForReward;
+        uint32 depositsAmountForReward;
         uint8 prizeTokenRewardType;
         optional(uint128) prizeTokenRewardValue;
     }
@@ -40,7 +40,7 @@ interface IPoolOfChance {
         address prizeTokenWallet;
         address prizeTokenRoot;
 
-        uint32 minDepositsAmountForReward;
+        uint32 depositsAmountForReward;
 
         uint128 everReserves;
         uint128 totalSupply;
