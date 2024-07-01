@@ -98,6 +98,16 @@ abstract contract PoolOfChanceBase is
         return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} depositsData.fetch(user);
     }
 
+    function getActiveDepositsAmount() override responsible external returns(uint128) {
+        uint128 users = 0;
+        for ((, DepositData depositData): depositsData) {
+            if (depositData.deposit >= minDepositValueForReward) {
+                users += 1;
+            }
+        }
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} users;
+    }
+
     function getPoolFeeReceiverAddress() override responsible external returns(address) {
         return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} poolFeeReceiverAddress;
     }

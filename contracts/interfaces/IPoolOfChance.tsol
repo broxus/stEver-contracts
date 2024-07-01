@@ -95,6 +95,8 @@ interface IPoolOfChance {
 
     function getDepositData(address user) responsible external returns(optional(DepositData));
 
+    function getActiveDepositsAmount() responsible external returns(uint128);
+
     function getRewardInfo() responsible external returns(IPoolOfChance.RewardInfo);
 
     function getPoolInfo() responsible external returns(PoolInfo);
