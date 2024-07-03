@@ -205,9 +205,13 @@ contract PoolOfChance is
 
         DepositData depositData = depositsData[msg.sender];
         uint128 withdrawal = math.max(depositData.deposit + depositData.reward, withdrawFee) - withdrawFee;
-        uint128 prizeTokenReward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
-            ? depositData.reward
-            : prizeTokenRewardValue.get();
+
+        uint128 prizeTokenReward;
+        if (depositData.reward > 0) {
+            prizeTokenReward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
+                ? depositData.reward
+                : prizeTokenRewardValue.get();
+        }
 
         require(
             everReserves >= withdrawal && totalPrizeTokenSupply >= prizeTokenReward,
