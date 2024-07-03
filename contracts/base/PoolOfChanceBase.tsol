@@ -220,6 +220,7 @@ abstract contract PoolOfChanceBase is
         override
         external
         onlyOwner
+        locked
         reserve()
     {
         TvmCell empty;
