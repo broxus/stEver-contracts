@@ -238,7 +238,7 @@ contract PoolOfChance is
                     value: PoolOfChanceGas.TRANSFER_VALUE,
                     flag: MsgFlag.SENDER_PAYS_FEES
                 }(
-                    totalStSupply,
+                    prizeTokenReward,
                     msg.sender,
                     PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
                     msg.sender,
@@ -257,6 +257,8 @@ contract PoolOfChance is
         );
 
         emit EverReservesSync(everReserves);
+
+        emit PrizeTokenReservesSync(totalPrizeTokenSupply);
 
         msg.sender.transfer({
             value: 0,
