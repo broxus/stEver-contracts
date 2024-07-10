@@ -29,6 +29,7 @@ interface IPoolOfChance {
         uint32 depositsAmountForReward;
         uint8 prizeTokenRewardType;
         optional(uint128) prizeTokenRewardValue;
+        uint128 prizeTokenNoRewardValue;
     }
 
     struct PoolOfChanceStorage {
@@ -60,6 +61,7 @@ interface IPoolOfChance {
 
         uint8 prizeTokenRewardType;
         optional(uint128) prizeTokenRewardValue;
+        uint128 prizeTokenNoRewardValue;
 
         uint128 withdrawFee;
 

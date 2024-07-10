@@ -22,7 +22,8 @@ let prizeTokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
 let cluster: Cluster;
-let pool: Contract<PoolOfChanceAbi>;
+let rewardPool: Contract<PoolOfChanceAbi>;
+let noRewardPool: Contract<PoolOfChanceAbi>;
 
 describe("Pool of chance", async function () {
   before(async () => {
@@ -43,20 +44,33 @@ describe("Pool of chance", async function () {
     tokenRoot = tr;
 
     prizeTokenRoot = await deployPrizeTokenRoot({ signer, owner: admin.account.address });
-    pool = await deployPoolOfChance({
+    rewardPool = await deployPoolOfChance({
       owner: admin.account,
       stVault: vault.vaultContract.address,
       stTokenRoot: tokenRoot.address,
       prizeTokenRoot: prizeTokenRoot.address,
+      participantsAmount: 1,
       poolFeeReceiver: poolFeeReceiver.account.address,
       fund: fund.account.address,
       publicKey: signer.publicKey,
     });
-    console.log(pool.address);
+    console.log("RewardPool address:", rewardPool.address.toString());
+
+    noRewardPool = await deployPoolOfChance({
+      owner: admin.account,
+      stVault: vault.vaultContract.address,
+      stTokenRoot: tokenRoot.address,
+      prizeTokenRoot: prizeTokenRoot.address,
+      participantsAmount: 2,
+      poolFeeReceiver: poolFeeReceiver.account.address,
+      fund: fund.account.address,
+      publicKey: signer.publicKey,
+    });
+    console.log("NoRewardPool address:", noRewardPool.address.toString());
   });
   it("Upgrade pool", async () => {
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods
+      rewardPool.methods
         .upgrade({ code: locklift.factory.getContractArtifacts("PoolOfChance").code })
         .send({ from: admin.account.address, amount: toNano(2) }),
     );
@@ -85,9 +99,9 @@ describe("Pool of chance", async function () {
   });
 
   it("add ever reserves to pool", async () => {
-    const everReserves = toNano(10000);
+    const everReserves = toNano(5000);
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods
+      rewardPool.methods
         .addToEverReserves({
           _amount: everReserves,
         })
@@ -95,6 +109,16 @@ describe("Pool of chance", async function () {
     );
 
     expect(traceTree).to.emit("EverReservesSync").withNamedArgs({ amount: everReserves });
+
+    const { traceTree: noRewardTraceTree } = await locklift.tracing.trace(
+      noRewardPool.methods
+        .addToEverReserves({
+          _amount: everReserves,
+        })
+        .send({ from: admin.account.address, amount: new BigNumber(everReserves).plus(toNano(2)).toString() }),
+    );
+
+    expect(noRewardTraceTree).to.emit("EverReservesSync").withNamedArgs({ amount: everReserves });
   });
 
   it("transfer prize tokens to pool", async () => {
@@ -107,7 +131,7 @@ describe("Pool of chance", async function () {
       tokenWallet.methods
         .transfer({
           amount: prizeTokens,
-          recipient: pool.address,
+          recipient: rewardPool.address,
           deployWalletValue: 0,
           remainingGasTo: admin.account.address,
           notify: true,
@@ -117,13 +141,24 @@ describe("Pool of chance", async function () {
     );
 
     expect(traceTree).to.emit("PrizeTokenReservesSync").withNamedArgs({ amount: prizeTokens });
+
+    await tokenWallet.methods
+      .transfer({
+        amount: prizeTokens,
+        recipient: noRewardPool.address,
+        deployWalletValue: 0,
+        remainingGasTo: admin.account.address,
+        notify: true,
+        payload: "",
+      })
+      .send({ from: admin.account.address, amount: toNano(2) });
   });
 
   it("deposit to pool", async () => {
-    const deposit = toNano(100);
+    const deposit = toNano(50);
     const nonce = 1234;
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods
+      rewardPool.methods
         .deposit({
           _amount: deposit,
           _nonce: nonce,
@@ -139,6 +174,13 @@ describe("Pool of chance", async function () {
       totalSupply: deposit,
       totalStSupply: deposit,
     });
+
+    await noRewardPool.methods
+      .deposit({
+        _amount: deposit,
+        _nonce: nonce,
+      })
+      .send({ from: user1.account.address, amount: new BigNumber(deposit).plus(toNano(2)).toString() });
   });
 
   it("governance should deposit to strategies", async () => {
@@ -161,7 +203,7 @@ describe("Pool of chance", async function () {
 
   it("calculate reward too soon (revert)", async () => {
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.calculateReward({}).send({ from: admin.account.address, amount: toNano(2) }),
+      rewardPool.methods.calculateReward({}).send({ from: admin.account.address, amount: toNano(2) }),
       { allowedCodes: { compute: [7006] } },
     );
 
@@ -188,15 +230,15 @@ describe("Pool of chance", async function () {
     expect(Number(await vault.getWithdrawRate())).to.be.closeTo(COUNT_OF_REPORTS + 1, 0.001);
   });
 
-  it("calculate reward", async () => {
+  it("calculate reward for RewardPool", async () => {
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.calculateReward({}).send({ from: admin.account.address, amount: toNano(2) }),
+      rewardPool.methods.calculateReward({}).send({ from: admin.account.address, amount: toNano(2) }),
     );
 
     expect(traceTree).to.emit("AssignReward");
 
     const event = traceTree?.findEventsForContract({
-      contract: pool,
+      contract: rewardPool,
       name: "AssignReward" as const, // 'as const' is important thing for type saving
     })[0];
 
@@ -207,29 +249,44 @@ describe("Pool of chance", async function () {
     expect(Number(fundBalChange)).approximately(Number(event!.fundFee), Number(toNano(0.0015)));
 
     expect(
-      await pool.methods
+      await rewardPool.methods
         .isPoolLocked({ answerId: 0 })
         .call()
         .then(a => a.value0),
     ).to.eq(true);
   });
 
-  it("withdraw", async () => {
-    const depositDataOld = await pool.methods
+  it("calculate reward for NoRewardPool", async () => {
+    const { traceTree } = await locklift.tracing.trace(
+      noRewardPool.methods.calculateReward({}).send({ from: admin.account.address, amount: toNano(2) }),
+    );
+
+    expect(traceTree).to.emit("CancelRewardAssignment").withNamedArgs({ depositsAmount: "1" });
+
+    expect(
+      await noRewardPool.methods
+        .isPoolLocked({ answerId: 0 })
+        .call()
+        .then(a => a.value0),
+    ).to.eq(true);
+  });
+
+  it("withdraw from RewardPool", async () => {
+    const depositDataOld = await rewardPool.methods
       .getDepositData({ answerId: 0, user: user1.account.address })
       .call()
       .then(a => a.value0);
-    const poolInfo = await pool.methods
+    const poolInfo = await rewardPool.methods
       .getPoolInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
-    const rewardInfo = await pool.methods
+    const rewardInfo = await rewardPool.methods
       .getRewardInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
 
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.withdraw({}).send({ from: user1.account.address, amount: toNano(2) }),
+      rewardPool.methods.withdraw({}).send({ from: user1.account.address, amount: toNano(2) }),
       { allowedCodes: { compute: [60] } },
     );
 
@@ -245,7 +302,7 @@ describe("Pool of chance", async function () {
       totalSupply: "0",
     });
 
-    const depositDataNew = await pool.methods
+    const depositDataNew = await rewardPool.methods
       .getDepositData({ answerId: 0, user: user1.account.address })
       .call()
       .then(a => a.value0);
@@ -265,14 +322,60 @@ describe("Pool of chance", async function () {
     );
   });
 
+  it("withdraw from NoRewardPool", async () => {
+    const depositDataOld = await noRewardPool.methods
+      .getDepositData({ answerId: 0, user: user1.account.address })
+      .call()
+      .then(a => a.value0);
+    const poolInfo = await noRewardPool.methods
+      .getPoolInfo({ answerId: 0 })
+      .call()
+      .then(a => a.value0);
+    const rewardInfo = await noRewardPool.methods
+      .getRewardInfo({ answerId: 0 })
+      .call()
+      .then(a => a.value0);
+
+    const { traceTree } = await locklift.tracing.trace(
+      noRewardPool.methods.withdraw({}).send({ from: user1.account.address, amount: toNano(2) }),
+      { allowedCodes: { compute: [60] } },
+    );
+
+    const withdrawal = BigNumber(depositDataOld!.deposit).minus(poolInfo.withdrawFee).toString();
+    expect(traceTree).to.emit("Withdrawal").withNamedArgs({
+      withdrawal: withdrawal,
+      reward: "0",
+      amount: depositDataOld!.deposit,
+      user: user1.account.address,
+      totalSupply: "0",
+    });
+
+    const depositDataNew = await noRewardPool.methods
+      .getDepositData({ answerId: 0, user: user1.account.address })
+      .call()
+      .then(a => a.value0);
+    expect(depositDataNew).to.eq(null);
+
+    const balanceChange = traceTree?.getBalanceDiff(user1.account.address);
+    expect(Number(balanceChange)).approximately(Number(withdrawal), Number(toNano(0.5)));
+
+    const prizeTokenBalChange = traceTree?.tokens.getTokenBalanceChange(
+      await prizeTokenRoot.methods
+        .walletOf({ answerId: 0, walletOwner: user1.account.address })
+        .call()
+        .then(a => a.value0),
+    );
+    expect(prizeTokenBalChange).to.eq(rewardInfo.prizeTokenNoRewardValue);
+  });
+
   it("withdraw stAssets", async () => {
-    const poolInfo = await pool.methods
+    const poolInfo = await rewardPool.methods
       .getPoolInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
 
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.withdrawRemainingStAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+      rewardPool.methods.withdrawRemainingStAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
       { allowedCodes: { compute: [60] } },
     );
 
@@ -285,7 +388,7 @@ describe("Pool of chance", async function () {
     expect(stBalChange).to.eq(poolInfo.totalStSupply);
 
     expect(
-      await pool.methods
+      await rewardPool.methods
         .getPoolInfo({ answerId: 0 })
         .call()
         .then(a => a.value0.totalStSupply),
@@ -293,13 +396,13 @@ describe("Pool of chance", async function () {
   });
 
   it("withdraw prizeTokenAssets", async () => {
-    const poolInfo = await pool.methods
+    const poolInfo = await rewardPool.methods
       .getPoolInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
 
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.withdrawPrizeTokenAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+      rewardPool.methods.withdrawPrizeTokenAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
       { allowedCodes: { compute: [60] } },
     );
 
@@ -314,13 +417,13 @@ describe("Pool of chance", async function () {
   });
 
   it("withdraw everAssets", async () => {
-    const poolInfo = await pool.methods
+    const poolInfo = await rewardPool.methods
       .getPoolInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
 
     const { traceTree } = await locklift.tracing.trace(
-      pool.methods.withdrawRemainingAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
+      rewardPool.methods.withdrawRemainingAssets({}).send({ from: admin.account.address, amount: toNano(2) }),
     );
 
     const balanceChange = traceTree?.getBalanceDiff(admin.account.address);

@@ -263,6 +263,7 @@ export const deployPoolOfChance = async ({
   stVault,
   stTokenRoot,
   prizeTokenRoot,
+  participantsAmount,
   poolFeeReceiver,
   fund,
   publicKey,
@@ -271,6 +272,7 @@ export const deployPoolOfChance = async ({
   stVault: Address;
   stTokenRoot: Address;
   prizeTokenRoot: Address;
+  participantsAmount: number;
   poolFeeReceiver: Address;
   fund: Address;
   publicKey: string;
@@ -289,12 +291,13 @@ export const deployPoolOfChance = async ({
         _fundFeeNumerator: 10000, // 0.02
         _prizeTokenRoot: prizeTokenRoot,
         _minDepositValueForReward: toNano(10),
-        _depositsAmountForReward: 1,
+        _depositsAmountForReward: participantsAmount,
         _poolFeeReceiverAddress: poolFeeReceiver,
         _fundAddress: fund,
         _withdrawFee: toNano(0.5),
         _prizeTokenRewardType: 2,
         _prizeTokenRewardValue: toNano(100),
+        _prizeTokenNoRewardValue: toNano(25),
       },
       publicKey: publicKey,
       initParams: {

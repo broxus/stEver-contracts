@@ -47,6 +47,7 @@ abstract contract PoolOfChanceBase is
 
     uint8 prizeTokenRewardType;
     optional(uint128) prizeTokenRewardValue;
+    uint128 prizeTokenNoRewardValue;
 
     uint128 withdrawFee;
 
@@ -139,7 +140,8 @@ abstract contract PoolOfChanceBase is
             fundFeeNumerator,
             depositsAmountForReward,
             prizeTokenRewardType,
-            prizeTokenRewardValue
+            prizeTokenRewardValue,
+            prizeTokenNoRewardValue
         );
     }
 
@@ -187,11 +189,11 @@ abstract contract PoolOfChanceBase is
         uint128 reward = 0;
         for ((, DepositData depositData): depositsData) {
             if (depositData.reward > 0) {
-                reward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
+                reward += prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
                     ? depositData.reward
                     : prizeTokenRewardValue.get();
-
-                break;
+            } else {
+                reward += prizeTokenNoRewardValue;
             }
         }
         require(totalPrizeTokenSupply >= reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);

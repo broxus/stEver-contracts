@@ -40,7 +40,8 @@ contract PoolOfChance is
         address _fundAddress,
         uint128 _withdrawFee,
         uint8 _prizeTokenRewardType,
-        optional(uint128) _prizeTokenRewardValue
+        optional(uint128) _prizeTokenRewardValue,
+        uint128 _prizeTokenNoRewardValue
     ) public {
         tvm.rawReserve(PoolOfChanceGas.CONTRACT_MIN_BALANCE, 0);
         tvm.accept();
@@ -69,6 +70,8 @@ contract PoolOfChance is
         if (_prizeTokenRewardType == PrizeTokenRewardType.FIXED_REWARD) {
             prizeTokenRewardValue = _prizeTokenRewardValue.hasValue() ? _prizeTokenRewardValue : 0;
         }
+        prizeTokenNoRewardValue = _prizeTokenNoRewardValue;
+
         ITokenRoot(stTokenRoot)
             .deployWallet{
                 value: PoolOfChanceGas.WALLET_DEPLOY_VALUE,
@@ -211,6 +214,8 @@ contract PoolOfChance is
             prizeTokenReward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
                 ? depositData.reward
                 : prizeTokenRewardValue.get();
+        } else {
+            prizeTokenReward = prizeTokenNoRewardValue;
         }
 
         require(
@@ -395,6 +400,7 @@ contract PoolOfChance is
 
             prizeTokenRewardType,
             prizeTokenRewardValue,
+            prizeTokenNoRewardValue,
 
             withdrawFee,
 
@@ -446,6 +452,7 @@ contract PoolOfChance is
 
         prizeTokenRewardType = data.prizeTokenRewardType;
         prizeTokenRewardValue = data.prizeTokenRewardValue;
+        prizeTokenNoRewardValue = data.prizeTokenNoRewardValue;
 
         withdrawFee = data.withdrawFee;
 

@@ -108,6 +108,11 @@ async function main() {
       name: "prizeTokenRewardValue",
       message: "prize token reward value (in smallest units of tokens)",
     },
+    {
+      type: "text",
+      name: "prizeTokenNoRewardValue",
+      message: "prize token value transfer for non-winners (in smallest units of tokens)",
+    },
   ]);
   const signer = (await locklift.keystore.getSigner("0"))!;
 
@@ -130,6 +135,7 @@ async function main() {
       _withdrawFee: toNano(Number(response.withdrawFee)),
       _prizeTokenRewardType: response.prizeTokenRewardType,
       _prizeTokenRewardValue: response.prizeTokenRewardValue,
+      _prizeTokenNoRewardValue: response.prizeTokenNoRewardValue,
     },
     publicKey: signer.publicKey,
     initParams: {

@@ -56,6 +56,7 @@ async function main() {
         _withdrawFee: pool.withdrawFee,
         _prizeTokenRewardType: pool.prizeTokenRewardType,
         _prizeTokenRewardValue: pool.prizeTokenRewardValue,
+        _prizeTokenNoRewardValue: pool.prizeTokenNoRewardValue,
       },
       publicKey: signer.publicKey,
       initParams: {
