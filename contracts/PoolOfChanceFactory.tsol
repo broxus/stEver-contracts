@@ -1,0 +1,264 @@
+pragma ever-solidity >= 0.62.0;
+
+pragma AbiHeader time;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import {ErrorCodesPoolOfChance} from "./utils/ErrorCodes.tsol";
+import {IPoolOfChanceFactory} from "./interfaces/IPoolOfChanceFactory.tsol";
+import {IPoolOfChance} from "./interfaces/IPoolOfChance.tsol";
+import {InternalOwner} from "@broxus/contracts/contracts/access/InternalOwner.tsol";
+import {MsgFlag} from "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import {PoolOfChanceGas} from "./utils/Gas.tsol";
+import {PoolOfChance} from "./PoolOfChance.tsol";
+import {RandomNonce} from "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+
+contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory {
+
+    address manager;
+
+    address stTokenRoot;
+    address stEverVault;
+
+    TvmCell poolCode;
+
+    constructor(
+        address _owner,
+        address _stTokenRoot,
+        address _stEverVault,
+        TvmCell _poolCode
+    ) public {
+        require(_owner.value != 0, ErrorCodesPoolOfChance.WRONG_ADDRESS);
+
+        tvm.rawReserve(PoolOfChanceGas.POOL_FACTORY_MIN_BALANCE, 0);
+
+        tvm.accept();
+        setOwnership(_owner);
+
+        stTokenRoot = _stTokenRoot;
+        stEverVault = _stEverVault;
+
+        poolCode = _poolCode;
+
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS });
+    }
+
+    modifier onlyManagerOrOwner() {
+        require(msg.sender == manager || msg.sender == owner, ErrorCodesPoolOfChance.NOT_MANAGER_OR_OWNER);
+        _;
+    }
+
+    modifier onlyManagerOrOwnerOrSelf() {
+        require(
+            msg.sender == manager || msg.sender == owner || msg.sender == address(this),
+            ErrorCodesPoolOfChance.NOT_MANAGER_OR_OWNER
+        );
+        _;
+    }
+
+    modifier reserve() {
+        tvm.rawReserve(PoolOfChanceGas.POOL_FACTORY_MIN_BALANCE, 0);
+        _;
+    }
+
+    function setManager(address _manager) override external onlyOwner {
+        manager = _manager;
+
+        emit newManager(manager);
+    }
+
+    function setPoolCode(TvmCell _poolCode) override onlyOwner external {
+        poolCode = _poolCode;
+
+        emit PoolOfChanceCodeUpgraded(tvm.hash(poolCode));
+    }
+
+    function createPool(
+        uint128 _poolNonce,
+        address _prizeTokenRoot,
+        uint128 _minDepositValue,
+        uint128 _minDepositValueForReward,
+        uint32 _depositsAmountForReward,
+        uint32 _rewardPeriod,
+        uint128 _poolFeeNumerator,
+        uint128 _fundFeeNumerator,
+        address _poolFeeReceiverAddress,
+        address _fundAddress,
+        uint128 _withdrawFee,
+        uint8 _prizeTokenRewardType,
+        optional(uint128) _prizeTokenRewardValue,
+        uint128 _prizeTokenNoRewardValue
+    ) override external view onlyManagerOrOwner reserve {
+        require(msg.value >= PoolOfChanceGas.POOL_DEPLOY_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        TvmCell initData = tvm.buildStateInit({
+            contr: PoolOfChance,
+            varInit: {
+                _randomNonce: _poolNonce,
+                poolFactory: address(this)
+            },
+            pubkey: 0,
+            code: poolCode
+        });
+
+
+        address poolOfChance = new PoolOfChance {
+            stateInit: initData,
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED
+        } (
+            stTokenRoot,
+            stEverVault,
+            _prizeTokenRoot,
+            _minDepositValue,
+            _minDepositValueForReward,
+            _depositsAmountForReward,
+            _rewardPeriod,
+            _poolFeeNumerator,
+            _fundFeeNumerator,
+            _poolFeeReceiverAddress,
+            _fundAddress,
+            _withdrawFee,
+            _prizeTokenRewardType,
+            _prizeTokenRewardValue,
+            _prizeTokenNoRewardValue,
+            msg.sender
+        );
+
+        emit PoolOfChanceCreated(poolOfChance);
+    }
+
+    function upgradePools(
+        address[] _pools,
+        uint32 _offset,
+        address _remainingGasTo
+    )
+        override
+        external
+        view
+        reserve
+        onlyManagerOrOwnerOrSelf
+    {
+        uint length = _pools.length;
+
+        uint takeUntil = math.min(_offset + 10, length);
+
+        for (uint i = _offset; i < takeUntil; i++) {
+            IPoolOfChance(_pools[i])
+                .upgrade{
+                    value: PoolOfChanceGas.UPGRADE_POOL,
+                    flag: MsgFlag.SENDER_PAYS_FEES
+                }(poolCode);
+        }
+
+        if (takeUntil < length) {
+            IPoolOfChanceFactory(address(this))
+                .upgradePools{
+                    value: 0,
+                    flag: MsgFlag.ALL_NOT_RESERVED,
+                    bounce: false
+                }(_pools, uint32(takeUntil), _remainingGasTo);
+        } else {
+            _remainingGasTo.transfer({
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED,
+                bounce: false
+            });
+        }
+    }
+
+    function withdrawAllAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS * 3, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        IPoolOfChance(_pool)
+            .withdrawPrizeTokenAssets{
+                value: PoolOfChanceGas.WITHDRAW_ASSETS,
+                flag: 0
+            }(owner);
+
+        IPoolOfChance(_pool)
+            .withdrawRemainingStAssets{
+                value: PoolOfChanceGas.WITHDRAW_ASSETS,
+                flag: 0
+            }(owner);
+
+        IPoolOfChance(_pool)
+            .withdrawRemainingAssets{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(owner);
+    }
+
+    function withdrawPrizeTokenAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        IPoolOfChance(_pool)
+            .withdrawPrizeTokenAssets{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(owner);
+    }
+
+    function withdrawStAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        IPoolOfChance(_pool)
+            .withdrawRemainingStAssets{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(owner);
+    }
+
+    function withdrawEverAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+
+        IPoolOfChance(_pool)
+            .withdrawRemainingAssets{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(owner);
+    }
+
+    function setPoolFeeReceiverAddress(
+        address _pool,
+        address _poolFeeReceiver
+    ) override external view onlyOwner reserve() {
+        IPoolOfChance(_pool)
+            .setPoolFeeReceiverAddress{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(_poolFeeReceiver);
+    }
+
+    function setFundAddress(
+        address _pool,
+        address _fundAddress
+    ) override external view onlyOwner reserve() {
+        IPoolOfChance(_pool)
+            .setFundAddress{
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED
+            }(_fundAddress);
+    }
+
+    function upgrade(TvmCell _code) override external onlyOwner reserve {
+        TvmCell initData = abi.encode(
+            owner,
+            stTokenRoot,
+            stEverVault,
+            poolCode
+        );
+
+        tvm.setcode(_code);
+        tvm.setCurrentCode(_code);
+
+        emit PoolOfChanceFactoryUpgraded(tvm.hash(_code));
+
+        onCodeUpgrade(initData);
+    }
+
+    function onCodeUpgrade(TvmCell _data) private {
+
+    }
+
+}

@@ -258,33 +258,58 @@ export const deployPrizeTokenRoot = async ({
   return contract;
 };
 
-export const deployPoolOfChance = async ({
+export const deployPoolOfChanceFactory = async ({
   owner,
   stVault,
   stTokenRoot,
-  prizeTokenRoot,
-  participantsAmount,
-  poolFeeReceiver,
-  fund,
   publicKey,
 }: {
   owner: Account;
   stVault: Address;
   stTokenRoot: Address;
+  publicKey: string;
+}) => {
+  const { contract } = await locklift.factory.deployContract({
+    contract: "PoolOfChanceFactory",
+    value: locklift.utils.toNano(5),
+    constructorParams: {
+      _owner: owner.address,
+      _stTokenRoot: stTokenRoot,
+      _stEverVault: stVault,
+      _poolCode: locklift.factory.getContractArtifacts("PoolOfChance").code,
+    },
+    publicKey: publicKey,
+    initParams: {
+      _randomNonce: getRandomNonce(),
+    },
+  });
+
+  return contract;
+};
+
+export const deployPoolOfChance = async ({
+  poolFactory,
+  prizeTokenRoot,
+  participantsAmount,
+  poolFeeReceiver,
+  fund,
+}: {
+  poolFactory: Address;
   prizeTokenRoot: Address;
   participantsAmount: number;
   poolFeeReceiver: Address;
   fund: Address;
-  publicKey: string;
 }) => {
-  const { contract: poolContract, tx } = await locklift.tracing.trace(
-    locklift.factory.deployContract({
-      contract: "PoolOfChance",
-      value: locklift.utils.toNano(10),
-      constructorParams: {
-        _owner: owner.address,
-        _stTokenRoot: stTokenRoot,
-        _stEverVault: stVault,
+  const poolFactoryContract = await locklift.factory.getDeployedContract("PoolOfChanceFactory", poolFactory);
+  const ownerAddress = await poolFactoryContract.methods
+    .owner()
+    .call()
+    .then(a => a.owner);
+
+  const { traceTree } = await locklift.tracing.trace(
+    poolFactoryContract.methods
+      .createPool({
+        _poolNonce: getRandomNonce(),
         _minDepositValue: toNano(10),
         _rewardPeriod: 100,
         _poolFeeNumerator: 20000, // 0.02
@@ -298,13 +323,20 @@ export const deployPoolOfChance = async ({
         _prizeTokenRewardType: 2,
         _prizeTokenRewardValue: toNano(100),
         _prizeTokenNoRewardValue: toNano(25),
-      },
-      publicKey: publicKey,
-      initParams: {
-        _randomNonce: getRandomNonce(),
-      },
-    }),
+      })
+      .send({
+        from: ownerAddress,
+        amount: toNano(6),
+      }),
+    { allowedCodes: { compute: [60] } },
   );
+
+  const poolAddress = traceTree?.findEventsForContract({
+    contract: poolFactoryContract,
+    name: "PoolOfChanceCreated" as const,
+  })[0].poolOfChance!;
+
+  const poolContract = await locklift.factory.getDeployedContract("PoolOfChance", poolAddress);
   expect(await locklift.provider.getBalance(poolContract.address).then(Number)).to.be.above(0);
 
   return poolContract;

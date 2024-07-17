@@ -90,4 +90,6 @@ library ErrorCodesPoolOfChance {
     uint16 constant NOT_LOCKED = 7012;
     uint16 constant BAD_DEPOSIT_AMOUNT = 7013;
     uint16 constant WRONG_ADDRESS = 7014;
+    uint16 constant NOT_MANAGER_OR_OWNER = 7015;
+    uint16 constant NOT_POOL_FACTORY = 7016;
 }

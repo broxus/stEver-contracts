@@ -9,6 +9,7 @@ interface IPoolOfChance {
     }
 
     struct PoolInfo {
+        address poolFactory;
         address stEverVault;
         uint128 everReserves;
         uint128 totalSupply;
@@ -33,7 +34,7 @@ interface IPoolOfChance {
     }
 
     struct PoolOfChanceStorage {
-        address owner;
+        address poolFactory;
         address stEverVault;
 
         address stEverWallet;
@@ -74,6 +75,7 @@ interface IPoolOfChance {
         bool locked;
     }
 
+    event PoolDeployed();
 
     event UpdateMinDepositValue(uint128 current, uint128 previous);
 
@@ -120,15 +122,15 @@ interface IPoolOfChance {
 
     function calculateReward() external;
 
-    function withdrawPrizeTokenAssets() external;
+    function withdrawPrizeTokenAssets(address _recipient) external;
 
-    function withdrawRemainingStAssets() external;
+    function withdrawRemainingStAssets(address _recipient) external;
 
-    function withdrawRemainingAssets() external;
+    function withdrawRemainingAssets(address _recipient) external;
 
-    function withdrawFees() external;
+    function withdrawFees(address _remainingGasTo) external;
 
     function addToEverReserves(uint128 _amount) external;
 
-    function upgrade(TvmCell code) external;
+    function upgrade(TvmCell _code) external;
 }

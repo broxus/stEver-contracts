@@ -26,7 +26,6 @@ contract PoolOfChance is
     IAcceptTokensTransferCallback
 {
     constructor(
-        address _owner,
         address _stTokenRoot,
         address _stEverVault,
         address _prizeTokenRoot,
@@ -41,12 +40,12 @@ contract PoolOfChance is
         uint128 _withdrawFee,
         uint8 _prizeTokenRewardType,
         optional(uint128) _prizeTokenRewardValue,
-        uint128 _prizeTokenNoRewardValue
+        uint128 _prizeTokenNoRewardValue,
+        address _remainingGasTo
     ) public {
-        tvm.rawReserve(PoolOfChanceGas.CONTRACT_MIN_BALANCE, 0);
+        tvm.rawReserve(PoolOfChanceGas.POOL_MIN_BALANCE, 0);
         tvm.accept();
 
-        setOwnership(_owner);
         stEverVault = _stEverVault;
         stTokenRoot = _stTokenRoot;
         prizeTokenRoot = _prizeTokenRoot;
@@ -88,7 +87,9 @@ contract PoolOfChance is
                 bounce: false
             }(address(this), PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE);
 
-        owner.transfer({
+        emit PoolDeployed();
+
+        _remainingGasTo.transfer({
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS
         });
@@ -225,7 +226,7 @@ contract PoolOfChance is
 
         tvm.rawReserve(
             math.max(
-                PoolOfChanceGas.CONTRACT_MIN_BALANCE,
+                PoolOfChanceGas.POOL_MIN_BALANCE,
                 address(this).balance - msg.value - withdrawal
             ),
             0
@@ -365,14 +366,14 @@ contract PoolOfChance is
         external
         override
         reserve()
-        onlyOwner
+        onlyPoolFactory
     {
-        require(msg.value >= PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+        require(msg.value >= PoolOfChanceGas.UPGRADE_POOL, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
 
         emit PoolUpgraded();
 
         TvmCell data = abi.encode(PoolOfChanceStorage(
-            owner,
+            poolFactory,
             stEverVault,
 
             stEverWallet,
@@ -424,7 +425,7 @@ contract PoolOfChance is
 
         PoolOfChanceStorage data = abi.decode(_data, PoolOfChanceStorage);
 
-        owner = data.owner;
+        poolFactory = data.poolFactory;
         stEverVault = data.stEverVault;
 
         stEverWallet = data.stEverWallet;
@@ -463,11 +464,5 @@ contract PoolOfChance is
         pendingDeposits = data.pendingDeposits;
 
         isLocked = data.locked;
-
-        owner.transfer({
-            value: 0,
-            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
-            bounce: false
-        });
     }
 }

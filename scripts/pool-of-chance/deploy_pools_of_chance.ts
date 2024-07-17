@@ -24,9 +24,7 @@ async function main() {
     console.log("Start deploy pool of chance with id:", pool.id);
 
     if (
-      !isValidAddress(pool.owner) ||
-      !isValidAddress(pool.stTokenRoot) ||
-      !isValidAddress(pool.stVault) ||
+      !isValidAddress(pool.poolFactory) ||
       !isValidAddress(pool.prizeTokenRoot) ||
       Number(pool.poolFee) > 1000000 ||
       Number(pool.fundFee) > 1000000 ||
@@ -37,38 +35,15 @@ async function main() {
       break;
     }
 
-    const { contract: poolContract } = await locklift.factory.deployContract({
-      contract: "PoolOfChance",
-      value: locklift.utils.toNano(5),
-      constructorParams: {
-        _owner: pool.owner,
-        _stTokenRoot: pool.stTokenRoot,
-        _stEverVault: pool.stVault,
-        _minDepositValue: pool.minDepositValue,
-        _rewardPeriod: pool.rewardPeriod,
-        _poolFeeNumerator: pool.poolFee,
-        _fundFeeNumerator: pool.fundFee,
-        _prizeTokenRoot: pool.prizeTokenRoot,
-        _minDepositValueForReward: pool.minDepositValueForReward,
-        _depositsAmountForReward: pool.depositsAmountForReward,
-        _poolFeeReceiverAddress: pool.poolFeeReceiver,
-        _fundAddress: pool.fund,
-        _withdrawFee: pool.withdrawFee,
-        _prizeTokenRewardType: pool.prizeTokenRewardType,
-        _prizeTokenRewardValue: pool.prizeTokenRewardValue,
-        _prizeTokenNoRewardValue: pool.prizeTokenNoRewardValue,
-      },
-      publicKey: signer.publicKey,
-      initParams: {
-        _randomNonce: getRandomNonce(),
-      },
-    });
-
-    logger.successStep(`PoolOfChance deployed: ${poolContract.address.toString()}`);
+    const poolFactory = await locklift.factory.getDeployedContract("PoolOfChanceFactory", pool.poolFactory);
+    const ownerAddress = await poolFactory.methods
+      .owner()
+      .call()
+      .then(a => a.owner);
 
     const admin = await locklift.factory.accounts.addExistingAccount({
       type: WalletTypes.EverWallet,
-      address: pool.owner,
+      address: ownerAddress,
     });
 
     // test admin
@@ -79,6 +54,39 @@ async function main() {
     //     publicKey: signer.publicKey,
     //   })
     // ).account;
+
+    const { traceTree } = await locklift.tracing.trace(
+      poolFactory.methods
+        .createPool({
+          _poolNonce: getRandomNonce(),
+          _minDepositValue: pool.minDepositValue,
+          _rewardPeriod: pool.rewardPeriod,
+          _poolFeeNumerator: pool.poolFee,
+          _fundFeeNumerator: pool.fundFee,
+          _prizeTokenRoot: pool.prizeTokenRoot,
+          _minDepositValueForReward: pool.minDepositValueForReward,
+          _depositsAmountForReward: pool.depositsAmountForReward,
+          _poolFeeReceiverAddress: pool.poolFeeReceiver,
+          _fundAddress: pool.fund,
+          _withdrawFee: pool.withdrawFee,
+          _prizeTokenRewardType: pool.prizeTokenRewardType,
+          _prizeTokenRewardValue: pool.prizeTokenRewardValue,
+          _prizeTokenNoRewardValue: pool.prizeTokenNoRewardValue,
+        })
+        .send({
+          from: admin.address,
+          amount: toNano(6),
+        }),
+    );
+
+    const poolAddress = traceTree?.findEventsForContract({
+      contract: poolFactory,
+      name: "PoolOfChanceCreated" as const,
+    })[0].poolOfChance!;
+
+    logger.successStep(`PoolOfChance deployed: ${poolAddress.toString()}`);
+
+    const poolContract = await locklift.factory.getDeployedContract("PoolOfChance", poolAddress);
 
     if (Number(pool.addEverReserves) > 0) {
       await locklift.transactions.waitFinalized(

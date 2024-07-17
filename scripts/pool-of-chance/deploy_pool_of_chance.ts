@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { Contract, getRandomNonce, toNano } from "locklift";
+import { Contract, getRandomNonce, toNano, WalletTypes } from "locklift";
 import prompts from "prompts";
 import { isValidAddress, logger } from "../utils";
 import { PoolOfChanceAbi } from "../../build/factorySource";
@@ -24,20 +24,8 @@ async function main() {
   const response = await prompts([
     {
       type: "text",
-      name: "owner",
-      message: "admin(owner) wallet address",
-      validate: (value: string) => (isValidAddress(value) ? true : "Invalid address"),
-    },
-    {
-      type: "text",
-      name: "stTokenRoot",
-      message: "stEver token root address",
-      validate: (value: string) => (isValidAddress(value) ? true : "Invalid address"),
-    },
-    {
-      type: "text",
-      name: "stVault",
-      message: "stEverVault address",
+      name: "poolFactory",
+      message: "poolFactory address",
       validate: (value: string) => (isValidAddress(value) ? true : "Invalid address"),
     },
     {
@@ -114,39 +102,53 @@ async function main() {
       message: "prize token value transfer for non-winners (in smallest units of tokens)",
     },
   ]);
-  const signer = (await locklift.keystore.getSigner("0"))!;
 
-  const { contract } = await locklift.factory.deployContract({
-    contract: "PoolOfChance",
-    value: locklift.utils.toNano(5),
-    constructorParams: {
-      _owner: response.owner,
-      _stTokenRoot: response.stTokenRoot,
-      _stEverVault: response.stVault,
-      _minDepositValue: toNano(response.minDepositValue),
-      _rewardPeriod: response.rewardPeriod,
-      _poolFeeNumerator: response.poolFee,
-      _fundFeeNumerator: response.fundFee,
-      _prizeTokenRoot: response.prizeTokenRoot,
-      _minDepositValueForReward: toNano(response.minDepositValueForReward),
-      _depositsAmountForReward: response.depositsAmountForReward,
-      _poolFeeReceiverAddress: response.poolFeeReceiver,
-      _fundAddress: response.fund,
-      _withdrawFee: toNano(Number(response.withdrawFee)),
-      _prizeTokenRewardType: response.prizeTokenRewardType,
-      _prizeTokenRewardValue: response.prizeTokenRewardValue,
-      _prizeTokenNoRewardValue: response.prizeTokenNoRewardValue,
-    },
-    publicKey: signer.publicKey,
-    initParams: {
-      _randomNonce: getRandomNonce(),
-    },
+  const poolFactory = await locklift.factory.getDeployedContract("PoolOfChanceFactory", response.poolFactory);
+  const ownerAddress = await poolFactory.methods
+    .owner()
+    .call()
+    .then(a => a.owner);
+
+  const admin = await locklift.factory.accounts.addExistingAccount({
+    type: WalletTypes.EverWallet,
+    address: ownerAddress,
   });
 
-  logger.successStep(`PoolOfChance deployed: ${contract.address.toString()}`);
+  const { traceTree } = await locklift.tracing.trace(
+    poolFactory.methods
+      .createPool({
+        _poolNonce: getRandomNonce(),
+        _minDepositValue: toNano(response.minDepositValue),
+        _rewardPeriod: response.rewardPeriod,
+        _poolFeeNumerator: response.poolFee,
+        _fundFeeNumerator: response.fundFee,
+        _prizeTokenRoot: response.prizeTokenRoot,
+        _minDepositValueForReward: toNano(response.minDepositValueForReward),
+        _depositsAmountForReward: response.depositsAmountForReward,
+        _poolFeeReceiverAddress: response.poolFeeReceiver,
+        _fundAddress: response.fund,
+        _withdrawFee: toNano(Number(response.withdrawFee)),
+        _prizeTokenRewardType: response.prizeTokenRewardType,
+        _prizeTokenRewardValue: response.prizeTokenRewardValue,
+        _prizeTokenNoRewardValue: response.prizeTokenNoRewardValue,
+      })
+      .send({
+        from: admin.address,
+        amount: toNano(6),
+      }),
+  );
 
-  logger.info(`Pool info: ${JSON.stringify(await getPoolInfo(contract), null, 4)}`);
-  logger.info(`Reward info: ${JSON.stringify(await getRewardInfo(contract), null, 4)}`);
+  const poolAddress = traceTree?.findEventsForContract({
+    contract: poolFactory,
+    name: "PoolOfChanceCreated" as const,
+  })[0].poolOfChance!;
+
+  logger.successStep(`PoolOfChance deployed: ${poolAddress.toString()}`);
+
+  const pool = await locklift.factory.getDeployedContract("PoolOfChance", poolAddress);
+
+  logger.info(`Pool info: ${JSON.stringify(await getPoolInfo(pool), null, 4)}`);
+  logger.info(`Reward info: ${JSON.stringify(await getRewardInfo(pool), null, 4)}`);
 }
 
 main()
