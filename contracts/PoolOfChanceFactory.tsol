@@ -167,7 +167,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
         }
     }
 
-    function withdrawAllAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+    function withdrawAllAssetsFromPool(address _pool) override external view onlyOwner reserve {
         require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS * 3, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
 
         IPoolOfChance(_pool)
@@ -189,7 +189,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
             }(owner);
     }
 
-    function withdrawPrizeTokenAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+    function withdrawPrizeTokenAssetsFromPool(address _pool) override external view onlyOwner reserve {
         require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
 
         IPoolOfChance(_pool)
@@ -199,7 +199,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
             }(owner);
     }
 
-    function withdrawStAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+    function withdrawStAssetsFromPool(address _pool) override external view onlyOwner reserve {
         require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
 
         IPoolOfChance(_pool)
@@ -209,7 +209,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
             }(owner);
     }
 
-    function withdrawEverAssetsFromPool(address _pool) override external view onlyOwner reserve() {
+    function withdrawEverAssetsFromPool(address _pool) override external view onlyOwner reserve {
         require(msg.value >= PoolOfChanceGas.WITHDRAW_ASSETS, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
 
         IPoolOfChance(_pool)
@@ -222,7 +222,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
     function setPoolFeeReceiverAddress(
         address _pool,
         address _poolFeeReceiver
-    ) override external view onlyOwner reserve() {
+    ) override external view onlyOwner reserve {
         IPoolOfChance(_pool)
             .setPoolFeeReceiverAddress{
                 value: 0,
@@ -233,7 +233,7 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
     function setFundAddress(
         address _pool,
         address _fundAddress
-    ) override external view onlyOwner reserve() {
+    ) override external view onlyOwner reserve {
         IPoolOfChance(_pool)
             .setFundAddress{
                 value: 0,
@@ -258,7 +258,25 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
     }
 
     function onCodeUpgrade(TvmCell _data) private {
+        tvm.resetStorage();
 
+        (
+            owner,
+            stTokenRoot,
+            stEverVault,
+            poolCode
+        ) = abi.decode(_data, (
+            address,
+            address,
+            address,
+            TvmCell
+        ));
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
     }
 
 }
