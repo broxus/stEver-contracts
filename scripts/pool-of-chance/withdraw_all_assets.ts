@@ -1,4 +1,4 @@
-import { toNano, WalletTypes } from "locklift";
+import { toNano } from "locklift";
 
 import data from "./pools_to_withdraw.json";
 
@@ -8,11 +8,6 @@ async function main() {
     .owner()
     .call()
     .then(a => a.owner);
-
-  const admin = await locklift.factory.accounts.addExistingAccount({
-    type: WalletTypes.EverWallet,
-    address: ownerAddress,
-  });
 
   const stTokenRoot = await locklift.factory.getDeployedContract(
     "TokenRootUpgradeable",
@@ -27,8 +22,8 @@ async function main() {
           _pool: pool,
         })
         .send({
-          from: admin.address,
-          amount: toNano(6),
+          from: ownerAddress,
+          amount: toNano(5),
         }),
       { allowedCodes: { compute: [7010] } },
     );
@@ -36,7 +31,7 @@ async function main() {
       "St balance change:",
       traceTree?.tokens.getTokenBalanceChange(
         await stTokenRoot.methods
-          .walletOf({ answerId: 0, walletOwner: admin.address })
+          .walletOf({ answerId: 0, walletOwner: ownerAddress })
           .call()
           .then(a => a.value0),
       ),
@@ -53,12 +48,12 @@ async function main() {
       "Prize token balance change:",
       traceTree?.tokens.getTokenBalanceChange(
         await prizeTokenRoot.methods
-          .walletOf({ answerId: 0, walletOwner: admin.address })
+          .walletOf({ answerId: 0, walletOwner: ownerAddress })
           .call()
           .then(a => a.value0),
       ),
     );
-    console.log("Venom balance change:", traceTree?.getBalanceDiff(admin.address));
+    console.log("Venom balance change:", traceTree?.getBalanceDiff(ownerAddress));
   }
 }
 
