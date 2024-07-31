@@ -279,4 +279,15 @@ contract PoolOfChanceFactory is RandomNonce, InternalOwner, IPoolOfChanceFactory
         });
     }
 
+    onBounce(TvmSlice /* _body */)
+        external
+        view
+        reserve
+    {
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
+        });
+    }
 }

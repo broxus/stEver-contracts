@@ -92,4 +92,5 @@ library ErrorCodesPoolOfChance {
     uint16 constant WRONG_ADDRESS = 7014;
     uint16 constant NOT_MANAGER_OR_OWNER = 7015;
     uint16 constant NOT_POOL_FACTORY = 7016;
+    uint16 constant END_OF_ROUND = 7017;
 }

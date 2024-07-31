@@ -203,7 +203,7 @@ abstract contract PoolOfChanceBase is
                 reward += prizeTokenNoRewardValue;
             }
         }
-        require(totalPrizeTokenSupply >= reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        require(totalPrizeTokenSupply > reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
         uint128 withdrawal = totalPrizeTokenSupply - reward;
         totalPrizeTokenSupply = reward;
@@ -232,6 +232,8 @@ abstract contract PoolOfChanceBase is
         locked
         reserve()
     {
+        require(totalStSupply > 0, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
         TvmCell empty;
         ITokenWallet(stEverWallet)
             .transfer{

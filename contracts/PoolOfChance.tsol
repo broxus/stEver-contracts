@@ -131,6 +131,7 @@ contract PoolOfChance is
         require(msg.value >= _amount + PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
         require(!pendingDeposits.exists(_nonce), ErrorCodesPoolOfChance.NONCE_ALREADY_EXISTS);
         require(_amount >= minDepositValue, ErrorCodesPoolOfChance.BAD_DEPOSIT_AMOUNT);
+        require(now < rewardTimestamp, ErrorCodesPoolOfChance.END_OF_ROUND);
 
         uint128 n;
         for ((, DepositData depositData): depositsData) {
@@ -291,7 +292,7 @@ contract PoolOfChance is
             }();
     }
 
-    function onStEverVaultDetails(IStEverVault.Details _details) external {
+    function onStEverVaultDetails(IStEverVault.Details _details) external notLocked {
         require (msg.sender == stEverVault, ErrorCodesPoolOfChance.NOT_ST_EVER_VAULT);
 
         isLocked = true;
