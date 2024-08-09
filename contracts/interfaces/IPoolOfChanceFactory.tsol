@@ -11,6 +11,7 @@ interface IPoolOfChanceFactory {
     function setPoolCode(TvmCell _poolCode) external;
 
     function createPool(
+        address _owner,
         uint128 _poolNonce,
         address _prizeTokenRoot,
         uint128 _minDepositValue,
@@ -25,27 +26,6 @@ interface IPoolOfChanceFactory {
         uint8 _prizeTokenRewardType,
         optional(uint128) _prizeTokenRewardValue,
         uint128 _prizeTokenNoRewardValue
-    ) external view;
-
-    function upgradePools(
-        address[] _pools,
-        uint32 _offset,
-        address _remainingGasTo
-    ) external view;
-
-    function withdrawAllAssetsFromPool(address _pool) external view;
-    function withdrawPrizeTokenAssetsFromPool(address _pool) external view;
-    function withdrawStAssetsFromPool(address _pool) external view;
-    function withdrawEverAssetsFromPool(address _pool) external view;
-
-    function setPoolFeeReceiverAddress(
-        address _pool,
-        address _poolFeeReceiver
-    ) external view;
-
-    function setFundAddress(
-        address _pool,
-        address _fundAddress
     ) external view;
 
     function upgrade(TvmCell _code) external;

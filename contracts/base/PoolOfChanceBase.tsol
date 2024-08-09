@@ -15,9 +15,11 @@ import {IStEverVault} from "../interfaces/IStEverVault.tsol";
 
 abstract contract PoolOfChanceBase is
     RandomNonce,
+    InternalOwner,
     IPoolOfChance
 {
     uint128 constant DENOMINATOR = 1000000;
+    uint128 constant MAX_POOL_CAPACITY = 10000; // active + inactive deposits
 
     address static poolFactory;
 
@@ -52,27 +54,24 @@ abstract contract PoolOfChanceBase is
 
     uint128 withdrawFee;
 
-    uint128 accFundFee;
-    uint128 accPoolFee;
-
-    mapping(address => DepositData) depositsData; // user -> {Ever deposit, Ever reward minus fee}
+    mapping(address => uint128) depositsData; // user -> Ever deposit
     mapping(uint64 => address) pendingDeposits; // nonce -> user
 
     bool isLocked;
 
+    address tempRemainingGasTo;
+    DepositAndRewardStats stats;
+
     modifier reserve() {
-        tvm.rawReserve(
-            math.max(
-                PoolOfChanceGas.POOL_MIN_BALANCE,
-                address(this).balance - msg.value
-            ),
-            0
-        );
+        tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
         _;
     }
 
-    modifier onlyPoolFactory() {
-        require(msg.sender == poolFactory, ErrorCodesPoolOfChance.NOT_POOL_FACTORY);
+    modifier onlyOwnerOrSelf() {
+        require(
+            msg.sender.value != 0 && (msg.sender == owner || msg.sender == address(this)),
+            ErrorCodesPoolOfChance.NOT_OWNER_OR_SELF
+        );
         _;
     }
 
@@ -101,18 +100,19 @@ abstract contract PoolOfChanceBase is
     }
 
 
-    function getDepositData(address user) override responsible external returns(optional(DepositData)) {
-        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} depositsData.fetch(user);
+    function getDepositData(address user) override responsible external returns(DepositData) {
+        DepositData data;
+        if (depositsData.exists(user)) {
+            data.deposit = depositsData[user];
+        }
+        if (stats.rewardAssignee == user) {
+            data.reward = stats.reward;
+        }
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} data;
     }
 
     function getActiveDepositsAmount() override responsible external returns(uint128) {
-        uint128 users = 0;
-        for ((, DepositData depositData): depositsData) {
-            if (depositData.deposit >= minDepositValueForReward) {
-                users += 1;
-            }
-        }
-        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} users;
+        return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} stats.activeDepositsAmount;
     }
 
     function getPoolFeeReceiverAddress() override responsible external returns(address) {
@@ -125,6 +125,7 @@ abstract contract PoolOfChanceBase is
 
     function getPoolInfo() override responsible external returns(PoolInfo) {
         return {value:0, flag: MsgFlag.REMAINING_GAS, bounce: false} PoolInfo(
+            owner,
             poolFactory,
             stEverVault,
             everReserves,
@@ -157,12 +158,12 @@ abstract contract PoolOfChanceBase is
     }
 
 
-    function setPoolFeeReceiverAddress(address _poolFeeReceiver) override external onlyPoolFactory reserve() {
+    function setPoolFeeReceiverAddress(address _poolFeeReceiver) override external onlyOwner reserve() {
         emit UpdatePoolFeeReceiverAddress(_poolFeeReceiver, poolFeeReceiverAddress);
         poolFeeReceiverAddress = _poolFeeReceiver;
     }
 
-    function setFundAddress(address _fundAddress) override external onlyPoolFactory reserve() {
+    function setFundAddress(address _fundAddress) override external onlyOwner reserve() {
         emit UpdateFundAddress(fundAddress, _fundAddress);
         fundAddress = _fundAddress;
     }
@@ -173,9 +174,9 @@ abstract contract PoolOfChanceBase is
             ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE
         );
 
-        tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
-
         everReserves += _amount;
+
+        tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
 
         emit EverReservesSync(everReserves);
 
@@ -186,137 +187,201 @@ abstract contract PoolOfChanceBase is
         });
     }
 
-    function withdrawPrizeTokenAssets(address _recipient)
-        override
-        external
-        onlyPoolFactory
-        reserve()
-        locked
-    {
-        uint128 reward = 0;
-        for ((, DepositData depositData): depositsData) {
-            if (depositData.reward > 0) {
-                reward += prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
-                    ? depositData.reward
-                    : prizeTokenRewardValue.get();
-            } else {
-                reward += prizeTokenNoRewardValue;
-            }
-        }
-        require(totalPrizeTokenSupply > reward, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+    function _calcRemainingAssets() internal view returns(uint128, uint128) {
+        uint128 everWithdrawal = 0;
+        uint128 prizeTokenWithdrawal = 0;
 
-        uint128 withdrawal = totalPrizeTokenSupply - reward;
-        totalPrizeTokenSupply = reward;
+        uint128 reward = (math.max(stats.activeDepositsAmount, 1) - 1) * prizeTokenNoRewardValue;
+        if (stats.reward > 0) {
+            if (prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD) {
+                reward += stats.reward;
+            } else {
+                reward += prizeTokenRewardValue.get();
+            }
+        } else {
+            reward += prizeTokenNoRewardValue; // todo specify
+        }
+        uint128 reservesInUse =
+            totalSupply + stats.reward -
+            (stats.activeDepositsAmount + stats.inactiveDepositsAmount) * withdrawFee +
+            stats.accFundFee + stats.accPoolFee;
+
+        if (reward < totalPrizeTokenSupply) {
+            prizeTokenWithdrawal = totalPrizeTokenSupply - reward;
+        }
+        if (reservesInUse < everReserves) {
+            everWithdrawal = everReserves - reservesInUse;
+        }
+
+        return (everWithdrawal, prizeTokenWithdrawal);
+    }
+
+    function _withdrawPrizeTokenAssets(
+        uint128 _withdrawal,
+        address _remainingGasTo,
+        uint16 _flag
+    ) internal {
+        totalPrizeTokenSupply -= _withdrawal;
 
         emit PrizeTokenReservesSync(totalPrizeTokenSupply);
 
         TvmCell empty;
         ITokenWallet(prizeTokenWallet)
             .transfer{
-                value: 0,
-                flag: MsgFlag.ALL_NOT_RESERVED
+                value: PoolOfChanceGas.TRANSFER_VALUE,
+                flag: _flag
             }(
-                withdrawal,
-                _recipient,
-                PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
-                _recipient,
-                true,
-                empty
+            _withdrawal,
+            owner,
+            PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
+            _remainingGasTo,
+            true,
+            empty
         );
     }
 
-    function withdrawRemainingStAssets(address _recipient)
+    function withdrawAllAssets()
         override
         external
-        onlyPoolFactory
-        locked
-        reserve()
-    {
-        require(totalStSupply > 0, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
-
-        TvmCell empty;
-        ITokenWallet(stEverWallet)
-            .transfer{
-                value: 0,
-                flag: MsgFlag.ALL_NOT_RESERVED
-            }(
-                totalStSupply,
-                _recipient,
-                PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
-                _recipient,
-                true,
-                empty
-        );
-
-        totalStSupply = 0;
-    }
-
-    function withdrawRemainingAssets(address _recipient)
-        override
-        external
-        onlyPoolFactory
+        onlyOwnerOrSelf
         locked
     {
-        uint128 sumOfUsersWithdrawals = 0;
-        for ((, DepositData depositData): depositsData) {
-            sumOfUsersWithdrawals += math.max(depositData.deposit + depositData.reward, withdrawFee) - withdrawFee;
+        (uint128 everWithdrawal, uint128 prizeTokenWithdrawal) = _calcRemainingAssets();
+
+        address _remainingGasTo = msg.sender == owner ? owner : tempRemainingGasTo;
+
+        if (prizeTokenWithdrawal > 0) {
+            _withdrawPrizeTokenAssets(
+                prizeTokenWithdrawal,
+                _remainingGasTo,
+                MsgFlag.SENDER_PAYS_FEES
+            );
         }
-        uint128 reservesInUse = sumOfUsersWithdrawals + accPoolFee + accFundFee;
-        require(everReserves >= reservesInUse, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
-        tvm.rawReserve(
-            PoolOfChanceGas.POOL_MIN_BALANCE + reservesInUse,
-            0
-        );
+        if (totalStSupply > 0) {
+            _withdrawStAssets(_remainingGasTo, MsgFlag.SENDER_PAYS_FEES);
+        }
 
-        everReserves = reservesInUse;
-        emit EverReservesSync(everReserves);
+        if (everWithdrawal > 0) {
+            owner.transfer({
+                value: everWithdrawal,
+                flag: MsgFlag.SENDER_PAYS_FEES,
+                bounce: false
+            });
+        }
+        everReserves -= everWithdrawal;
 
-        _recipient.transfer({
+        tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
+
+        _remainingGasTo.transfer({
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
             bounce: false
         });
     }
 
-    function withdrawFees(address _remainingGasTo)
+    function withdrawPrizeTokenAssets()
         override
         external
-        onlyPoolFactory
+        onlyOwner
+        reserve()
+        locked
     {
-        require(msg.value >= PoolOfChanceGas.WITHDRAW_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
-        require(everReserves >= accFundFee + accPoolFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
-        require(poolFeeReceiverAddress.value != 0 && fundAddress.value != 0, ErrorCodesPoolOfChance.WRONG_ADDRESS);
+        (, uint128 withdrawal) = _calcRemainingAssets();
+        require(withdrawal > 0, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
 
-        tvm.rawReserve(
-            math.max(
-                PoolOfChanceGas.POOL_MIN_BALANCE,
-                address(this).balance - msg.value - accFundFee - accPoolFee
-            ),
-            0
+        _withdrawPrizeTokenAssets(withdrawal, owner, MsgFlag.ALL_NOT_RESERVED);
+    }
+
+    function _withdrawStAssets(
+        address _remainingGasTo,
+        uint16 _flag
+    ) internal {
+        TvmCell empty;
+        ITokenWallet(stEverWallet)
+            .transfer{
+                value: PoolOfChanceGas.TRANSFER_VALUE,
+                flag: _flag
+            }(
+            totalStSupply,
+            owner,
+            PoolOfChanceGas.WALLET_DEPLOY_GRAMS_VALUE,
+            _remainingGasTo,
+            true,
+            empty
         );
 
-        if (accPoolFee > 0) {
+        totalStSupply = 0;
+    }
+
+    function withdrawRemainingStAssets()
+        override
+        external
+        onlyOwner
+        locked
+        reserve()
+    {
+        require(totalStSupply > 0, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        _withdrawStAssets(owner, MsgFlag.ALL_NOT_RESERVED);
+    }
+
+    function withdrawRemainingAssets()
+        override
+        external
+        onlyOwner
+        locked
+    {
+        (uint128 withdrawal,) = _calcRemainingAssets();
+        require(withdrawal > 0, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+
+        everReserves -= withdrawal;
+
+        tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
+
+        emit EverReservesSync(everReserves);
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    function withdrawFees()
+        override
+        external
+        onlyOwner
+    {
+        require(msg.value >= PoolOfChanceGas.WITHDRAW_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
+        require(everReserves >= stats.accFundFee + stats.accPoolFee, ErrorCodesPoolOfChance.NOT_ENOUGH_FUNDS);
+        require(poolFeeReceiverAddress.value != 0 && fundAddress.value != 0, ErrorCodesPoolOfChance.WRONG_ADDRESS);
+
+        everReserves -= stats.accFundFee + stats.accPoolFee;
+
+        tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
+
+        if (stats.accPoolFee > 0) {
             poolFeeReceiverAddress.transfer({
-                value: accPoolFee,
+                value: stats.accPoolFee,
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
             });
 
-            accPoolFee = 0;
+            stats.accPoolFee = 0;
         }
 
-        if (accFundFee > 0) {
+        if (stats.accFundFee > 0) {
             fundAddress.transfer({
-                value: accFundFee,
+                value: stats.accFundFee,
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
             });
 
-            accFundFee = 0;
+            stats.accFundFee = 0;
         }
 
-        _remainingGasTo.transfer({
+        owner.transfer({
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
             bounce: false

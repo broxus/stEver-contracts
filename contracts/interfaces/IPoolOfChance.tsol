@@ -5,10 +5,20 @@ interface IPoolOfChance {
     struct DepositData {
         uint128 deposit;
         uint128 reward;
-        uint32 depositTime;
+    }
+
+    struct DepositAndRewardStats {
+        uint16 activeDepositsAmount;
+        uint16 inactiveDepositsAmount;
+        address[] activeUsers;
+        uint128 reward;
+        uint128 accFundFee;
+        uint128 accPoolFee;
+        address rewardAssignee;
     }
 
     struct PoolInfo {
+        address owner;
         address poolFactory;
         address stEverVault;
         uint128 everReserves;
@@ -34,6 +44,7 @@ interface IPoolOfChance {
     }
 
     struct PoolOfChanceStorage {
+        address owner;
         address poolFactory;
         address stEverVault;
 
@@ -66,10 +77,10 @@ interface IPoolOfChance {
 
         uint128 withdrawFee;
 
-        uint128 accFundFee;
-        uint128 accPoolFee;
+        address tempRemainingGasTo;
+        DepositAndRewardStats stats;
 
-        mapping(address => DepositData) depositsData;
+        mapping(address => uint128) depositsData;
         mapping(uint64 => address) pendingDeposits;
 
         bool locked;
@@ -83,7 +94,7 @@ interface IPoolOfChance {
 
     event UpdateFundAddress(address current, address previous);
 
-    event Deposit(address user, uint128 amount, uint128 stAmount, uint32 timestamp, uint128 totalSupply, uint128 totalStSupply);
+    event Deposit(address user, uint128 amount, uint128 stAmount, uint128 totalSupply, uint128 totalStSupply, uint128 nonce);
 
     event Withdrawal(address user, uint128 amount, uint128 reward, uint128 totalSupply, uint128 withdrawFee, uint128 withdrawal);
 
@@ -97,7 +108,7 @@ interface IPoolOfChance {
     event PoolUpgraded();
 
 
-    function getDepositData(address user) responsible external returns(optional(DepositData));
+    function getDepositData(address user) responsible external returns(DepositData);
 
     function getActiveDepositsAmount() responsible external returns(uint128);
 
@@ -122,13 +133,15 @@ interface IPoolOfChance {
 
     function calculateReward() external;
 
-    function withdrawPrizeTokenAssets(address _recipient) external;
+    function withdrawAllAssets() external;
 
-    function withdrawRemainingStAssets(address _recipient) external;
+    function withdrawPrizeTokenAssets() external;
 
-    function withdrawRemainingAssets(address _recipient) external;
+    function withdrawRemainingStAssets() external;
 
-    function withdrawFees(address _remainingGasTo) external;
+    function withdrawRemainingAssets() external;
+
+    function withdrawFees() external;
 
     function addToEverReserves(uint128 _amount) external;
 

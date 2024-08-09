@@ -16,16 +16,13 @@ async function main() {
 
   for (const pool of data.pools) {
     console.log("Withdraw from pool:", pool);
+
+    const poolContract = locklift.factory.getDeployedContract("PoolOfChance", pool);
     const { traceTree } = await locklift.tracing.trace(
-      poolFactory.methods
-        .withdrawAllAssetsFromPool({
-          _pool: pool,
-        })
-        .send({
-          from: ownerAddress,
-          amount: toNano(5),
-        }),
-      { allowedCodes: { compute: [7010] } },
+      poolContract.methods.withdrawAllAssets().send({
+        from: ownerAddress,
+        amount: toNano(3),
+      }),
     );
     console.log(
       "St balance change:",

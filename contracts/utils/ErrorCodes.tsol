@@ -80,17 +80,18 @@ library ErrorCodesPoolOfChance {
     uint16 constant NOT_TOKEN_ROOT = 7002;
     uint16 constant NOT_ROOT_WALLET = 7003;
     uint16 constant NONCE_ALREADY_EXISTS = 7004;
-    uint16 constant ACTIVE_DEPOSITS_EXISTS = 7005;
+    uint16 constant POOL_IS_FULL = 7005;
     uint16 constant TOO_SOON_TO_CALCULATE_REWARD = 7006;
     uint16 constant NOT_ST_EVER_VAULT = 7007;
     uint16 constant NOT_ACTIVE_USER = 7008;
     uint16 constant LOCKED = 7009;
     uint16 constant NOT_ENOUGH_FUNDS = 7010;
-    uint16 constant DEPOSITS_POOL_IS_FULL = 7011;
+    uint16 constant MIN_DEPOSIT_VALUE_IS_LESS_THAN_FEE = 7011;
     uint16 constant NOT_LOCKED = 7012;
     uint16 constant BAD_DEPOSIT_AMOUNT = 7013;
     uint16 constant WRONG_ADDRESS = 7014;
     uint16 constant NOT_MANAGER_OR_OWNER = 7015;
-    uint16 constant NOT_POOL_FACTORY = 7016;
+    uint16 constant NOT_OWNER_OR_SELF = 7016;
     uint16 constant END_OF_ROUND = 7017;
+    uint16 constant TOO_MUCH_INACTIVE_DEPOSITS = 7018;
 }

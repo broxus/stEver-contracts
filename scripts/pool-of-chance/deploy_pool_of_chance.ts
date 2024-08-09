@@ -30,6 +30,12 @@ async function main() {
     },
     {
       type: "text",
+      name: "owner",
+      message: "Pool of chance owner",
+      validate: (value: string) => (isValidAddress(value) ? true : "Invalid address"),
+    },
+    {
+      type: "text",
       name: "prizeTokenRoot",
       message: "prize token root address",
       validate: (value: string) => (isValidAddress(value) ? true : "Invalid address"),
@@ -117,6 +123,7 @@ async function main() {
   const { traceTree } = await locklift.tracing.trace(
     poolFactory.methods
       .createPool({
+        _owner: response.owner,
         _poolNonce: getRandomNonce(),
         _minDepositValue: toNano(response.minDepositValue),
         _rewardPeriod: response.rewardPeriod,

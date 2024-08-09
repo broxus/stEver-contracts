@@ -58,6 +58,7 @@ async function main() {
     const { traceTree } = await locklift.tracing.trace(
       poolFactory.methods
         .createPool({
+          _owner: pool.owner,
           _poolNonce: getRandomNonce(),
           _minDepositValue: pool.minDepositValue,
           _rewardPeriod: pool.rewardPeriod,
