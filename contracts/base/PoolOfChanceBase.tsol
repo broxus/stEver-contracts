@@ -198,9 +198,10 @@ abstract contract PoolOfChanceBase is
             } else {
                 reward += prizeTokenRewardValue.get();
             }
-        } else {
-            reward += prizeTokenNoRewardValue; // todo specify
+        } else if (stats.activeDepositsAmount > 0) {
+            reward += prizeTokenNoRewardValue;
         }
+
         uint128 reservesInUse =
             totalSupply + stats.reward -
             (stats.activeDepositsAmount + stats.inactiveDepositsAmount) * withdrawFee +

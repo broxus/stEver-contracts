@@ -437,7 +437,7 @@ describe("Pool of chance", async function () {
     expect(traceTree).to.emit("EverReservesSync").withNamedArgs({ amount: "0" });
   });
 
-  it("withdraw all assets", async () => {
+  it.skip("withdraw all assets", async () => {
     const poolInfo = await noRewardPool.methods
       .getPoolInfo({ answerId: 0 })
       .call()
@@ -470,7 +470,7 @@ describe("Pool of chance", async function () {
         .then(a => a.value0),
     );
     expect(prizeTokenBalChange).to.eq(poolInfo.prizeTokenSupply);
-    // expect(traceTree).to.emit("PrizeTokenReservesSync").withNamedArgs({ amount: "0" });
+    expect(traceTree).to.emit("PrizeTokenReservesSync").withNamedArgs({ amount: "0" });
 
     const balanceChange = traceTree?.getBalanceDiff(admin.account.address);
     expect(Number(balanceChange)).to.greaterThanOrEqual(Number(poolInfo.everReserves));

@@ -367,6 +367,7 @@ contract PoolOfChance is
         } else {
             emit CancelRewardAssignment(stats.activeDepositsAmount);
         }
+        delete stats.activeUsers;
 
         tvm.rawReserve(everReserves + PoolOfChanceGas.POOL_MIN_BALANCE, 0);
 
