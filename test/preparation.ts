@@ -309,6 +309,7 @@ export const deployPoolOfChance = async ({
   const { traceTree } = await locklift.tracing.trace(
     poolFactoryContract.methods
       .createPool({
+        _owner: ownerAddress,
         _poolNonce: getRandomNonce(),
         _minDepositValue: toNano(10),
         _rewardPeriod: 100,
