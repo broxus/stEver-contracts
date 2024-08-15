@@ -44,6 +44,7 @@ contract PoolOfChance is
         uint128 _prizeTokenNoRewardValue
     ) public {
         require(_minDepositValue >= _withdrawFee, ErrorCodesPoolOfChance.MIN_DEPOSIT_VALUE_IS_LESS_THAN_FEE);
+        require(_minDepositValueForReward >= _minDepositValue, ErrorCodesPoolOfChance.REWARD_DEPOSIT_IS_LESS_THAN_MIN_DEPOSIT);
         tvm.rawReserve(PoolOfChanceGas.POOL_MIN_BALANCE, 0);
         tvm.accept();
 
