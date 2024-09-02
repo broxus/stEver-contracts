@@ -155,7 +155,7 @@ contract PoolOfChance is
                 stats.activeDepositsAmount += 1;
                 stats.activeUsers.push(msg.sender);
             } else {
-                stats.inactiveDepositsAmount -= 1;
+                stats.inactiveDepositsAmount += 1;
             }
         }
         require(
