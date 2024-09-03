@@ -482,5 +482,10 @@ contract PoolOfChance is
         pendingDeposits = data.pendingDeposits;
 
         isLocked = data.locked;
+
+        owner.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS
+        });
     }
 }
