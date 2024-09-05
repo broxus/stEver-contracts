@@ -337,10 +337,6 @@ describe("Pool of chance", async function () {
       .getPoolInfo({ answerId: 0 })
       .call()
       .then(a => a.value0);
-    const rewardInfo = await noRewardPool.methods
-      .getRewardInfo({ answerId: 0 })
-      .call()
-      .then(a => a.value0);
 
     const { traceTree } = await locklift.tracing.trace(
       noRewardPool.methods.withdraw({}).send({ from: user1.account.address, amount: toNano(2) }),
@@ -371,7 +367,7 @@ describe("Pool of chance", async function () {
         .call()
         .then(a => a.value0),
     );
-    expect(prizeTokenBalChange).to.eq(rewardInfo.prizeTokenNoRewardValue);
+    expect(prizeTokenBalChange).to.eq("0");
   });
 
   it.skip("withdraw stAssets", async () => {

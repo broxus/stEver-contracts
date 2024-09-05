@@ -225,7 +225,7 @@ contract PoolOfChance is
             prizeTokenReward = prizeTokenRewardType == PrizeTokenRewardType.EQUAL_TO_EVER_REWARD
                 ? reward
                 : prizeTokenRewardValue.get();
-        } else if (depositData >= minDepositValueForReward) {
+        } else if (depositData >= minDepositValueForReward && stats.reward > 0) {
             prizeTokenReward = prizeTokenNoRewardValue;
         }
 
