@@ -135,7 +135,7 @@ contract PoolOfChance is
         require(msg.value >= _amount + PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
         require(!pendingDeposits.exists(_nonce), ErrorCodesPoolOfChance.NONCE_ALREADY_EXISTS);
         require(_amount >= minDepositValue, ErrorCodesPoolOfChance.BAD_DEPOSIT_AMOUNT);
-//        require(stats.activeDepositsAmount < depositsAmountForReward, ErrorCodesPoolOfChance.POOL_IS_FULL);
+        require(stats.activeDepositsAmount < depositsAmountForReward, ErrorCodesPoolOfChance.POOL_IS_FULL);
         require(now < rewardTimestamp, ErrorCodesPoolOfChance.END_OF_ROUND);
 
         optional(uint128) currentDepOpt = depositsData.fetch(msg.sender);
