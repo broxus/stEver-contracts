@@ -55,81 +55,83 @@ async function main() {
     //   })
     // ).account;
 
-    const { traceTree } = await locklift.tracing.trace(
-      poolFactory.methods
-        .createPool({
-          _owner: pool.owner,
-          _poolNonce: getRandomNonce(),
-          _minDepositValue: pool.minDepositValue,
-          _rewardPeriod: pool.rewardPeriod,
-          _poolFeeNumerator: pool.poolFee,
-          _fundFeeNumerator: pool.fundFee,
-          _prizeTokenRoot: pool.prizeTokenRoot,
-          _minDepositValueForReward: pool.minDepositValueForReward,
-          _depositsAmountForReward: pool.depositsAmountForReward,
-          _poolFeeReceiverAddress: pool.poolFeeReceiver,
-          _fundAddress: pool.fund,
-          _withdrawFee: pool.withdrawFee,
-          _prizeTokenRewardType: pool.prizeTokenRewardType,
-          _prizeTokenRewardValue: pool.prizeTokenRewardValue,
-          _prizeTokenNoRewardValue: pool.prizeTokenNoRewardValue,
-        })
-        .send({
-          from: admin.address,
-          amount: toNano(6),
-        }),
-    );
-
-    const poolAddress = traceTree?.findEventsForContract({
-      contract: poolFactory,
-      name: "PoolOfChanceCreated" as const,
-    })[0].poolOfChance!;
-
-    logger.successStep(`PoolOfChance deployed: ${poolAddress.toString()}`);
-
-    const poolContract = await locklift.factory.getDeployedContract("PoolOfChance", poolAddress);
-
-    if (Number(pool.addEverReserves) > 0) {
-      await locklift.transactions.waitFinalized(
-        poolContract.methods
-          .addToEverReserves({
-            _amount: pool.addEverReserves,
+    for (let i = 1; i <= pool.duplicatesAmount; i++) {
+      const { traceTree } = await locklift.tracing.trace(
+        poolFactory.methods
+          .createPool({
+            _owner: pool.owner,
+            _poolNonce: getRandomNonce(),
+            _minDepositValue: pool.minDepositValue,
+            _rewardPeriod: pool.rewardPeriod,
+            _poolFeeNumerator: pool.poolFee,
+            _fundFeeNumerator: pool.fundFee,
+            _prizeTokenRoot: pool.prizeTokenRoot,
+            _minDepositValueForReward: pool.minDepositValueForReward,
+            _depositsAmountForReward: pool.depositsAmountForReward,
+            _poolFeeReceiverAddress: pool.poolFeeReceiver,
+            _fundAddress: pool.fund,
+            _withdrawFee: pool.withdrawFee,
+            _prizeTokenRewardType: pool.prizeTokenRewardType,
+            _prizeTokenRewardValue: pool.prizeTokenRewardValue,
+            _prizeTokenNoRewardValue: pool.prizeTokenNoRewardValue,
           })
           .send({
             from: admin.address,
-            amount: new BigNumber(pool.addEverReserves).plus(toNano(2)).toString(),
+            amount: toNano(6),
           }),
       );
-    }
 
-    if (Number(pool.prizeTokenRootTransfer) > 0) {
-      const prizeTokenRoot = await locklift.factory.getDeployedContract("TokenRootUpgradeable", pool.prizeTokenRoot);
-      const prizeWallet = await locklift.factory.getDeployedContract(
-        "TokenWalletUpgradeable",
-        await prizeTokenRoot.methods
-          .walletOf({ answerId: 0, walletOwner: admin.address })
-          .call()
-          .then(a => a.value0),
-      );
-      await locklift.transactions.waitFinalized(
-        prizeWallet.methods
-          .transfer({
-            amount: pool.prizeTokenRootTransfer,
-            deployWalletValue: 0,
-            recipient: poolContract.address,
-            remainingGasTo: admin.address,
-            notify: true,
-            payload: "",
-          })
-          .send({
-            from: admin.address,
-            amount: toNano(1),
-          }),
-      );
-    }
+      const poolAddress = traceTree?.findEventsForContract({
+        contract: poolFactory,
+        name: "PoolOfChanceCreated" as const,
+      })[0].poolOfChance!;
 
-    logger.info(`Pool info: ${JSON.stringify(await getPoolInfo(poolContract), null, 4)}`);
-    logger.info(`Reward info: ${JSON.stringify(await getRewardInfo(poolContract), null, 4)}`);
+      logger.successStep(`PoolOfChance ${i} deployed: ${poolAddress.toString()}`);
+
+      const poolContract = await locklift.factory.getDeployedContract("PoolOfChance", poolAddress);
+
+      if (Number(pool.addEverReserves) > 0) {
+        await locklift.transactions.waitFinalized(
+          poolContract.methods
+            .addToEverReserves({
+              _amount: pool.addEverReserves,
+            })
+            .send({
+              from: admin.address,
+              amount: new BigNumber(pool.addEverReserves).plus(toNano(2)).toString(),
+            }),
+        );
+      }
+
+      if (Number(pool.prizeTokenRootTransfer) > 0) {
+        const prizeTokenRoot = await locklift.factory.getDeployedContract("TokenRootUpgradeable", pool.prizeTokenRoot);
+        const prizeWallet = await locklift.factory.getDeployedContract(
+          "TokenWalletUpgradeable",
+          await prizeTokenRoot.methods
+            .walletOf({ answerId: 0, walletOwner: admin.address })
+            .call()
+            .then(a => a.value0),
+        );
+        await locklift.transactions.waitFinalized(
+          prizeWallet.methods
+            .transfer({
+              amount: pool.prizeTokenRootTransfer,
+              deployWalletValue: 0,
+              recipient: poolContract.address,
+              remainingGasTo: admin.address,
+              notify: true,
+              payload: "",
+            })
+            .send({
+              from: admin.address,
+              amount: toNano(1),
+            }),
+        );
+      }
+
+      // logger.info(`Pool info: ${JSON.stringify(await getPoolInfo(poolContract), null, 4)}`);
+      // logger.info(`Reward info: ${JSON.stringify(await getRewardInfo(poolContract), null, 4)}`);
+    }
   }
 }
 
