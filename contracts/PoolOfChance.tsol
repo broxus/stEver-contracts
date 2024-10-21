@@ -143,9 +143,12 @@ contract PoolOfChance is
         uint128 currentDep;
         if (currentDepOpt.hasValue()) {
             currentDep = currentDepOpt.get();
+
+            require(currentDep < minDepositValueForReward, ErrorCodesPoolOfChance.DEPOSIT_ALREADY_EXISTS);
+
             newDeposit += currentDep;
 
-            if (currentDep < minDepositValueForReward && newDeposit >= minDepositValueForReward) {
+            if (newDeposit >= minDepositValueForReward) {
                 stats.inactiveDepositsAmount -= 1;
                 stats.activeDepositsAmount += 1;
                 stats.activeUsers.push(msg.sender);

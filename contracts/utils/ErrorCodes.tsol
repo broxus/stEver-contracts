@@ -95,4 +95,5 @@ library ErrorCodesPoolOfChance {
     uint16 constant END_OF_ROUND = 7017;
     uint16 constant TOO_MUCH_INACTIVE_DEPOSITS = 7018;
     uint16 constant REWARD_DEPOSIT_IS_LESS_THAN_MIN_DEPOSIT = 7019;
+    uint16 constant DEPOSIT_ALREADY_EXISTS = 7020;
 }
