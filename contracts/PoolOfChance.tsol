@@ -297,7 +297,9 @@ contract PoolOfChance is
         require(msg.value >= PoolOfChanceGas.MIN_CALL_VALUE, ErrorCodesPoolOfChance.NOT_ENOUGH_VALUE);
         require(now >= rewardTimestamp, ErrorCodesPoolOfChance.TOO_SOON_TO_CALCULATE_REWARD);
 
-        tempRemainingGasTo = msg.sender;
+        if (tempRemainingGasTo.value == 0) {
+            tempRemainingGasTo = msg.sender;
+        }
 
         IStEverVault(stEverVault)
             .getDetails{
