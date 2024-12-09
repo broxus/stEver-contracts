@@ -1,0 +1,121 @@
+{
+    "contracts\\interfaces\\IDePool.tsol": {
+        "modificationTime": 1733775051553
+    },
+    "contracts\\interfaces\\IParticipant.tsol": {
+        "modificationTime": 1733775051554
+    },
+    "contracts\\interfaces\\IDepoolStrategyFactory.tsol": {
+        "modificationTime": 1733775051554
+    },
+    "contracts\\interfaces\\IDePoolStrategy.tsol": {
+        "modificationTime": 1733775051553
+    },
+    "contracts\\interfaces\\IStrategy.tsol": {
+        "modificationTime": 1733775051555
+    },
+    "contracts\\utils\\ErrorCodes.tsol": {
+        "modificationTime": 1733775051555
+    },
+    "contracts\\utils\\Gas.tsol": {
+        "modificationTime": 1733775051556
+    },
+    "contracts\\utils\\Constants.tsol": {
+        "modificationTime": 1733775051555
+    },
+    "contracts\\utils\\ClusterLib.tsol": {
+        "modificationTime": 1678979008802
+    },
+    "contracts\\base\\StEverStrategiesManager.tsol": {
+        "modificationTime": 1733775051552
+    },
+    "contracts\\base\\StEverVaultStorage.tsol": {
+        "modificationTime": 1733775051552
+    },
+    "contracts\\base\\StEverVaultValidators.tsol": {
+        "modificationTime": 1733775051553
+    },
+    "contracts\\base\\StEverVaultStrategiesController.tsol": {
+        "modificationTime": 1733775051553
+    },
+    "contracts\\interfaces\\IStEverAccount.tsol": {
+        "modificationTime": 1733775051554
+    },
+    "contracts\\interfaces\\IStEverCluster.tsol": {
+        "modificationTime": 1733775051554
+    },
+    "contracts\\interfaces\\IStEverVault.tsol": {
+        "modificationTime": 1733775051554
+    },
+    "contracts\\base\\StEverVaultEmergency.tsol": {
+        "modificationTime": 1733775051552
+    },
+    "contracts\\DepoolStrategyFactory.tsol": {
+        "modificationTime": 1733775051549
+    },
+    "contracts\\base\\StEverVaultBase.tsol": {
+        "modificationTime": 1733775051552
+    },
+    "contracts\\StEverAccount.tsol": {
+        "modificationTime": 1733775051550
+    },
+    "contracts\\StrategyDePool.tsol": {
+        "modificationTime": 1733775051550
+    },
+    "contracts\\test\\TestDepool.tsol": {
+        "modificationTime": 1733775051555
+    },
+    "contracts\\StEverCluster.tsol": {
+        "modificationTime": 1733775051550
+    },
+    "contracts\\Platform.tsol": {
+        "modificationTime": 1733775051549
+    },
+    "contracts\\Wallet.tsol": {
+        "modificationTime": 1733775051550
+    },
+    "contracts\\StEverVault.tsol": {
+        "modificationTime": 1733775104643
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\@broxus\\contracts\\contracts\\libraries\\MsgFlag.tsol": {
+        "modificationTime": 1723549989514
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\interfaces\\ITokenRoot.tsol": {
+        "modificationTime": 1723549990473
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\interfaces\\ITokenWallet.tsol": {
+        "modificationTime": 1723549990475
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\interfaces\\IAcceptTokensTransferCallback.tsol": {
+        "modificationTime": 1723549990465
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\@broxus\\contracts\\contracts\\platform\\Platform.tsol": {
+        "modificationTime": 1723549989525
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\@broxus\\contracts\\contracts\\wallets\\Account.tsol": {
+        "modificationTime": 1723549989458
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\TokenRoot.tsol": {
+        "modificationTime": 1723549990486
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\interfaces\\IAcceptTokensBurnCallback.tsol": {
+        "modificationTime": 1723549990463
+    },
+    "O:\\projects\\broxus\\st-ever\\node_modules\\broxus-ton-tokens-contracts\\contracts\\abstract\\TokenWalletBurnableBase.tsol": {
+        "modificationTime": 1723549990502
+    },
+    "compilerSettings": {
+        "externalContracts": {
+            "node_modules/broxus-ton-tokens-contracts/build": [
+                "TokenRoot",
+                "TokenWallet",
+                "TokenRootUpgradeable",
+                "TokenWalletUpgradeable",
+                "TokenWalletPlatform"
+            ]
+        },
+        "compilerPath": "C:\\Users\\Nikita\\AppData\\Local\\locklift-nodejs\\Cache\\compiler\\0_62_0\\solc_0_62_0_win32.exe",
+        "linkerPath": "C:\\Users\\Nikita\\AppData\\Local\\locklift-nodejs\\Cache\\linker\\0_15_48\\tvm_linker_0_15_48_win32.exe",
+        "linkerLibPath": "C:\\Users\\Nikita\\AppData\\Local\\locklift-nodejs\\Cache\\lib\\0_62_0\\stdlib_sol_0_62_0.tvm"
+    }
+}
