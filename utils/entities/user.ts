@@ -81,6 +81,7 @@ export class User {
       eventName: "WithdrawRequest",
       parentTransaction: txWithNonce,
     });
+    await txWithNonce.traceTree.beautyPrint();
     expect(withdrawRequestEvents[0].data.user.equals(this.account.address)).to.be.true;
     expect(withdrawRequestEvents[0].data.amount).to.be.equals(amount);
     expect(withdrawRequestEvents[0].data.nonce).to.be.equals(nonce.toString());

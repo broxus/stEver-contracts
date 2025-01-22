@@ -1,0 +1,33 @@
+pragma ever-solidity >=0.62.0;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import "./Constants.tsol";
+import "./Gas.tsol";
+import {ErrorCodes} from "./ErrorCodes.tsol";
+
+library GasUtils {
+    function getDeployWalletValue() public pure returns (uint128) {
+        int8 wid = 0;
+        return gasToValue(StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE / Constants.EVERSCALE_GAS_PRICE, wid) + 0.1 ever;
+    }
+
+    function getDeployWalletValueWithGasPrice(uint128 gasPrice) public pure returns (uint128) {
+
+        return convertEverGasWithGasPrice(StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE, gasPrice) + 0.1 ever;
+    }
+
+        function convertEverGas(uint128 everGas) public pure returns (uint128) {
+        int8 wid = 0;
+
+        return gasToValue(everGas / Constants.EVERSCALE_GAS_PRICE, wid);
+    }
+    function convertEverGasWithGasPrice(uint128 everGas, uint128 gasPrice) public pure returns (uint128) {
+        return math.muldivc(everGas,gasPrice, Constants.EVERSCALE_GAS_PRICE);
+    }
+
+    function getGasPrice() public pure returns (uint128) {
+        int8 wid = 0;
+        return gasToValue(1 ever, wid) / 1 ever;
+    }
+}

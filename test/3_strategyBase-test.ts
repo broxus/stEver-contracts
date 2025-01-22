@@ -238,12 +238,14 @@ describe("Strategy base", function () {
             strategy.strategy.address,
             {
               amount: locklift.utils.toNano(90000),
-              fee: locklift.utils.toNano(0.6),
+              fee: locklift.utils.toNano(0.6 * 10),
             },
           ],
         ],
+        _gasPrice: 10000,
       })
       .call();
+    debugger;
     expect(result.value0.length).to.be.equals(1);
   });
   it("Vault should reject deposit to strategy cause strategy not in initial state", async () => {

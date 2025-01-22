@@ -178,6 +178,7 @@ describe("Deposit withdraw test without lock time", function () {
       sendConfig: [withdrawToUserConfig],
     });
     traceTree?.totalGasUsed();
+    await traceTree?.beautyPrint();
     expect(traceTree).to.emit("WithdrawSuccess");
     const vaultBalanceAfter = await vault.getDetails();
     const additionalBalanceAfterWithdraw = vaultBalanceAfter.contractBalance.minus(

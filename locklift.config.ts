@@ -62,29 +62,17 @@ const config: LockliftConfig = {
       },
     },
     local: {
-      // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: {
-        group: "localnet",
-        type: "graphql",
-        id: 1,
-        data: {
-          endpoints: [LOCAL_NETWORK_ENDPOINT],
-          latencyDetectionInterval: 1000,
-          local: true,
-        },
+        id: 1001,
+        // @ts-ignore
+        type: "proxy",
+        // @ts-ignore
+        data: {},
       },
-      // This giver is default local-node giverV2
-      giver: {
-        // Check if you need provide custom giver
-        // giverFactory: (ever, keyPair, address) => new SimpleGiver(ever, keyPair, address),
-        address: "0:ece57bcc6c530283becbbd8a3b24d3c5987cdddc3c8b7b33be6e4a6312490415",
-        key: "172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3",
-      },
-
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!
-        phrase: "caution wedding nation nose snow school cradle surface version answer rough achieve",
+        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
         amount: 20,
       },
     },

@@ -1669,7 +1669,7 @@
     "61ab4641fa30d9310391025086eec65d200d79268e1b7cd402565e01ba64be3c": {
       "0": {
         "filename": "DepoolStrategyFactory.code",
-        "line": 834
+        "line": 960
       }
     },
     "6cb365be02028bbd956338b779c0772357004e5c448f20043f64108591fdd0d7": {
@@ -3167,24 +3167,6 @@
         "line": 221
       }
     },
-    "c02af8d5c7db76f0510dedce2e2b2860e378e46e7a21529f4cd6ca754c5de44a": {
-      "4": {
-        "filename": "DepoolStrategyFactory.code",
-        "line": 761
-      },
-      "12": {
-        "filename": "DepoolStrategyFactory.code",
-        "line": 763
-      },
-      "28": {
-        "filename": "DepoolStrategyFactory.code",
-        "line": 766
-      },
-      "44": {
-        "filename": "DepoolStrategyFactory.code",
-        "line": 767
-      }
-    },
     "c4d2877650fe5c627daeda5176b7d668fde00c2c71475d0eaaa55d182e2aa6da": {
       "0": {
         "filename": "../contracts/DepoolStrategyFactory.tsol",
@@ -3743,6 +3725,24 @@
       "240": {
         "filename": "DepoolStrategyFactory.code",
         "line": 213
+      }
+    },
+    "da20867b85459170ba1ff1aa8df5d018541af8da782336d21fa503fb33acce37": {
+      "40": {
+        "filename": "DepoolStrategyFactory.code",
+        "line": 761
+      },
+      "48": {
+        "filename": "DepoolStrategyFactory.code",
+        "line": 763
+      },
+      "64": {
+        "filename": "DepoolStrategyFactory.code",
+        "line": 766
+      },
+      "80": {
+        "filename": "DepoolStrategyFactory.code",
+        "line": 767
       }
     },
     "e6936e8f0e7b8fe98c2ca66eee9d4e9dafcfc747defef9cb795288fabb1b7ef3": {

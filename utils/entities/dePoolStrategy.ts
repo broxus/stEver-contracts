@@ -1,4 +1,4 @@
-import { Contract, Signer } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { Address } from "locklift/everscale-provider";
 import { StEverVaultAbi, StrategyDePoolAbi, TestDepoolAbi } from "../../build/factorySource";
 import { StrategyFactory } from "./strategyFactory";
@@ -50,14 +50,18 @@ export class DePoolStrategyWithPool {
     );
   };
 
-  terminateDePool = (remainingGasTo: Address) => {
+  terminateDePool = (remainingGasTo: Address, caller?: Address) => {
     return this.dePoolContract.methods
       .terminator({
         _sendGasTo: remainingGasTo,
       })
-      .sendExternal({
-        publicKey: this.signer.publicKey,
+      .send({
+        from: caller!,
+        amount: toNano(1),
       });
+    // .sendExternal({
+    //   publicKey: this.signer.publicKey,
+    // });
   };
 
   getStrategyBalance = () => locklift.provider.getBalance(this.strategy.address);

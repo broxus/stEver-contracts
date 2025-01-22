@@ -416,7 +416,7 @@ interface IStEverVault {
      * This function checks if the deposit request is valid by checking if the strategy exists,
      * if the deposit amount is above the minimum, and if there are enough assets to cover the deposit.
      */
-    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
+    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs, uint128 _gasPrice) external view returns(ValidationResult[]);
 
     /**
      * @dev Validates a withdrawal request from strategies.

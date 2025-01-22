@@ -56,7 +56,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (depositConfig.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
+            if (depositConfig.fee < GasUtils.convertEverGas(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE)) {
                 emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_FEE);
                 continue;
             }
@@ -241,7 +241,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (config.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
+            if (config.fee < GasUtils.convertEverGas(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
                 continue;
             }
@@ -325,7 +325,10 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
                 continue;
             }
-
+            if (config.fee < GasUtils.convertEverGas(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE)) {
+                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
+                continue;
+            }
             if (!canTransferValue(config.fee)) {
                 emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
                 continue;
@@ -509,7 +512,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
                 continue;
             }
 
-            if (!canTransferValue(StEverVaultGas.MIN_CALL_MSG_VALUE)) {
+            if (!canTransferValue(GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE))) {
                 emit ProcessWithdrawExtraMoneyFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE);
                 continue;
             }
@@ -561,7 +564,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      */
     function forceStrategyRemove(address _strategy, address _cluster) override external onlyOwner {
         require(
-            msg.value >= StEverVaultGas.REMOVE_STRATEGY_RESERVE + Constants.MIN_TRANSACTION_VALUE,
+            msg.value >= GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE + Constants.MIN_TRANSACTION_VALUE),
             ErrorCodes.NOT_ENOUGH_VALUE
         );
 

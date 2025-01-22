@@ -72,7 +72,10 @@ describe("Strategy base", function () {
       });
 
     await cluster.addStrategies([strategy.strategy.address]);
-    await strategy.terminateDePool(admin.account.address);
+    console.log("SStrategiesAdded");
+    const balance = await locklift.provider.getBalance(strategy.dePoolContract.address);
+    console.log("balance", fromNano(balance));
+    await strategy.terminateDePool(admin.account.address, admin.account.address);
   });
   it("governance should deposit to strategies", async () => {
     const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(20);

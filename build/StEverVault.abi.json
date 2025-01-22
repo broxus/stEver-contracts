@@ -133,7 +133,8 @@
 		{
 			"name": "validateDepositRequest",
 			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
+				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"},
+				{"name":"_gasPrice","type":"uint128"}
 			],
 			"outputs": [
 				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}

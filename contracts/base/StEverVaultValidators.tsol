@@ -24,7 +24,7 @@ abstract contract StEverVaultValidators is StEverVaultBase {
      *  - A new cluster is created and added to the clusterPools.
      *  - The ClusterCreated event is emitted.
      */
-    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) override public view returns(ValidationResult[]) {
+    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs, uint128 _gasPrice) override public view returns(ValidationResult[]) {
         ValidationResult[] validationResults;
 
         uint128 totalRequiredBalance;
@@ -40,6 +40,10 @@ abstract contract StEverVaultValidators is StEverVaultBase {
 
             if (depositConfig.amount < minStrategyDepositValue) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE));
+            }
+
+            if (depositConfig.fee < GasUtils.convertEverGasWithGasPrice(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE,_gasPrice)) {
+                validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_FEE));
             }
 
             totalFee += depositConfig.fee;
@@ -92,6 +96,12 @@ abstract contract StEverVaultValidators is StEverVaultBase {
             if(!strategies.exists(strategy)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.STRATEGY_NOT_EXISTS));
             }
+
+            if (config.fee < GasUtils.convertEverGas(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE)) {
+                validationResults.push(ValidationResult(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE));
+                continue;
+            }
+
             totalRequiredBalance += config.fee;
             if(!canTransferValue(totalRequiredBalance)) {
                 validationResults.push(ValidationResult(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW));
