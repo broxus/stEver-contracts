@@ -3,5 +3,6 @@ import { toNano } from "locklift";
 
 export const GAIN_FEE = locklift.utils.toNano(1);
 export const ITERATION_FEE = locklift.utils.toNano(0.1);
-
+export const ONE_HUNDRED_PERCENT = 1_000;
 export const INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION = toNano(0.3);
+export const HANDLING_REPAY_LOAN_FEE = 0.03;

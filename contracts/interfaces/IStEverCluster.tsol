@@ -91,9 +91,9 @@ interface IStEverCluster {
 
     /**
      * @dev Function to deploy strategies for the cluster.
-     * @param dePools The addresses of the DePools.
+     * @param _validator The addresses of the Validator wallet.
      */
-    function deployStrategies(address[] dePools) external;
+    function deployStrategies(address _validator, uint32 count) external;
     /**
      * @dev Handles the deployment of a new strategy.
      *
@@ -107,9 +107,9 @@ interface IStEverCluster {
      * @dev Handles the addition of strategies to the cluster.
      * This function sets the state of each strategy to ACTIVE.
      *
-     * @param _strategies The array of addresses of the strategies.
+     * @param _strategy The array of addresses of the strategy.
      */
-    function onStrategiesAdded(address[] _strategies) external;
+    function onStrategiesAdded(address _strategy) external;
 
     /**
      * @dev Handles the pending removal of strategies from the cluster.

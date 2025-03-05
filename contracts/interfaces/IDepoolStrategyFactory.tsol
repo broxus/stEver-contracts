@@ -15,7 +15,7 @@ pragma AbiHeader expire;
  *
  */
 interface IDepoolStrategyFactory {
-    event NewStrategyDeployed(address strategy,address dePool, uint32 version);
+    event NewStrategyDeployed(address strategy,address validator, uint32 version);
     event StrategyCodeUpdated(uint32 prevStrategyVersion, uint32 newStrategyVersion);
 
     struct FactoryDetails {

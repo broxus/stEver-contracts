@@ -1,0 +1,55 @@
+pragma ever-solidity >= 0.61.2;
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+import {IController} from "../interfaces/IController.tsol";
+
+    enum State {
+    SUCCESS,
+    ERROR
+}
+contract Elector {
+    State state;
+    uint64 static _nonce;
+    mapping(address => uint128) public stakes;
+    uint128 reward;
+    constructor() public {
+        tvm.accept();
+    }
+
+    function setState(State _state) public {
+        state = _state;
+    }
+
+    function setReward(uint128 _reward) public {
+        reward = _reward;
+    }
+
+    function newStake(
+        uint64 queryId,
+        uint256 validatorPubKey,
+        uint32 stakeAt,
+        uint32 maxFactor,
+        uint256 adnlAddr,
+        bytes signature
+    ) public functionID(0x4e73744b) {
+        if (state == State.SUCCESS) {
+          IController(msg.sender).elector_newStakeOk{value: 1 ever}(queryId);
+            stakes[msg.sender] = msg.value;
+        } else {
+            IController(msg.sender).elector_newStakeError{value: 1 ever}(queryId);
+        }
+    }
+
+    function recoverStake(uint64 queryId) public functionID(0x47657424) {
+        if (state == State.SUCCESS) {
+            IController(msg.sender).elector_recoverStakeOk{
+                value: stakes[msg.sender] + reward,
+                flag: 1
+            }(queryId);
+        } else {
+            IController(msg.sender).elector_recoverStakeError{value: 1 ever}(queryId);
+        }
+    }
+
+}

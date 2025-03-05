@@ -171,7 +171,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
             pair = strategies.next(strategy);
 
             if (!isStrategyInInitialState(strategy, true)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+                emit ProcessWithdrawFromControllerError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
                 continue;
             }
 

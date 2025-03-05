@@ -5,13 +5,16 @@ import { assertEvent, getAddressEverBalance, getBalance, getBalances, toNanoBn }
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { createAndRegisterStrategy } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { concatMap, defer, from, lastValueFrom, map, range, switchMap, toArray } from "rxjs";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
+import { HANDLING_REPAY_LOAN_FEE } from "../utils/constants";
 
 let signer: Signer;
 let admin: User;
@@ -22,8 +25,10 @@ let user3: User;
 let user4: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
+let controllers: Array<Controller> = [];
 let strategyFactory: StrategyFactory;
+let elector: Elector;
+const MIN_STAKE_TO_SEND = 50_000;
 
 describe("Multi flow", async function () {
   before(async () => {
@@ -34,7 +39,8 @@ describe("Multi flow", async function () {
       users: [adminUser, u1, u2, u3, u4],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(200), countOfUsers: 6 });
+      elector: e,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 10), countOfUsers: 6 });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -45,6 +51,7 @@ describe("Multi flow", async function () {
     user4 = u4;
     tokenRoot = tr;
     strategyFactory = st;
+    elector = e;
   });
   it("Vault should be initialized", async () => {
     await vault.setStEverFeePercent({
@@ -58,113 +65,76 @@ describe("Multi flow", async function () {
       assurance: toNano(0),
       maxStrategiesCount: 100,
     });
-    strategiesWithPool.push(
-      ...(await lastValueFrom(
-        range(3).pipe(
-          concatMap(() =>
-            createStrategy({
-              signer,
-              cluster,
-              poolDeployValue: locklift.utils.toNano(200),
-            }),
-          ),
-          toArray(),
-          switchMap(strategies =>
-            from(cluster.addStrategies(strategies.map(strategyWithDePool => strategyWithDePool.strategy.address))).pipe(
-              map(() => strategies),
-            ),
-          ),
-        ),
-      )),
-    );
+
+    controllers = await createControllers({
+      count: 3,
+      cluster,
+      validator: admin.account.address,
+    });
   });
   it("users should deposit to vault", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(100);
+    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(MIN_STAKE_TO_SEND);
     await lastValueFrom(
       from([user1, user2, user3, user4]).pipe(
         concatMap(user => user.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT.toString())),
       ),
     );
   });
-  it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(130);
-    const DEPOSIT_FEE = toNanoBn(0.6);
-    await governance.depositToStrategies({
-      _depositConfigs: strategiesWithPool.map(({ strategy }) => [
-        strategy.address,
-        {
-          amount: DEPOSIT_TO_STRATEGIES_AMOUNT.minus(DEPOSIT_FEE).toString(),
-          fee: DEPOSIT_FEE.toString(),
-        },
-      ]),
-    });
+  it("controllers should receive loan", async () => {
+    for (let controller of controllers) {
+      await controller.sendRequestLoan({
+        queryId: 1,
+        minLoan: toNano(1),
+        maxLoan: toNano(MIN_STAKE_TO_SEND),
+        maxInterest: "0",
+      });
+    }
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
     const ROUND_REWARD = toNanoBn(123);
+    await elector.setReward(ROUND_REWARD.toString());
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
       .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
-    const traces = await lastValueFrom(
-      from(strategiesWithPool).pipe(
-        concatMap(strategy => strategy.emitDePoolRoundComplete(ROUND_REWARD.toString())),
-        map(({ traceTree }) => traceTree),
-        toArray(),
-      ),
-    );
-    strategiesWithPool.forEach(({ strategy }, idx) => {
-      expect(traces[idx])
-        .to.emit("StrategyReported")
-        .withNamedArgs({
-          strategy: strategy.address,
-          report: {
-            gain: EXPECTED_REWARD.toString(),
-          },
-        });
-    });
+    const { availableAssets: availableBalanceBefore } = await vault.getDetails();
+
+    for (let controller of controllers) {
+      const { recoverStakeTraceTree } = await controller.runFullCycle({
+        queryId: 1,
+        adnlAddr: "0x1",
+        stakeAt: 152,
+        valueToStake: toNano(MIN_STAKE_TO_SEND),
+        validatorPubKey: "0x1",
+        maxFactor: 1,
+      });
+      expect(recoverStakeTraceTree).to.emit("StrategyRepayLoan").withNamedArgs({
+        strategy: controller.controllerContract.address,
+        reward: EXPECTED_REWARD.toString(),
+      });
+    }
 
     const stateAfter = await vault.getDetails();
     expect(stateAfter.totalAssets.toString()).equals(
-      EXPECTED_REWARD.times(strategiesWithPool.length).plus(stateBefore.totalAssets).toString(),
+      EXPECTED_REWARD.times(controllers.length).plus(stateBefore.totalAssets).toString(),
       "total assets should be increased by reward",
     );
     expect(stateAfter.stEverSupply.toNumber()).equals(
       stateBefore.stEverSupply.toNumber(),
       "stever supply should be unchanged",
     );
-  });
 
-  it("should successfully withdraw from strategies", async () => {
-    const WITHDRAW_AMOUNT = toNanoBn(250);
-    const FEE_AMOUNT = toNanoBn(0.1);
-    const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    const { traceTree } = await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: strategiesWithPool.map(({ strategy }) => [
-        strategy.address,
-        {
-          amount: WITHDRAW_AMOUNT.toString(),
-          fee: FEE_AMOUNT.toString(),
-        },
-      ]),
-    });
-    await lastValueFrom(from(strategiesWithPool).pipe(concatMap(dePool => dePool.emitWithdrawByRequests())));
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
-    expect(availableBalanceAfter.toNumber()).to.be.gt(
+    expect(availableBalanceAfter.toNumber()).eq(
       availableBalanceBefore
-        .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length))
-        .minus(FEE_AMOUNT.times(strategiesWithPool.length))
+        .plus(ROUND_REWARD.times(controllers.length))
+        .plus(toNanoBn(MIN_STAKE_TO_SEND).times(controllers.length))
+        .minus(toNanoBn(HANDLING_REPAY_LOAN_FEE).times(controllers.length))
         .toNumber(),
-      "available balance should be increased by withdraw amount minus some fee",
-    );
-
-    expect(availableBalanceAfter.toNumber()).to.be.lt(
-      availableBalanceBefore
-        .plus(WITHDRAW_AMOUNT.times(strategiesWithPool.length).plus(FEE_AMOUNT.times(strategiesWithPool.length)))
-        .toNumber(),
-      "vault should pay some fees for withdrawing",
     );
   });
+
   it("users should receive requested amount + reward + fee", async () => {
     const users = [user1, user2, user3, user4];
     const balancesBefore = await getBalances(users.map(user => user.account.address));

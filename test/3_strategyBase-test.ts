@@ -6,14 +6,15 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { getAddressEverBalance, toNanoBn } from "../utils";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, tap, timer, toArray } from "rxjs";
+import { createControllers } from "../utils/entities/dePoolStrategy";
+import { toNanoBn } from "../utils";
+import { concatMap, flatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";
 import { INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION } from "../utils/constants";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
 
 let signer: Signer;
 let admin: User;
@@ -22,9 +23,12 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategy: DePoolStrategyWithPool;
+let controller: Controller;
 let strategyFactory: StrategyFactory;
 let cluster: Cluster;
+let elector: Elector;
+const MIN_STAKE_TO_SEND = 50_000;
+
 const ST_EVER_FEE_PERCENT = 11;
 describe("Strategy base", function () {
   before(async () => {
@@ -35,7 +39,8 @@ describe("Strategy base", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
+      elector: e,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 100) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -44,6 +49,7 @@ describe("Strategy base", function () {
     user2 = u2;
     tokenRoot = tr;
     strategyFactory = st;
+    elector = e;
   });
   it("Vault should be initialized", async () => {
     await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
@@ -58,26 +64,17 @@ describe("Strategy base", function () {
     });
   });
   it("should strategy deployed", async () => {
-    strategy = await createStrategy({
-      signer,
-      poolDeployValue: locklift.utils.toNano(200),
+    controller = await createControllers({
       cluster,
-    });
+      validator: admin.account.address,
+      count: 1,
+    }).then(res => res[0]);
 
-    const { traceTree: firstTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
-    expect(firstTraceTree)
-      .to.emit("StrategiesAdded", vault.vaultContract)
-      .withNamedArgs({
-        strategy: [strategy.strategy.address],
-      });
-
-    const { traceTree: secondTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
-    expect(secondTraceTree).to.error(5011);
-    const clusterStrategies = await cluster.getStrategies();
-    expect(clusterStrategies.length).to.be.eq(1);
-    const [strategyAddress, strategyParams] = clusterStrategies[0];
-    expect(strategyAddress.equals(strategy.strategy.address)).to.be.true;
-    expect(strategyParams.state).to.be.eq("1", "Strategy should be active");
+    const clusterControllers = await cluster.getStrategies();
+    expect(clusterControllers.length).to.be.eq(1);
+    const [strategyAddress, controllerParams] = clusterControllers[0];
+    expect(strategyAddress.equals(controller.controllerContract.address)).to.be.true;
+    expect(controllerParams.state).to.be.eq("1", "Strategy should be active");
 
     const stEverStrategy = await vault.getStrategiesInfo().then(res => res[strategyAddress.toString()]);
     expect(stEverStrategy.state).to.be.eq("0", "Strategy should be active");
@@ -87,61 +84,65 @@ describe("Strategy base", function () {
     );
   });
   it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
-    const DEPOSIT_FEE = new BigNumber(locklift.utils.toNano(0.6));
+    const DEPOSIT_TO_CONTROLLER_AMOUNT = toNanoBn(MIN_STAKE_TO_SEND);
 
-    await user1.depositToVault(toNanoBn(140).toString());
+    await user1.depositToVault(toNanoBn(MIN_STAKE_TO_SEND * 2).toString());
     const vaultStateBefore = await vault.getDetails();
 
-    const { traceTree } = await governance.depositToStrategies({
-      _depositConfigs: [
-        [
-          strategy.strategy.address,
-          {
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-            fee: DEPOSIT_FEE.toString(),
-          },
-        ],
-      ],
+    const { traceTree } = await controller.sendRequestLoan({
+      queryId: 1,
+      minLoan: toNano(1).toString(),
+      maxLoan: toNano(MIN_STAKE_TO_SEND).toString(),
+      maxInterest: "0",
     });
-    expect(traceTree).and.emit("StrategyHandledDeposit").count(1).withNamedArgs({
-      strategy: strategy.strategy.address,
-      depositValue: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
+    expect(traceTree).and.emit("ControllerCredited").count(1).withNamedArgs({
+      controller: controller.controllerContract.address,
+      value: DEPOSIT_TO_CONTROLLER_AMOUNT.toString(),
     });
 
     const vaultStateAfter = await vault.getDetails();
 
-    expect(vaultStateBefore.totalAssets.toNumber()).to.be.gt(
-      vaultStateAfter.totalAssets.toNumber(),
-      "total assets should be reduced by fee",
-    );
-    expect(vaultStateAfter.totalAssets.toNumber()).to.be.gt(
-      vaultStateBefore.totalAssets.minus(DEPOSIT_FEE).toNumber(),
-      "some fee should be returned",
-    );
-    expect(vaultStateBefore.availableAssets.minus(DEPOSIT_TO_STRATEGIES_AMOUNT).toNumber()).to.be.gt(
+    // expect(vaultStateBefore.totalAssets.toNumber()).to.be.gt(
+    //   vaultStateAfter.totalAssets.toNumber(),
+    //   "total assets should be reduced by fee",
+    // );
+    // expect(vaultStateAfter.totalAssets.toNumber()).to.be.gt(
+    //   vaultStateBefore.totalAssets.minus(DEPOSIT_FEE).toNumber(),
+    //   "some fee should be returned",
+    // );
+    expect(vaultStateBefore.availableAssets.minus(DEPOSIT_TO_CONTROLLER_AMOUNT).toNumber()).to.be.eq(
       vaultStateAfter.availableAssets.toNumber(),
-      "total assets should be reduced more than deposit amount",
+      "total assets should be reduced to exact requested amount",
     );
 
-    expect(vaultStateAfter.availableAssets.toNumber()).to.be.gt(
-      vaultStateBefore.availableAssets.minus(DEPOSIT_TO_STRATEGIES_AMOUNT).minus(DEPOSIT_FEE).toNumber(),
-      "some fee should be returned",
-    );
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
+    // expect(vaultStateAfter.availableAssets.toNumber()).to.be.gt(
+    //   vaultStateBefore.availableAssets.minus(DEPOSIT_TO_CONTROLLER_AMOUNT).minus(DEPOSIT_FEE).toNumber(),
+    //   "some fee should be returned",
+    // );
+    const strategyInfo = await vault.getStrategyInfo(controller.controllerContract.address);
     expect(strategyInfo.totalGain).to.be.equals("0");
     expect(strategyInfo.lastReport).to.be.equals("0");
-    expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.minus(toNano("0.3")).toString());
+    expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_CONTROLLER_AMOUNT.toString());
   });
 
   it("strategy and vault state should be changed after report", async () => {
     const ROUND_REWARD = toNanoBn(10);
+    await elector.setReward(ROUND_REWARD.toString());
     const vaultStateBefore = await vault.getDetails();
-    const strategyInfoBefore = await vault.getStrategyInfo(strategy.strategy.address);
+    const strategyInfoBefore = await vault.getStrategyInfo(controller.controllerContract.address);
 
-    const { traceTree } = await strategy.emitDePoolRoundComplete(ROUND_REWARD.toString());
+    const { recoverStakeTraceTree, newStakeTraceTree } = await controller.runFullCycle({
+      queryId: 1,
+      maxFactor: 1,
+      adnlAddr: "0x1",
+      stakeAt: 152,
+      valueToStake: toNano(MIN_STAKE_TO_SEND).toString(),
+      validatorPubKey: "0x1",
+    });
+
     const vaultStateAfter = await vault.getDetails();
-    const strategyInfoAfter = await vault.getStrategyInfo(strategy.strategy.address);
+
+    const strategyInfoAfter = await vault.getStrategyInfo(controller.controllerContract.address);
     expect(strategyInfoAfter.totalGain).to.be.equals(toNanoBn(10).toString());
 
     const expectedAccumulatedFee = ROUND_REWARD.multipliedBy(vaultStateBefore.stEverFeePercent).dividedBy(1000);
@@ -151,280 +152,119 @@ describe("Strategy base", function () {
       ROUND_REWARD.minus(expectedAccumulatedFee).minus(vaultStateBefore.gainFee),
     );
 
-    const gainWithoutFee = traceTree!.findForContract({ contract: vault.vaultContract, name: "StrategyReported" })[0]!
-      .params!.report.gain;
+    const gainWithoutFee = recoverStakeTraceTree!.findForContract({
+      contract: vault.vaultContract,
+      name: "StrategyRepayLoan",
+    })[0]!.params!.reward;
 
-    expect(strategyInfoAfter.totalAssets).to.be.equals(
-      new BigNumber(strategyInfoBefore.totalAssets)
-        .plus(gainWithoutFee)
-        .minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION)
-        .toString(),
-    );
-    const details = await vault.getDetails();
-    debugger;
     expect(vaultStateAfter.totalAssets.toNumber()).to.be.equals(expectedAvailableBalance.toNumber());
   });
 
-  it("governance shouldn't withdraw from strategy if dePool will reject request", async () => {
-    const ATTACHED_FEE = toNanoBn(0.6);
-    const WITHDRAW_AMOUNT = toNanoBn(100);
-
-    await strategy.setDePoolWithdrawalState({ isClosed: true });
-
-    const vaultDetailsBefore = await vault.getDetails();
-    const vaultStrategyBefore = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-
-    const { traceTree } = await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [
-        [strategy.strategy.address, { amount: WITHDRAW_AMOUNT.toString(), fee: ATTACHED_FEE.toString() }],
-      ],
-    });
-    const vaultStrategyAfter = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-    expect(vaultStrategyBefore.totalAssets).to.be.equals(vaultStrategyAfter.totalAssets);
-    const vaultDetailsAfter = await vault.getDetails();
-    expect(vaultDetailsBefore.totalAssets.toNumber()).to.be.gt(
-      vaultDetailsAfter.totalAssets.toNumber(),
-      "some fee should payed from total assets",
-    );
-
-    expect(vaultDetailsAfter.totalAssets.toNumber()).to.be.gt(
-      vaultDetailsBefore.totalAssets.minus(ATTACHED_FEE).toNumber(),
-      "some fee should returned after failed withdraw",
-    );
-    expect(traceTree).to.emit("StrategyWithdrawError").count(1).withNamedArgs({
-      strategy: strategy.strategy.address,
-    });
-
-    await strategy.setDePoolWithdrawalState({ isClosed: false });
-  });
-
-  it("governance shouldn't deposit to strategy if dePool is closed", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(110);
-    const DEPOSIT_FEE = toNanoBn(0.6);
-    await user1.depositToVault(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
-    const vaultStrategyBefore = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-
-    const vaultStateBefore = await vault.getDetails();
-    await strategy.setDePoolDepositsState({ isClosed: true });
-    const { traceTree } = await governance.depositToStrategies({
-      _depositConfigs: [
-        [
-          strategy.strategy.address,
-          {
-            fee: DEPOSIT_FEE.toString(),
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-          },
-        ],
-      ],
-    });
-    const vaultStrategyAfter = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-    expect(vaultStrategyBefore.totalAssets).to.be.equals(vaultStrategyAfter.totalAssets);
-
-    const vaultStateAfter = await vault.getDetails();
-    expect(traceTree).to.emit("StrategyDidntHandleDeposit").count(1);
-
-    expect(vaultStateAfter.availableAssets.toNumber()).to.be.gt(
-      vaultStateBefore.availableAssets.minus(DEPOSIT_FEE).toNumber(),
-      "some fee should be returned to vault, also full deposit amount should be returned",
-    );
-
-    await strategy.setDePoolDepositsState({ isClosed: false });
-  });
-  it("should validate deposit request", async () => {
-    const result = await vault.vaultContract.methods
-      .validateDepositRequest({
-        _depositConfigs: [
-          [
-            strategy.strategy.address,
-            {
-              amount: locklift.utils.toNano(90000),
-              fee: locklift.utils.toNano(0.6),
-            },
-          ],
-        ],
-      })
-      .call();
-    expect(result.value0.length).to.be.equals(1);
-  });
-  it("Vault should reject deposit to strategy cause strategy not in initial state", async () => {
-    await lastValueFrom(timer(500));
-    const FIRST_WITHDRAW_AMOUNT = toNanoBn(100);
-    await user1.depositToVault(toNano(500));
-    const { traceTree } = await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [
-        [strategy.strategy.address, { amount: FIRST_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
-      ],
-    });
-    expect(traceTree).to.emit("StrategyHandledWithdrawRequest").count(1);
-    const SECOND_WITHDRAW_AMOUNT = toNanoBn(201);
-    const { traceTree: withdrawTraceTree } = await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [
-        [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
-      ],
-    });
-    expect(withdrawTraceTree).to.emit("ProcessWithdrawFromStrategyError").count(1).withNamedArgs({
-      strategy: strategy.strategy.address,
-      errcode: "1013",
-    });
-
-    const { traceTree: depositTraceTree } = await governance.depositToStrategies({
-      _depositConfigs: [
-        [strategy.strategy.address, { amount: SECOND_WITHDRAW_AMOUNT.toString(), fee: toNanoBn(0.6).toString() }],
-      ],
-    });
-    expect(depositTraceTree).to.emit("ProcessDepositToStrategyError").count(1).withNamedArgs({
-      strategy: strategy.strategy.address,
-      errcode: "1013",
-    });
-  });
-  it("governance should make force withdraw from strategy", async () => {
-    expect(
-      await vault.getStrategyInfo(strategy.strategy.address).then(res => Number(res.withdrawingAmount)),
-    ).to.be.above(0, "strategy should in withdrawing state");
-    const vaultStrategyBefore = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-
-    const WITHDRAW_FROM_POOLING_ROUND_VALUE = toNanoBn(101);
-    const ATTACHED_FEE = toNanoBn(0.6);
-    const { traceTree, successEvents } = await governance.forceWithdrawFromStrategies({
-      _withdrawConfig: [
-        [strategy.strategy.address, { fee: toNano(0.6), amount: WITHDRAW_FROM_POOLING_ROUND_VALUE.toString() }],
-      ],
-    });
-    const vaultStrategyAfter = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-    expect(
-      new BigNumber(vaultStrategyBefore.totalAssets)
-        .minus(WITHDRAW_FROM_POOLING_ROUND_VALUE)
-        .minus(ATTACHED_FEE)
-        .toNumber(),
-    ).to.be.lte(Number(vaultStrategyAfter.totalAssets));
-
-    expect(traceTree).to.emit("StrategyWithdrawSuccess").count(1);
-    expect(successEvents.length).to.be.equals(1);
-    expect(Number(successEvents[0].data.amount)).to.be.gt(WITHDRAW_FROM_POOLING_ROUND_VALUE.toNumber());
-    expect(Number(successEvents[0].data.amount)).to.be.lt(
-      WITHDRAW_FROM_POOLING_ROUND_VALUE.plus(ATTACHED_FEE).toNumber(),
-    );
-  });
-  it("report with low gain than the gain fee should be 0", async () => {
-    const { transaction, traceTree } = await strategy.emitDePoolRoundComplete(toNano(0.9));
-    const events = await vault.getEventsAfterTransaction({
-      eventName: "StrategyReported",
-      parentTransaction: transaction,
-    });
-    expect(traceTree)
-      .to.emit("StrategyReported")
-      .count(1)
-      .withNamedArgs({
-        report: {
-          gain: "0",
-        },
+  it("Controller should reject loan request cause controller not in initial state", async () => {
+    {
+      const { traceTree } = await controller.sendRequestLoan({
+        queryId: 2,
+        maxLoan: toNano(MIN_STAKE_TO_SEND),
+        minLoan: toNano(10_000),
+        maxInterest: "0",
       });
-  });
 
-  it("governance should withdraw extra money from strategy", async () => {
-    const vaultStateBefore = await vault.getDetails();
-
-    const { traceTree, successEvents } = await governance.withdrawExtraMoneyFromStrategy({
-      _strategies: [strategy.strategy.address],
+      expect(traceTree).to.emit("ControllerCredited").count(1);
+    }
+    const { traceTree } = await controller.sendRequestLoan({
+      queryId: 2,
+      maxLoan: toNano(MIN_STAKE_TO_SEND),
+      minLoan: toNano(10_000),
+      maxInterest: "0",
     });
+    await traceTree?.beautyPrint();
 
-    const vaultStateAfter = await vault.getDetails();
-    expect(traceTree).to.emit("ReceiveExtraMoneyFromStrategy").count(1);
-    expect(vaultStateBefore.availableAssets.plus(successEvents[0]?.value || 0).toNumber()).to.be.eq(
-      vaultStateAfter.availableAssets.toNumber(),
-    );
+    expect(traceTree).to.error(64001); // error::multiple_loans_are_prohibited = 0xfa01;
   });
+  it("random user make force withdraw from controller", async () => {
+    const vaultStrategyBefore = await vault
+      .getStrategiesInfo()
+      .then(res => res[controller.controllerContract.address.toString()]);
+
+    const ATTACHED_FEE = toNanoBn(2);
+    const { traceTree } = await locklift.tracing.trace(
+      vault.vaultContract.methods
+        .forceWithdrawFromStrategies({
+          _withdrawConfig: [[controller.controllerContract.address, { fee: ATTACHED_FEE.toString() }]],
+        })
+        .send({
+          from: user1.account.address,
+          amount: toNano(2.2),
+        }),
+    );
+    await traceTree?.beautyPrint();
+    const vaultStrategyAfter = await vault
+      .getStrategiesInfo()
+      .then(res => res[controller.controllerContract.address.toString()]);
+    expect(vaultStrategyAfter.totalAssets).to.be.eq("0");
+
+    expect(traceTree).to.emit("StrategyRepayLoan").count(1);
+  });
+
   it("strategy should be deleted", async () => {
-    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address]);
-    expect(traceTree)
-      .to.emit("StrategiesPendingRemove")
-      .withNamedArgs({
-        strategies: [strategy.strategy.address],
+    await locklift.giver.sendTo(controller.controllerContract.address, toNano(20));
+
+    {
+      const { traceTree } = await controller.sendRequestLoan({
+        queryId: 3,
+        maxInterest: "0",
+        minLoan: toNano(1).toString(),
+        maxLoan: toNano(MIN_STAKE_TO_SEND).toString(),
       });
-    expect(new BigNumber(traceTree!.getBalanceDiff(admin.account.address)).negated().toNumber())
-      .to.be.lte(new BigNumber(toNano(1.1)).toNumber())
-      .and.gte(Number(toNano(1)));
+      await traceTree?.beautyPrint();
+    }
 
-    const { totalAssets } = await vault.getStrategiesInfo().then(res => res[strategy.strategy.address.toString()]);
-    expect(Number(totalAssets)).to.be.lte(Number(toNano(101)));
-
-    await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [[strategy.strategy.address, { amount: toNano(101), fee: toNanoBn(0.6).toString() }]],
+    await controller.newStake({
+      queryId: 3,
+      validatorPubKey: "0x1",
+      stakeAt: 152,
+      valueToStake: toNano(MIN_STAKE_TO_SEND).toString(),
+      adnlAddr: "0x1",
+      maxFactor: 1,
     });
 
-    const { traceTree: roundCompleteTraceTree } = await strategy.emitDePoolRoundComplete(
-      locklift.utils.toNano(0.1),
-      true,
-    );
-    expect(roundCompleteTraceTree).to.emit("StrategyRemoved").withNamedArgs({
-      strategy: strategy.strategy.address,
+    await controller.updateValidatorHashMultipleTimes();
+
+    {
+      const { traceTree } = await cluster.removeStrategies([controller.controllerContract.address]);
+      await traceTree?.beautyPrint();
+      expect(traceTree)
+        .to.emit("StrategiesPendingRemove")
+        .withNamedArgs({
+          strategies: [controller.controllerContract.address],
+        });
+      expect(new BigNumber(traceTree!.getBalanceDiff(admin.account.address)).negated().toNumber())
+        .to.be.lte(new BigNumber(toNano(1.1)).toNumber())
+        .and.gte(Number(toNano(1)));
+    }
+
+    const { totalAssets } = await vault
+      .getStrategiesInfo()
+      .then(res => res[controller.controllerContract.address.toString()]);
+    expect(Number(totalAssets)).to.be.eq(Number(toNano(MIN_STAKE_TO_SEND)));
+
+    const { traceTree } = await controller.recoverStake({ queryId: 3 });
+
+    expect(traceTree).to.emit("StrategyRemoved").withNamedArgs({
+      strategy: controller.controllerContract.address,
     });
   });
 
   it("strategy should be immediately removed", async () => {
-    const strategy = await createStrategy({
-      signer,
-      poolDeployValue: locklift.utils.toNano(200),
+    const controller = await createControllers({
       cluster,
-    });
+      count: 1,
+      validator: admin.account.address,
+    }).then(res => res[0]);
 
-    await cluster.addStrategies([strategy.strategy.address]);
-    const { traceTree } = await cluster.removeStrategies([strategy.strategy.address]);
+    const { traceTree } = await cluster.removeStrategies([controller.controllerContract.address]);
     expect(traceTree).to.emit("StrategyRemoved").withNamedArgs({
-      strategy: strategy.strategy.address,
+      strategy: controller.controllerContract.address,
     });
-  });
-
-  it("should created and deposited to 3 clusters with 15 strategies per each", async () => {
-    const clustersWithStrategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          from(
-            Cluster.create({
-              vault,
-              clusterOwner: admin.account,
-              maxStrategiesCount: 15,
-              assurance: toNano(0),
-            }),
-          ).pipe(
-            switchMap(cluster =>
-              range(15).pipe(
-                concatMap(() =>
-                  from(
-                    createStrategy({
-                      cluster,
-                      poolDeployValue: locklift.utils.toNano(200),
-                      signer,
-                    }),
-                  ),
-                ),
-                toArray(),
-                switchMap(strategies =>
-                  from(cluster.addStrategies(strategies.map(el => el.strategy.address))).pipe(
-                    map(() => ({ cluster, strategies })),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        toArray(),
-      ),
-    );
-
-    await user1.depositToVault(locklift.utils.toNano(1000));
-
-    const { traceTree } = await governance.depositToStrategies({
-      _depositConfigs: clustersWithStrategies
-        .flatMap(({ strategies }) => strategies)
-        .map(({ strategy }) => [
-          strategy.address,
-          {
-            fee: locklift.utils.toNano(0.6),
-            amount: locklift.utils.toNano(2),
-          },
-        ]),
-    });
-    console.log(`total gas Used ${fromNano(traceTree!.totalGasUsed())}`);
   });
 });

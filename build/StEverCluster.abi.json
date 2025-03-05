@@ -29,7 +29,8 @@
 		{
 			"name": "deployStrategies",
 			"inputs": [
-				{"name":"_dePools","type":"address[]"}
+				{"name":"_validator","type":"address"},
+				{"name":"count","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -43,17 +44,9 @@
 			]
 		},
 		{
-			"name": "addStrategies",
-			"inputs": [
-				{"name":"_strategies","type":"address[]"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "onStrategiesAdded",
 			"inputs": [
-				{"name":"_strategies","type":"address[]"}
+				{"name":"_strategy","type":"address"}
 			],
 			"outputs": [
 			]

@@ -49,7 +49,9 @@ contract StEverVault is
         address _owner,
         uint128 _gainFee,
         uint32 _stEverFeePercent,
-        address _stTokenRoot
+        address _stTokenRoot,
+        uint24 _maxControllerInterest,
+        uint128 _minControllerBalance
     ) public {
         require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUB_KEY);
         require (tvm.pubkey() == msg.pubkey(), ErrorCodes.WRONG_PUB_KEY);
@@ -61,6 +63,8 @@ contract StEverVault is
         gainFee = _gainFee;
         stTokenRoot = _stTokenRoot;
         stEverFeePercent = _stEverFeePercent;
+        maxControllerInterest = _maxControllerInterest;
+        minControllerBalance = _minControllerBalance;
         ITokenRoot(stTokenRoot).deployWallet{
 			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
@@ -538,13 +542,20 @@ contract StEverVault is
 
      /// @dev Handles a bounce.
      /// @param _slice The slice to decode.
-    onBounce(TvmSlice _slice) external view {
+    onBounce(TvmSlice _slice) external {
 		tvm.accept();
 
 		uint32 functionId = _slice.decode(uint32);
 		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
 			handleAddPendingValueError(_slice);
 		}
+        if (functionId == 0x1690c604) {
+            uint64 queryId = _slice.decode(uint64);
+            uint128 creditAmount = _slice.decode(uint128);
+            // TODO add credit error handling
+            availableAssets += creditAmount;
+            strategies[msg.sender].totalAssets -= creditAmount;
+        }
 	}
 
     /**

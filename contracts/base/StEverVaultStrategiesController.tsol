@@ -1,10 +1,12 @@
 pragma ever-solidity >=0.62.0;
 
-import "./StEverVaultBase.tsol";
-import "./StEverVaultEmergency.tsol";
-import "./StEverStrategiesManager.tsol";
-
 import "../interfaces/IStrategy.tsol";
+import "./StEverStrategiesManager.tsol";
+import "./StEverVaultBase.tsol";
+
+import "./StEverVaultEmergency.tsol";
+import {IController} from "../interfaces/IController.tsol";
+import {State} from "../test/Elector.tsol";
 
 
 
@@ -32,61 +34,61 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - Funds are deposited to the strategies according to the deposit configurations.
      *  - The available assets and total assets are updated accordingly.
      */
-    function depositToStrategies(mapping (address => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-
-        for (uint256 i = 0; i < chunkSize && !_depositConfigs.empty(); i++) {
-
-            (address strategy, DepositConfig depositConfig) = _depositConfigs.delMin().get();
-
-            // calculate required amount to send
-            uint128 valueToSend = depositConfig.amount + depositConfig.fee;
-            if (!canTransferValue(valueToSend)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
-                continue;
-            }
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (depositConfig.amount < minStrategyDepositValue) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
-                continue;
-            }
-
-            if (depositConfig.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_FEE);
-                continue;
-            }
-
-            if (totalAssets < depositConfig.fee) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            if (!isStrategyInInitialState(strategy, false)) {
-                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
-                continue;
-            }
-
-
-            // change depositing strategy state
-            strategies[strategy].depositingAmount = depositConfig.amount;
-
-            // reduce availableAssets
-            availableAssets -= valueToSend;
-
-            // grab fee from total assets, then add it back after receiving response from strategy
-
-            decreaseTotalAssets(depositConfig.fee);
-            IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
-        }
-        if (!_depositConfigs.empty()) {
-            this.depositToStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_depositConfigs);
-        }
-    }
+//    function depositToStrategies(mapping (address => DepositConfig) _depositConfigs) override external onlyGovernanceOrSelfAndAccept {
+//        uint256 chunkSize = 50;
+//
+//        for (uint256 i = 0; i < chunkSize && !_depositConfigs.empty(); i++) {
+//
+//            (address strategy, DepositConfig depositConfig) = _depositConfigs.delMin().get();
+//
+//            // calculate required amount to send
+//            uint128 valueToSend = depositConfig.amount + depositConfig.fee;
+//            if (!canTransferValue(valueToSend)) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_DEPOSIT);
+//                continue;
+//            }
+//
+//            if (!strategies.exists(strategy)) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
+//                continue;
+//            }
+//
+//            if (depositConfig.amount < minStrategyDepositValue) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_VALUE);
+//                continue;
+//            }
+//
+//            if (depositConfig.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.BAD_DEPOSIT_TO_STRATEGY_FEE);
+//                continue;
+//            }
+//
+//            if (totalAssets < depositConfig.fee) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
+//                continue;
+//            }
+//
+//            if (!isStrategyInInitialState(strategy, false)) {
+//                emit ProcessDepositToStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+//                continue;
+//            }
+//
+//
+//            // change depositing strategy state
+//            strategies[strategy].depositingAmount = depositConfig.amount;
+//
+//            // reduce availableAssets
+//            availableAssets -= valueToSend;
+//
+//            // grab fee from total assets, then add it back after receiving response from strategy
+//
+//            decreaseTotalAssets(depositConfig.fee);
+//            IStrategy(strategy).deposit{value: depositConfig.amount + depositConfig.fee, bounce: false}(uint64(depositConfig.amount));
+//        }
+//        if (!_depositConfigs.empty()) {
+//            this.depositToStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_depositConfigs);
+//        }
+//    }
 
     /**
      * @dev See {IStEverVault-onStrategyHandledDeposit}.
@@ -102,19 +104,19 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The available assets are increased by the returned fee.
      *  - The StrategyHandledDeposit event is emitted.
      */
-    function onStrategyHandledDeposit() override external onlyStrategy {
-        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
-        // set init state for depositing
-        strategies[msg.sender].depositingAmount = 0;
-
-        // calculate remaining gas
-        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-        updateTotalAssetsForStrategy(msg.sender, depositingAmount, true);
-        // add fee back
-        availableAssets += returnedFee;
-        increaseTotalAssets(returnedFee);
-        emit StrategyHandledDeposit(msg.sender, depositingAmount);
-    }
+//    function onStrategyHandledDeposit() override external onlyStrategy {
+//        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
+//        // set init state for depositing
+//        strategies[msg.sender].depositingAmount = 0;
+//
+//        // calculate remaining gas
+//        uint128 returnedFee = (msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+//        updateTotalAssetsForStrategy(msg.sender, depositingAmount, true);
+//        // add fee back
+//        availableAssets += returnedFee;
+//        increaseTotalAssets(returnedFee);
+//        emit StrategyHandledDeposit(msg.sender, depositingAmount);
+//    }
 
     /**
      * @dev See {IStEverVault-onStrategyDidntHandleDeposit}.
@@ -130,23 +132,23 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The total assets are updated based on the depositing amount and the message value.
      *  - The StrategyDidntHandleDeposit event is emitted.
      */
-    function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
-        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
-        // set init state for depositing
-        strategies[msg.sender].depositingAmount = 0;
-
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        // add fee back to total assets
-        if (depositingAmount > msg.value) {
-            // if depositing amount gt msg.value therefore we spent more than attached fee
-            decreaseTotalAssets(depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-        }
-        if (msg.value > depositingAmount) {
-            increaseTotalAssets(msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-        }
-        emit StrategyDidntHandleDeposit(msg.sender, _errcode);
-    }
+//    function onStrategyDidntHandleDeposit(uint32 _errcode) override external onlyStrategy {
+//        uint128 depositingAmount = strategies[msg.sender].depositingAmount;
+//        // set init state for depositing
+//        strategies[msg.sender].depositingAmount = 0;
+//
+//        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+//
+//        // add fee back to total assets
+//        if (depositingAmount > msg.value) {
+//            // if depositing amount gt msg.value therefore we spent more than attached fee
+//            decreaseTotalAssets(depositingAmount - msg.value + StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+//        }
+//        if (msg.value > depositingAmount) {
+//            increaseTotalAssets(msg.value - depositingAmount - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+//        }
+//        emit StrategyDidntHandleDeposit(msg.sender, _errcode);
+//    }
 
     /**
      * @dev See {IStEverVault-strategyReport}
@@ -162,20 +164,193 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The total assets for the strategy are updated.
      *  - The StrategyReported event is emitted.
      */
-    function strategyReport(uint128 _gain, uint128 _loss, uint128 _totalAssets, uint128 _requestedBalance) override external onlyStrategy {
+    function controller_requestLoan(
+        uint64 queryId,
+        varUint16 minLoan,
+        varUint16 maxLoan,
+        uint32 maxInterest,
+        varUint16 validatorBalance
+    ) functionID(0xe642c965) external onlyStrategy {
+        // TODO make checks like, minValidatorBalance, minLoan, maxLoan, maxInterest
+        require(maxInterest <= maxControllerInterest, ErrorCodes.MAX_INTEREST_TOO_HIGH);
+        require(validatorBalance >= minControllerBalance, ErrorCodes.VALIDATOR_BALANCE_TOO_LOW);
+        require(strategies[msg.sender].state == StrategyState.ACTIVE, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+        require(availableAssets >= uint128(minLoan), ErrorCodes.NOT_ENOUGH_AVAILABLE_POOL_BALANCE);
+        uint128 creditAmount = math.min(uint128(maxLoan), availableAssets);
+        availableAssets -= creditAmount;
+        strategies[msg.sender].totalAssets += creditAmount;
+        tvm.rawReserve(_reserveWithValue(creditAmount), 0);
 
+        emit ControllerCredited(msg.sender, creditAmount);
+
+        IController(msg.sender).credit{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: true
+        }(queryId, varUint16(creditAmount));
+    }
+
+    /**
+     * @dev See {IStEverVault-processWithdrawFromStrategies}
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the governance or the contract itself.
+     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
+     *
+     * **Postconditions**:
+     *
+     *  - Funds are withdrawn from the strategies according to the withdrawal configurations.
+     *  - The available assets and total assets are updated accordingly.
+     */
+//    function processWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
+//        uint256 chunkSize = 50;
+//
+//        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
+//            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
+//
+//            if (config.amount < minStrategyWithdrawValue) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
+//                continue;
+//            }
+//
+//            if (!strategies.exists(strategy)) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
+//                continue;
+//            }
+//
+//            if (config.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
+//                continue;
+//            }
+//
+//            if (!canTransferValue(config.fee)) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
+//                continue;
+//            }
+//
+//            if (!isStrategyInInitialState(strategy, true)) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
+//                continue;
+//            }
+//
+//            if (totalAssets < config.fee) {
+//                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
+//                continue;
+//            }
+//
+//            // grab fee, then add it back after receiving response from strategy
+//            availableAssets -= config.fee;
+//
+//            decreaseTotalAssets(config.fee);
+//            // change withdrawing strategy state
+//            strategies[strategy].withdrawingAmount = config.amount;
+//
+//            IStrategy(strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
+//        }
+//        if (!_withdrawConfig.empty()) {
+//            this.processWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce:false}(_withdrawConfig);
+//        }
+//    }
+
+    /**
+     * @dev See {IStEverVault-onStrategyHandledWithdrawRequest}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the strategy.
+     *
+     * **Postconditions**:
+     *
+     *  - The StrategyHandledWithdrawRequest event is emitted.
+     *  - The available assets are increased by the returned fee.
+     *  - The total assets are updated based on the withdrawal amount.
+     */
+//    function onStrategyHandledWithdrawRequest() override external onlyStrategy {
+//
+//        emit StrategyHandledWithdrawRequest(msg.sender, strategies[msg.sender].withdrawingAmount);
+//
+//        if (isEmergencyProcess()) {
+//            tvm.rawReserve(_reserve(), 0);
+//
+//            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+//            return;
+//        }
+//        // set back remaining gas after withdraw request
+//        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+//        increaseTotalAssets(msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
+//    }
+
+    /**
+     * @dev See {IStEverVault-forceWithdrawFromStrategies}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the governance or the contract itself.
+     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
+     *
+     * **Postconditions**:
+     *
+     *  - Funds are forcibly withdrawn from the strategies according to the withdrawal configurations.
+     *  - The available assets and total assets are updated accordingly.
+     */
+    function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external {
+        uint256 chunkSize = 50;
+        tvm.rawReserve(_reserve(), 0);
+        require(_withdrawConfig.keys().length <= chunkSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+        for (uint64 i = 0; !_withdrawConfig.empty(); i++) {
+            (address controller, WithdrawConfig config) = _withdrawConfig.delMin().get();
+            if (!strategies.exists(controller)) {
+                emit ProcessWithdrawFromControllerError(controller, ErrorCodes.STRATEGY_NOT_EXISTS);
+                continue;
+            }
+            IController(controller).returnUnusedLoan{
+                value: config.fee,
+                flag: MsgFlag.SENDER_PAYS_FEES,
+                bounce: false
+            }(i);
+        }
+    }
+
+    /**
+     * @dev See {IStEverVault-receiveFromStrategy}.
+     *
+     * **Preconditions**:
+     *
+     *  - The caller must be the strategy.
+     *
+     * **Postconditions**:
+     *
+     *  - The withdrawing amount for the strategy is reset to 0.
+     *  - The total assets for the strategy are updated.
+     *  - The available assets are increased by the received amount.
+     *  - The StrategyWithdrawSuccess event is emitted.
+     *  - The strategy is removed if it is ready to be deleted.
+     */
+    function loanRepayment(
+        uint64 queryId,
+        varUint16 _reward,
+        varUint16 _repay
+    ) external functionID(0xdfdca27b) onlyStrategy {
+        // set init state for withdrawing
+        uint128 reward = uint128(_reward);
+        uint128 repay = uint128(_repay);
+        strategies[msg.sender].withdrawingAmount = 0;
+
+        uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+
+        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
+
+        availableAssets += receivedAmount;
         strategies[msg.sender].lastReport = now;
-        strategies[msg.sender].totalGain += _gain;
+        strategies[msg.sender].totalGain += reward;
 
-        uint128 stEverFee = math.muldiv(_gain, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
+        uint128 stEverFee = math.muldiv(reward, stEverFeePercent, Constants.ONE_HUNDRED_PERCENT);
         totalStEverFee += stEverFee;
-        uint128 gainWithoutStEverFee = _gain - stEverFee;
-
+        uint128 gainWithoutStEverFee = reward - stEverFee;
 
         // if gain less than the fee, therefore, we shouldn't increase total assets
-        uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ?
-        gainWithoutStEverFee - gainFee :
-        0;
+        uint128 gainWithoutGainFee = gainWithoutStEverFee > gainFee ? gainWithoutStEverFee - gainFee : 0;
 
         increaseTotalAssets(gainWithoutGainFee);
 
@@ -196,186 +371,8 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
         unlockAssets();
 
-        ///
-        updateTotalAssetsForStrategy(msg.sender, gainWithoutGainFee, true);
 
-        emit StrategyReported(msg.sender, StrategyReport(gainWithoutGainFee, _loss, _totalAssets));
-
-
-        uint128 sendValueToStrategy;
-        if (_requestedBalance > 0 && canTransferValue(_requestedBalance)) {
-            decreaseTotalAssets(_requestedBalance);
-            availableAssets -= _requestedBalance;
-            sendValueToStrategy = _requestedBalance;
-        }
-        tvm.rawReserve(_reserveWithValue(sendValueToStrategy), 0);
-        msg.sender.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    /**
-     * @dev See {IStEverVault-processWithdrawFromStrategies}
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the governance or the contract itself.
-     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
-     *
-     * **Postconditions**:
-     *
-     *  - Funds are withdrawn from the strategies according to the withdrawal configurations.
-     *  - The available assets and total assets are updated accordingly.
-     */
-    function processWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-
-        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
-            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
-
-            if (config.amount < minStrategyWithdrawValue) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_VALUE);
-                continue;
-            }
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (config.fee < StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.BAD_WITHDRAW_FROM_STRATEGY_FEE);
-                continue;
-            }
-
-            if (!canTransferValue(config.fee)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
-                continue;
-            }
-
-            if (!isStrategyInInitialState(strategy, true)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
-                continue;
-            }
-
-            if (totalAssets < config.fee) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            // grab fee, then add it back after receiving response from strategy
-            availableAssets -= config.fee;
-
-            decreaseTotalAssets(config.fee);
-            // change withdrawing strategy state
-            strategies[strategy].withdrawingAmount = config.amount;
-
-            IStrategy(strategy).withdraw{value:config.fee, bounce: false}(uint64(config.amount));
-        }
-        if (!_withdrawConfig.empty()) {
-            this.processWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce:false}(_withdrawConfig);
-        }
-    }
-
-    /**
-     * @dev See {IStEverVault-onStrategyHandledWithdrawRequest}.
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the strategy.
-     *
-     * **Postconditions**:
-     *
-     *  - The StrategyHandledWithdrawRequest event is emitted.
-     *  - The available assets are increased by the returned fee.
-     *  - The total assets are updated based on the withdrawal amount.
-     */
-    function onStrategyHandledWithdrawRequest() override external onlyStrategy {
-
-        emit StrategyHandledWithdrawRequest(msg.sender, strategies[msg.sender].withdrawingAmount);
-
-        if (isEmergencyProcess()) {
-            tvm.rawReserve(_reserve(), 0);
-
-            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-            return;
-        }
-        // set back remaining gas after withdraw request
-        availableAssets += msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-        increaseTotalAssets(msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE);
-    }
-
-    /**
-     * @dev See {IStEverVault-forceWithdrawFromStrategies}.
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the governance or the contract itself.
-     *  - The value of the message must be greater than or equal to the sum of the withdrawal amount and the fee.
-     *
-     * **Postconditions**:
-     *
-     *  - Funds are forcibly withdrawn from the strategies according to the withdrawal configurations.
-     *  - The available assets and total assets are updated accordingly.
-     */
-    function forceWithdrawFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) override external onlyGovernanceOrSelfAndAccept {
-        uint256 chunkSize = 50;
-        for (uint256 i = 0; i < chunkSize && !_withdrawConfig.empty(); i++) {
-            (address strategy, WithdrawConfig config) = _withdrawConfig.delMin().get();
-
-            if (!strategies.exists(strategy)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.STRATEGY_NOT_EXISTS);
-                continue;
-            }
-
-            if (!canTransferValue(config.fee)) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_VALUE_TO_WITHDRAW);
-                continue;
-            }
-
-            if (totalAssets < config.fee) {
-                emit ProcessWithdrawFromStrategyError(strategy, ErrorCodes.NOT_ENOUGH_TOTAL_ASSETS);
-                continue;
-            }
-
-            // grab fee, then add it back after receiving response from strategy
-            availableAssets -= config.fee;
-            decreaseTotalAssets(config.fee);
-
-            // change withdrawing strategy state
-            strategies[strategy].withdrawingAmount = config.amount;
-
-            IStrategy(strategy).withdrawForce{value:config.fee, bounce: false}(uint64(config.amount));
-        }
-        if (!_withdrawConfig.empty()) {
-            this.forceWithdrawFromStrategies{value: StEverVaultGas.SEND_SELF_VALUE, bounce: false}(_withdrawConfig);
-        }
-    }
-
-    /**
-     * @dev See {IStEverVault-receiveFromStrategy}.
-     *
-     * **Preconditions**:
-     *
-     *  - The caller must be the strategy.
-     *
-     * **Postconditions**:
-     *
-     *  - The withdrawing amount for the strategy is reset to 0.
-     *  - The total assets for the strategy are updated.
-     *  - The available assets are increased by the received amount.
-     *  - The StrategyWithdrawSuccess event is emitted.
-     *  - The strategy is removed if it is ready to be deleted.
-     */
-    function receiveFromStrategy() override external onlyStrategy {
-        // set init state for withdrawing
-        strategies[msg.sender].withdrawingAmount = 0;
-
-        uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        updateTotalAssetsForStrategy(msg.sender, msg.value, false);
-
-        availableAssets += receivedAmount;
-
-        emit StrategyWithdrawSuccess(msg.sender, receivedAmount);
+        emit StrategyRepayLoan(msg.sender, gainWithoutGainFee, repay, receivedAmount);
 
         if (isStrategyReadyToDelete(msg.sender)) {
             removeStrategy(msg.sender);
@@ -470,24 +467,24 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The available assets are increased by the remaining gas.
      *  - The total assets are increased by the remaining gas.
      */
-    function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
-        emit StrategyWithdrawError(msg.sender, _errcode);
-        // set init state for withdrawing
-        strategies[msg.sender].withdrawingAmount = 0;
-
-        if (isEmergencyProcess()) {
-            tvm.rawReserve(_reserve(), 0);
-
-            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-            return;
-        }
-        // calculate remaining gas
-        uint128 notUsedFee = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
-
-        // set remaining gas
-        availableAssets += notUsedFee;
-        increaseTotalAssets(notUsedFee);
-    }
+//    function withdrawFromStrategyError(uint32 _errcode) override external onlyStrategy {
+//        emit StrategyWithdrawError(msg.sender, _errcode);
+//        // set init state for withdrawing
+//        strategies[msg.sender].withdrawingAmount = 0;
+//
+//        if (isEmergencyProcess()) {
+//            tvm.rawReserve(_reserve(), 0);
+//
+//            emergencyState.emitter.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+//            return;
+//        }
+//        // calculate remaining gas
+//        uint128 notUsedFee = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
+//
+//        // set remaining gas
+//        availableAssets += notUsedFee;
+//        increaseTotalAssets(notUsedFee);
+//    }
 
     /**
      * @dev See {IStEverVault-processWithdrawExtraMoneyFromStrategies}.

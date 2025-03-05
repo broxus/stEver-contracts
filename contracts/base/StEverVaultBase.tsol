@@ -126,6 +126,18 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, clusterPools);
     }
 
+    function setMaxControllerInterest(uint24 _maxControllerInterest)  external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+        maxControllerInterest = _maxControllerInterest;
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
+    function setMinControllerBalance(uint128 _minControllerBalance)  external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+        minControllerBalance = _minControllerBalance;
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+
     function self_setStEverOwnerForClusters(address _sendGasTo, mapping(address => ClustersPool) _clusterPools) public view onlySelf {
         tvm.rawReserve(_reserve(), 0);
         uint256 chunkSize = 25;

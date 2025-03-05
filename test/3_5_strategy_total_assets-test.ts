@@ -1,19 +1,20 @@
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano } from "locklift";
+import { Contract, Signer, toNano } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { getAddressEverBalance, toNanoBn } from "../utils";
-import { createAndRegisterStrategy } from "../utils/highOrderUtils";
-import { concatMap, from, lastValueFrom, map, mergeMap, range, switchMap, tap, timer, toArray } from "rxjs";
+import { createControllers } from "../utils/entities/dePoolStrategy";
+import { toNanoBn } from "../utils";
+
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";
-import { GAIN_FEE, INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION } from "../utils/constants";
+import { INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION, ONE_HUNDRED_PERCENT } from "../utils/constants";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
 
 let signer: Signer;
 let admin: User;
@@ -22,12 +23,15 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategy: DePoolStrategyWithPool;
+let controller: Controller;
 let strategyFactory: StrategyFactory;
 let cluster: Cluster;
+let elector: Elector;
 const ST_EVER_FEE_PERCENT = 11;
+const MIN_STAKE_TO_SEND = 50_000;
+const VALIDATOR_SHARE_PERCENT = 10;
 describe("Strategy Total assets", function () {
-  const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
+  const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(MIN_STAKE_TO_SEND);
   const DEPOSIT_FEE = new BigNumber(locklift.utils.toNano(0.6));
   beforeEach(async () => {
     const {
@@ -37,7 +41,8 @@ describe("Strategy Total assets", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
+      elector: e,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 3) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -46,6 +51,7 @@ describe("Strategy Total assets", function () {
     user2 = u2;
     tokenRoot = tr;
     strategyFactory = st;
+    elector = e;
 
     await vault.setStEverFeePercent({ percentFee: ST_EVER_FEE_PERCENT });
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
@@ -58,111 +64,59 @@ describe("Strategy Total assets", function () {
       maxStrategiesCount: 10,
     });
 
-    strategy = await createStrategy({
-      signer,
-      poolDeployValue: locklift.utils.toNano(200),
+    controller = await createControllers({
       cluster,
+      validator: admin.account.address,
+      count: 1,
+    }).then(res => res[0]);
+
+    await user1.depositToVault(toNanoBn(MIN_STAKE_TO_SEND * 2).toString());
+
+    await controller.sendRequestLoan({
+      queryId: 1,
+      maxInterest: (ONE_HUNDRED_PERCENT / VALIDATOR_SHARE_PERCENT).toString(),
+      minLoan: toNano(1).toString(),
+      maxLoan: toNano(MIN_STAKE_TO_SEND).toString(),
     });
 
-    const { traceTree: firstTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
-    expect(firstTraceTree)
-      .to.emit("StrategiesAdded", vault.vaultContract)
-      .withNamedArgs({
-        strategy: [strategy.strategy.address],
-      });
-
-    await user1.depositToVault(toNanoBn(140).toString());
-
-    await governance.depositToStrategies({
-      _depositConfigs: [
-        [
-          strategy.strategy.address,
-          {
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-            fee: DEPOSIT_FEE.toString(),
-          },
-        ],
-      ],
-    });
-
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-    expect(strategyInfo.totalAssets).to.be.equals(
-      DEPOSIT_TO_STRATEGIES_AMOUNT.minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION).toString(),
-    );
-  });
-
-  it("Governance should withdraw part from strategy", async () => {
-    const withdrawValue = DEPOSIT_TO_STRATEGIES_AMOUNT.minus(toNano(20));
-    await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [[strategy.strategy.address, { amount: withdrawValue.toString(), fee: DEPOSIT_FEE.toString() }]],
-    });
-
-    await strategy.emitDePoolRoundComplete(toNano("0"), true);
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-    expect(Number(strategyInfo.totalAssets))
-      .to.be.gte(
-        DEPOSIT_TO_STRATEGIES_AMOUNT.minus(withdrawValue).minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION).toNumber(),
-      )
-      .and.lte(DEPOSIT_TO_STRATEGIES_AMOUNT.minus(withdrawValue).toNumber());
-  });
-  it("Governance should withdraw from pooling round", async () => {
-    const withdrawValue = DEPOSIT_TO_STRATEGIES_AMOUNT.minus(toNano(20));
-    const { traceTree } = await governance.forceWithdrawFromStrategies({
-      _withdrawConfig: [[strategy.strategy.address, { amount: withdrawValue.toString(), fee: DEPOSIT_FEE.toString() }]],
-    });
-
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-
-    expect(Number(strategyInfo.totalAssets))
-      .to.be.gte(
-        DEPOSIT_TO_STRATEGIES_AMOUNT.minus(withdrawValue)
-          // Fee will attach to the dePool response value
-          .minus(DEPOSIT_FEE.plus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION))
-          .toNumber(),
-      )
-      .and.lte(DEPOSIT_TO_STRATEGIES_AMOUNT.minus(withdrawValue).toNumber());
+    const strategyInfo = await vault.getStrategyInfo(controller.controllerContract.address);
+    expect(strategyInfo.totalAssets).to.be.equals(DEPOSIT_TO_STRATEGIES_AMOUNT.toString());
   });
 
   it("Total assets should be increased by gain", async () => {
     const roundReward = toNanoBn(25);
+    await elector.setReward(roundReward.toString());
+    {
+      const { traceTree } = await controller.newStake({
+        stakeAt: 152,
+        queryId: 1,
+        valueToStake: toNano(MIN_STAKE_TO_SEND).toString(),
+        validatorPubKey: "0x1",
+        maxFactor: 1,
+        adnlAddr: "0x1",
+      });
 
-    const { traceTree } = await strategy.emitDePoolRoundComplete(roundReward.toString());
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-    const roundRewardWithoutFee = traceTree?.findForContract({
-      contract: vault.vaultContract,
-      name: "StrategyReported",
-    })[0]!.params!.report.gain!;
+      await traceTree?.beautyPrint();
+    }
 
-    const newStrategyTotalAssets = DEPOSIT_TO_STRATEGIES_AMOUNT.minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION)
-      .plus(roundRewardWithoutFee)
-      .minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION);
+    await controller.updateValidatorHashMultipleTimes();
+    const { traceTree } = await controller.recoverStake({ queryId: 1 });
+    await traceTree?.beautyPrint();
+    const strategyInfo = await vault.getStrategyInfo(controller.controllerContract.address);
+    // const roundRewardWithoutFee = traceTree?.findForContract({
+    //   contract: vault.vaultContract,
+    //   name: "StrategyRepayLoan",
+    // })[0]!.params!.reward!;
+    // console.log("roundRewardWithoutFee", roundRewardWithoutFee);
+
+    const newStrategyTotalAssets = toNanoBn(0);
 
     expect(Number(strategyInfo.totalAssets)).to.be.eq(newStrategyTotalAssets.toNumber());
-  });
-  it("Total assets should be increased by gain and then decreased by withdraw value", async () => {
-    const roundReward = toNanoBn(25);
-    const withdrawValue = DEPOSIT_TO_STRATEGIES_AMOUNT.minus(toNano(20));
-
-    await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [[strategy.strategy.address, { amount: withdrawValue.toString(), fee: DEPOSIT_FEE.toString() }]],
-    });
-    const { traceTree } = await strategy.emitDePoolRoundComplete(roundReward.toString(), true);
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
-    const roundRewardWithoutFee = traceTree?.findForContract({
-      contract: vault.vaultContract,
-      name: "StrategyReported",
-    })[0]!.params!.report.gain!;
-
-    const newStrategyTotalAssets = DEPOSIT_TO_STRATEGIES_AMOUNT.minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION)
-      .plus(roundRewardWithoutFee)
-      .minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION);
-
-    expect(Number(strategyInfo.totalAssets))
-      .to.be.gte(
-        newStrategyTotalAssets.minus(withdrawValue).minus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION).toNumber(),
-      )
-      .and.to.be.lte(
-        newStrategyTotalAssets.minus(withdrawValue).plus(INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION).toNumber(),
-      );
+    expect(Number(strategyInfo.totalGain)).to.be.gte(
+      roundReward
+        .multipliedBy((ONE_HUNDRED_PERCENT - ONE_HUNDRED_PERCENT / VALIDATOR_SHARE_PERCENT) / ONE_HUNDRED_PERCENT)
+        .toNumber(),
+    );
+    expect(Number(strategyInfo.totalGain)).to.be.lte(roundReward.toNumber());
   });
 });

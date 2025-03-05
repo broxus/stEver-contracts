@@ -193,18 +193,24 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - Calls the {IDepoolStrategyFactory-deployStrategy} function of the strategy
      *    factory contract for each DePool.
      */
-    function deployStrategies(address[] _dePools) override external onlyClusterOwner {
+    function deployStrategies(address _validator, uint32 count) override external onlyClusterOwner {
+        if (currentAssurance < requiredAssurance) {
+            revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);
+        }
+        if (strategies.keys().length + count > maxStrategiesCount) {
+            revert(ErrorCodesCluster.STRATEGIES_LIMIT_REACHED);
+        }
         uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE;
-        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(_dePools.length) + ClusterGas.MIN_CALL_VALUE;
+        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(count) + ClusterGas.MIN_CALL_VALUE;
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
-        for(address dePool : _dePools) {
+        for (uint8 i = 0; i < count; ++i) {
             IDepoolStrategyFactory(strategyFactory).deployStrategy{
                 value: valueForDeployOneStrategy,
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
-            }(dePool);
+            }(_validator);
         }
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -228,6 +234,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         emit NewStrategyDeployed(_strategy);
 
+        addStrategy(_strategy);
+
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -236,7 +244,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * This function checks if the assurance is sufficient and if the strategies limit is not reached.
      * It then checks if each strategy is deployed and not already added.
      * Finally, it calls the addStrategies function of the StEverVault contract.
-     * @param _strategies The addresses of the strategies.
+     * @param _strategy The addresses of the strategy.
      *
      * **Preconditions**:
      *
@@ -250,43 +258,25 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The strategies are added to the StEverVault.
      */
-    function addStrategies(address[] _strategies) public view onlyClusterOwner {
-        if (currentAssurance < requiredAssurance) {
-            revert(ErrorCodesCluster.ASSURANCE_NOT_ENOUGH);
-        }
+    function addStrategy(address _strategy) internal {
 
-        if (strategies.keys().length + _strategies.length > maxStrategiesCount) {
-            revert(ErrorCodesCluster.STRATEGIES_LIMIT_REACHED);
-        }
+//        require (
+//            msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE + StEverVaultGas.MIN_CALL_MSG_VALUE,
+//            ErrorCodes.NOT_ENOUGH_VALUE
+//        );
 
-        require (
-            msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE + StEverVaultGas.MIN_CALL_MSG_VALUE,
-            ErrorCodes.NOT_ENOUGH_VALUE
-        );
-
-        uint8 batchSize = 50;
-
-        require (_strategies.length <= batchSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
-
-        tvm.rawReserve(_reserve(), 0);
-
-        for (address strategy : _strategies) {
-
-            if (strategies.exists(strategy)) {
+        if (strategies.exists(_strategy)) {
                 revert(ErrorCodesCluster.STRATEGY_ALREADY_EXISTS);
-            }
-            if (!deployedStrategies.exists(strategy)) {
+        }
+        if (!deployedStrategies.exists(_strategy)) {
                 revert(ErrorCodesCluster.STRATEGY_NOT_DEPLOYED_BY_CLUSTER);
-            }
         }
 
-        IStEverVault(stEverVault).addStrategies{
-            value: uint128(_strategies.length) * StEverVaultGas.EXPERIMENTAL_FEE,
+        IStEverVault(stEverVault).addStrategy{
+            value: StEverVaultGas.EXPERIMENTAL_FEE,
             flag: MsgFlag.SENDER_PAYS_FEES,
             bounce: false
-        }(_strategies, clusterOwner, _nonce);
-
-        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        }(_strategy, clusterOwner, _nonce);
     }
 
     /**
@@ -300,12 +290,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The state of each strategy is set to ACTIVE.
      */
-    function onStrategiesAdded(address[] _strategies) override external onlyStEverVault {
+    function onStrategiesAdded(address _strategy) override external onlyStEverVault {
         tvm.rawReserve(_reserve(), 0);
 
-        for (address strategy : _strategies) {
-            strategies[strategy].state = StrategyState.ACTIVE;
-        }
+        strategies[_strategy].state = StrategyState.ACTIVE;
 
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

@@ -1,0 +1,23 @@
+pragma ever-solidity >=0.62.0;
+interface IController {
+    function credit(uint64 queryId, varUint16 creditAmount) external functionID(0x1690c604);
+
+    function elector_recoverStakeOk(uint64 queryId) external functionID(0xf96f7324);
+    function elector_recoverStakeError(uint64 queryId) external functionID(0xfffffffe);
+    function elector_newStakeError(uint64 queryId) external functionID(0xee6f454c);
+    function elector_newStakeOk(uint64 queryId) external functionID(0xf374484c);
+
+    //controller
+    function controller_newStake(
+        uint64 queryId,
+        uint128 valueToStake,
+        uint256 validatorPubKey,
+        uint32 stakeAt,
+        uint32 maxFactor,
+        uint256 adnlAddr,
+        bytes signature
+    ) external functionID(0x4e73744b);
+
+    function controller_updateValidatorHashTest(uint64 queryId) external functionID(0xf0fd2210);
+    function returnUnusedLoan(uint64 queryId) external functionID(0xed7378a6);
+}

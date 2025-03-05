@@ -1,16 +1,17 @@
-import { Contract, Signer, toNano } from "locklift";
+import { Contract, fromNano, Signer, toNano } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 
 import { Vault } from "../utils/entities/vault";
-import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
 
 let signer: Signer;
 let admin: User;
@@ -19,9 +20,11 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
+let controllers: Array<Controller> = [];
 let strategyFactory: StrategyFactory;
 let cluster: Cluster;
+let elector: Elector;
+const MIN_STAKE_TO_SEND = 50_000;
 
 describe("Reduction factor", async function () {
   before(async () => {
@@ -32,7 +35,8 @@ describe("Reduction factor", async function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(200) });
+      elector: e,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 10) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -41,6 +45,7 @@ describe("Reduction factor", async function () {
     user2 = u2;
     tokenRoot = tr;
     strategyFactory = st;
+    elector = e;
   });
   it("Vault should be initialized", async () => {
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
@@ -54,44 +59,50 @@ describe("Reduction factor", async function () {
     });
   });
   it("should strategy deployed", async () => {
-    const strategy = await createStrategy({
-      signer,
+    controllers = await createControllers({
+      validator: admin.account.address,
       cluster,
-      poolDeployValue: locklift.utils.toNano(9999999),
+      count: 1,
     });
-    await cluster.addStrategies([strategy.strategy.address]);
-    strategiesWithPool.push(strategy);
   });
   it("user should deposit to vault", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 100;
-    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
+    await user1.depositToVault(locklift.utils.toNano(MIN_STAKE_TO_SEND));
   });
-  it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(90);
-    const DEPOSIT_FEE = toNanoBn(0.6);
-    const { successEvents } = await governance.depositToStrategies({
-      _depositConfigs: [
-        [
-          strategiesWithPool[0].strategy.address,
-          {
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-            fee: DEPOSIT_FEE.toString(),
-          },
-        ],
-      ],
-    });
-
-    expect(successEvents?.length).to.be.eq(1);
-  });
+  // it("controller should receive stake", async () => {
+  //   controllers[0].sendRequestLoan({
+  //     queryId: 1,
+  //     minLoan: toNano(1),
+  //     maxLoan: toNano(MIN_STAKE_TO_SEND),
+  //     maxInterest: "0",
+  //   });
+  // });
 
   it("check reduction-factor", async () => {
-    const DAYLE_REWARD = 101;
+    const DAYLE_REWARD = MIN_STAKE_TO_SEND + 1;
+    await elector.setReward(toNano(DAYLE_REWARD));
+
     const { fullUnlockSeconds } = await vault.getDetails();
 
     const COUNT_OF_REPORTS = 40;
+    await locklift.giver.sendTo(elector.electorContract.address, toNano(DAYLE_REWARD * COUNT_OF_REPORTS));
+
     const SECONDS_BETWEEN_REPORTS = 30;
     for (let _ of Array(COUNT_OF_REPORTS)) {
-      const { traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(toNano(DAYLE_REWARD));
+      await controllers[0].sendRequestLoan({
+        queryId: 1,
+        minLoan: toNano(1),
+        maxLoan: toNano(MIN_STAKE_TO_SEND),
+        maxInterest: "0",
+      });
+
+      await controllers[0].runFullCycle({
+        queryId: 1,
+        maxFactor: 1,
+        adnlAddr: "0x1",
+        stakeAt: 1,
+        valueToStake: toNano(MIN_STAKE_TO_SEND),
+        validatorPubKey: "0x1",
+      });
       await locklift.testing.increaseTime(SECONDS_BETWEEN_REPORTS);
     }
     await locklift.testing.increaseTime(Number(fullUnlockSeconds) / 2);

@@ -5,12 +5,14 @@ import { toNanoBn } from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { makeWithdrawToUsers } from "../utils/highOrderUtils";
 import { Vault } from "../utils/entities/vault";
 import BigNumber from "bignumber.js";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
 
 let signer: Signer;
 let admin: User;
@@ -19,9 +21,11 @@ let user1: User;
 let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
-let strategiesWithPool: Array<DePoolStrategyWithPool> = [];
+let controllers: Array<Controller> = [];
 let strategyFactory: StrategyFactory;
 let cluster: Cluster;
+let elector: Elector;
+const MIN_STAKE_TO_SEND = 50_000;
 
 describe("Single flow", async function () {
   before(async () => {
@@ -32,7 +36,8 @@ describe("Single flow", async function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: st,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(200) });
+      elector: e,
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 10) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -41,6 +46,7 @@ describe("Single flow", async function () {
     user2 = u2;
     tokenRoot = tr;
     strategyFactory = st;
+    elector = e;
   });
   it("Vault should be initialized", async () => {
     await vault.setStEverFeePercent({
@@ -54,54 +60,48 @@ describe("Single flow", async function () {
     });
   });
   it("should strategy deployed", async () => {
-    const strategy = await createStrategy({
-      signer,
+    controllers = await createControllers({
+      count: 1,
       cluster,
-      poolDeployValue: locklift.utils.toNano(200),
+      validator: admin.account.address,
     });
-    await cluster.addStrategies([strategy.strategy.address]);
-    strategiesWithPool.push(strategy);
   });
   it("user should deposit to vault", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = 122;
-    await user1.depositToVault(locklift.utils.toNano(DEPOSIT_TO_STRATEGIES_AMOUNT));
+    await user1.depositToVault(locklift.utils.toNano(MIN_STAKE_TO_SEND));
   });
-  it("governance should deposit to strategies", async () => {
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNanoBn(119.4);
-    const DEPOSIT_FEE = toNanoBn(0.6);
-    const { successEvents } = await governance.depositToStrategies({
-      _depositConfigs: [
-        [
-          strategiesWithPool[0].strategy.address,
-          {
-            amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-            fee: DEPOSIT_FEE.toString(),
-          },
-        ],
-      ],
+  it("controller should receive loan", async () => {
+    await controllers[0].sendRequestLoan({
+      queryId: 1,
+      minLoan: toNano(1),
+      maxLoan: toNano(MIN_STAKE_TO_SEND),
+      maxInterest: "0",
     });
-    expect(successEvents?.length).to.be.eq(1);
   });
   it("round should completed", async () => {
     const stateBefore = await vault.getDetails();
     const ROUND_REWARD = toNanoBn(3);
+    await elector.setReward(ROUND_REWARD.toString());
+
     const EXPECTED_REWARD = new BigNumber(ROUND_REWARD)
       .minus(stateBefore.gainFee)
       .minus(ROUND_REWARD.multipliedBy(stateBefore.stEverFeePercent).dividedBy(1000));
-    const { transaction, traceTree } = await strategiesWithPool[0].emitDePoolRoundComplete(ROUND_REWARD.toString());
+    const { recoverStakeTraceTree } = await controllers[0].runFullCycle({
+      queryId: 1,
+      validatorPubKey: "0x1",
+      stakeAt: 152,
+      adnlAddr: "0x1",
+      maxFactor: 1,
+      valueToStake: toNano(MIN_STAKE_TO_SEND),
+    });
     console.log(JSON.stringify(stateBefore, null, 4));
 
-    expect(traceTree)
-      .to.emit("StrategyReported")
-      .withNamedArgs(
-        {
-          strategy: strategiesWithPool[0].strategy.address,
-          report: {
-            gain: EXPECTED_REWARD.toString(),
-          },
-        },
-        "reported gain should be reduced by fee",
-      );
+    expect(recoverStakeTraceTree).to.emit("StrategyRepayLoan").withNamedArgs(
+      {
+        strategy: controllers[0].controllerContract.address,
+        reward: EXPECTED_REWARD.toString(),
+      },
+      "reported gain should be reduced by fee",
+    );
 
     const stateAfter = await vault.getDetails();
     expect(stateAfter.totalAssets.toString()).equals(
@@ -113,7 +113,15 @@ describe("Single flow", async function () {
       "stever supply should be unchanged",
     );
   });
-  it("user shouldn't receive because harvest from strategy have not evaluated yet, so reset pending withdraw request to the user", async () => {
+  it("user shouldn't receive because there is no available assets", async () => {
+    const vaultState = await vault.getDetails();
+    const { traceTree } = await controllers[0].sendRequestLoan({
+      queryId: 2,
+      maxLoan: vaultState.availableAssets.toString(),
+      minLoan: toNano(1),
+      maxInterest: "0",
+    });
+    await traceTree?.beautyPrint();
     const WITHDRAW_AMOUNT = 10;
     const { errorEvents } = await makeWithdrawToUsers({
       vault: vault,
@@ -128,23 +136,19 @@ describe("Single flow", async function () {
     expect(nonce).to.be.equals(errorEvents[0].withdrawInfo[0][0]);
     expect(amount).to.be.equals(locklift.utils.toNano(WITHDRAW_AMOUNT));
   });
-  it("should successfully withdraw from strategy", async () => {
-    const WITHDRAW_AMOUNT = toNanoBn(100);
+  it("should receive repay from strategy", async () => {
+    const controllerAvailableAssets = await controllers[0].getFields().then(res => res.borrowed_amount);
+
     const { availableAssets: availableBalanceBefore } = await vault.getDetails();
-    const { successEvents } = await governance.withdrawFromStrategiesRequest({
-      _withdrawConfig: [
-        [
-          strategiesWithPool[0].strategy.address,
-          {
-            amount: WITHDRAW_AMOUNT.toString(),
-            fee: locklift.utils.toNano(0.6),
-          },
-        ],
-      ],
+    console.log("controllerAvailableAssets", controllerAvailableAssets);
+    await controllers[0].runFullCycle({
+      queryId: 2,
+      maxFactor: 1,
+      adnlAddr: "0x1",
+      stakeAt: 1,
+      validatorPubKey: "0x1",
+      valueToStake: (await controllers[0].getFields().then(res => res.borrowed_amount))!,
     });
-    expect(successEvents.length).to.be.equals(1);
-    expect(successEvents[0].amount).equals(WITHDRAW_AMOUNT.toString());
-    await strategiesWithPool[0].emitWithdrawByRequests();
     const { availableAssets: availableBalanceAfter } = await vault.getDetails();
 
     expect(availableBalanceAfter.toNumber()).to.be.gt(availableBalanceBefore.toNumber());

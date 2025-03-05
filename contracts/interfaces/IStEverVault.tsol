@@ -23,7 +23,7 @@ interface IStEverVault {
     event FullUnlockTimeUpdated(uint128 fullUnlockTimeSeconds);
     event TimeAfterEmergencyCanBeActivatedValueUpdated(uint64 timeAfterEmergencyCanBeActivated);
     // Strategy
-    event StrategiesAdded(address[] strategy);
+    event StrategyAdded(address strategy);
     event StrategyRemoved(address strategy);
     event StrategiesPendingRemove(address[] strategies);
     event StrategyReported(address strategy, StrategyReport report);
@@ -54,11 +54,16 @@ interface IStEverVault {
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
     event ProcessDepositToStrategyError(address strategy, uint16 errcode);
 
+    event ControllerCredited(address controller, uint128 value);
+
     // Strategy withdraw
     event StrategyHandledWithdrawRequest(address strategy, uint128 amount);
     event StrategyWithdrawSuccess(address strategy, uint128 amount);
+
+    event StrategyRepayLoan(address strategy, uint128 reward, uint128 repay, uint128 repayValue);
+
     event StrategyWithdrawError(address strategy, uint32 errcode);
-    event ProcessWithdrawFromStrategyError(address strategy, uint16 errcode);
+    event ProcessWithdrawFromControllerError(address strategy, uint16 errcode);
     event ReceiveAdditionalTransferFromStrategy(address strategy, uint128 amount);
         // Withdraw extra ever from strategies
     event ProcessWithdrawExtraMoneyFromStrategyError(address strategy, uint16 ercode);
@@ -156,7 +161,6 @@ interface IStEverVault {
     }
 
     struct WithdrawConfig {
-        uint128 amount;
         uint128 fee;
     }
 
@@ -209,11 +213,11 @@ interface IStEverVault {
     /**
      * @dev Adds strategies to the cluster.
      *
-     * @param _strategies The strategies to be added.
+     * @param _strategy The strategy to be added.
      * @param _clusterOwner The owner of the cluster.
      * @param _clusterId The ID of the cluster.
      */
-    function addStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
+    function addStrategy(address _strategy, address _clusterOwner, uint32 _clusterId) external;
 
     /**
      * @dev Removes a strategy from the cluster.
@@ -230,17 +234,7 @@ interface IStEverVault {
      */
     function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
 
-    /**
-     * @dev Reports the strategy.
-     * This function is called by strategies after each round.
-     * It doesn't carry any value, only information.
-     *
-     * @param gain The gain from the strategy.
-     * @param loss The loss from the strategy.
-     * @param totalAssets The total assets in the strategy.
-     * @param requestedValue The requested value from the strategy.
-     */
-    function strategyReport(uint128 gain, uint128 loss, uint128 totalAssets,uint128 requestedValue) external;
+
 
     /**
      * @dev Sets the strategy factory.
@@ -288,53 +282,17 @@ interface IStEverVault {
         uint32 _clusterNonce
     ) external;
 
-    /**
-     * @dev Deposits to strategies. Can be called recursively if mapping contains more than 50 elements.
-     * @param depositConfig Mapping of strategy address to deposit config.
-     */
-    function depositToStrategies(mapping(address => DepositConfig ) depositConfig) external;
 
-    /**
-     * @dev Handles the call from the strategy after a deposit has been handled.
-     */
-    function onStrategyHandledDeposit() external;
 
-    /**
-     * @dev Processes withdrawals from the strategies according to the withdrawal configurations.
-     * @param withdrawConfig The configurations for the withdrawals.
-     */
-    function processWithdrawFromStrategies(mapping(address => WithdrawConfig) withdrawConfig) external;
 
-    /**
-     * @dev Handles the withdrawal request from strategies, after accepting withdraw request.
-     */
-    function onStrategyHandledWithdrawRequest() external;
 
-    /**
-     * @dev Handles the call from the strategy after a failed deposit
-     * @param errcode The error code of the failed deposit.
-     */
-    function onStrategyDidntHandleDeposit(uint32 errcode) external;
-
-    /**
-     * @dev Receives funds from a strategy.
-     *
-     * This is a callback function that carries the requested value,
-     * that was requested by `processWithdrawFromStrategies` or `forceWithdrawFromStrategies`.
-     */
-    function receiveFromStrategy() external;
 
     /**
      * @dev Fallback method for handling unexpected value.
      */
     function receiveAdditionalTransferFromStrategy() external;
 
-    /**
-     * @dev Handles the event when a strategy has failed to handle a withdrawal.
-     *
-     * @param errcode The error code of the failed withdrawal.
-     */
-    function withdrawFromStrategyError(uint32 errcode) external;
+
 
     /**
      * @dev Method for situation when dePool is stopped emit new rounds, and our
@@ -406,25 +364,7 @@ interface IStEverVault {
      */
     function withdrawExtraEver() external;
 
-    // validators
 
-    /**
-     * @dev Validates a deposit request.
-     *
-     * @param _depositConfigs The mapping of strategy address to deposit config.
-     *
-     * This function checks if the deposit request is valid by checking if the strategy exists,
-     * if the deposit amount is above the minimum, and if there are enough assets to cover the deposit.
-     */
-    function validateDepositRequest(mapping (address => DepositConfig) _depositConfigs) external view returns(ValidationResult[]);
-
-    /**
-     * @dev Validates a withdrawal request from strategies.
-     *
-     * This function checks if the withdrawal request is valid by checking if the strategy exists,
-     * if the withdrawal amount is above the minimum, and if there are enough assets to cover the withdrawal.
-     */
-    function validateWithdrawFromStrategiesRequest(mapping (address => WithdrawConfig) _withdrawConfig) external view returns (ValidationResult[]);
 
     // account
 

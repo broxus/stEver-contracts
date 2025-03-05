@@ -9,6 +9,10 @@ import { GAIN_FEE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Account } from "locklift/everscale-client";
 import { GetExpectedAddressParams } from "locklift/everscale-provider";
+import fs from "node:fs";
+import path from "node:path";
+import { Controller } from "../utils/controller";
+import { Elector } from "../utils/elector";
 
 export const preparation = async ({
   deployUserValue,
@@ -26,6 +30,7 @@ export const preparation = async ({
   governance: Governance;
   strategyFactory: StrategyFactory;
   governanceSigner: Signer;
+  elector: Elector;
 }> => {
   const [adminSigner, governanceSigner, ...signers] = await lastValueFrom(
     range(countOfUsers).pipe(
@@ -56,15 +61,19 @@ export const preparation = async ({
       toArray(),
     )
     .toPromise())!;
+
+  const elector = await Elector.deployElector(adminUser.address);
+
   const dePoolStrategyCode = locklift.factory.getContractArtifacts("StrategyDePool");
   const factoryContact = await locklift.factory.deployContract({
-    contract: "DepoolStrategyFactory",
+    contract: "ControllerStrategyFactory",
     value: locklift.utils.toNano(2),
     publicKey: adminSigner.publicKey,
     initParams: {
       stEverVault: vault.address,
       nonce: locklift.utils.getRandomNonce(),
-      dePoolStrategyCode: dePoolStrategyCode.code,
+      controllerStrategyCode: Controller.code,
+      elector: elector.electorContract.address,
     },
     constructorParams: {
       _owner: adminUser.address,
@@ -90,6 +99,7 @@ export const preparation = async ({
     governance: new Governance(governanceSigner, vaultInstance),
     governanceSigner,
     strategyFactory,
+    elector,
   };
 };
 
@@ -200,6 +210,8 @@ const deployVault = async ({
         _gainFee: GAIN_FEE,
         _stTokenRoot: tokenRoot.address,
         _stEverFeePercent: 100,
+        _maxControllerInterest: 1000,
+        _minControllerBalance: toNano(0),
       },
       publicKey: deployArgs.publicKey!,
       initParams: deployArgs.initParams,

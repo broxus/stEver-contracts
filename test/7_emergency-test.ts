@@ -8,11 +8,12 @@ import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, switchMap, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
 import { isT, toNanoBn } from "../utils";
 import chai from "chai";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
 chai.use(lockliftChai);
 
 let signer: Signer;
@@ -24,7 +25,9 @@ let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
 const COUNT_OF_WITHDRAW_REQUESTS = 49;
-let strategies: DePoolStrategyWithPool[] = [];
+let controllers: Controller[] = [];
+const MIN_STAKE_TO_SEND = 50_000;
+
 describe("Emergency testing", function () {
   before(async () => {
     const {
@@ -34,7 +37,7 @@ describe("Emergency testing", function () {
       users: [adminUser, _, u1, u2],
       governance: g,
       strategyFactory: sf,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(2000) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(MIN_STAKE_TO_SEND * 10) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -52,34 +55,21 @@ describe("Emergency testing", function () {
       maxStrategiesCount: 100,
     });
     expect((await vault.getDetails()).stTokenRoot.equals(tokenRoot.address)).to.be.true;
-    await user1.depositToVault(toNano(1100));
-    const DEPOSIT_TO_STRATEGIES_AMOUNT = toNano(101);
-    strategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          createStrategy({
-            signer,
-            cluster,
-            poolDeployValue: locklift.utils.toNano(200),
-          }),
-        ),
-        toArray(),
-        switchMap(strategies =>
-          from(cluster.addStrategies(strategies.map(strategyWithDePool => strategyWithDePool.strategy.address))).pipe(
-            map(() => strategies),
-          ),
-        ),
-      ),
-    );
-    await governance.depositToStrategies({
-      _depositConfigs: strategies.map(({ strategy }) => [
-        strategy.address,
-        {
-          amount: DEPOSIT_TO_STRATEGIES_AMOUNT.toString(),
-          fee: toNano(1),
-        },
-      ]),
+    await user1.depositToVault(toNano(MIN_STAKE_TO_SEND * 3));
+    controllers = await createControllers({
+      validator: admin.account.address,
+      cluster,
+      count: 3,
     });
+
+    for (let controller of controllers) {
+      await controller.sendRequestLoan({
+        queryId: 1,
+        minLoan: toNano(1),
+        maxLoan: toNano(MIN_STAKE_TO_SEND),
+        maxInterest: "0",
+      });
+    }
   });
   it("user should activate emergency", async () => {
     await lastValueFrom(
@@ -91,7 +81,7 @@ describe("Emergency testing", function () {
 
     const { emergencyState: emergencyBefore } = await vault.getDetails();
     const { nonce } = await user1.getWithdrawRequests().then(requests => requests[0]);
-    const ATTACHED_VALUE = new BigNumber(toNano(1.3)).multipliedBy(strategies.length);
+    const ATTACHED_VALUE = new BigNumber(toNano(1.3)).multipliedBy(controllers.length);
 
     expect(emergencyBefore.isEmergency).to.be.equals(false, "by default vault should be in initial state");
     const { traceTree } = await user1.startEmergency({
@@ -119,7 +109,7 @@ describe("Emergency testing", function () {
     const userBalanceAfterActivatingEmergency = await locklift.provider.getBalance(user1.account.address);
 
     const MAX_WASTED_FEE_PER_STRATEGY = toNanoBn(0.2);
-    const maxWastedFee = MAX_WASTED_FEE_PER_STRATEGY.multipliedBy(strategies.length);
+    const maxWastedFee = MAX_WASTED_FEE_PER_STRATEGY.multipliedBy(controllers.length);
     // expect(new BigNumber(balanceChange)).to.be.lt(maxWastedFee.toNumber(), "user should spent less than max fee");
 
     console.log(balanceChange);
@@ -182,23 +172,16 @@ describe("Emergency testing", function () {
     expect(errorWithdrawEvents.length).to.be.equals(1);
   });
   it("emit round complete", async () => {
-    const [{ transaction: roundCompleteTransaction }] = await lastValueFrom(
-      from(strategies).pipe(
-        concatMap(strategyWithDePool => strategyWithDePool.emitDePoolRoundComplete(toNano(10), true)),
-        filter(isT),
-        toArray(),
-      ),
-    );
-
-    const strategyWithdrawEvents = await vault.getEventsAfterTransaction({
-      eventName: "StrategyWithdrawSuccess",
-      parentTransaction: roundCompleteTransaction,
-    });
-
-    expect(strategyWithdrawEvents.length).to.be.equals(
-      strategies.length,
-      "all strategies should received value from their dePools",
-    );
+    for (let controller of controllers) {
+      await controller.runFullCycle({
+        queryId: 1,
+        adnlAddr: "0x1",
+        stakeAt: 152,
+        validatorPubKey: "0x1",
+        valueToStake: toNano(MIN_STAKE_TO_SEND),
+        maxFactor: 1,
+      });
+    }
   });
   it("user should emergency withdraw his pending withdrawals", async () => {
     const emergencyWithdrawTransaction = await user1.emergencyWithdraw();

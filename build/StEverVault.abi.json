@@ -9,7 +9,9 @@
 				{"name":"_owner","type":"address"},
 				{"name":"_gainFee","type":"uint128"},
 				{"name":"_stEverFeePercent","type":"uint32"},
-				{"name":"_stTokenRoot","type":"address"}
+				{"name":"_stTokenRoot","type":"address"},
+				{"name":"_maxControllerInterest","type":"uint24"},
+				{"name":"_minControllerBalance","type":"uint128"}
 			],
 			"outputs": [
 			]
@@ -131,68 +133,14 @@
 			]
 		},
 		{
-			"name": "validateDepositRequest",
+			"name": "controller_requestLoan",
+			"id": "0xE642C965",
 			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "validateWithdrawFromStrategiesRequest",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-				{"components":[{"name":"strategy","type":"address"},{"name":"errCode","type":"uint16"}],"name":"value0","type":"tuple[]"}
-			]
-		},
-		{
-			"name": "depositToStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_depositConfigs","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledDeposit",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyDidntHandleDeposit",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "strategyReport",
-			"inputs": [
-				{"name":"_gain","type":"uint128"},
-				{"name":"_loss","type":"uint128"},
-				{"name":"_totalAssets","type":"uint128"},
-				{"name":"_requestedBalance","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "processWithdrawFromStrategies",
-			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStrategyHandledWithdrawRequest",
-			"inputs": [
+				{"name":"queryId","type":"uint64"},
+				{"name":"minLoan","type":"varuint16"},
+				{"name":"maxLoan","type":"varuint16"},
+				{"name":"maxInterest","type":"uint32"},
+				{"name":"validatorBalance","type":"varuint16"}
 			],
 			"outputs": [
 			]
@@ -200,14 +148,18 @@
 		{
 			"name": "forceWithdrawFromStrategies",
 			"inputs": [
-				{"components":[{"name":"amount","type":"uint128"},{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+				{"components":[{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "receiveFromStrategy",
+			"name": "loanRepayment",
+			"id": "0xDFDCA27B",
 			"inputs": [
+				{"name":"queryId","type":"uint64"},
+				{"name":"_reward","type":"varuint16"},
+				{"name":"_repay","type":"varuint16"}
 			],
 			"outputs": [
 			]
@@ -215,14 +167,6 @@
 		{
 			"name": "receiveAdditionalTransferFromStrategy",
 			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "withdrawFromStrategyError",
-			"inputs": [
-				{"name":"_errcode","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -271,9 +215,9 @@
 			]
 		},
 		{
-			"name": "addStrategies",
+			"name": "addStrategy",
 			"inputs": [
-				{"name":"_strategies","type":"address[]"},
+				{"name":"_strategy","type":"address"},
 				{"name":"_clusterOwner","type":"address"},
 				{"name":"_clusterId","type":"uint32"}
 			],
@@ -377,6 +321,22 @@
 			"inputs": [
 				{"name":"_newOwner","type":"address"},
 				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setMaxControllerInterest",
+			"inputs": [
+				{"name":"_maxControllerInterest","type":"uint24"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setMinControllerBalance",
+			"inputs": [
+				{"name":"_minControllerBalance","type":"uint128"}
 			],
 			"outputs": [
 			]
@@ -741,9 +701,9 @@
 			]
 		},
 		{
-			"name": "StrategiesAdded",
+			"name": "StrategyAdded",
 			"inputs": [
-				{"name":"strategy","type":"address[]"}
+				{"name":"strategy","type":"address"}
 			],
 			"outputs": [
 			]
@@ -841,6 +801,15 @@
 			]
 		},
 		{
+			"name": "ControllerCredited",
+			"inputs": [
+				{"name":"controller","type":"address"},
+				{"name":"value","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "StrategyHandledWithdrawRequest",
 			"inputs": [
 				{"name":"strategy","type":"address"},
@@ -859,6 +828,17 @@
 			]
 		},
 		{
+			"name": "StrategyRepayLoan",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"reward","type":"uint128"},
+				{"name":"repay","type":"uint128"},
+				{"name":"repayValue","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "StrategyWithdrawError",
 			"inputs": [
 				{"name":"strategy","type":"address"},
@@ -868,7 +848,7 @@
 			]
 		},
 		{
-			"name": "ProcessWithdrawFromStrategyError",
+			"name": "ProcessWithdrawFromControllerError",
 			"inputs": [
 				{"name":"strategy","type":"address"},
 				{"name":"errcode","type":"uint16"}
@@ -1081,6 +1061,8 @@
 		{"name":"isPaused","type":"bool"},
 		{"name":"strategyFactory","type":"address"},
 		{"name":"withdrawHoldTime","type":"uint64"},
+		{"name":"maxControllerInterest","type":"uint24"},
+		{"name":"minControllerBalance","type":"uint128"},
 		{"name":"owner","type":"address"},
 		{"name":"accountVersion","type":"uint32"},
 		{"name":"stEverVaultVersion","type":"uint32"},

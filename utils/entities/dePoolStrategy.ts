@@ -4,6 +4,8 @@ import { StEverVaultAbi, StrategyDePoolAbi, TestDepoolAbi } from "../../build/fa
 import { StrategyFactory } from "./strategyFactory";
 import { getAddressEverBalance } from "../index";
 import { Cluster } from "./cluster";
+import { Controller } from "../controller";
+import { expect } from "chai";
 
 export class DePoolStrategyWithPool {
   constructor(
@@ -68,33 +70,29 @@ export class DePoolStrategyWithPool {
       .then(res => res.value0);
 }
 
-export const createStrategy = async ({
-  signer,
-  poolDeployValue,
+export const createControllers = async ({
   cluster,
+  validator,
+  count,
 }: {
-  signer: Signer;
-  poolDeployValue: string;
+  validator: Address;
   cluster: Cluster;
-}): Promise<DePoolStrategyWithPool> => {
-  const dePool = await locklift.tracing.trace(
-    locklift.factory.deployContract({
-      contract: "TestDepool",
-      value: poolDeployValue,
-      constructorParams: {},
-      publicKey: signer.publicKey,
-      initParams: {
-        nonce: locklift.utils.getRandomNonce(),
-      },
-    }),
-  );
-  const strategyAddress = await cluster.deployStrategy({
-    dePools: [dePool.contract.address],
+  count: number;
+}): Promise<Array<Controller>> => {
+  const traceTree = await cluster.deployStrategy({
+    validator,
+    count,
   });
 
-  return new DePoolStrategyWithPool(
-    dePool.contract,
-    locklift.factory.getDeployedContract("StrategyDePool", strategyAddress),
-    signer,
-  );
+  expect(traceTree).to.emit("NewStrategyDeployed", cluster.clusterContract).count(count);
+  expect(traceTree).to.emit("StrategyAdded", cluster.stEver).count(count);
+
+  const controllers = traceTree!
+    .findForContract({
+      contract: cluster.clusterContract,
+      name: "NewStrategyDeployed",
+    })
+    .map(el => el!.params!.strategy);
+
+  return controllers.map(s => new Controller(s, validator));
 };

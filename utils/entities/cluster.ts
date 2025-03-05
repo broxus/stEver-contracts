@@ -4,24 +4,20 @@ import { StEverClusterAbi } from "../../build/factorySource";
 import { Vault } from "./vault";
 import { Account } from "locklift/everscale-client";
 import { StrategyFactory } from "./strategyFactory";
-import { createStrategy } from "./dePoolStrategy";
+import { createControllers } from "./dePoolStrategy";
 import { SignerWithAccount } from "../highOrderUtils";
 import { mergeMap, range, toArray } from "rxjs";
 import { toNanoBn } from "../index";
 import { expect } from "chai";
+import { ViewTracingTree } from "locklift/internal/tracing/viewTraceTree/viewTracingTree";
 
 export class Cluster {
-  constructor(public readonly clusterContract: Contract<StEverClusterAbi>, private readonly clusterOwner: Account) {}
+  constructor(
+    public readonly clusterContract: Contract<StEverClusterAbi>,
+    private readonly clusterOwner: Account,
+    public readonly stEver: Address,
+  ) {}
 
-  addStrategies = async (strategies: Array<Address>) => {
-    return locklift.tracing.trace(
-      this.clusterContract.methods.addStrategies({ _strategies: strategies }).send({
-        from: this.clusterOwner.address,
-        amount: toNanoBn(1.5).multipliedBy(strategies.length).plus(toNano(1)).toString(),
-      }),
-      { raise: false },
-    );
-  };
   removeCluster = async () => {
     const { currentStrategiesCount } = await this.clusterContract.methods
       .getDetails({ answerId: 0 })
@@ -50,24 +46,20 @@ export class Cluster {
     );
   };
 
-  deployStrategy = async ({ dePools }: { dePools: Array<Address> }): Promise<Address> => {
+  deployStrategy = async ({ validator, count }: { validator: Address; count: number }): Promise<ViewTracingTree> => {
     const { traceTree } = await locklift.tracing.trace(
       this.clusterContract.methods
         .deployStrategies({
-          _dePools: dePools,
+          _validator: validator,
+          count,
         })
         .send({
           from: this.clusterOwner.address,
-          amount: toNanoBn(23).multipliedBy(dePools.length).toString(),
+          amount: toNanoBn(190).multipliedBy(count).toString(),
         }),
       { raise: false },
     );
-    expect(traceTree).to.emit("NewStrategyDeployed", this.clusterContract).count(dePools.length);
-
-    return traceTree!.findForContract({
-      contract: this.clusterContract,
-      name: "NewStrategyDeployed",
-    })[0]!.params!.strategy;
+    return traceTree!;
   };
 
   getDetails = () =>
@@ -96,6 +88,6 @@ export class Cluster {
       assurance,
       clusterOwner: clusterOwner.address,
     });
-    return new Cluster(clusterContract, clusterOwner);
+    return new Cluster(clusterContract, clusterOwner, vault.vaultContract.address);
   };
 }

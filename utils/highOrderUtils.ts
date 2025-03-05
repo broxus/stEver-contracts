@@ -2,7 +2,7 @@ import { User } from "./entities/user";
 import { concatMap, from, lastValueFrom, map, toArray } from "rxjs";
 import { Governance } from "./entities/governance";
 import { getRandomNonce, Signer, toNano, WalletTypes } from "locklift";
-import { createStrategy } from "./entities/dePoolStrategy";
+import { createControllers } from "./entities/dePoolStrategy";
 import { Vault } from "./entities/vault";
 import { StrategyFactory } from "./entities/strategyFactory";
 import { Account } from "locklift/everscale-client";
@@ -28,6 +28,7 @@ export const makeWithdrawToUsers = async ({
   const { transaction, traceTree } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });
+  await traceTree?.beautyPrint();
 
   const withdrawSuccessEvents = traceTree?.findEventsForContract({
     contract: vault.vaultContract,
@@ -59,7 +60,7 @@ export const createAndRegisterStrategy = async ({
   strategyDeployValue: string;
   strategyFactory: StrategyFactory;
 }) => {
-  const strategy = await createStrategy({
+  const strategy = await createControllers({
     signer,
     strategyDeployValue,
     poolDeployValue,

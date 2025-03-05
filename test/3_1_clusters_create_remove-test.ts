@@ -6,10 +6,11 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
 
 let signer: Signer;
 let admin: User;
@@ -21,7 +22,7 @@ let vault: Vault;
 let strategyFactory: StrategyFactory;
 const ST_EVER_FEE_PERCENT = 11;
 let cluster: Cluster;
-let strategy: DePoolStrategyWithPool;
+let controller: Controller;
 describe("Cluster create and immediately remove", () => {
   before(async () => {
     const {
@@ -90,19 +91,14 @@ describe("Cluster create and immediately remove", () => {
     expect(clusterNonce).to.be.eq(currentClusterNonce);
     expect(clusterAddress.equals(cluster2.clusterContract.address)).to.be.true;
   });
-  it("cluster should create one strategy", async () => {
-    strategy = await createStrategy({
+  it("cluster should create one controller", async () => {
+    controller = await createControllers({
       cluster,
-      poolDeployValue: locklift.utils.toNano(200),
-      signer,
-    });
-    const { traceTree: addStrategyTraceTree } = await cluster.addStrategies([strategy.strategy.address]);
-    expect(addStrategyTraceTree)
-      .to.emit("StrategiesAdded")
-      .withNamedArgs({
-        strategy: [strategy.strategy.address],
-      });
-    const strategyInfo = await vault.getStrategyInfo(strategy.strategy.address);
+      validator: admin.account.address,
+      count: 1,
+    }).then(res => res[0]);
+
+    const strategyInfo = await vault.getStrategyInfo(controller.controllerContract.address);
     expect(strategyInfo.cluster.equals(cluster.clusterContract.address)).to.be.true;
   });
   it("cluster should be removed", async () => {
@@ -116,7 +112,7 @@ describe("Cluster create and immediately remove", () => {
       })
       .and.emit("StrategyRemoved")
       .withNamedArgs({
-        strategy: strategy.strategy.address,
+        strategy: controller.controllerContract.address,
       });
     const strategiesInfo = await vault.getStrategiesInfo();
     expect(Object.keys(strategiesInfo).length).to.be.eq(0);

@@ -6,12 +6,13 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
-import { createStrategy, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
+import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import { toNanoBn } from "../utils";
 import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
 import { Cluster } from "../utils/entities/cluster";
+import { Controller } from "../utils/controller";
 
 let signer: Signer;
 let admin: User;
@@ -23,7 +24,8 @@ let vault: Vault;
 let strategyFactory: StrategyFactory;
 const ST_EVER_FEE_PERCENT = 11;
 let cluster: Cluster;
-let strategies: Array<DePoolStrategyWithPool>;
+let controllers: Array<Controller>;
+
 describe("Clusters constraints", () => {
   before(async () => {
     const {
@@ -49,28 +51,19 @@ describe("Clusters constraints", () => {
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
     await vault.setMinWithdrawFromStrategyValue({ minWithdrawFromStrategyValue: toNano(1) });
   });
-  it("cluster should created and register three strategies", async () => {
+  it("cluster should created and register three controllers", async () => {
     cluster = await Cluster.create({
       vault,
       clusterOwner: admin.account,
       assurance: toNano(10),
       maxStrategiesCount: 2,
     });
-    strategies = await lastValueFrom(
-      range(3).pipe(
-        concatMap(() =>
-          createStrategy({
-            cluster,
-            poolDeployValue: locklift.utils.toNano(200),
-            signer,
-          }),
-        ),
-        toArray(),
-      ),
-    );
-    const { traceTree: addStrategyWithoutAssuranceTraceTree } = await cluster.addStrategies(
-      strategies.map(s => s.strategy.address),
-    );
+
+    const addStrategyWithoutAssuranceTraceTree = await cluster.deployStrategy({
+      count: 3,
+      validator: admin.account.address,
+    });
+
     expect(addStrategyWithoutAssuranceTraceTree).to.error(5009);
 
     await admin.depositToVault(toNano(100));
@@ -136,17 +129,26 @@ describe("Clusters constraints", () => {
         .then(res => res.value0),
     ).to.be.eq(toNano(0));
 
-    const { traceTree: addOneStrategyTraceTree } = await cluster.addStrategies(
-      strategies.slice(0, 2).map(el => el.strategy.address),
-    );
+    controllers = await createControllers({
+      cluster,
+      validator: admin.account.address,
+      count: 2,
+    });
 
-    expect(addOneStrategyTraceTree).to.emit("StrategiesAdded");
+    const addOneMoreStrategyTraceTree = await cluster.deployStrategy({
+      count: 1,
+      validator: admin.account.address,
+    });
 
-    expect((await cluster.addStrategies([strategies.at(-1)?.strategy.address!])).traceTree).to.error(5010);
-    expect((await cluster.removeStrategies([strategies.at(0)?.strategy.address!])).traceTree).to.emit(
+    expect(addOneMoreStrategyTraceTree).to.error(5010);
+    expect((await cluster.removeStrategies([controllers.at(0)?.controllerContract.address!])).traceTree).to.emit(
       "StrategyRemoved",
     );
 
-    expect((await cluster.addStrategies([strategies.at(-1)?.strategy.address!])).traceTree).to.emit("StrategiesAdded");
+    controllers = await createControllers({
+      cluster,
+      validator: admin.account.address,
+      count: 1,
+    });
   });
 });
