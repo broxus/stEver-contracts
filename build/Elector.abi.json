@@ -1,0 +1,75 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setState",
+			"inputs": [
+				{"name":"_state","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setReward",
+			"inputs": [
+				{"name":"_reward","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "newStake",
+			"id": "0x4E73744B",
+			"inputs": [
+				{"name":"queryId","type":"uint64"},
+				{"name":"validatorPubKey","type":"uint256"},
+				{"name":"stakeAt","type":"uint32"},
+				{"name":"maxFactor","type":"uint32"},
+				{"name":"adnlAddr","type":"uint256"},
+				{"name":"signature","type":"bytes"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "recoverStake",
+			"id": "0x47657424",
+			"inputs": [
+				{"name":"queryId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "stakes",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"stakes","type":"map(address,uint128)"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"_nonce","type":"uint64"}
+	],
+	"events": [
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"state","type":"uint8"},
+		{"name":"_nonce","type":"uint64"},
+		{"name":"stakes","type":"map(address,uint128)"},
+		{"name":"reward","type":"uint128"}
+	]
+}
