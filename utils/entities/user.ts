@@ -12,6 +12,8 @@ import { Account } from "locklift/everscale-client";
 
 import { Vault } from "./vault";
 import { lastValueFrom, timer } from "rxjs";
+import { convertEverGas, DEPLOY_WALLET_VALUE, userWithdrawMsgValue } from "../index";
+import { MIN_CALL_MSG_VALUE } from "../constants";
 
 export class User {
   constructor(
@@ -65,12 +67,11 @@ export class User {
           })
           .send({
             from: this.account.address,
-            amount: toNano(3),
+            amount: userWithdrawMsgValue,
           }),
         { allowedCodes: { compute: [null] } },
       )
       .then(res => ({ ...res, nonce }));
-
     expect(await this.vault.tokenWallet.getBalance().then(res => res.toString())).to.be.equals(
       vaultBalanceBefore.plus(amount).toString(),
     );
@@ -90,7 +91,7 @@ export class User {
     return await locklift.tracing.trace(
       this.vault.vaultContract.methods.removePendingWithdraw({ _nonce: nonce }).send({
         from: this.account.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE * 2)),
       }),
     );
   };
@@ -114,7 +115,9 @@ export class User {
         })
         .send({
           from: this.account.address,
-          amount: amountBn.plus(feeBn).toString(),
+          amount: amountBn
+            .plus(Number(convertEverGas(toNano(MIN_CALL_MSG_VALUE * 2))) + DEPLOY_WALLET_VALUE)
+            .toString(),
         }),
     );
     const depositEvents = await this.vault.getEventsAfterTransaction({
@@ -164,9 +167,14 @@ export class User {
     return locklift.tracing.trace(
       this.vault.vaultContract.methods.emergencyWithdrawToUser().send({
         from: this.account.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE * 20)),
       }),
-      { raise: false },
+      {
+        raise: true,
+        allowedCodes: {
+          compute: [1025],
+        },
+      },
     );
   };
 

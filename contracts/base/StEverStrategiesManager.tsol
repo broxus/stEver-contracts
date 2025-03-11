@@ -1,6 +1,8 @@
 pragma ever-solidity >=0.62.0;
-import "./StEverVaultBase.tsol";
+
 import "../interfaces/IStEverCluster.tsol";
+import "./StEverVaultBase.tsol";
+import {GasUtils} from "../utils/GasUtils.tsol";
 
 /**
  * @dev This contract is used to manage the strategies for the StEver staking platform.
@@ -35,7 +37,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint32 _maxStrategiesCount
     ) override external onlyOwner {
         require(
-            msg.value >= StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE,
+            msg.value >= GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE),
             ErrorCodes.NOT_ENOUGH_VALUE
         );
         require(Utils.isValidAddress(strategyFactory), ErrorCodes.STRATEGY_FACTORY_DID_NOT_SET);
@@ -113,8 +115,6 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
      * - The {IStEverCluster-onStrategiesAdded} is called.
      */
     function addStrategy(address _strategy, address _clusterOwner, uint32 _clusterId) override external onlyCluster(_clusterOwner, _clusterId)  {
-        require (msg.value >= StEverVaultGas.EXPERIMENTAL_FEE, ErrorCodes.NOT_ENOUGH_VALUE);
-
         require (!strategies.exists(_strategy), ErrorCodes.STRATEGY_ALREADY_EXISTS);
 
         strategies[_strategy] = StrategyParams({
@@ -158,7 +158,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         address _clusterOwner,
         uint32 _clusterId
     ) override external onlyCluster(_clusterOwner, _clusterId) {
-
+        console.log(format("balance: {}", address(this).balance));
         address[] pendingDeleteStrategies;
         for (address _strategy : _strategies) {
             strategies[_strategy].state = StrategyState.REMOVING;
@@ -207,7 +207,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
      */
     function removeStrategy(address _strategy) internal pure {
         this._removeStrategy{
-            value: StEverVaultGas.REMOVE_STRATEGY_RESERVE,
+            value: GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE),
             bounce: false
         }(_strategy);
     }

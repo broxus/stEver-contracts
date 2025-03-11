@@ -7,9 +7,10 @@ import { StrategyFactory } from "./strategyFactory";
 import { createControllers } from "./dePoolStrategy";
 import { SignerWithAccount } from "../highOrderUtils";
 import { mergeMap, range, toArray } from "rxjs";
-import { toNanoBn } from "../index";
+import { convertEverGas, toNanoBn } from "../index";
 import { expect } from "chai";
 import { ViewTracingTree } from "locklift/internal/tracing/viewTraceTree/viewTracingTree";
+import { CONTROLLER_DEPLOY_VALUE, MIN_CALL_MSG_VALUE } from "../constants";
 
 export class Cluster {
   constructor(
@@ -26,7 +27,11 @@ export class Cluster {
     return locklift.tracing.trace(
       this.clusterContract.methods.dropCluster({ _isPunish: false }).send({
         from: this.clusterOwner.address,
-        amount: toNano((1 + 0.2) * Number(currentStrategiesCount)),
+        amount: toNanoBn(convertEverGas(0.5))
+          .multipliedBy(currentStrategiesCount)
+
+          .plus(toNanoBn(convertEverGas(0.1)))
+          .toString(),
       }),
       { raise: false },
     );
@@ -40,13 +45,15 @@ export class Cluster {
         })
         .send({
           from: this.clusterOwner.address,
-          amount: toNano((1 + 0.2) * strategies.length),
+          amount: toNano(convertEverGas((0.2 + 0.05 * 2) * strategies.length)),
         }),
-      { raise: false },
+      { raise: true },
     );
   };
 
   deployStrategy = async ({ validator, count }: { validator: Address; count: number }): Promise<ViewTracingTree> => {
+    const gasForOneController = toNanoBn(CONTROLLER_DEPLOY_VALUE).plus(toNanoBn(convertEverGas(0.1)));
+
     const { traceTree } = await locklift.tracing.trace(
       this.clusterContract.methods
         .deployStrategies({
@@ -55,7 +62,10 @@ export class Cluster {
         })
         .send({
           from: this.clusterOwner.address,
-          amount: toNanoBn(190).multipliedBy(count).toString(),
+          amount: gasForOneController
+            .multipliedBy(count)
+            .plus(toNanoBn(convertEverGas(0.1)))
+            .toString(),
         }),
       { raise: false },
     );

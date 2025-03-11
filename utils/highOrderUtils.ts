@@ -28,7 +28,6 @@ export const makeWithdrawToUsers = async ({
   const { transaction, traceTree } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });
-  await traceTree?.beautyPrint();
 
   const withdrawSuccessEvents = traceTree?.findEventsForContract({
     contract: vault.vaultContract,

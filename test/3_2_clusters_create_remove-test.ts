@@ -7,7 +7,7 @@ import { ElectorAbi, TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { toNanoBn } from "../utils";
+import { convertEverGas, toNanoBn } from "../utils";
 import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
@@ -52,7 +52,7 @@ describe("Cluster create and remove after one round", () => {
     await vault.setMinDepositToStrategyValue({ minDepositToStrategyValue: toNano(1) });
     await vault.setMinWithdrawFromStrategyValue({ minWithdrawFromStrategyValue: toNano(1) });
   });
-  it("cluster should created and register three controllers", async () => {
+  it("cluster should created and register 3 controllers", async () => {
     cluster = await Cluster.create({
       vault,
       clusterOwner: admin.account,
@@ -63,7 +63,6 @@ describe("Cluster create and remove after one round", () => {
       count: 3,
       validator: admin.account.address,
     });
-
     expect(addStrategyWithoutAssuranceTraceTree).to.error(5009);
 
     await admin.depositToVault(toNano(100));
@@ -79,7 +78,7 @@ describe("Cluster create and remove after one round", () => {
       })
       .send({
         from: admin.account.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(0.05)),
       });
 
     const addMoreStrategiesThanAllowedTraceTree = await cluster.deployStrategy({
@@ -118,7 +117,6 @@ describe("Cluster create and remove after one round", () => {
         toArray(),
       ),
     );
-    await results[0].beautyPrint();
     results.forEach(t => {
       expect(t)
         .to.emit("ControllerCredited")
@@ -207,7 +205,6 @@ describe("Cluster create and remove after one round", () => {
         strategy: controller.controllerContract.address,
       });
     });
-    await strategiesWithTraceTree[0].traceTree!.beautyPrint();
     const lastStrategy = strategiesWithTraceTree.at(-1)!;
     expect(lastStrategy.traceTree).to.emit("ClusterRemoved").withNamedArgs({
       cluster: cluster.clusterContract.address,

@@ -10,7 +10,7 @@ import { concatMap, filter, from, lastValueFrom, map, mergeMap, range, switchMap
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
 import BigNumber from "bignumber.js";
-import { isT, toNanoBn } from "../utils";
+import { convertEverGas, isT, toNanoBn } from "../utils";
 import chai from "chai";
 import { Cluster } from "../utils/entities/cluster";
 import { Controller } from "../utils/controller";
@@ -24,7 +24,7 @@ let user2: User;
 let tokenRoot: Contract<TokenRootUpgradeableAbi>;
 let vault: Vault;
 let strategyFactory: StrategyFactory;
-const COUNT_OF_WITHDRAW_REQUESTS = 49;
+const COUNT_OF_WITHDRAW_REQUESTS = 30;
 let controllers: Controller[] = [];
 const MIN_STAKE_TO_SEND = 50_000;
 
@@ -81,13 +81,16 @@ describe("Emergency testing", function () {
 
     const { emergencyState: emergencyBefore } = await vault.getDetails();
     const { nonce } = await user1.getWithdrawRequests().then(requests => requests[0]);
-    const ATTACHED_VALUE = new BigNumber(toNano(1.3)).multipliedBy(controllers.length);
+    const ATTACHED_VALUE = new BigNumber(toNano(convertEverGas(0.1 + 0.05)))
+      .multipliedBy(controllers.length)
+      .plus(convertEverGas(0.05));
 
     expect(emergencyBefore.isEmergency).to.be.equals(false, "by default vault should be in initial state");
     const { traceTree } = await user1.startEmergency({
       proofNonce: Number(nonce),
       attachedValue: ATTACHED_VALUE.toString(),
     });
+    await traceTree?.beautyPrint();
     expect(traceTree).to.emit("EmergencyProcessRejectedByAccount").count(1).withNamedArgs({
       emitter: user1.account.address,
       errcode: "2004",
@@ -159,6 +162,7 @@ describe("Emergency testing", function () {
     expect(pendingWithdrawRequestsBefore.length).to.be.equals(COUNT_OF_WITHDRAW_REQUESTS);
 
     const emergencyWithdrawTransaction = await user1.emergencyWithdraw();
+    await emergencyWithdrawTransaction.traceTree?.beautyPrint();
     const errorWithdrawEvents = await vault.getEventsAfterTransaction({
       eventName: "WithdrawError",
       parentTransaction: emergencyWithdrawTransaction,

@@ -2,17 +2,19 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
-import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/IDestroyable.tsol";
-
+import "./interfaces/IDepoolStrategyFactory.tsol";
 import "./interfaces/IStEverCluster.tsol";
 import "./interfaces/IStEverVault.tsol";
-import "./interfaces/IDepoolStrategyFactory.tsol";
-import "./utils/Gas.tsol";
 import "./utils/ErrorCodes.tsol";
+import "./utils/Gas.tsol";
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/IDestroyable.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import {GasUtils} from "./utils/GasUtils.tsol";
+import {console} from "locklift/src/console.tsol";
 
 /**
  * @title StEverCluster
@@ -91,10 +93,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         stEverOwner = _stEverOwner;
 
         ITokenRoot(stEverTokenRoot).deployWallet{
-                value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
+                value: GasUtils.getDeployWalletValue() * 3,
                 callback: StEverCluster.handleStEverTokenWalletAddress,
                 bounce: false
-        }(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
+        }(address(this), GasUtils.getDeployWalletValue());
     }
 
     /**
@@ -146,7 +148,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @dev Modifier to check if the value of the message is greater than or equal to the minimum call value.
      */
     modifier minCallValue() {
-        require (msg.value >= ClusterGas.MIN_CALL_VALUE, ErrorCodesCluster.LOW_MSG_VALUE);
+        require (msg.value >= GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE), ErrorCodesCluster.LOW_MSG_VALUE);
         _;
     }
 
@@ -159,8 +161,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - The caller must be the StEver token root contract.
      */
     function handleStEverTokenWalletAddress(address _tokenWallet) public {
+        tvm.rawReserve(_reserve(), 0);
         require (msg.sender == stEverTokenRoot, ErrorCodesCluster.NOT_ST_EVER_ROOT);
         stEverTokenWallet = _tokenWallet;
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**
@@ -200,9 +204,10 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         if (strategies.keys().length + count > maxStrategiesCount) {
             revert(ErrorCodesCluster.STRATEGIES_LIMIT_REACHED);
         }
-        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + ClusterGas.MIN_CALL_VALUE;
-        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(count) + ClusterGas.MIN_CALL_VALUE;
-        require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
+        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE);
+        uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(count) + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE);
+        console.log(format("requiredMsgValue {}",requiredMsgValue));
+//        require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         for (uint8 i = 0; i < count; ++i) {
@@ -260,11 +265,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      */
     function addStrategy(address _strategy) internal {
 
-//        require (
-//            msg.value >= _strategies.length * StEverVaultGas.EXPERIMENTAL_FEE + StEverVaultGas.MIN_CALL_MSG_VALUE,
-//            ErrorCodes.NOT_ENOUGH_VALUE
-//        );
-
         if (strategies.exists(_strategy)) {
                 revert(ErrorCodesCluster.STRATEGY_ALREADY_EXISTS);
         }
@@ -273,7 +273,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }
 
         IStEverVault(stEverVault).addStrategy{
-            value: StEverVaultGas.EXPERIMENTAL_FEE,
+            value: GasUtils.convertEverGas(StEverVaultGas.EXPERIMENTAL_FEE),
             flag: MsgFlag.SENDER_PAYS_FEES,
             bounce: false
         }(_strategy, clusterOwner, _nonce);
@@ -317,7 +317,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner {
 
         require(
-            msg.value >= uint128(_strategies.length) * (StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.EXPERIMENTAL_FEE),
+            msg.value >= uint128(_strategies.length) * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.EXPERIMENTAL_FEE * 2),
             ErrorCodesCluster.NOT_ENOUGH_VALUE
         );
 
@@ -394,7 +394,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      */
     function onStrategyRemoved(address _strategy) override external onlyStEverVault {
 
-        uint128 callBackMsgValue = 0.2 ever;
+        uint128 callBackMsgValue = GasUtils.convertEverGas(0.05 ever);
 
         delete strategies[_strategy];
         uint256 strategiesCount = strategies.keys().length;
@@ -459,7 +459,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }
 
         require(
-            msg.value >= strategiesForRemove.length * StEverVaultGas.REMOVE_STRATEGY_RESERVE,
+            msg.value >= strategiesForRemove.length * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE) + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE),
             ErrorCodesCluster.NOT_ENOUGH_VALUE
         );
 
@@ -537,6 +537,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         requiredAssurance = _newRequiredAssurance;
 
         emit SetAssuranceAmount(requiredAssurance);
+        console.log(format("requiredAssurance {}",requiredAssurance));
+        console.log(format("currentAssurance {}",currentAssurance));
 
         stEverOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }

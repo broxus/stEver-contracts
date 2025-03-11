@@ -1,7 +1,15 @@
 import { Contract, Signer, toNano } from "locklift";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
-import { assertEvent, getAddressEverBalance, getBalance, getBalances, toNanoBn } from "../utils";
+import {
+  assertEvent,
+  convertEverGas,
+  getAddressEverBalance,
+  getBalance,
+  getBalances,
+  toNanoBn,
+  userWithdrawMsgValue,
+} from "../utils";
 import { User } from "../utils/entities/user";
 import { preparation } from "./preparation";
 import { Governance } from "../utils/entities/governance";
@@ -14,7 +22,7 @@ import { concatMap, defer, from, lastValueFrom, map, range, switchMap, toArray }
 import { Cluster } from "../utils/entities/cluster";
 import { Controller } from "../utils/controller";
 import { Elector } from "../utils/elector";
-import { HANDLING_REPAY_LOAN_FEE } from "../utils/constants";
+import { HANDLING_REPAY_LOAN_FEE, MIN_CALL_MSG_VALUE } from "../utils/constants";
 
 let signer: Signer;
 let admin: User;
@@ -145,7 +153,7 @@ describe("Multi flow", async function () {
     const expectedAmountToReceive = WITHDRAW_AMOUNT_FOR_EACH_REQUEST.times(COUNT_OF_REQUESTS)
       .times(withdrawalRate)
       //minus 1 ever for fees
-      .minus(toNanoBn(1));
+      .minus(Number(userWithdrawMsgValue) * COUNT_OF_REQUESTS);
 
     const withdrawNonces = await lastValueFrom(
       //4 users
@@ -179,17 +187,16 @@ describe("Multi flow", async function () {
     });
   });
   it("admin should withdraw fees", async () => {
-    const MAX_FEE = toNanoBn(1);
+    const MAX_FEE = toNanoBn(convertEverGas(0.03));
     const vaultDetailsBefore = await vault.getDetails();
     const adminBalanceBefore = await getBalance(admin.account.address);
     const withdrawingAmount = vaultDetailsBefore.totalStEverFee;
     const transaction = await locklift.tracing.trace(
       vault.vaultContract.methods.withdrawStEverFee({ _amount: withdrawingAmount.toNumber() }).send({
         from: admin.account.address,
-        amount: toNano(1),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
-    await transaction.traceTree?.beautyPrint();
     const [event] = await vault.getEventsAfterTransaction({
       eventName: "WithdrawFee",
       parentTransaction: transaction,

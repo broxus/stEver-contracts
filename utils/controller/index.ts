@@ -2,6 +2,7 @@ import { Address } from "everscale-inpage-provider";
 import { Contract, toNano } from "locklift";
 import fs from "node:fs";
 import path from "node:path";
+import { convertEverGas } from "../index";
 
 export const CONTROLLER_ABI = {
   "ABI version": 2,
@@ -229,14 +230,16 @@ export class Controller {
         })
         .send({
           from: this.owner,
-          amount: toNano(1.05),
+          amount: toNano(convertEverGas(1.05)),
         }),
     );
   };
 
   recoverStake = async ({ queryId }: { queryId: number }) => {
     return locklift.tracing.trace(
-      this.controllerContract.methods.recoverStake({ queryId }).send({ from: this.owner, amount: toNano(1.03) }),
+      this.controllerContract.methods
+        .recoverStake({ queryId })
+        .send({ from: this.owner, amount: toNano(convertEverGas(1.03)) }),
     );
   };
 
@@ -244,7 +247,7 @@ export class Controller {
     return locklift.tracing.trace(
       this.controllerContract.methods
         .updateValidatorHashTEST({ queryId })
-        .send({ from: this.owner, amount: toNano(1.03) }),
+        .send({ from: this.owner, amount: toNano(convertEverGas(1.03)) }),
     );
   };
 
@@ -277,7 +280,7 @@ export class Controller {
         })
         .send({
           from: this.owner,
-          amount: toNano(1.03),
+          amount: toNano(convertEverGas(1.03)),
         }),
       {
         allowedCodes: {

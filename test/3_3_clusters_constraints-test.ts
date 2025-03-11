@@ -7,7 +7,7 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { createControllers, DePoolStrategyWithPool } from "../utils/entities/dePoolStrategy";
-import { toNanoBn } from "../utils";
+import { convertEverGas, toNanoBn } from "../utils";
 import { concatMap, from, lastValueFrom, map, range, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
@@ -79,23 +79,19 @@ describe("Clusters constraints", () => {
       })
       .send({
         from: admin.account.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(0.5)),
       });
-
-    expect(
-      (
-        await locklift.tracing.trace(
-          cluster.clusterContract.methods
-            .setAssurance({
-              _newRequiredAssurance: toNano(5),
-            })
-            .send({
-              from: admin.account.address,
-              amount: toNano(1),
-            }),
-        )
-      ).traceTree,
-    )
+    const { traceTree } = await locklift.tracing.trace(
+      cluster.clusterContract.methods
+        .setAssurance({
+          _newRequiredAssurance: toNano(5),
+        })
+        .send({
+          from: admin.account.address,
+          amount: toNano(convertEverGas(0.1)),
+        }),
+    );
+    expect(traceTree)
       .to.emit("SetAssuranceAmount")
       .withNamedArgs({
         newAssuranceAmount: toNano(5),
@@ -115,7 +111,7 @@ describe("Clusters constraints", () => {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(1),
+          amount: toNano(convertEverGas(0.1)),
         }),
       { raise: false },
     );
@@ -141,9 +137,10 @@ describe("Clusters constraints", () => {
     });
 
     expect(addOneMoreStrategyTraceTree).to.error(5010);
-    expect((await cluster.removeStrategies([controllers.at(0)?.controllerContract.address!])).traceTree).to.emit(
-      "StrategyRemoved",
-    );
+    {
+      const { traceTree } = (await cluster.removeStrategies([controllers.at(0)?.controllerContract.address!]))!;
+      expect(traceTree).to.emit("StrategyRemoved");
+    }
 
     controllers = await createControllers({
       cluster,

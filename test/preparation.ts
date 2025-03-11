@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { createUserEntity, User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { creteVault, Vault } from "../utils/entities/vault";
-import { GAIN_FEE } from "../utils/constants";
+import { GAIN_FEE, MIN_CALL_MSG_VALUE } from "../utils/constants";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import { Account } from "locklift/everscale-client";
 import { GetExpectedAddressParams } from "locklift/everscale-provider";
@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Controller } from "../utils/controller";
 import { Elector } from "../utils/elector";
+import { convertEverGas } from "../utils";
 
 export const preparation = async ({
   deployUserValue,
@@ -86,7 +87,7 @@ export const preparation = async ({
     })
     .send({
       from: adminUser.address,
-      amount: toNano(2),
+      amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
     });
 
   const strategyFactory = new StrategyFactory(adminUser, factoryContact.contract, vaultInstance);
@@ -146,7 +147,7 @@ export const deployTokenRoot = async ({
       platformCode_: platformCode.code,
     },
     publicKey: signer.publicKey,
-    value: locklift.utils.toNano(2),
+    value: locklift.utils.toNano(convertEverGas(0.5)),
     constructorParams: {
       initialSupplyTo: ZERO_ADDRESS,
       initialSupply: 0,
@@ -201,10 +202,14 @@ const deployVault = async ({
   tokenRoot: Contract<TokenRootUpgradeableAbi>;
   deployArgs: GetExpectedAddressParams<FactorySource["StEverVault"]>;
 }) => {
-  const { contract: vaultContract, tx } = await locklift.tracing.trace(
+  const {
+    contract: vaultContract,
+    traceTree,
+    tx,
+  } = await locklift.tracing.trace(
     locklift.factory.deployContract({
       contract: "StEverVault",
-      value: locklift.utils.toNano(10),
+      value: locklift.utils.toNano(100),
       constructorParams: {
         _owner: owner.address,
         _gainFee: GAIN_FEE,

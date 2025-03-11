@@ -17,68 +17,6 @@ export class Governance {
     this.vault = upgradedVault;
   };
 
-  depositToStrategies = async (
-    ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["depositToStrategies"]>, boolean?]
-  ) => {
-    const { transaction, traceTree } = await locklift.tracing.trace(
-      this.vault.vaultContract.methods
-        .depositToStrategies(params[0])
-        .sendExternal({ publicKey: this.keyPair.publicKey }),
-      { raise: params[1] },
-    );
-
-    const depositSuccessEvents = traceTree?.findEventsForContract({
-      contract: this.vault.vaultContract,
-      name: "StrategyHandledDeposit" as const,
-    });
-    const depositToStrategyErrorEvents = traceTree?.findEventsForContract({
-      name: "StrategyDidntHandleDeposit" as const,
-      contract: this.vault.vaultContract,
-    });
-    const processingErrorEvent = traceTree?.findEventsForContract({
-      name: "ProcessDepositToStrategyError" as const,
-      contract: this.vault.vaultContract,
-    });
-    return {
-      successEvents: depositSuccessEvents,
-      errorEvents: depositToStrategyErrorEvents,
-      processingErrorEvent,
-      transaction,
-      traceTree,
-    };
-  };
-
-  withdrawFromStrategiesRequest = async (
-    ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["processWithdrawFromStrategies"]>, boolean?]
-  ) => {
-    const { transaction, traceTree } = await locklift.tracing.trace(
-      this.vault.vaultContract.methods
-        .processWithdrawFromStrategies(params[0])
-        .sendExternal({ publicKey: this.keyPair.publicKey }),
-      { raise: params[1] },
-    );
-
-    const successEvents = traceTree!.findEventsForContract({
-      contract: this.vault.vaultContract,
-      name: "StrategyHandledWithdrawRequest" as const,
-    });
-    const errorEvent = traceTree!.findEventsForContract({
-      contract: this.vault.vaultContract,
-      name: "StrategyWithdrawError" as const,
-    });
-    const processingErrorEvent = traceTree!.findEventsForContract({
-      contract: this.vault.vaultContract,
-      name: "ProcessWithdrawFromStrategyError" as const,
-    });
-    return {
-      successEvents,
-      errorEvent,
-      transaction,
-      processingErrorEvent,
-      traceTree,
-    };
-  };
-
   forceWithdrawFromStrategies = async (
     ...params: [...Parameters<Contract<StEverVaultAbi>["methods"]["forceWithdrawFromStrategies"]>, boolean?]
   ) => {

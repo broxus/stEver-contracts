@@ -121,7 +121,6 @@ describe("Single flow", async function () {
       minLoan: toNano(1),
       maxInterest: "0",
     });
-    await traceTree?.beautyPrint();
     const WITHDRAW_AMOUNT = 10;
     const { errorEvents } = await makeWithdrawToUsers({
       vault: vault,

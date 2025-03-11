@@ -15,7 +15,9 @@ library Constants {
     // DePooLStrategyFactory
     uint128 constant MAX_STRATEGY_PER_UPGRADE = 50;
     // StEverAccount
-    uint128 constant MAX_PENDING_COUNT = 50;
+    uint128 constant MAX_PENDING_COUNT = 30;
+
+    uint128 constant EVERSCALE_GAS_PRICE = 1000;
 }
 
 library PlatformType {

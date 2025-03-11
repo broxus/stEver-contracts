@@ -1,4 +1,4 @@
-import { isT, toNanoBn } from "../utils";
+import { convertEverGas, DEPLOY_WALLET_VALUE, isT, ITERATION_FEE, toNanoBn, userWithdrawMsgValue } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
 import { Contract, fromNano, Signer, toNano, TraceType } from "locklift";
@@ -7,7 +7,7 @@ import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { Vault } from "../utils/entities/vault";
 import { concatMap, lastValueFrom, map, range, timer, toArray } from "rxjs";
-import { ITERATION_FEE } from "../utils/constants";
+import { MIN_CALL_MSG_VALUE } from "../utils/constants";
 
 describe("Deposit withdraw test without lock time", function () {
   let signer: Signer;
@@ -24,7 +24,7 @@ describe("Deposit withdraw test without lock time", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(30) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(30_000) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -37,7 +37,10 @@ describe("Deposit withdraw test without lock time", function () {
   it("user should successfully deposited", async () => {
     const valurBalanceBefore = await vault.getDetails();
     const DEPOSIT_AMOUNT = toNanoBn(20);
-    const { traceTree } = await user1.depositToVault(DEPOSIT_AMOUNT.toString());
+    const { traceTree } = await user1.depositToVault(
+      DEPOSIT_AMOUNT.toString(),
+      (Number(convertEverGas(toNano(MIN_CALL_MSG_VALUE * 2))) + DEPLOY_WALLET_VALUE).toString(),
+    );
     const balance = await user1.wallet.getBalance();
     const { availableAssets } = await vault.getDetails();
     expect(balance.toString()).to.be.equals(DEPOSIT_AMOUNT.toString(), "user should receive stEvers by rate 1:1");
@@ -70,7 +73,7 @@ describe("Deposit withdraw test without lock time", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(1.1),
+          amount: convertEverGas(toNano(0.1)),
         }),
       { allowedCodes: { compute: [null] } },
     );
@@ -84,7 +87,7 @@ describe("Deposit withdraw test without lock time", function () {
     debugger;
     transaction.traceTree?.findEventsForContract({
       contract: vault.vaultContract,
-      name: "StrategiesAdded",
+      name: "StrategyAdded",
     });
     transaction.traceTree?.findCallsForContract({
       contract: vault.vaultContract,
@@ -111,7 +114,7 @@ describe("Deposit withdraw test without lock time", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(1.1),
+          amount: userWithdrawMsgValue,
         }),
       { allowedCodes: { compute: [null] } },
     );
@@ -143,7 +146,7 @@ describe("Deposit withdraw test without lock time", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(1.1),
+          amount: userWithdrawMsgValue,
           bounce: true,
         }),
       { allowedCodes: { compute: [null] } },
@@ -258,7 +261,7 @@ describe("Deposit withdraw test with lock time", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(30) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(30_000) });
     signer = s;
     vault = v;
     admin = adminUser;

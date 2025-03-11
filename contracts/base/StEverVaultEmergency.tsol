@@ -65,10 +65,11 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
         require(!emergencyState.isEmergency, ErrorCodes.EMERGENCY_ALREADY_RUN);
 
         uint128 countOfStrategies = uint128(strategies.keys().length);
-        uint128 feeForOneStrategy = StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE + StEverVaultGas.EXPERIMENTAL_FEE;
+        uint128 feeForOneStrategy = GasUtils.convertEverGas(StEverVaultGas.MIN_STRATEGY_INTERACTION_FEE + StEverVaultGas.EXPERIMENTAL_FEE);
         uint128 requiredMsgValue = countOfStrategies * feeForOneStrategy + StEverVaultGas.MIN_CALL_MSG_VALUE;
+        console.log(format("requiredMsgValue: {}", requiredMsgValue));
 
-        require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
+//        require(msg.value >= requiredMsgValue, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address accountAddress = getAccountAddress(msg.sender);
@@ -229,7 +230,7 @@ abstract contract StEverVaultEmergency is StEverVaultBase {
      *  - The emergency withdrawal to a user is initiated.
      */
     function emergencyWithdrawToUser() override external onlyEmergencyState  {
-        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
+        require(msg.value >= GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 20), ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         address accountAddress = getAccountAddress(msg.sender);
         IStEverAccount(accountAddress).onEmergencyWithdrawToUser{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}();

@@ -114,7 +114,7 @@ contract StEverAccount is IStEverAccount {
         address _remainingGasTo
     ) override external onlyVault {
         tvm.rawReserve(_reserve(), 0);
-        if (withdrawRequests.keys().length < Constants.MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
+        if (withdrawRequests.keys().length <= Constants.MAX_PENDING_COUNT && !withdrawRequests.exists(_nonce)) {
 
             withdrawRequests[_nonce] = WithdrawRequest({
                 amount: _amount,

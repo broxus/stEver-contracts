@@ -9,6 +9,8 @@ import { Vault } from "../utils/entities/vault";
 import { Cluster } from "../utils/entities/cluster";
 import BigNumber from "bignumber.js";
 import { concatMap, from, lastValueFrom, mergeMap, range, toArray } from "rxjs";
+import { convertEverGas } from "../utils";
+import { MIN_CALL_MSG_VALUE } from "../utils/constants";
 
 let signer: Signer;
 let admin: User;
@@ -41,7 +43,7 @@ describe("Initialize testing", function () {
     clusters = await lastValueFrom(
       from([admin, user1, user2]).pipe(
         concatMap(user =>
-          range(10).pipe(
+          range(30).pipe(
             concatMap(() =>
               Cluster.create({
                 vault,
@@ -124,7 +126,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01 * clustersInfo.length),
+          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + 0.01) * clustersInfo.length)),
         }),
     );
 
@@ -159,7 +161,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(2.01 * 70),
+          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + 0.01) * clustersInfo.length)),
         }),
     );
   });
@@ -268,7 +270,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
     );
     expect(traceTree).to.emit("PausedStateChanged").withNamedArgs({
@@ -284,7 +286,7 @@ describe("Initialize testing", function () {
           })
           .send({
             from: admin.account.address,
-            amount: toNano(2.01),
+            amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
           }),
       );
       expect(traceTree).not.to.emit("PausedStateChanged");
@@ -298,7 +300,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
       {
         allowedCodes: {
@@ -316,7 +318,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
     );
     const details = await vault.getDetails();
@@ -334,7 +336,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
     );
     const newVaultDetails = await vault.getDetails();
@@ -349,7 +351,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
       {
         allowedCodes: {
@@ -368,7 +370,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
     );
     const details = await vault.getDetails();
@@ -384,7 +386,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
       {
         allowedCodes: {
@@ -404,7 +406,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: toNano(2.01),
+          amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
         }),
     );
     const details = await vault.getDetails();

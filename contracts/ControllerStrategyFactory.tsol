@@ -181,7 +181,7 @@ contract ControllerStrategyFactory is IDepoolStrategyFactory {
         bool halted = false;
         controllerInitData.store(halted);
 
-        bool approved = false;
+        bool approved = true; // todo make it false and add new method to steEver vault to approve
         controllerInitData.store(approved);
 
         uint128 stake_amount_sent = 0;

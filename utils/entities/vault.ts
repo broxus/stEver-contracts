@@ -4,6 +4,8 @@ import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-client";
+import { convertEverGas } from "../index";
+import { MIN_CALL_MSG_VALUE } from "../constants";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
@@ -84,7 +86,7 @@ export class Vault {
     return locklift.tracing.trace(
       this.vaultContract.methods.setWithdrawHoldTimeInSeconds({ _holdTime: holdTime }).send({
         from: this.adminAccount.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
   };
@@ -136,7 +138,7 @@ export class Vault {
       .then(res =>
         res.strategies.reduce(
           (acc, strategy) => ({ ...acc, [strategy[0].toString()]: strategy[1] }),
-          {} as Record<string, typeof res["strategies"][0][1]>,
+          {} as Record<string, (typeof res)["strategies"][0][1]>,
         ),
       );
 
@@ -188,7 +190,7 @@ export class Vault {
     return locklift.tracing.trace(
       this.vaultContract.methods.changeEmergencyPauseState({ _isPaused: isPaused }).send({
         from: this.adminAccount.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
   };
@@ -197,7 +199,7 @@ export class Vault {
     return locklift.tracing.trace(
       this.vaultContract.methods.stopEmergencyProcess().send({
         from: this.adminAccount.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
   };
@@ -206,7 +208,7 @@ export class Vault {
     return locklift.tracing.trace(
       this.vaultContract.methods.withdrawExtraEver().send({
         from: this.adminAccount.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
   };
@@ -214,7 +216,7 @@ export class Vault {
     const transaction = await locklift.tracing.trace(
       this.vaultContract.methods.setIsPaused({ _isPaused: isPaused }).send({
         from: this.adminAccount.address,
-        amount: toNano(2),
+        amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
     const pausedEvent = await this.getEventsAfterTransaction({
@@ -248,9 +250,10 @@ export class Vault {
         })
         .send({
           from: this.adminAccount.address,
-          amount: toNano(5),
+          amount: convertEverGas(toNano(0.2 + MIN_CALL_MSG_VALUE)),
         }),
     );
+    await traceTree?.beautyPrint();
     expect(traceTree).to.emit("ClusterCreated").withNamedArgs({
       clusterOwner,
       assurance,

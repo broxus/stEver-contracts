@@ -2,22 +2,23 @@ pragma ever-solidity >=0.62.0;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
-import "./interfaces/IStrategy.tsol";
 import "./StEverAccount.tsol";
-import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverStrategiesManager.tsol";
+import "./base/StEverVaultEmergency.tsol";
 import "./base/StEverVaultStrategiesController.tsol";
 import "./base/StEverVaultValidators.tsol";
+import "./interfaces/IStrategy.tsol";
 
-import "./utils/ErrorCodes.tsol";
 import "./utils/Constants.tsol";
+import "./utils/ErrorCodes.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
-import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.tsol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensBurnCallback.tsol";
 import "broxus-ton-tokens-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
-import "broxus-ton-tokens-contracts/contracts/abstract/TokenWalletBurnableBase.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenRoot.tsol";
+import "broxus-ton-tokens-contracts/contracts/interfaces/ITokenWallet.tsol";
+import {GasUtils} from "./utils/GasUtils.tsol";
 
 
 /**
@@ -66,10 +67,10 @@ contract StEverVault is
         maxControllerInterest = _maxControllerInterest;
         minControllerBalance = _minControllerBalance;
         ITokenRoot(stTokenRoot).deployWallet{
-			value: StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
+			value: GasUtils.getDeployWalletValue() * 2,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
             bounce: false
-		}(address(this), StEverVaultGas.ST_EVER_WALLET_DEPLOY_GRAMS_VALUE);
+		}(address(this), GasUtils.getDeployWalletValue());
     }
 
     /**
@@ -87,8 +88,10 @@ contract StEverVault is
      *  - The mint function of the stTokenRoot contract is called.
      */
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
-        require (msg.value >= _amount + StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE);
-
+        require (
+            msg.value >= _amount + GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE *2 ) + GasUtils.getDeployWalletValue(),
+            ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE
+        );
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
         unlockAssets();
         uint128 amountToSend = getDepositStEverAmount(_amount);
@@ -108,7 +111,7 @@ contract StEverVault is
         }(
             amountToSend,
             msg.sender,
-            StEverVaultGas.ST_EVER_WALLET_DEPLOY_VALUE,
+            GasUtils.getDeployWalletValue(),
             msg.sender,
             false,
             builder.toCell()
@@ -157,13 +160,12 @@ contract StEverVault is
         StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION: reserved for gas that will be used for iteration through users
         StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA: will be used for creating(if needed) and adding pending withdrawal to account
         */
-        uint128 requiredAttachedValue = StEverVaultGas.WITHDRAW_FEE +
+        uint128 requiredAttachedValue = GasUtils.convertEverGas(StEverVaultGas.WITHDRAW_FEE +
             StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
-            StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA;
-
+            StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA);
         // if something went wrong, resend tokens to sender
         if (
-            msg.value < requiredAttachedValue ||
+            msg.value <= requiredAttachedValue ||
             !_correct ||
             isPaused
         ) {
@@ -205,7 +207,10 @@ contract StEverVault is
      */
     function requestWithdraw(address _user, uint128 _amount, uint64 _nonce, address _remainingGasTo) internal {
         // making StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA free
-        tvm.rawReserve(address(this).balance - (msg.value - StEverVaultGas.WITHDRAW_FEE - StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION), 0);
+        tvm.rawReserve(
+            address(this).balance - (msg.value - GasUtils.convertEverGas(StEverVaultGas.WITHDRAW_FEE) -  GasUtils.convertEverGas(StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION)),
+        0
+        );
 
         address accountAddr = getAccountAddress(_user);
         uint64 unlockTime = uint64(now) + withdrawHoldTime;
@@ -354,7 +359,8 @@ contract StEverVault is
      *  - The removePendingWithdraw function of the StEverAccount contract is called.
      *
      */
-    function removePendingWithdraw(uint64 _nonce) override external minCallValue {
+    function removePendingWithdraw(uint64 _nonce) override external {
+        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         address account = getAccountAddress(msg.sender);
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
@@ -424,7 +430,7 @@ contract StEverVault is
             uint128 unusedIterationFee = (uint128(config.nonces.length) - 1) * StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION;
 
             IStEverAccount(account).processWithdraw{
-                    value: StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length) + unusedIterationFee,
+                    value: GasUtils.convertEverGas(StEverVaultGas.WITHDRAW_FEE * uint128(config.nonces.length) + unusedIterationFee),
                     bounce: false
             }(config.nonces);
         }
@@ -573,7 +579,7 @@ contract StEverVault is
      *  - The WithdrawFee event is emitted.
      *  - The remaining gas is transferred to the owner.
      */
-    function withdrawStEverFee(uint128 _amount) override external onlyOwner {
+    function withdrawStEverFee(uint128 _amount) override external onlyOwner minCallValue {
         require (totalStEverFee >= _amount, ErrorCodes.NOT_ENOUGH_ST_EVER_FEE);
         require (canTransferValue(_amount), ErrorCodes.NOT_ENOUGH_AVAILABLE_ASSETS);
         // fee should payed by admin

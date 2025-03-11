@@ -1,17 +1,19 @@
 pragma ever-solidity >=0.62.0;
 
 
-import "./StEverVaultStorage.tsol";
-import "../interfaces/IStEverVault.tsol";
-import "../interfaces/IStEverCluster.tsol";
-import "../StEverAccount.tsol";
 import "../Platform.tsol";
+import "../StEverAccount.tsol";
+import "../interfaces/IStEverCluster.tsol";
+import "../interfaces/IStEverVault.tsol";
+import "../utils/Constants.tsol";
 import "../utils/ErrorCodes.tsol";
 import "../utils/Gas.tsol";
 import "../utils/Utils.tsol";
-import "../utils/Constants.tsol";
+import "./StEverVaultStorage.tsol";
 
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import {GasUtils} from "../utils/GasUtils.tsol";
+import {console} from "../../node_modules/locklift/src/console.tsol";
 
 /**
  * @title StEverVaultBase
@@ -84,7 +86,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * is greater than or equal to the minimum call value.
      */
     modifier minCallValue() {
-        require (msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE, ErrorCodes.LOW_MSG_VALUE);
+        require (msg.value >= GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE), ErrorCodes.LOW_MSG_VALUE);
         _;
     }
 
@@ -117,7 +119,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
             countOfClusters += clusterPool.clusters.keys().length;
         }
 
-        require(msg.value > countOfClusters * (StEverVaultGas.MIN_CALL_MSG_VALUE + Constants.MIN_TRANSACTION_VALUE), ErrorCodes.LOW_MSG_VALUE);
+        require(msg.value >= countOfClusters * GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE + Constants.MIN_TRANSACTION_VALUE), ErrorCodes.LOW_MSG_VALUE);
 
         tvm.rawReserve(_reserve(), 0);
 
@@ -149,7 +151,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 chunkSize--;
                 (, address clusterAddress)  = clusters.delMin().get();
                 IStEverCluster(clusterAddress).setStEverOwner{
-                    value: StEverVaultGas.MIN_CALL_MSG_VALUE,
+                    value: GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE),
                     bounce: false
                 }(owner);
             }
@@ -721,7 +723,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         return new Platform{
             stateInit: _buildInitAccount(_buildAccountParams(_user)),
-            value: StEverVaultGas.USER_DATA_DEPLOY_VALUE
+            value: GasUtils.convertEverGas(StEverVaultGas.USER_DATA_DEPLOY_VALUE)
         }(accountCode, constructorParams, _user);
 	}
 
@@ -963,7 +965,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                         _clusterOwner
                     )
                 ),
-                value: StEverVaultGas.DEPLOY_CLUSTER_VALUE,
+                value: GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE),
                 bounce: false
         }(clusterCode, constructorParams, _clusterOwner);
     }

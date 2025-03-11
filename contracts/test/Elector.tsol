@@ -2,6 +2,7 @@ pragma ever-solidity >= 0.61.2;
 pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
+import {GasUtils} from "../utils/GasUtils.tsol";
 import {IController} from "../interfaces/IController.tsol";
 
     enum State {
@@ -34,10 +35,10 @@ contract Elector {
         bytes signature
     ) public functionID(0x4e73744b) {
         if (state == State.SUCCESS) {
-          IController(msg.sender).elector_newStakeOk{value: 1 ever}(queryId);
+          IController(msg.sender).elector_newStakeOk{value: GasUtils.convertEverGas(1 ever)}(queryId);
             stakes[msg.sender] = msg.value;
         } else {
-            IController(msg.sender).elector_newStakeError{value: 1 ever}(queryId);
+            IController(msg.sender).elector_newStakeError{value: GasUtils.convertEverGas(1 ever)}(queryId);
         }
     }
 
@@ -48,7 +49,7 @@ contract Elector {
                 flag: 1
             }(queryId);
         } else {
-            IController(msg.sender).elector_recoverStakeError{value: 1 ever}(queryId);
+            IController(msg.sender).elector_recoverStakeError{value: GasUtils.convertEverGas(1 ever)}(queryId);
         }
     }
 

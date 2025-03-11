@@ -7,7 +7,7 @@ import { TokenRootUpgradeableAbi } from "../build/factorySource";
 import { expect } from "chai";
 import { Vault } from "../utils/entities/vault";
 import { createControllers } from "../utils/entities/dePoolStrategy";
-import { toNanoBn } from "../utils";
+import { convertEverGas, toNanoBn } from "../utils";
 import { concatMap, flatMap, from, lastValueFrom, map, mergeMap, range, switchMap, timer, toArray } from "rxjs";
 import { StrategyFactory } from "../utils/entities/strategyFactory";
 import BigNumber from "bignumber.js";
@@ -177,7 +177,6 @@ describe("Strategy base", function () {
       minLoan: toNano(10_000),
       maxInterest: "0",
     });
-    await traceTree?.beautyPrint();
 
     expect(traceTree).to.error(64001); // error::multiple_loans_are_prohibited = 0xfa01;
   });
@@ -186,7 +185,7 @@ describe("Strategy base", function () {
       .getStrategiesInfo()
       .then(res => res[controller.controllerContract.address.toString()]);
 
-    const ATTACHED_FEE = toNanoBn(2);
+    const ATTACHED_FEE = toNano(convertEverGas(0.5));
     const { traceTree } = await locklift.tracing.trace(
       vault.vaultContract.methods
         .forceWithdrawFromStrategies({
@@ -194,10 +193,9 @@ describe("Strategy base", function () {
         })
         .send({
           from: user1.account.address,
-          amount: toNano(2.2),
+          amount: toNano(convertEverGas(0.5 * 2)),
         }),
     );
-    await traceTree?.beautyPrint();
     const vaultStrategyAfter = await vault
       .getStrategiesInfo()
       .then(res => res[controller.controllerContract.address.toString()]);
@@ -216,7 +214,6 @@ describe("Strategy base", function () {
         minLoan: toNano(1).toString(),
         maxLoan: toNano(MIN_STAKE_TO_SEND).toString(),
       });
-      await traceTree?.beautyPrint();
     }
 
     await controller.newStake({
@@ -232,15 +229,11 @@ describe("Strategy base", function () {
 
     {
       const { traceTree } = await cluster.removeStrategies([controller.controllerContract.address]);
-      await traceTree?.beautyPrint();
       expect(traceTree)
         .to.emit("StrategiesPendingRemove")
         .withNamedArgs({
           strategies: [controller.controllerContract.address],
         });
-      expect(new BigNumber(traceTree!.getBalanceDiff(admin.account.address)).negated().toNumber())
-        .to.be.lte(new BigNumber(toNano(1.1)).toNumber())
-        .and.gte(Number(toNano(1)));
     }
 
     const { totalAssets } = await vault

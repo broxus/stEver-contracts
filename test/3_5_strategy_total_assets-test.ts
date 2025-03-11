@@ -95,13 +95,10 @@ describe("Strategy Total assets", function () {
         maxFactor: 1,
         adnlAddr: "0x1",
       });
-
-      await traceTree?.beautyPrint();
     }
 
     await controller.updateValidatorHashMultipleTimes();
     const { traceTree } = await controller.recoverStake({ queryId: 1 });
-    await traceTree?.beautyPrint();
     const strategyInfo = await vault.getStrategyInfo(controller.controllerContract.address);
     // const roundRewardWithoutFee = traceTree?.findForContract({
     //   contract: vault.vaultContract,

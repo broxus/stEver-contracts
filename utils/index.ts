@@ -1,6 +1,7 @@
-import { AbiEventName, Address, DecodedEventWithTransaction } from "locklift";
+import { AbiEventName, Address, DecodedEventWithTransaction, toNano } from "locklift";
 import BigNumber from "bignumber.js";
 import { StEverVaultAbi } from "../build/factorySource";
+import { CURRENT_GAS_PRICE, EVER_GAS_PRICE } from "./constants";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
 type ExtractEvent<T extends VaultEvents> = Extract<
@@ -27,3 +28,18 @@ export const getBalances = (addresses: Array<Address>): Promise<Array<BigNumber>
   );
 export const getBalance = (address: Address) => getBalances([address]).then(res => res[0]);
 export const isT = <T>(p: T): p is T & {} => !!p;
+
+export const convertEverGas = (everGas: number | string): string => {
+  let gas = Number(everGas);
+  return ((CURRENT_GAS_PRICE / EVER_GAS_PRICE) * gas).toString();
+};
+export const DEPLOY_WALLET_VALUE = Number(convertEverGas(toNano(0.05))) + Number(toNano(0.1));
+export const userWithdrawMsgValue = convertEverGas(
+  toNano(
+    0.1 + // WITHDRAW_FEE
+      0.1 + // FEE_FOR_WITHDRAW_TO_USER_ITERATION
+      0.2 + // WITHDRAW_FEE_FOR_USER_DATA
+      0.05, // value for tokens transfer
+  ),
+);
+export const ITERATION_FEE = convertEverGas(locklift.utils.toNano(0.1));
