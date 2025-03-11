@@ -1,0 +1,1719 @@
+{
+  "map": {
+    "068c0ebf4b5d394ece7079908451d64c64e6e3991c50e847a8f0aa82dc83ac7e": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 404
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 405
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 406
+      },
+      "40": {
+        "filename": "Elector.code",
+        "line": 407
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 408
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 409
+      },
+      "360": {
+        "filename": "Elector.code",
+        "line": 410
+      },
+      "376": {
+        "filename": "Elector.code",
+        "line": 411
+      },
+      "384": {
+        "filename": "Elector.code",
+        "line": 412
+      },
+      "400": {
+        "filename": "Elector.code",
+        "line": 415
+      },
+      "416": {
+        "filename": "Elector.code",
+        "line": 416
+      },
+      "424": {
+        "filename": "Elector.code",
+        "line": 417
+      },
+      "440": {
+        "filename": "Elector.code",
+        "line": 418
+      },
+      "456": {
+        "filename": "Elector.code",
+        "line": 419
+      },
+      "472": {
+        "filename": "Elector.code",
+        "line": 420
+      },
+      "480": {
+        "filename": "Elector.code",
+        "line": 421
+      },
+      "496": {
+        "filename": "Elector.code",
+        "line": 422
+      },
+      "504": {
+        "filename": "Elector.code",
+        "line": 423
+      },
+      "520": {
+        "filename": "Elector.code",
+        "line": 424
+      },
+      "528": {
+        "filename": "Elector.code",
+        "line": 425
+      },
+      "536": {
+        "filename": "Elector.code",
+        "line": 426
+      },
+      "552": {
+        "filename": "Elector.code",
+        "line": 427
+      },
+      "560": {
+        "filename": "Elector.code",
+        "line": 428
+      },
+      "568": {
+        "filename": "Elector.code",
+        "line": 430
+      },
+      "576": {
+        "filename": "Elector.code",
+        "line": 431
+      },
+      "584": {
+        "filename": "Elector.code",
+        "line": 432
+      },
+      "600": {
+        "filename": "Elector.code",
+        "line": 434
+      },
+      "608": {
+        "filename": "Elector.code",
+        "line": 435
+      },
+      "624": {
+        "filename": "Elector.code",
+        "line": 436
+      },
+      "640": {
+        "filename": "Elector.code",
+        "line": 438
+      },
+      "648": {
+        "filename": "Elector.code",
+        "line": 439
+      },
+      "664": {
+        "filename": "Elector.code",
+        "line": 440
+      },
+      "672": {
+        "filename": "Elector.code",
+        "line": 441
+      },
+      "688": {
+        "filename": "Elector.code",
+        "line": 443
+      },
+      "696": {
+        "filename": "Elector.code",
+        "line": 444
+      },
+      "712": {
+        "filename": "Elector.code",
+        "line": 445
+      },
+      "720": {
+        "filename": "stdlib.sol",
+        "line": 61
+      },
+      "736": {
+        "filename": "stdlib.sol",
+        "line": 61
+      },
+      "744": {
+        "filename": "stdlib.sol",
+        "line": 61
+      },
+      "752": {
+        "filename": "stdlib.sol",
+        "line": 61
+      },
+      "768": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "776": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "792": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "816": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "824": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "864": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "872": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "880": {
+        "filename": "stdlib.sol",
+        "line": 62
+      },
+      "896": {
+        "filename": "stdlib.sol",
+        "line": 63
+      },
+      "912": {
+        "filename": "Elector.code",
+        "line": 447
+      },
+      "928": {
+        "filename": "Elector.code",
+        "line": 448
+      },
+      "936": {
+        "filename": "Elector.code",
+        "line": 449
+      },
+      "952": {
+        "filename": "Elector.code",
+        "line": 450
+      },
+      "960": {
+        "filename": "Elector.code",
+        "line": 451
+      },
+      "976": {
+        "filename": "Elector.code",
+        "line": 452
+      },
+      "992": {
+        "filename": "Elector.code",
+        "line": 453
+      },
+      "1000": {
+        "filename": "Elector.code",
+        "line": 454
+      }
+    },
+    "0dddcf32a76b172c6eea043aca621dffd5411ccace87fb81257e014bd3d57123": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 37
+      },
+      "16": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 37
+      },
+      "32": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 37
+      },
+      "48": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "64": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 192
+      }
+    },
+    "10d9161fc730c540048ae0b46b6ca26fc5787b182a454c0a48a3089773216f0d": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "8": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "56": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "72": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "96": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "120": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "136": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "200": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "224": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "240": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "248": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      }
+    },
+    "178218ee94efa19134d7d6a0a13e25ad58a756b7bf0adfa3c3fee09781fecfc4": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 335
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 336
+      },
+      "32": {
+        "filename": "Elector.code",
+        "line": 337
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 338
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 339
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 340
+      },
+      "96": {
+        "filename": "Elector.code",
+        "line": 341
+      },
+      "104": {
+        "filename": "Elector.code",
+        "line": 342
+      },
+      "120": {
+        "filename": "Elector.code",
+        "line": 343
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 344
+      },
+      "152": {
+        "filename": "Elector.code",
+        "line": 345
+      },
+      "168": {
+        "filename": "Elector.code",
+        "line": 346
+      },
+      "184": {
+        "filename": "Elector.code",
+        "line": 347
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 348
+      },
+      "216": {
+        "filename": "Elector.code",
+        "line": 349
+      },
+      "224": {
+        "filename": "Elector.code",
+        "line": 350
+      }
+    },
+    "354dd503ded2e40c7878f751efaf7af777835893a930eb8a3321895031de3541": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 513
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 514
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 515
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 516
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 519
+      },
+      "88": {
+        "filename": "Elector.code",
+        "line": 520
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 521
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 522
+      },
+      "160": {
+        "filename": "Elector.code",
+        "line": 525
+      },
+      "168": {
+        "filename": "Elector.code",
+        "line": 526
+      },
+      "216": {
+        "filename": "Elector.code",
+        "line": 527
+      },
+      "224": {
+        "filename": "Elector.code",
+        "line": 528
+      },
+      "240": {
+        "filename": "Elector.code",
+        "line": 531
+      },
+      "248": {
+        "filename": "Elector.code",
+        "line": 532
+      },
+      "296": {
+        "filename": "Elector.code",
+        "line": 533
+      },
+      "304": {
+        "filename": "Elector.code",
+        "line": 534
+      }
+    },
+    "38f313dfc2ccfd0d438f5261b65ad8f3662982e333891dff94f022d7b6bc0b64": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 22
+      }
+    },
+    "4fbb99f235cfeb27ace7b96e5b77ffe15a1ceadf0b510501d4ced0fdf98b3be2": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 542
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 543
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 544
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 545
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 548
+      },
+      "88": {
+        "filename": "Elector.code",
+        "line": 549
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 550
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 551
+      }
+    },
+    "4fd390fc9eb7a7e1ab3bf213f2f28601fb26dedf69c441f3b359308fcab32c8c": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 275
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 276
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 277
+      },
+      "40": {
+        "filename": "Elector.code",
+        "line": 278
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 279
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 280
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 281
+      },
+      "96": {
+        "filename": "Elector.code",
+        "line": 282
+      },
+      "104": {
+        "filename": "Elector.code",
+        "line": 283
+      },
+      "120": {
+        "filename": "Elector.code",
+        "line": 284
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 285
+      },
+      "160": {
+        "filename": "Elector.code",
+        "line": 286
+      },
+      "176": {
+        "filename": "Elector.code",
+        "line": 287
+      },
+      "192": {
+        "filename": "Elector.code",
+        "line": 288
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 289
+      },
+      "216": {
+        "filename": "Elector.code",
+        "line": 290
+      },
+      "232": {
+        "filename": "Elector.code",
+        "line": 291
+      },
+      "248": {
+        "filename": "Elector.code",
+        "line": 292
+      },
+      "264": {
+        "filename": "Elector.code",
+        "line": 293
+      },
+      "280": {
+        "filename": "Elector.code",
+        "line": 294
+      }
+    },
+    "5eaea35f9cc58e12eba31211a9ab7bb7e568c21f57b2d10c37ff81bd1dd38214": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 297
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 298
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 299
+      },
+      "40": {
+        "filename": "Elector.code",
+        "line": 300
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 301
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 302
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 303
+      },
+      "96": {
+        "filename": "Elector.code",
+        "line": 304
+      },
+      "104": {
+        "filename": "Elector.code",
+        "line": 305
+      },
+      "120": {
+        "filename": "Elector.code",
+        "line": 306
+      },
+      "128": {
+        "filename": "Elector.code",
+        "line": 307
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 308
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 309
+      },
+      "160": {
+        "filename": "Elector.code",
+        "line": 310
+      },
+      "176": {
+        "filename": "Elector.code",
+        "line": 311
+      },
+      "192": {
+        "filename": "Elector.code",
+        "line": 312
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 313
+      },
+      "224": {
+        "filename": "Elector.code",
+        "line": 315
+      },
+      "232": {
+        "filename": "Elector.code",
+        "line": 316
+      },
+      "240": {
+        "filename": "Elector.code",
+        "line": 317
+      },
+      "248": {
+        "filename": "Elector.code",
+        "line": 318
+      },
+      "264": {
+        "filename": "Elector.code",
+        "line": 319
+      },
+      "280": {
+        "filename": "Elector.code",
+        "line": 320
+      },
+      "296": {
+        "filename": "Elector.code",
+        "line": 321
+      },
+      "312": {
+        "filename": "Elector.code",
+        "line": 322
+      },
+      "328": {
+        "filename": "Elector.code",
+        "line": 323
+      },
+      "344": {
+        "filename": "Elector.code",
+        "line": 324
+      },
+      "360": {
+        "filename": "Elector.code",
+        "line": 325
+      },
+      "384": {
+        "filename": "Elector.code",
+        "line": 326
+      },
+      "400": {
+        "filename": "Elector.code",
+        "line": 327
+      },
+      "408": {
+        "filename": "Elector.code",
+        "line": 328
+      },
+      "424": {
+        "filename": "Elector.code",
+        "line": 330
+      }
+    },
+    "640dbb0080f1ee74afb9f022dbafe78d61bce10a0d15c50be05c12e4f071d26d": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 94
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 95
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 96
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 97
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 98
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 99
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "96": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "104": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "120": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "136": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "144": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "168": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "176": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "192": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "208": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "224": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "240": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "248": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 29
+      },
+      "256": {
+        "filename": "Elector.code",
+        "line": 121
+      },
+      "272": {
+        "filename": "Elector.code",
+        "line": 124
+      },
+      "280": {
+        "filename": "Elector.code",
+        "line": 125
+      },
+      "296": {
+        "filename": "Elector.code",
+        "line": 128
+      }
+    },
+    "6903990f07337883c485f226ed890dff4e539f38ea080d0918285663617ecee6": {
+      "0": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "8": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "24": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "32": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "48": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "56": {
+        "filename": "stdlib.sol",
+        "line": 75
+      },
+      "80": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "96": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "112": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "128": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "144": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "152": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "168": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "176": {
+        "filename": "stdlib.sol",
+        "line": 77
+      },
+      "200": {
+        "filename": "stdlib.sol",
+        "line": 78
+      },
+      "208": {
+        "filename": "stdlib.sol",
+        "line": 79
+      },
+      "224": {
+        "filename": "stdlib.sol",
+        "line": 79
+      },
+      "240": {
+        "filename": "stdlib.sol",
+        "line": 79
+      },
+      "256": {
+        "filename": "stdlib.sol",
+        "line": 79
+      },
+      "272": {
+        "filename": "stdlib.sol",
+        "line": 79
+      },
+      "296": {
+        "filename": "stdlib.sol",
+        "line": 79
+      }
+    },
+    "73867e37ec1ffb9ecb087a37d71892215b0b805a73c127da219a28729084e2e0": {
+      "0": {
+        "filename": "<internal-selector>",
+        "line": 1
+      },
+      "24": {
+        "filename": "<internal-selector>",
+        "line": 2
+      }
+    },
+    "920af49e00341d989a5d0c183b5032b4fff3ccf6ae3160f8141b8403f05d374e": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "8": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "56": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "72": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "96": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "120": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "136": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "200": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "224": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "240": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "248": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "256": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 38
+      },
+      "272": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "288": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "304": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "312": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "328": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "336": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "344": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "360": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "368": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "392": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      },
+      "408": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 39
+      }
+    },
+    "929db6db89ee48ee6fadc39154d8a29bb45f639296e177e4b986f4e408bb87ae": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "8": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "56": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "72": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "96": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "120": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "136": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "200": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "224": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "240": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "248": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      },
+      "256": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 41
+      }
+    },
+    "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7": {},
+    "973367cccb1e3bdbe6d722bedf1cf355d3c5d8f67e321473a756327d906e79b9": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 509
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 510
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 511
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 512
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 538
+      },
+      "88": {
+        "filename": "Elector.code",
+        "line": 539
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 540
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 541
+      }
+    },
+    "a00ae34a6b9edb1396bdc50d4aef5ff841c316786d36424b0d22d316d8ba5924": {
+      "0": {
+        "filename": "../contracts/utils/GasUtils.tsol",
+        "line": 24
+      },
+      "24": {
+        "filename": "../contracts/utils/GasUtils.tsol",
+        "line": 24
+      },
+      "40": {
+        "filename": "../contracts/utils/GasUtils.tsol",
+        "line": 24
+      },
+      "48": {
+        "filename": "../contracts/utils/GasUtils.tsol",
+        "line": 24
+      }
+    },
+    "afdb931dcc76c77aff1f6bc17956404411d823d87ee87ffcf941e884f9cab6a8": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 457
+      }
+    },
+    "b0f5fafd7f7d707e082afb83d70b9a97c28fc59fc15b82c74b3b27e973f0cbf3": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 369
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 370
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 371
+      },
+      "40": {
+        "filename": "Elector.code",
+        "line": 372
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 373
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 374
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 375
+      },
+      "88": {
+        "filename": "Elector.code",
+        "line": 376
+      },
+      "104": {
+        "filename": "Elector.code",
+        "line": 377
+      },
+      "120": {
+        "filename": "Elector.code",
+        "line": 378
+      },
+      "128": {
+        "filename": "Elector.code",
+        "line": 379
+      },
+      "144": {
+        "filename": "Elector.code",
+        "line": 380
+      },
+      "168": {
+        "filename": "Elector.code",
+        "line": 381
+      },
+      "176": {
+        "filename": "Elector.code",
+        "line": 382
+      },
+      "184": {
+        "filename": "Elector.code",
+        "line": 383
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 384
+      },
+      "216": {
+        "filename": "Elector.code",
+        "line": 388
+      },
+      "224": {
+        "filename": "Elector.code",
+        "line": 389
+      },
+      "248": {
+        "filename": "Elector.code",
+        "line": 390
+      },
+      "264": {
+        "filename": "Elector.code",
+        "line": 391
+      },
+      "272": {
+        "filename": "Elector.code",
+        "line": 392
+      },
+      "288": {
+        "filename": "Elector.code",
+        "line": 396
+      },
+      "296": {
+        "filename": "Elector.code",
+        "line": 397
+      },
+      "312": {
+        "filename": "Elector.code",
+        "line": 400
+      }
+    },
+    "bb70d52bee67353dd65f8034cd39056858819c76365aa780c8d5d8212bf58d41": {
+      "0": {
+        "filename": "<entry-selector>",
+        "line": 1
+      },
+      "8": {
+        "filename": "<entry-selector>",
+        "line": 2
+      },
+      "24": {
+        "filename": "<entry-selector>",
+        "line": 3
+      },
+      "32": {
+        "filename": "<entry-selector>",
+        "line": 4
+      },
+      "48": {
+        "filename": "<entry-selector>",
+        "line": 5
+      },
+      "56": {
+        "filename": "<entry-selector>",
+        "line": 6
+      },
+      "72": {
+        "filename": "<entry-selector>",
+        "line": 7
+      },
+      "88": {
+        "filename": "<entry-selector>",
+        "line": 8
+      },
+      "96": {
+        "filename": "<entry-selector>",
+        "line": 9
+      },
+      "112": {
+        "filename": "<entry-selector>",
+        "line": 10
+      },
+      "128": {
+        "filename": "<entry-selector>",
+        "line": 11
+      }
+    },
+    "c3f4f00e8a833d6331650e74a2ab350ddfe95b9789cdec86ccdbd087796c68c1": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 4
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 5
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 6
+      },
+      "32": {
+        "filename": "Elector.code",
+        "line": 7
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 10
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 11
+      },
+      "80": {
+        "filename": "Elector.code",
+        "line": 12
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 18
+      },
+      "104": {
+        "filename": "Elector.code",
+        "line": 16
+      },
+      "120": {
+        "filename": "Elector.code",
+        "line": 19
+      }
+    },
+    "c9ac90cfa4ba8d03ec9f3f281a1bf88c7b682a8b10a81ce32fcd59131a1197bb": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 195
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 196
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 197
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 198
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 199
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 200
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 45
+      },
+      "104": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 45
+      },
+      "112": {
+        "filename": "Elector.code",
+        "line": 207
+      },
+      "128": {
+        "filename": "Elector.code",
+        "line": 210
+      },
+      "136": {
+        "filename": "Elector.code",
+        "line": 211
+      },
+      "152": {
+        "filename": "Elector.code",
+        "line": 214
+      }
+    },
+    "d4c405d45a86b5ebdd6d44e3c9ffa759e517358e4e6559f9a94b17a1ee6fef0a": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 46
+      },
+      "16": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 46
+      },
+      "32": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 52
+      },
+      "48": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "56": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "72": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "112": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "144": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "176": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "184": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "200": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "208": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "224": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "240": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "248": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "272": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "280": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "288": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "304": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "352": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "376": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "392": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "400": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "408": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "416": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 47
+      },
+      "432": {
+        "filename": "Elector.code",
+        "line": 272
+      }
+    },
+    "d67d017829fd701394a2b9e4ec5e2680613c792025dd4034d006a6bdad00651e": {
+      "0": {
+        "filename": "stdlib.sol",
+        "line": 71
+      },
+      "16": {
+        "filename": "stdlib.sol",
+        "line": 71
+      },
+      "32": {
+        "filename": "stdlib.sol",
+        "line": 71
+      }
+    },
+    "da989c29858cc6bb0c8c27d59c509f3d0267e354832de3d4cf5526446a62e716": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 460
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 461
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 462
+      },
+      "32": {
+        "filename": "Elector.code",
+        "line": 465
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 466
+      },
+      "56": {
+        "filename": "Elector.code",
+        "line": 467
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 468
+      },
+      "232": {
+        "filename": "Elector.code",
+        "line": 469
+      },
+      "240": {
+        "filename": "Elector.code",
+        "line": 470
+      },
+      "248": {
+        "filename": "Elector.code",
+        "line": 471
+      },
+      "264": {
+        "filename": "Elector.code",
+        "line": 472
+      },
+      "272": {
+        "filename": "Elector.code",
+        "line": 473
+      },
+      "280": {
+        "filename": "Elector.code",
+        "line": 474
+      },
+      "296": {
+        "filename": "Elector.code",
+        "line": 476
+      },
+      "304": {
+        "filename": "Elector.code",
+        "line": 477
+      }
+    },
+    "dce1bce28b2aec86adb63c3829a4589b13e569edb9f8cfeebad1ab42bec41a13": {
+      "0": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 26
+      }
+    },
+    "e5bcdd2119476d1431fe608d0e167cc2a472cc103c84b8c2f7d0157c12a715a8": {
+      "0": {
+        "filename": "stdlib.sol",
+        "line": 76
+      },
+      "8": {
+        "filename": "stdlib.sol",
+        "line": 76
+      }
+    },
+    "f24e1e7aa04d89aad2945816b6e9b921f2b3892da9ba53e2383c148351b96d0c": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 385
+      },
+      "16": {
+        "filename": "Elector.code",
+        "line": 386
+      }
+    },
+    "f256d27fd26fd34a96c7b5b9530d6b2e3fe7a1259dde14e1a0c013e763020993": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 22
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 23
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 24
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 25
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 26
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 27
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 21
+      },
+      "104": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 21
+      },
+      "112": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 21
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 21
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 21
+      },
+      "160": {
+        "filename": "Elector.code",
+        "line": 37
+      },
+      "176": {
+        "filename": "Elector.code",
+        "line": 40
+      },
+      "184": {
+        "filename": "Elector.code",
+        "line": 41
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 44
+      }
+    },
+    "f83f5d7171003a251936fb8bcd88fa5942cf6d391bafaf6901629b110b8aa405": {
+      "0": {
+        "filename": "Elector.code",
+        "line": 56
+      },
+      "8": {
+        "filename": "Elector.code",
+        "line": 57
+      },
+      "24": {
+        "filename": "Elector.code",
+        "line": 58
+      },
+      "48": {
+        "filename": "Elector.code",
+        "line": 59
+      },
+      "64": {
+        "filename": "Elector.code",
+        "line": 60
+      },
+      "72": {
+        "filename": "Elector.code",
+        "line": 61
+      },
+      "88": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "96": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "104": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "112": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "120": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "128": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "136": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "152": {
+        "filename": "../contracts/test/Elector.tsol",
+        "line": 25
+      },
+      "160": {
+        "filename": "Elector.code",
+        "line": 75
+      },
+      "176": {
+        "filename": "Elector.code",
+        "line": 78
+      },
+      "184": {
+        "filename": "Elector.code",
+        "line": 79
+      },
+      "200": {
+        "filename": "Elector.code",
+        "line": 82
+      }
+    }
+  }
+}
