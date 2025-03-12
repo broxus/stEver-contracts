@@ -2650,22 +2650,6 @@ PUSHCONT {
 IF
 THROW 0
 
-.globl	GasUtils_no_obj_getDeployWalletValue_d603faa9
-.type	GasUtils_no_obj_getDeployWalletValue_d603faa9, @function
-CALL $GasUtils_no_obj_getDeployWalletValue_d603faa9_macro$
-
-.macro GasUtils_no_obj_getDeployWalletValue_d603faa9_macro
-.loc ../contracts/utils/GasUtils.tsol, 13
-PUSHINT 50000
-PUSHINT 0
-CALLREF {
-	CALL $__gasToTon_macro$
-}
-PUSHINT 100000000
-ADD
-UFITS 128
-.loc ../contracts/utils/GasUtils.tsol, 0
-
 .globl	GasUtils_with_obj_convertEverGas_014e83ac
 .type	GasUtils_with_obj_convertEverGas_014e83ac, @function
 CALL $GasUtils_with_obj_convertEverGas_014e83ac_macro$
@@ -2693,6 +2677,22 @@ PUSHINT 0
 CALLREF {
 	CALL $__gasToTon_macro$
 }
+.loc ../contracts/utils/GasUtils.tsol, 0
+
+.globl	GasUtils_no_obj_getDeployWalletValue_d603faa9
+.type	GasUtils_no_obj_getDeployWalletValue_d603faa9, @function
+CALL $GasUtils_no_obj_getDeployWalletValue_d603faa9_macro$
+
+.macro GasUtils_no_obj_getDeployWalletValue_d603faa9_macro
+.loc ../contracts/utils/GasUtils.tsol, 13
+PUSHINT 50000
+PUSHINT 0
+CALLREF {
+	CALL $__gasToTon_macro$
+}
+PUSHINT 100000000
+ADD
+UFITS 128
 .loc ../contracts/utils/GasUtils.tsol, 0
 
 .globl	console_with_obj_log_41304fac

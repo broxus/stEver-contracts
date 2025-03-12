@@ -250,7 +250,7 @@ export class Vault {
         })
         .send({
           from: this.adminAccount.address,
-          amount: convertEverGas(toNano(0.2 + MIN_CALL_MSG_VALUE)),
+          amount: convertEverGas(toNano(0.3 + MIN_CALL_MSG_VALUE)),
         }),
     );
     await traceTree?.beautyPrint();

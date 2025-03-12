@@ -219,12 +219,12 @@ export class Controller {
     return locklift.tracing.trace(
       this.controllerContract.methods
         .controller_newStake({
-          adnlAddr,
+          adnlAddr: "30318225572055994315379833926926798418664003097705292461024222313172906188525",
           maxFactor,
-          validatorPubKey,
+          validatorPubKey: "30318225572055994315379833926926798418664003097705292461024222313172906188525",
           queryId,
-          signature1: low,
-          signature2: high,
+          signature1: "65536248767103985282575645430344157715444606008917989088007165838586748969327",
+          signature2: "110849221026425519067142920382835006905850781635886134697264985407412766616840",
           stakeAt,
           valueToStake: valueToStake as any,
         })
