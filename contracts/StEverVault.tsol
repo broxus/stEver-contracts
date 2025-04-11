@@ -89,7 +89,7 @@ contract StEverVault is
      */
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
         require (
-            msg.value >= _amount + GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE *2 ) + GasUtils.getDeployWalletValue(),
+            msg.value >= _amount + GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 2 ) + GasUtils.getDeployWalletValue(),
             ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE
         );
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
@@ -160,9 +160,12 @@ contract StEverVault is
         StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION: reserved for gas that will be used for iteration through users
         StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA: will be used for creating(if needed) and adding pending withdrawal to account
         */
-        uint128 requiredAttachedValue = GasUtils.convertEverGas(StEverVaultGas.WITHDRAW_FEE +
-            StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
-            StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA);
+        uint128 requiredAttachedValue = GasUtils.convertEverGas(
+                StEverVaultGas.WITHDRAW_FEE +
+                StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
+                StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA
+            ) +
+            StEverAccountGas.CONTRACT_MIN_BALANCE; //TODO add to tests;
         // if something went wrong, resend tokens to sender
         if (
             msg.value <= requiredAttachedValue ||

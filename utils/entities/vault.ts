@@ -250,7 +250,7 @@ export class Vault {
         })
         .send({
           from: this.adminAccount.address,
-          amount: convertEverGas(toNano(0.3 + MIN_CALL_MSG_VALUE)),
+          amount: new BigNumber(convertEverGas(toNano(0.3 + MIN_CALL_MSG_VALUE))).plus(toNano(1)).toString(),
         }),
     );
     await traceTree?.beautyPrint();

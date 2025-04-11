@@ -18,13 +18,13 @@ PUSHCONT {
 IF
 LDMSGADDR
 ENDS
-.loc ../contracts/ControllerStrategyFactory.tsol, 53
-PUSHINT 5003
+.loc ../contracts/ControllerStrategyFactory.tsol, 54
+PUSHINT 6003
 GETGLOB 2
 NEQINT 0
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 54
-PUSHINT 5003
+.loc ../contracts/ControllerStrategyFactory.tsol, 55
+PUSHINT 6003
 GETGLOB 2
 GETGLOB 5
 DUP
@@ -36,9 +36,9 @@ PUSHCONT {
 IF
 EQUAL
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 56
+.loc ../contracts/ControllerStrategyFactory.tsol, 57
 ACCEPT
-.loc ../contracts/ControllerStrategyFactory.tsol, 58
+.loc ../contracts/ControllerStrategyFactory.tsol, 59
 SETGLOB 14
 .loc ../contracts/ControllerStrategyFactory.tsol, 0
 CALLREF {
@@ -51,7 +51,7 @@ THROW 0
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 91
+.loc ../contracts/ControllerStrategyFactory.tsol, 92
 GETPARAM 7
 FIRST
 DEPTH
@@ -72,7 +72,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 97
+.loc ../contracts/ControllerStrategyFactory.tsol, 98
 LDU 32
 GETGLOB 4
 ROT
@@ -162,7 +162,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 98
+.loc ../contracts/ControllerStrategyFactory.tsol, 99
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -188,7 +188,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 116
+.loc ../contracts/ControllerStrategyFactory.tsol, 117
 OVER
 PUSHCONT {
 	LDREF
@@ -213,22 +213,22 @@ CALLREF {
 THROW 0
 
 .macro transferOwnership_6d435421_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 65
-PUSHINT 5001
+.loc ../contracts/ControllerStrategyFactory.tsol, 66
+PUSHINT 6001
 GETGLOB 9
 GETGLOB 14
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 117
+.loc ../contracts/ControllerStrategyFactory.tsol, 118
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/ControllerStrategyFactory.tsol, 119
+.loc ../contracts/ControllerStrategyFactory.tsol, 120
 SWAP
 SETGLOB 14
-.loc ../contracts/ControllerStrategyFactory.tsol, 121
+.loc ../contracts/ControllerStrategyFactory.tsol, 122
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -248,7 +248,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 135
+.loc ../contracts/ControllerStrategyFactory.tsol, 136
 OVER
 PUSHCONT {
 	LDREF
@@ -273,36 +273,36 @@ CALLREF {
 THROW 0
 
 .macro installNewStrategyCode_a6c11296_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 65
-PUSHINT 5001
+.loc ../contracts/ControllerStrategyFactory.tsol, 66
+PUSHINT 6001
 GETGLOB 9
 GETGLOB 14
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 136
-PUSHINT 5002
+.loc ../contracts/ControllerStrategyFactory.tsol, 137
+PUSHINT 6002
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 1000000000
 GEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 137
+.loc ../contracts/ControllerStrategyFactory.tsol, 138
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/ControllerStrategyFactory.tsol, 139
+.loc ../contracts/ControllerStrategyFactory.tsol, 140
 SWAP
 SETGLOB 11
-.loc ../contracts/ControllerStrategyFactory.tsol, 140
+.loc ../contracts/ControllerStrategyFactory.tsol, 141
 GETGLOB 15
 INC
 UFITS 32
 BLKPUSH 2, 0
 SETGLOB 15
-.loc ../contracts/ControllerStrategyFactory.tsol, 141
+.loc ../contracts/ControllerStrategyFactory.tsol, 142
 DEC
 UFITS 32
 PUSHSLICE xc000000000000000000000000026f11cea
@@ -313,7 +313,7 @@ STU 32
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/ControllerStrategyFactory.tsol, 143
+.loc ../contracts/ControllerStrategyFactory.tsol, 144
 NEWC
 STSLICECONST x42_
 STSLICE
@@ -329,57 +329,57 @@ SENDRAWMSG
 CALL $buildControllerAddress_be1fc053_internal_macro$
 
 .macro buildControllerAddress_be1fc053_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 163
+.loc ../contracts/ControllerStrategyFactory.tsol, 164
 PUSHREFSLICE {
 	.blob x8000000000000000000000000000000000000000000000000000000000000000001_
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 165
+.loc ../contracts/ControllerStrategyFactory.tsol, 166
 ROT
 NEWC
 STU 32
-.loc ../contracts/ControllerStrategyFactory.tsol, 166
+.loc ../contracts/ControllerStrategyFactory.tsol, 167
 XCHG S1, S2
 STSLICE
-.loc ../contracts/ControllerStrategyFactory.tsol, 167
-GETGLOB 12
-STSLICER
 .loc ../contracts/ControllerStrategyFactory.tsol, 168
 GETGLOB 12
 STSLICER
-.loc ../contracts/ControllerStrategyFactory.tsol, 171
+.loc ../contracts/ControllerStrategyFactory.tsol, 169
+GETGLOB 12
+STSLICER
+.loc ../contracts/ControllerStrategyFactory.tsol, 172
 GETGLOB 12
 NEWC
 STSLICE
-.loc ../contracts/ControllerStrategyFactory.tsol, 172
+.loc ../contracts/ControllerStrategyFactory.tsol, 173
 GETGLOB 12
 STSLICER
-.loc ../contracts/ControllerStrategyFactory.tsol, 173
+.loc ../contracts/ControllerStrategyFactory.tsol, 174
 GETGLOB 13
 STSLICER
-.loc ../contracts/ControllerStrategyFactory.tsol, 175
+.loc ../contracts/ControllerStrategyFactory.tsol, 176
 ENDC
 SWAP
 STREF
-.loc ../contracts/ControllerStrategyFactory.tsol, 179
+.loc ../contracts/ControllerStrategyFactory.tsol, 180
 NEWC
 STSLICECONST x00
-.loc ../contracts/ControllerStrategyFactory.tsol, 182
+.loc ../contracts/ControllerStrategyFactory.tsol, 183
 FALSE
 SWAP
 STI 1
-.loc ../contracts/ControllerStrategyFactory.tsol, 185
+.loc ../contracts/ControllerStrategyFactory.tsol, 186
 TRUE
 SWAP
 STI 1
-.loc ../contracts/ControllerStrategyFactory.tsol, 188
+.loc ../contracts/ControllerStrategyFactory.tsol, 189
 PUSHINT 722
 STZEROES
-.loc ../contracts/ControllerStrategyFactory.tsol, 222
+.loc ../contracts/ControllerStrategyFactory.tsol, 223
 SWAP
 ENDC
 SWAP
 STREF
-.loc ../contracts/ControllerStrategyFactory.tsol, 224
+.loc ../contracts/ControllerStrategyFactory.tsol, 225
 ENDC
 GETGLOB 11
 NEWC
@@ -388,7 +388,7 @@ STOPTREF
 STOPTREF
 STZERO
 ENDC
-.loc ../contracts/ControllerStrategyFactory.tsol, 225
+.loc ../contracts/ControllerStrategyFactory.tsol, 226
 DUP
 HASHCU
 PUSHINT -1
@@ -410,7 +410,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 229
+.loc ../contracts/ControllerStrategyFactory.tsol, 230
 OVER
 PUSHCONT {
 	LDREF
@@ -431,41 +431,44 @@ CALLREF {
 THROW 0
 
 .macro deployStrategy_7b28b931_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 230
-PUSHINT 5002
+.loc ../contracts/ControllerStrategyFactory.tsol, 231
+PUSHINT 6002
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 146000000000
-PUSHINT 1000000000
+CALLREF {
+	CALL $GasUtils_no_obj_convertEverGas_014e83ac_macro$
+}
+PUSHINT 100000000
 ADD
 UFITS 128
 GEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 231
+.loc ../contracts/ControllerStrategyFactory.tsol, 232
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/ControllerStrategyFactory.tsol, 233
+.loc ../contracts/ControllerStrategyFactory.tsol, 234
 GETGLOB 16
 OVER
 CALLREF {
 	CALL $buildControllerAddress_be1fc053_internal_macro$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 236
+.loc ../contracts/ControllerStrategyFactory.tsol, 237
 NEWC
 STSLICECONST xd372158c
-.loc ../contracts/ControllerStrategyFactory.tsol, 237
+.loc ../contracts/ControllerStrategyFactory.tsol, 238
 GETGLOB 16
 STUR 64
-.loc ../contracts/ControllerStrategyFactory.tsol, 239
+.loc ../contracts/ControllerStrategyFactory.tsol, 240
 GETGLOB 16
 INC
 UFITS 32
 SETGLOB 16
-.loc ../contracts/ControllerStrategyFactory.tsol, 241
+.loc ../contracts/ControllerStrategyFactory.tsol, 242
 PUSH S2
 NEWC
 STSLICECONST x62_
@@ -502,7 +505,7 @@ STBREF
 ENDC
 PUSHINT 2
 SENDRAWMSG
-.loc ../contracts/ControllerStrategyFactory.tsol, 249
+.loc ../contracts/ControllerStrategyFactory.tsol, 250
 GETGLOB 15
 ROT
 PUSH S2
@@ -522,7 +525,7 @@ STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/ControllerStrategyFactory.tsol, 251
+.loc ../contracts/ControllerStrategyFactory.tsol, 252
 GETGLOB 9
 FALSE
 NEWC
@@ -551,7 +554,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 271
+.loc ../contracts/ControllerStrategyFactory.tsol, 272
 LDU 32
 LDDICT
 ROTREV
@@ -569,38 +572,38 @@ CALLREF {
 THROW 0
 
 .macro upgradeStrategies_8e9b7316_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 65
-PUSHINT 5001
+.loc ../contracts/ControllerStrategyFactory.tsol, 66
+PUSHINT 6001
 GETGLOB 9
 GETGLOB 14
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 272
+.loc ../contracts/ControllerStrategyFactory.tsol, 273
 PUSHINT 4001
 OVER
 FIRST
 LESSINT 51
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 273
+.loc ../contracts/ControllerStrategyFactory.tsol, 274
 PUSHINT 4002
 DEPTH
 ADDCONST -2
 PICK
-PUSHINT 1000000000
+PUSHINT 100000000
 PUSH S3
 FIRST
 MUL
-PUSHINT 1000000000
+PUSHINT 100000000
 ADD
 GEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 278
+.loc ../contracts/ControllerStrategyFactory.tsol, 279
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/ControllerStrategyFactory.tsol, 280
+.loc ../contracts/ControllerStrategyFactory.tsol, 281
 SECOND
 PUSHINT 0
 NULL
@@ -616,7 +619,7 @@ PUSHCONT {
 	NOT
 }
 PUSHCONT {
-	.loc ../contracts/ControllerStrategyFactory.tsol, 281
+	.loc ../contracts/ControllerStrategyFactory.tsol, 282
 	GETGLOB 9
 	GETGLOB 15
 	GETGLOB 11
@@ -627,7 +630,7 @@ PUSHCONT {
 	STI 1
 	STSLICECONST x1_
 	STSLICE
-	PUSHINT 2949852426645541256083542794369173188247553
+	PUSHINT 2803819077499249229031122585109857988247553
 	STUR 143
 	ROLLREV 3
 	NEWC
@@ -646,7 +649,7 @@ PUSHCONT {
 }
 WHILE
 BLKDROP 3
-.loc ../contracts/ControllerStrategyFactory.tsol, 287
+.loc ../contracts/ControllerStrategyFactory.tsol, 288
 GETGLOB 9
 NEWC
 STSLICECONST x42_
@@ -667,7 +670,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ControllerStrategyFactory.tsol, 299
+.loc ../contracts/ControllerStrategyFactory.tsol, 300
 OVER
 PUSHCONT {
 	LDREF
@@ -694,34 +697,34 @@ CALLREF {
 THROW 0
 
 .macro upgrade_fb9d1513_internal_macro
-.loc ../contracts/ControllerStrategyFactory.tsol, 65
-PUSHINT 5001
+.loc ../contracts/ControllerStrategyFactory.tsol, 66
+PUSHINT 6001
 GETGLOB 9
 GETGLOB 14
 SDEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 73
+.loc ../contracts/ControllerStrategyFactory.tsol, 74
 PUSHINT 4002
 DEPTH
 ADDCONST -2
 PICK
-PUSHINT 1000000000
+PUSHINT 100000000
 GEQ
 THROWANYIFNOT
-.loc ../contracts/ControllerStrategyFactory.tsol, 74
+.loc ../contracts/ControllerStrategyFactory.tsol, 75
 PUSHCONT {
-	.loc ../contracts/ControllerStrategyFactory.tsol, 300
+	.loc ../contracts/ControllerStrategyFactory.tsol, 301
 	OVER
 	GETGLOB 17
 	EQUAL
 	PUSHCONT {
-		.loc ../contracts/ControllerStrategyFactory.tsol, 301
+		.loc ../contracts/ControllerStrategyFactory.tsol, 302
 		CALLREF {
 			CALL $_reserve_413ab4a8_internal_macro$
 		}
 		PUSHINT 0
 		RAWRESERVE
-		.loc ../contracts/ControllerStrategyFactory.tsol, 302
+		.loc ../contracts/ControllerStrategyFactory.tsol, 303
 		NEWC
 		STSLICECONST x42_
 		STSLICE
@@ -730,12 +733,12 @@ PUSHCONT {
 		ENDC
 		PUSHPOW2 7
 		SENDRAWMSG
-		.loc ../contracts/ControllerStrategyFactory.tsol, 303
+		.loc ../contracts/ControllerStrategyFactory.tsol, 304
 		DROP2
 		.loc ../contracts/ControllerStrategyFactory.tsol, 0
 	}
 	IFJMP
-	.loc ../contracts/ControllerStrategyFactory.tsol, 307
+	.loc ../contracts/ControllerStrategyFactory.tsol, 308
 	GETGLOB 17
 	GETGLOB 16
 	GETGLOB 15
@@ -759,10 +762,10 @@ PUSHCONT {
 	STBREFR
 	STBREFR
 	ENDC
-	.loc ../contracts/ControllerStrategyFactory.tsol, 319
+	.loc ../contracts/ControllerStrategyFactory.tsol, 320
 	OVER
 	SETCODE
-	.loc ../contracts/ControllerStrategyFactory.tsol, 321
+	.loc ../contracts/ControllerStrategyFactory.tsol, 322
 	SWAP
 	CTOS
 	DUP
@@ -777,11 +780,11 @@ PUSHCONT {
 	CTOS
 	BLESS
 	POP C3
-	.loc ../contracts/ControllerStrategyFactory.tsol, 323
+	.loc ../contracts/ControllerStrategyFactory.tsol, 324
 	CALLREF {
 		CALL $:onCodeUpgrade$
 	}
-	.loc ../contracts/ControllerStrategyFactory.tsol, 299
+	.loc ../contracts/ControllerStrategyFactory.tsol, 300
 }
 CALLX
 .loc ../contracts/ControllerStrategyFactory.tsol, 0
@@ -1200,6 +1203,35 @@ PUSHCONT {
 }
 IF
 THROW 0
+
+.globl	GasUtils_with_obj_convertEverGas_014e83ac
+.type	GasUtils_with_obj_convertEverGas_014e83ac, @function
+CALL $GasUtils_with_obj_convertEverGas_014e83ac_macro$
+
+.macro GasUtils_with_obj_convertEverGas_014e83ac_macro
+.loc ../contracts/utils/GasUtils.tsol, 24
+DUP
+PUSHINT 1000
+DIV
+PUSHINT 0
+CALLREF {
+	CALL $__gasToTon_macro$
+}
+.loc ../contracts/utils/GasUtils.tsol, 0
+
+.globl	GasUtils_no_obj_convertEverGas_014e83ac
+.type	GasUtils_no_obj_convertEverGas_014e83ac, @function
+CALL $GasUtils_no_obj_convertEverGas_014e83ac_macro$
+
+.macro GasUtils_no_obj_convertEverGas_014e83ac_macro
+.loc ../contracts/utils/GasUtils.tsol, 24
+PUSHINT 1000
+DIV
+PUSHINT 0
+CALLREF {
+	CALL $__gasToTon_macro$
+}
+.loc ../contracts/utils/GasUtils.tsol, 0
 
 .macro public_function_selector
 DUP

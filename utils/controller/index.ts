@@ -208,25 +208,17 @@ export class Controller {
     maxFactor: number;
     adnlAddr: string;
   }) => {
-    const {
-      signatureParts: { low, high },
-    } = await locklift.provider
-      .signData({
-        data: "HIsdcsdcsdcsdcsdcsdcsdcd",
-        publicKey: await locklift.keystore.getSigner("0").then(res => res!.publicKey),
-      })
-      .then(res => res);
     return locklift.tracing.trace(
       this.controllerContract.methods
         .controller_newStake({
-          adnlAddr: "30318225572055994315379833926926798418664003097705292461024222313172906188525",
-          maxFactor,
+          queryId: "1741794036556",
+          valueToStake: "50000000000000" as unknown as any,
           validatorPubKey: "30318225572055994315379833926926798418664003097705292461024222313172906188525",
-          queryId,
-          signature1: "65536248767103985282575645430344157715444606008917989088007165838586748969327",
-          signature2: "110849221026425519067142920382835006905850781635886134697264985407412766616840",
-          stakeAt,
-          valueToStake: valueToStake as any,
+          stakeAt: "1741794344",
+          maxFactor: "196608",
+          adnlAddr: "30318225572055994315379833926926798418664003097705292461024222313172906188525",
+          signature1: "31346139131171700078104425958100444279781703857159042667941931448467032758752",
+          signature2: "96487562042140136021777347316754177054674011024658950460530751154669444814603",
         })
         .send({
           from: this.owner,

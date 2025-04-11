@@ -36,10 +36,11 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint128 _assurance,
         uint32 _maxStrategiesCount
     ) override external onlyOwner {
-        require(
-            msg.value >= GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE),
-            ErrorCodes.NOT_ENOUGH_VALUE
-        );
+        uint128 requiredValue =
+            GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE) +
+            ClusterGas.CONTRACT_MIN_BALANCE +
+            GasUtils.getDeployWalletValue() * 2;
+        require(msg.value >= requiredValue, ErrorCodes.NOT_ENOUGH_VALUE);
         require(Utils.isValidAddress(strategyFactory), ErrorCodes.STRATEGY_FACTORY_DID_NOT_SET);
         tvm.rawReserve(_reserve(), 0);
 

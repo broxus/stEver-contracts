@@ -169,6 +169,31 @@ const config: LockliftConfig = {
         amount: 20,
       },
     },
+    "tycho-testnet": {
+      // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
+      connection: {
+        group: "1",
+        id: 1,
+        type: "jrpc",
+        data: {
+          endpoint: "https://rpc-testnet.tychoprotocol.com",
+        },
+      },
+      // This giver is default local-node giverV2
+      giver: {
+        address: process.env.VENOM_MAIN_GIVER_ADDRESS!,
+        key: process.env.VENOM_MAIN_GIVER_KEY!,
+      },
+
+      keys: {
+        // Use everdev to generate your phrase
+        // !!! Never commit it in your repos !!!
+        // phrase: "action inject penalty envelope rabbit element slim tornado dinner pizza off blood",
+        phrase: process.env.WALLET_SEED!,
+
+        amount: 20,
+      },
+    },
     mainnet: {
       // Specify connection settings for https://github.com/broxus/everscale-standalone-client/
       connection: "mainnetJrpc",

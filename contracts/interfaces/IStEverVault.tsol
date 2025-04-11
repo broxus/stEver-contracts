@@ -54,7 +54,7 @@ interface IStEverVault {
     event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
     event ProcessDepositToStrategyError(address strategy, uint16 errcode);
 
-    event ControllerCredited(address controller, uint128 value);
+    event ControllerCredited(address controller, uint128 value, uint32 maxValidatorInterest, uint128 validatorBalance);
 
     // Strategy withdraw
     event StrategyHandledWithdrawRequest(address strategy, uint128 amount);

@@ -4,11 +4,12 @@ pragma AbiHeader pubkey;
 
 import "./interfaces/IDepoolStrategyFactory.tsol";
 import "./interfaces/IStEverCluster.tsol";
-import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import "./interfaces/IStrategy.tsol";
 import "./utils/Constants.tsol";
 import "./utils/ErrorCodes.tsol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import {ControllerStrategyFactoryGas} from "./utils/Gas.tsol";
+import {GasUtils} from "./utils/GasUtils.tsol";
 
 
 /**
@@ -35,9 +36,9 @@ contract ControllerStrategyFactory is IDepoolStrategyFactory {
     uint32 public factoryVersion;
 
     // error codes
-    uint16 constant NOT_OWNER = 5001;
-    uint16 constant LOW_MSG_VALUE = 5002;
-    uint16 constant WRONG_PUBKEY = 5003;
+    uint16 constant NOT_OWNER = 6001;
+    uint16 constant LOW_MSG_VALUE = 6002;
+    uint16 constant WRONG_PUBKEY = 6003;
 
     /**
      * @dev Sets the initial owner of the contract.
@@ -227,7 +228,7 @@ contract ControllerStrategyFactory is IDepoolStrategyFactory {
 
 
     function deployStrategy(address _validator) override external {
-        require (msg.value >= ControllerStrategyFactoryGas.STRATEGY_DEPLOY_VALUE + ControllerStrategyFactoryGas.MIN_CALL_VALUE, LOW_MSG_VALUE);
+        require (msg.value >= GasUtils.convertEverGas(ControllerStrategyFactoryGas.STRATEGY_DEPLOY_VALUE) + ControllerStrategyFactoryGas.MIN_CALL_VALUE, LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         (address controller, TvmCell stateInit) = buildControllerAddress(strategyCount, _validator);

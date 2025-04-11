@@ -804,7 +804,9 @@
 			"name": "ControllerCredited",
 			"inputs": [
 				{"name":"controller","type":"address"},
-				{"name":"value","type":"uint128"}
+				{"name":"value","type":"uint128"},
+				{"name":"maxValidatorInterest","type":"uint32"},
+				{"name":"validatorBalance","type":"uint128"}
 			],
 			"outputs": [
 			]

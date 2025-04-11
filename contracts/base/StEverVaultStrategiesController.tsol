@@ -181,7 +181,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         strategies[msg.sender].totalAssets += creditAmount;
         tvm.rawReserve(_reserveWithValue(creditAmount), 0);
 
-        emit ControllerCredited(msg.sender, creditAmount);
+        emit ControllerCredited(msg.sender, creditAmount, maxInterest, uint128(validatorBalance));
 
         IController(msg.sender).credit{
             value: 0,

@@ -214,6 +214,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      */
     function receiveTokenWalletAddress(address _wallet) external virtual {
         require (msg.sender == stTokenRoot, ErrorCodes.NOT_ROOT_WALLET);
+        tvm.accept();
         stEverWallet = _wallet;
     }
 
@@ -723,7 +724,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         return new Platform{
             stateInit: _buildInitAccount(_buildAccountParams(_user)),
-            value: GasUtils.convertEverGas(StEverVaultGas.USER_DATA_DEPLOY_VALUE)
+            value: GasUtils.convertEverGas(StEverVaultGas.USER_DATA_DEPLOY_VALUE) + StEverAccountGas.CONTRACT_MIN_BALANCE
         }(accountCode, constructorParams, _user);
 	}
 
@@ -965,7 +966,9 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                         _clusterOwner
                     )
                 ),
-                value: GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE),
+                value: GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE) +
+                    ClusterGas.CONTRACT_MIN_BALANCE +
+                    GasUtils.getDeployWalletValue() * 2,
                 bounce: false
         }(clusterCode, constructorParams, _clusterOwner);
     }
