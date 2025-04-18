@@ -134,30 +134,36 @@ export const deployTokenRoot = async ({
   const tokenWalletCode = locklift.factory.getContractArtifacts("TokenWalletUpgradeable");
   const platformCode = locklift.factory.getContractArtifacts("TokenWalletPlatform");
 
-  const { contract } = await locklift.factory.deployContract({
-    contract: "TokenRootUpgradeable",
-    initParams: {
-      name_: TOKEN_ROOT_NAME,
-      symbol_: TOKEN_ROOT_SYMBOL,
-      decimals_: 9,
-      rootOwner_: owner,
-      walletCode_: tokenWalletCode.code,
-      randomNonce_: locklift.utils.getRandomNonce(),
-      deployer_: ZERO_ADDRESS,
-      platformCode_: platformCode.code,
+  const { contract, traceTree } = await locklift.tracing.trace(
+    locklift.factory.deployContract({
+      contract: "TokenRootUpgradeable",
+      initParams: {
+        name_: TOKEN_ROOT_NAME,
+        symbol_: TOKEN_ROOT_SYMBOL,
+        decimals_: 9,
+        rootOwner_: owner,
+        walletCode_: tokenWalletCode.code,
+        randomNonce_: locklift.utils.getRandomNonce(),
+        deployer_: ZERO_ADDRESS,
+        platformCode_: platformCode.code,
+      },
+      publicKey: signer.publicKey,
+      value: locklift.utils.toNano(convertEverGas(10)),
+      constructorParams: {
+        initialSupplyTo: ZERO_ADDRESS,
+        initialSupply: 0,
+        deployWalletValue: 0,
+        mintDisabled: false,
+        burnByRootDisabled: false,
+        burnPaused: false,
+        remainingGasTo: owner,
+      },
+    }),
+    {
+      raise: false,
     },
-    publicKey: signer.publicKey,
-    value: locklift.utils.toNano(convertEverGas(0.5)),
-    constructorParams: {
-      initialSupplyTo: ZERO_ADDRESS,
-      initialSupply: 0,
-      deployWalletValue: 0,
-      mintDisabled: false,
-      burnByRootDisabled: false,
-      burnPaused: false,
-      remainingGasTo: owner,
-    },
-  });
+  );
+  // await traceTree?.beautyPrint();
   return contract;
 };
 

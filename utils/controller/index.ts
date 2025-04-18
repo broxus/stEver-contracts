@@ -75,6 +75,15 @@ export const CONTROLLER_ABI = {
       ],
       outputs: [],
     },
+    {
+      name: "withdraw_validator",
+      id: "0x8efed779",
+      inputs: [
+        { name: "queryId", type: "uint64" },
+        { name: "amount", type: "token" },
+      ],
+      outputs: [],
+    },
   ],
   events: [],
   fields: [

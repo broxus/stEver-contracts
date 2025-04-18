@@ -610,16 +610,6 @@ ROTREV
 PUSHINT 267
 DICTSETB
 SETGLOB 23
-.loc ../contracts/StEverCluster.tsol, 298
-GETGLOB 12
-NEWC
-STSLICECONST x42_
-STSLICE
-PUSHINT 111
-STZEROES
-ENDC
-PUSHPOW2 7
-SENDRAWMSG
 .loc ../contracts/StEverCluster.tsol, 0
 
 .macro removeStrategies

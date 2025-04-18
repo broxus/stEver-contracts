@@ -9931,6 +9931,22 @@ PUSHCONT {
 IF
 THROW 0
 
+.globl	GasUtils_no_obj_getDeployWalletValue_d603faa9
+.type	GasUtils_no_obj_getDeployWalletValue_d603faa9, @function
+CALL $GasUtils_no_obj_getDeployWalletValue_d603faa9_macro$
+
+.macro GasUtils_no_obj_getDeployWalletValue_d603faa9_macro
+.loc ../contracts/utils/GasUtils.tsol, 13
+PUSHINT 50000
+PUSHINT 0
+CALLREF {
+	CALL $__gasToTon_macro$
+}
+PUSHINT 100000000
+ADD
+UFITS 128
+.loc ../contracts/utils/GasUtils.tsol, 0
+
 .globl	GasUtils_with_obj_convertEverGas_014e83ac
 .type	GasUtils_with_obj_convertEverGas_014e83ac, @function
 CALL $GasUtils_with_obj_convertEverGas_014e83ac_macro$
@@ -9958,22 +9974,6 @@ PUSHINT 0
 CALLREF {
 	CALL $__gasToTon_macro$
 }
-.loc ../contracts/utils/GasUtils.tsol, 0
-
-.globl	GasUtils_no_obj_getDeployWalletValue_d603faa9
-.type	GasUtils_no_obj_getDeployWalletValue_d603faa9, @function
-CALL $GasUtils_no_obj_getDeployWalletValue_d603faa9_macro$
-
-.macro GasUtils_no_obj_getDeployWalletValue_d603faa9_macro
-.loc ../contracts/utils/GasUtils.tsol, 13
-PUSHINT 50000
-PUSHINT 0
-CALLREF {
-	CALL $__gasToTon_macro$
-}
-PUSHINT 100000000
-ADD
-UFITS 128
 .loc ../contracts/utils/GasUtils.tsol, 0
 
 .globl	console_with_obj_log_41304fac
@@ -10011,6 +10011,25 @@ PUSHINT 0
 SENDRAWMSG
 .loc ../node_modules/locklift/src/console.tsol, 0
 
+.globl	Utils_with_obj_isValidPubKey_a649acb6
+.type	Utils_with_obj_isValidPubKey_a649acb6, @function
+CALL $Utils_with_obj_isValidPubKey_a649acb6_macro$
+
+.macro Utils_with_obj_isValidPubKey_a649acb6_macro
+.loc ../contracts/utils/Utils.tsol, 10
+DUP
+NEQINT 0
+.loc ../contracts/utils/Utils.tsol, 0
+
+.globl	Utils_no_obj_isValidPubKey_a649acb6
+.type	Utils_no_obj_isValidPubKey_a649acb6, @function
+CALL $Utils_no_obj_isValidPubKey_a649acb6_macro$
+
+.macro Utils_no_obj_isValidPubKey_a649acb6_macro
+.loc ../contracts/utils/Utils.tsol, 10
+NEQINT 0
+.loc ../contracts/utils/Utils.tsol, 0
+
 .globl	Utils_with_obj_isValidAddress_003f07fa
 .type	Utils_with_obj_isValidAddress_003f07fa, @function
 CALL $Utils_with_obj_isValidAddress_003f07fa_macro$
@@ -10036,25 +10055,6 @@ PUSHREFSLICE {
 }
 SDEQ
 NOT
-.loc ../contracts/utils/Utils.tsol, 0
-
-.globl	Utils_with_obj_isValidPubKey_a649acb6
-.type	Utils_with_obj_isValidPubKey_a649acb6, @function
-CALL $Utils_with_obj_isValidPubKey_a649acb6_macro$
-
-.macro Utils_with_obj_isValidPubKey_a649acb6_macro
-.loc ../contracts/utils/Utils.tsol, 10
-DUP
-NEQINT 0
-.loc ../contracts/utils/Utils.tsol, 0
-
-.globl	Utils_no_obj_isValidPubKey_a649acb6
-.type	Utils_no_obj_isValidPubKey_a649acb6, @function
-CALL $Utils_no_obj_isValidPubKey_a649acb6_macro$
-
-.macro Utils_no_obj_isValidPubKey_a649acb6_macro
-.loc ../contracts/utils/Utils.tsol, 10
-NEQINT 0
 .loc ../contracts/utils/Utils.tsol, 0
 
 .macro public_function_selector

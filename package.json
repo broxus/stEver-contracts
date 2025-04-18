@@ -50,6 +50,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "everscale-crypto": "^0.1.1",
+    "everscan-verify": "^1.7.2",
     "locklift": "^2.8.3",
     "locklift-verifier": "^1.0.4",
     "lodash": "^4.17.21",
