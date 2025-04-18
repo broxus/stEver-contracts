@@ -30,13 +30,13 @@ has the ability to automatically balance between validators.
   the assurance limit value.
   - Vault - Validates responses to contract actions, ensuring they
   originate from the StEverVault.
-+ StrategyDePool
-  - Vault - Ensures that function calls made to StrategyDePool are
++ StrategyController
+  - Vault - Ensures that function calls made to StrategyController are
   initiated by StEverVault.
-  - DePool - Ensures that function calls made to StrategyDePool are
-  initiated by DePool.
-+ DepoolStrategyFactory
-  - Owner - Granted the capability to introduce new StrategyDePool
+  - Controller - Ensures that function calls made to this contract are
+  initiated by Validator.
++ ControllerStrategyFactory
+  - Owner - Granted the capability to introduce new Controller
   code and upgrade existing strategies to the latest code
 ### Actors
 1. **StEverVault** - a contract that aggregates all validators and provides the ability to stake
@@ -44,7 +44,7 @@ has the ability to automatically balance between validators.
 3. **StEverAccount** - a user account that represents user's withdrawal requests
 4. **StEver** - a token that represents the user's stake in the StEverVault
 5. **StEverGovernance** - a software that manage ever tokens between connected validators
-6. **StEverStrategy** - an abstraction that represents a connector to `DePool` contract
+6. **StEverController** - an abstraction that represents a Validator
 7. **StEverCluster** - a contract that aggregates strategies owned by a validator
 
 ### Actors behavior
@@ -62,20 +62,15 @@ if a validator pass our checks we will create a `StEverCluster` contract for him
 **Integrate validator functionality**
 1. Admin will call `StEver.createCluster`, after this call new cluster will be added to `clusterPools` mapping.
 Then cluster address will be provided to validator
-2. Validator going to deploy his `DePool` contracts and call `StEverCluster.deployStrategies` with `DePool` addresses
-3. Each cluster has its own constrains such as `maxStrategiesCount` and `assurance`. `maxStrategiesCount` is a maximal
+2. Each cluster has its own constrains such as `maxStrategiesCount` and `assurance`. `maxStrategiesCount` is a maximal
    strategy count that can be created by the `Cluster`. `assurance` is Assurance that should be provided by the
    `clusterOwner` to his `Cluster`. `assurance` is `StEver` value, so the `clusterOwner` should make a `StEver` token
    transfer to the `Cluster` address
-4. When all constraints are satisfied, the validator can obtain strategies addresses, and call `StEverCluster.addStrategies` with strategies addresses.
-After its strategies will be added to the `StEverVault` and will be available for staking
+3. When all constraints are satisfied, the validator can obtain strategies addresses, Validator going to call `StEverCluster.deployStrategies` with count of expected controllers to be deployed
+
 
 #### StEverGovernance
-This is software that has access to re-balance ever tokens between connected strategies, and also it manages withdrawals for users.
-
-**Re-balance functionality**
-1. `StEverVault.depositToStrategies`
-2. `StEverVault.processWithdrawFromStrategies`
+This is software that has access to manages withdrawals for users.
 
 **Withdraw request satisfaction**
 1. `StEverVault.processSendToUsers`
@@ -136,6 +131,10 @@ that allows to withdraw only after `withfrawHoldTime` from the withdrawal reques
 This update provide `reduction factor` for rewards. This factor is used to reduce growing of ever/stEver ratio.
 And now users are obtaining their rewards immediately after the stake was made (each second rate are growing).
 Instead of obtaining rewards immediately after strategy report.
+### [V6]
+Break changes update. All strategies logic were rewritten. Now strategies is controllers, that getting loan and send it back after each election round.
+creating controllers(strategies) logic was rewritten. Now deploying controllers is only one `StEverCluster.deployStrategies` method.
+Controlling over `Controller` was moved to the new CLI that should be run on validator node.
 
 
 
