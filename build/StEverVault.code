@@ -329,15 +329,31 @@ PUSHINT 100000000
 DUP
 ADD
 UFITS 128
-PUSHINT 200000000
+PUSHINT 300000000
 ADD
 UFITS 128
 CALLREF {
 	CALL $GasUtils_no_obj_convertEverGas_014e83ac_macro$
 }
-PUSHINT 100000000
-ADD
-UFITS 128
+.loc ../contracts/StEverVault.tsol, 168
+TUPLE 0
+NEWC
+PUSHSLICE x7265717569726564417474616368656456616c756520
+CALLREF {
+	CALL $storeStringInBuilders_macro$
+}
+PUSH S2
+PUSHINT 0
+BLKPUSH 2, 0
+CALLREF {
+	CALL $convertIntToDecStr_macro$
+}
+CALLREF {
+	CALL $assembleList_macro$
+}
+CTOS
+STRDUMP
+DROP
 .loc ../contracts/StEverVault.tsol, 170
 DEPTH
 ADDCONST -2
@@ -3419,7 +3435,7 @@ DEPTH
 ADDCONST -2
 PICK
 PUSHINT 200000000
-PUSHINT 10000000
+PUSHINT 50000000
 ADD
 UFITS 128
 GEQ
@@ -3512,6 +3528,12 @@ GETGLOBVAR
 SDEQ
 THROWIFNOT 1001
 .loc ../contracts/base/StEverStrategiesManager.tsol, 39
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/base/StEverStrategiesManager.tsol, 41
 PUSHINT 300000000
 PUSHINT 50000000
 ADD
@@ -3529,27 +3551,21 @@ MULCONST 2
 UFITS 128
 ADD
 UFITS 128
-.loc ../contracts/base/StEverStrategiesManager.tsol, 43
+.loc ../contracts/base/StEverStrategiesManager.tsol, 45
 DEPTH
 ADDCONST -2
 PICK
 SWAP
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/base/StEverStrategiesManager.tsol, 44
+.loc ../contracts/base/StEverStrategiesManager.tsol, 46
 PUSHINT 32
 GETGLOBVAR
 CALLREF {
 	CALL $Utils_no_obj_isValidAddress_003f07fa_macro$
 }
 THROWIFNOT 1011
-.loc ../contracts/base/StEverStrategiesManager.tsol, 45
-CALLREF {
-	CALL $_reserve_413ab4a8_internal_macro$
-}
-PUSHINT 0
-RAWRESERVE
-.loc ../contracts/base/StEverStrategiesManager.tsol, 48
+.loc ../contracts/base/StEverStrategiesManager.tsol, 49
 PUSH S2
 PUSHINT 41
 GETGLOBVAR
@@ -3558,7 +3574,7 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 55
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 56
 	PUSH S2
 	PUSHINT 41
 	GETGLOBVAR
@@ -3584,7 +3600,7 @@ IFREFELSEREF
 	SETINDEX 0
 }
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 50
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 51
 	PUSHINT 0
 	NEWDICT
 	PAIR
@@ -3606,7 +3622,7 @@ PUSHINT 267
 DICTSETB
 PUSHINT 41
 SETGLOBVAR
-.loc ../contracts/base/StEverStrategiesManager.tsol, 58
+.loc ../contracts/base/StEverStrategiesManager.tsol, 59
 PUSH2 S2, S2
 PUSHINT 41
 GETGLOBVAR
@@ -3634,7 +3650,7 @@ GETGLOBVAR
 CALLREF {
 	CALL $deployCluster_3cef600d_internal_macro$
 }
-.loc ../contracts/base/StEverStrategiesManager.tsol, 68
+.loc ../contracts/base/StEverStrategiesManager.tsol, 69
 PUSH2 S0, S3
 PUSHINT 41
 GETGLOBVAR
@@ -3690,7 +3706,7 @@ PUSHINT 267
 DICTSETB
 PUSHINT 41
 SETGLOBVAR
-.loc ../contracts/base/StEverStrategiesManager.tsol, 69
+.loc ../contracts/base/StEverStrategiesManager.tsol, 70
 REVERSE 4, 0
 PUSHSLICE xc0000000000000000000000001
 NEWC
@@ -3709,7 +3725,7 @@ STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverStrategiesManager.tsol, 70
+.loc ../contracts/base/StEverStrategiesManager.tsol, 71
 PUSHINT 36
 GETGLOBVAR
 NEWC
@@ -3731,7 +3747,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverStrategiesManager.tsol, 86
+.loc ../contracts/base/StEverStrategiesManager.tsol, 87
 OVER
 PUSHCONT {
 	LDREF
@@ -3753,7 +3769,7 @@ CALLREF {
 THROW 0
 
 .macro onClusterRemoved_73070644_internal_macro
-.loc ../contracts/base/StEverStrategiesManager.tsol, 86
+.loc ../contracts/base/StEverStrategiesManager.tsol, 87
 DUP2
 .loc ../contracts/base/StEverVaultBase.tsol, 71
 CALLREF {
@@ -3763,7 +3779,7 @@ CALLREF {
 GETGLOB 9
 SDEQ
 THROWIFNOT 1033
-.loc ../contracts/base/StEverStrategiesManager.tsol, 90
+.loc ../contracts/base/StEverStrategiesManager.tsol, 91
 OVER
 PUSHINT 41
 GETGLOBVAR
@@ -3801,7 +3817,7 @@ PUSHINT 267
 DICTSETB
 PUSHINT 41
 SETGLOBVAR
-.loc ../contracts/base/StEverStrategiesManager.tsol, 91
+.loc ../contracts/base/StEverStrategiesManager.tsol, 92
 PUSHINT 0
 NEWDICT
 PAIR
@@ -3866,7 +3882,7 @@ WHILE
 DROP2
 FIRST
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 92
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 93
 	OVER
 	PUSHINT 41
 	GETGLOBVAR
@@ -3878,7 +3894,7 @@ PUSHCONT {
 	.loc ../contracts/base/StEverStrategiesManager.tsol, 0
 }
 IFNOT
-.loc ../contracts/base/StEverStrategiesManager.tsol, 94
+.loc ../contracts/base/StEverStrategiesManager.tsol, 95
 SWAP
 GETGLOB 9
 PUSHSLICE xc0000000000000000000000001
@@ -3908,7 +3924,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverStrategiesManager.tsol, 118
+.loc ../contracts/base/StEverStrategiesManager.tsol, 119
 OVER
 PUSHCONT {
 	LDREF
@@ -3942,7 +3958,7 @@ CALLREF {
 GETGLOB 9
 SDEQ
 THROWIFNOT 1033
-.loc ../contracts/base/StEverStrategiesManager.tsol, 119
+.loc ../contracts/base/StEverStrategiesManager.tsol, 120
 DUP
 PUSHINT 40
 GETGLOBVAR
@@ -3951,7 +3967,7 @@ DICTGET
 NULLSWAPIFNOT
 NIP
 THROWIF 1031
-.loc ../contracts/base/StEverStrategiesManager.tsol, 121
+.loc ../contracts/base/StEverStrategiesManager.tsol, 122
 PUSHINT 0
 BLKPUSH 4, 0
 GETGLOB 9
@@ -3982,13 +3998,13 @@ PUSHINT 267
 DICTSETREF
 PUSHINT 40
 SETGLOBVAR
-.loc ../contracts/base/StEverStrategiesManager.tsol, 131
+.loc ../contracts/base/StEverStrategiesManager.tsol, 132
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/base/StEverStrategiesManager.tsol, 133
+.loc ../contracts/base/StEverStrategiesManager.tsol, 134
 DUP
 PUSHSLICE xc00000000000000000000000006b94cb2f
 NEWC
@@ -3997,7 +4013,7 @@ STSLICE
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/base/StEverStrategiesManager.tsol, 135
+.loc ../contracts/base/StEverStrategiesManager.tsol, 136
 GETGLOB 9
 FALSE
 NEWC
@@ -4026,7 +4042,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/base/StEverStrategiesManager.tsol, 157
+.loc ../contracts/base/StEverStrategiesManager.tsol, 158
 OVER
 PUSHCONT {
 	LDU 32
@@ -4060,7 +4076,7 @@ CALLREF {
 THROW 0
 
 .macro removeStrategies_7ab0e3a4_internal_macro
-.loc ../contracts/base/StEverStrategiesManager.tsol, 157
+.loc ../contracts/base/StEverStrategiesManager.tsol, 158
 BLKPUSH 4, 1
 .loc ../contracts/base/StEverVaultBase.tsol, 71
 CALLREF {
@@ -4074,26 +4090,6 @@ THROWIFNOT 1033
 .loc ../contracts/base/StEverVaultBase.tsol, 73
 BLKSWAP 3, 3
 PUSHCONT {
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 162
-	TUPLE 0
-	NEWC
-	PUSHSLICE x62616c616e63653a20
-	CALLREF {
-		CALL $storeStringInBuilders_macro$
-	}
-	GETPARAM 7
-	FIRST
-	PUSHINT 0
-	BLKPUSH 2, 0
-	CALLREF {
-		CALL $convertIntToDecStr_macro$
-	}
-	CALLREF {
-		CALL $assembleList_macro$
-	}
-	CALLREF {
-		CALL $console_no_obj_log_41304fac_macro$
-	}
 	.loc ../contracts/base/StEverStrategiesManager.tsol, 163
 	PUSHINT 0
 	NEWDICT
@@ -4319,7 +4315,7 @@ PUSHCONT {
 	SENDRAWMSG
 	.loc ../contracts/base/StEverStrategiesManager.tsol, 0
 	BLKDROP 3
-	.loc ../contracts/base/StEverStrategiesManager.tsol, 157
+	.loc ../contracts/base/StEverStrategiesManager.tsol, 158
 }
 CALLX
 .loc ../contracts/base/StEverStrategiesManager.tsol, 0
@@ -5869,7 +5865,7 @@ ADDCONST -2
 PICK
 SWAP
 PUSHINT 50000000
-PUSHINT 10000000
+DUP
 ADD
 UFITS 128
 CALLREF {
@@ -8006,8 +8002,12 @@ CALLREF {
 	CALL $_buildInitAccount_6f128368_internal_macro$
 }
 HASHCU
+MYADDR
+PARSEMSGADDR
+THIRD
 NEWC
-STSLICECONST x801_
+STSLICECONST x9_
+STI 8
 STU 256
 ENDC
 CTOS
@@ -10011,25 +10011,6 @@ PUSHINT 0
 SENDRAWMSG
 .loc ../node_modules/locklift/src/console.tsol, 0
 
-.globl	Utils_with_obj_isValidPubKey_a649acb6
-.type	Utils_with_obj_isValidPubKey_a649acb6, @function
-CALL $Utils_with_obj_isValidPubKey_a649acb6_macro$
-
-.macro Utils_with_obj_isValidPubKey_a649acb6_macro
-.loc ../contracts/utils/Utils.tsol, 10
-DUP
-NEQINT 0
-.loc ../contracts/utils/Utils.tsol, 0
-
-.globl	Utils_no_obj_isValidPubKey_a649acb6
-.type	Utils_no_obj_isValidPubKey_a649acb6, @function
-CALL $Utils_no_obj_isValidPubKey_a649acb6_macro$
-
-.macro Utils_no_obj_isValidPubKey_a649acb6_macro
-.loc ../contracts/utils/Utils.tsol, 10
-NEQINT 0
-.loc ../contracts/utils/Utils.tsol, 0
-
 .globl	Utils_with_obj_isValidAddress_003f07fa
 .type	Utils_with_obj_isValidAddress_003f07fa, @function
 CALL $Utils_with_obj_isValidAddress_003f07fa_macro$
@@ -10055,6 +10036,25 @@ PUSHREFSLICE {
 }
 SDEQ
 NOT
+.loc ../contracts/utils/Utils.tsol, 0
+
+.globl	Utils_with_obj_isValidPubKey_a649acb6
+.type	Utils_with_obj_isValidPubKey_a649acb6, @function
+CALL $Utils_with_obj_isValidPubKey_a649acb6_macro$
+
+.macro Utils_with_obj_isValidPubKey_a649acb6_macro
+.loc ../contracts/utils/Utils.tsol, 10
+DUP
+NEQINT 0
+.loc ../contracts/utils/Utils.tsol, 0
+
+.globl	Utils_no_obj_isValidPubKey_a649acb6
+.type	Utils_no_obj_isValidPubKey_a649acb6, @function
+CALL $Utils_no_obj_isValidPubKey_a649acb6_macro$
+
+.macro Utils_no_obj_isValidPubKey_a649acb6_macro
+.loc ../contracts/utils/Utils.tsol, 10
+NEQINT 0
 .loc ../contracts/utils/Utils.tsol, 0
 
 .macro public_function_selector

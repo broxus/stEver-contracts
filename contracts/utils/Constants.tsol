@@ -4,7 +4,7 @@ pragma AbiHeader expire;
 library Constants {
     // common
     uint32 constant ONE_HUNDRED_PERCENT = 1_000;
-    uint128 constant MIN_TRANSACTION_VALUE = 0.01 ever;
+    uint128 constant MIN_TRANSACTION_VALUE = 0.05 ever;
     uint64 constant MAX_UINT_64 = 2**64 - 1;
     // StEverVault
     uint128 constant INCREASE_STRATEGY_TOTAL_ASSETS_CORRECTION = 0.3 ever;

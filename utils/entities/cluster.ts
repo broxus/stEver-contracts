@@ -10,7 +10,7 @@ import { mergeMap, range, toArray } from "rxjs";
 import { convertEverGas, toNanoBn } from "../index";
 import { expect } from "chai";
 import { ViewTracingTree } from "locklift/internal/tracing/viewTraceTree/viewTracingTree";
-import { CONTROLLER_DEPLOY_VALUE, MIN_CALL_MSG_VALUE } from "../constants";
+import { CONTROLLER_DEPLOY_ADDITIONAL_VALUE, CONTROLLER_DEPLOY_VALUE, MIN_CALL_MSG_VALUE } from "../constants";
 
 export class Cluster {
   constructor(
@@ -52,7 +52,9 @@ export class Cluster {
   };
 
   deployStrategy = async ({ validator, count }: { validator: Address; count: number }): Promise<ViewTracingTree> => {
-    const gasForOneController = toNanoBn(CONTROLLER_DEPLOY_VALUE).plus(toNanoBn(convertEverGas(0.1)));
+    const gasForOneController = toNanoBn(CONTROLLER_DEPLOY_VALUE)
+      .plus(toNanoBn(convertEverGas(0.1)))
+      .plus(toNanoBn(convertEverGas(CONTROLLER_DEPLOY_ADDITIONAL_VALUE)));
 
     const { traceTree } = await locklift.tracing.trace(
       this.clusterContract.methods

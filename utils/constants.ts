@@ -11,4 +11,7 @@ export const EVER_GAS_PRICE = 1000;
 export const GAS_PRICE_MULTIPLIER = 1;
 export const CURRENT_GAS_PRICE = EVER_GAS_PRICE * GAS_PRICE_MULTIPLIER;
 export const MIN_CALL_MSG_VALUE = 0.05; // ever
+export const MIN_TRANSACTION_VALUE = 0.05; // ever
+
 export const CONTROLLER_DEPLOY_VALUE = 150;
+export const CONTROLLER_DEPLOY_ADDITIONAL_VALUE = 50;

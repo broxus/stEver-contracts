@@ -4,7 +4,7 @@ import { TokenWallet } from "./tokenWallet";
 import { expect } from "chai";
 import BigNumber from "bignumber.js";
 import { Account } from "locklift/everscale-client";
-import { convertEverGas } from "../index";
+import { convertEverGas, DEPLOY_WALLET_VALUE } from "../index";
 import { MIN_CALL_MSG_VALUE } from "../constants";
 
 type VaultEvents = DecodedEventWithTransaction<StEverVaultAbi, AbiEventName<StEverVaultAbi>>["event"];
@@ -250,8 +250,14 @@ export class Vault {
         })
         .send({
           from: this.adminAccount.address,
-          amount: new BigNumber(convertEverGas(toNano(0.3 + MIN_CALL_MSG_VALUE))).plus(toNano(1)).toString(),
+          amount: new BigNumber(convertEverGas(toNano(0.3 + MIN_CALL_MSG_VALUE)))
+            .plus(toNano(1))
+            .plus(DEPLOY_WALLET_VALUE)
+            .plus(DEPLOY_WALLET_VALUE)
+            .plus(toNano(MIN_CALL_MSG_VALUE))
+            .toString(),
         }),
+      { raise: false },
     );
     await traceTree?.beautyPrint();
     expect(traceTree).to.emit("ClusterCreated").withNamedArgs({

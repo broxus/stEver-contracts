@@ -19,7 +19,7 @@ library GasUtils {
     }
 
     function convertEverGas(uint128 everGas) public pure returns (uint128) {
-        int8 wid = 0;
+        int8 wid = 0; //TODO
 
         return gasToValue(everGas / Constants.EVERSCALE_GAS_PRICE, wid);
     }

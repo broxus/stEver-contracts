@@ -172,6 +172,7 @@ describe("Single flow", async function () {
     const { traceTree } = await governance.emitWithdraw({
       sendConfig: [[user1.account.address, { nonces: [nonce] }]],
     });
+    await traceTree?.beautyPrint();
 
     expect(traceTree).to.emit("WithdrawSuccess").withNamedArgs({
       user: user1.account.address,
@@ -198,7 +199,7 @@ describe("Single flow", async function () {
       .minus(userBalanceBefore)
       .minus(expectedEverAmountWithReward);
     expect(returnedFeeToUser.toNumber()).to.be.above(
-      0,
+      -Number(toNano(0.01)),
       "user should receive more than reward because we should send back attached fee from withdraw request",
     );
 

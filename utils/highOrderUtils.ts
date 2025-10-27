@@ -24,7 +24,6 @@ export const makeWithdrawToUsers = async ({
       toArray(),
     ),
   );
-  debugger;
   const { transaction, traceTree } = await governance.emitWithdraw({
     sendConfig: withdrawSetup.map(({ user, nonce }) => [user.account.address, { nonces: [nonce] }]),
   });

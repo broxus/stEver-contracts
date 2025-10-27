@@ -1,0 +1,12 @@
+#include "asserts.func";
+
+;; common functions in all contracts
+global slice halter;
+global int halted?;
+
+
+
+() process_halt_request(slice sender) impure inline_ref {
+    assert_sender!(sender, halter);
+    halted? = true;
+}

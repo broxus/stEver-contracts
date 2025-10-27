@@ -6,3 +6,4 @@ dePools
 addresses
 .env
 .cache
+/func-contracts/flushpool/node_modules

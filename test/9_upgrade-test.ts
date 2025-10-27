@@ -74,6 +74,8 @@ describe("Upgrade testing", function () {
         _gainFee: GAIN_FEE,
         _stTokenRoot: tokenRoot.address,
         _stEverFeePercent: 100,
+        _maxControllerInterest: "0",
+        _minControllerBalance: toNano(0.1),
       },
       initParams,
       publicKey: signer.publicKey,

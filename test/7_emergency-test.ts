@@ -81,9 +81,9 @@ describe("Emergency testing", function () {
 
     const { emergencyState: emergencyBefore } = await vault.getDetails();
     const { nonce } = await user1.getWithdrawRequests().then(requests => requests[0]);
-    const ATTACHED_VALUE = new BigNumber(toNano(convertEverGas(0.1 + 0.05)))
+    const ATTACHED_VALUE = new BigNumber(convertEverGas(toNano(0.1 + 0.05)))
       .multipliedBy(controllers.length)
-      .plus(convertEverGas(0.05));
+      .plus(convertEverGas(toNano(0.05)));
 
     expect(emergencyBefore.isEmergency).to.be.equals(false, "by default vault should be in initial state");
     const { traceTree } = await user1.startEmergency({

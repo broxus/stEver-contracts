@@ -164,8 +164,8 @@ contract StEverVault is
                 StEverVaultGas.WITHDRAW_FEE +
                 StEverVaultGas.FEE_FOR_WITHDRAW_TO_USER_ITERATION +
                 StEverVaultGas.WITHDRAW_FEE_FOR_USER_DATA
-            ) +
-            StEverAccountGas.CONTRACT_MIN_BALANCE; //TODO add to tests;
+            );
+        tvm.log(format("requiredAttachedValue {}",requiredAttachedValue));
         // if something went wrong, resend tokens to sender
         if (
             msg.value <= requiredAttachedValue ||

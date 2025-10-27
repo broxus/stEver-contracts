@@ -741,7 +741,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 		returns (address)
 	{
 		return
-			{value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address(
+			{value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} address.makeAddrStd(address(this).wid,
 				tvm.hash(_buildInitAccount(_buildAccountParams(_user)))
 			);
 	}

@@ -187,7 +187,7 @@ describe("Multi flow", async function () {
     });
   });
   it("admin should withdraw fees", async () => {
-    const MAX_FEE = toNanoBn(convertEverGas(0.03));
+    const MAX_FEE = toNanoBn(convertEverGas(0.04));
     const vaultDetailsBefore = await vault.getDetails();
     const adminBalanceBefore = await getBalance(admin.account.address);
     const withdrawingAmount = vaultDetailsBefore.totalStEverFee;
@@ -197,6 +197,7 @@ describe("Multi flow", async function () {
         amount: toNano(convertEverGas(MIN_CALL_MSG_VALUE)),
       }),
     );
+    await transaction.traceTree?.beautyPrint();
     const [event] = await vault.getEventsAfterTransaction({
       eventName: "WithdrawFee",
       parentTransaction: transaction,

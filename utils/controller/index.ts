@@ -168,37 +168,24 @@ export class Controller {
           { name: "validator", type: "address" },
           { name: "pool", type: "address" },
           { name: "governor", type: "address" },
-          { name: "restAddresses", type: "cell" },
-        ] as const,
-        allowPartial: true,
-        boc: allFields!.staticData,
-      })
-      .then(res => res.data);
-
-    const restAddresses = await locklift.provider
-      .unpackFromCell({
-        abiVersion: "2.2",
-        structure: [
           { name: "approver", type: "address" },
           { name: "halter", type: "address" },
           { name: "elector", type: "address" },
         ] as const,
         allowPartial: true,
-        boc: staticData!.restAddresses,
+        boc: allFields!.staticData,
       })
       .then(res => res.data);
+    debugger;
+
     return {
       ...allFields,
-      staticData: {
-        ...staticData,
-        restAddresses,
-      },
+      ...staticData,
     };
   };
   static get code() {
     return Buffer.from(
-      JSON.parse(fs.readFileSync(path.join("/projects/broxus/ton/flushpool/build/Controller.compiled.json"), "utf-8"))
-        .hex,
+      JSON.parse(fs.readFileSync(path.join("func-contracts/controller/build/Controller.compiled.json"), "utf-8")).hex,
       "hex",
     ).toString("base64");
   }

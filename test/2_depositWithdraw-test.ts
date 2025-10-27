@@ -73,7 +73,7 @@ describe("Deposit withdraw test without lock time", function () {
         })
         .send({
           from: user1.account.address,
-          amount: convertEverGas(toNano(0.1)),
+          amount: convertEverGas(toNano(0.2)),
         }),
       { allowedCodes: { compute: [null] } },
     );

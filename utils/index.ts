@@ -38,7 +38,7 @@ export const userWithdrawMsgValue = convertEverGas(
   toNano(
     0.1 + // WITHDRAW_FEE
       0.1 + // FEE_FOR_WITHDRAW_TO_USER_ITERATION
-      0.2 + // WITHDRAW_FEE_FOR_USER_DATA
+      0.3 + // WITHDRAW_FEE_FOR_USER_DATA
       0.05, // value for tokens transfer
   ),
 );

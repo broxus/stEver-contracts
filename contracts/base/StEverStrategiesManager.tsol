@@ -36,13 +36,14 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         uint128 _assurance,
         uint32 _maxStrategiesCount
     ) override external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+
         uint128 requiredValue =
             GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE + StEverVaultGas.MIN_CALL_MSG_VALUE) +
             ClusterGas.CONTRACT_MIN_BALANCE +
             GasUtils.getDeployWalletValue() * 2;
         require(msg.value >= requiredValue, ErrorCodes.NOT_ENOUGH_VALUE);
         require(Utils.isValidAddress(strategyFactory), ErrorCodes.STRATEGY_FACTORY_DID_NOT_SET);
-        tvm.rawReserve(_reserve(), 0);
 
 
         if (!clusterPools.exists(_clusterOwner)) {
@@ -159,7 +160,6 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         address _clusterOwner,
         uint32 _clusterId
     ) override external onlyCluster(_clusterOwner, _clusterId) {
-        console.log(format("balance: {}", address(this).balance));
         address[] pendingDeleteStrategies;
         for (address _strategy : _strategies) {
             strategies[_strategy].state = StrategyState.REMOVING;

@@ -67,24 +67,31 @@ describe("Cluster create and remove after one round", () => {
 
     await admin.depositToVault(toNano(100));
 
-    await admin.wallet.walletContract.methods
-      .transfer({
-        amount: toNano(10),
-        deployWalletValue: 0,
-        payload: "",
-        notify: true,
-        recipient: cluster.clusterContract.address,
-        remainingGasTo: admin.account.address,
-      })
-      .send({
-        from: admin.account.address,
-        amount: toNano(convertEverGas(0.05)),
-      });
+    {
+      const { traceTree } = await locklift.tracing.trace(
+        admin.wallet.walletContract.methods
+          .transfer({
+            amount: toNano(10),
+            deployWalletValue: 0,
+            payload: "",
+            notify: true,
+            recipient: cluster.clusterContract.address,
+            remainingGasTo: admin.account.address,
+          })
+          .send({
+            from: admin.account.address,
+            amount: toNano(convertEverGas(0.1)),
+          }),
+      );
+
+      await traceTree?.beautyPrint();
+    }
 
     const addMoreStrategiesThanAllowedTraceTree = await cluster.deployStrategy({
       count: 6,
       validator: admin.account.address,
     });
+    await addMoreStrategiesThanAllowedTraceTree.beautyPrint();
     expect(addMoreStrategiesThanAllowedTraceTree).to.error(5010);
 
     controllers = await createControllers({
@@ -127,8 +134,9 @@ describe("Cluster create and remove after one round", () => {
   it("controllers should marked as deleting", async () => {
     const { traceTree } = await cluster.removeCluster();
     expect(traceTree).to.emit("StrategiesPendingRemove");
-
+    await traceTree?.beautyPrint();
     const vaultStrategies = await vault.getStrategiesInfo();
+    console.log(vaultStrategies);
     controllers.forEach(controller => {
       expect(vaultStrategies[controller.controllerContract.address.toString()].state).to.be.eq("3");
     });

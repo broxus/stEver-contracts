@@ -1,0 +1,29 @@
+#include "messages.func";
+#include "stdlib.fc";
+
+
+(int) get_gas_price(int is_master) impure inline {
+    var cs = null();
+    if (is_master) {
+        cs = config_param(21).begin_parse();
+    } else {
+        cs = config_param(21).begin_parse();
+    }
+
+    (int p0, int p1, int p2, int p3, int gas_price) = (
+        cs~load_uint(8),
+        cs~load_uint(64),
+        cs~load_uint(64),
+        cs~load_uint(8),
+        cs~load_uint(64)
+    );
+    return gas_price;
+}
+(int) gas_to_value(int _gas, int is_master) impure inline {
+    return muldivc(_gas, get_gas_price(is_master),65536);
+}
+
+(int) convert_gas(int gas, int is_master) impure inline {
+    int DEFAULT_GAS_PRICE = 1000;
+    return gas_to_value(gas / DEFAULT_GAS_PRICE, is_master) ;
+}

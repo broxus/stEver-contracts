@@ -72,6 +72,7 @@ export class User {
         { allowedCodes: { compute: [null] } },
       )
       .then(res => ({ ...res, nonce }));
+    await txWithNonce.traceTree?.beautyPrint();
     expect(await this.vault.tokenWallet.getBalance().then(res => res.toString())).to.be.equals(
       vaultBalanceBefore.plus(amount).toString(),
     );
@@ -116,7 +117,7 @@ export class User {
         .send({
           from: this.account.address,
           amount: amountBn
-            .plus(Number(convertEverGas(toNano(MIN_CALL_MSG_VALUE * 2))) + DEPLOY_WALLET_VALUE)
+            .plus(Number(convertEverGas(toNano(MIN_CALL_MSG_VALUE * 3))) + DEPLOY_WALLET_VALUE)
             .toString(),
         }),
     );

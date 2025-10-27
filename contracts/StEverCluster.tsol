@@ -163,7 +163,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     function handleStEverTokenWalletAddress(address _tokenWallet) public {
 
         require (msg.sender == stEverTokenRoot, ErrorCodesCluster.NOT_ST_EVER_ROOT);
-        tvm.accept();
+        tvm.rawReserve(_reserve(), 0);
         stEverTokenWallet = _tokenWallet;
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -205,7 +205,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         if (strategies.keys().length + count > maxStrategiesCount) {
             revert(ErrorCodesCluster.STRATEGIES_LIMIT_REACHED);
         }
-        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE  + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE) * 2;
+        uint128 valueForDeployOneStrategy = ClusterGas.STRATEGY_DEPLOY_VALUE + GasUtils.convertEverGas(ClusterGas.STRATEGY_DEPLOY_ADDITIONAL_VALUE);
         uint128 requiredMsgValue = valueForDeployOneStrategy * uint128(count) + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE);
         require (msg.value >= requiredMsgValue, ErrorCodesCluster.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
@@ -240,8 +240,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         emit NewStrategyDeployed(_strategy);
 
         addStrategy(_strategy);
-
-        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**
@@ -273,8 +271,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         }
 
         IStEverVault(stEverVault).addStrategy{
-            value: GasUtils.convertEverGas(StEverVaultGas.EXPERIMENTAL_FEE),
-            flag: MsgFlag.SENDER_PAYS_FEES,
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
             bounce: false
         }(_strategy, clusterOwner, _nonce);
     }
@@ -295,7 +293,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
         strategies[_strategy].state = StrategyState.ACTIVE;
 
-//        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**

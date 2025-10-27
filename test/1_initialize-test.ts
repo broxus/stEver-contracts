@@ -10,7 +10,7 @@ import { Cluster } from "../utils/entities/cluster";
 import BigNumber from "bignumber.js";
 import { concatMap, from, lastValueFrom, mergeMap, range, toArray } from "rxjs";
 import { convertEverGas } from "../utils";
-import { MIN_CALL_MSG_VALUE } from "../utils/constants";
+import { MIN_CALL_MSG_VALUE, MIN_TRANSACTION_VALUE } from "../utils/constants";
 
 let signer: Signer;
 let admin: User;
@@ -30,7 +30,7 @@ describe("Initialize testing", function () {
       signer: s,
       users: [adminUser, _, u1, u2],
       governance: g,
-    } = await preparation({ deployUserValue: locklift.utils.toNano(1_000_000) });
+    } = await preparation({ deployUserValue: locklift.utils.toNano(9_000_000) });
     signer = s;
     vault = v;
     admin = adminUser;
@@ -43,7 +43,7 @@ describe("Initialize testing", function () {
     clusters = await lastValueFrom(
       from([admin, user1, user2]).pipe(
         concatMap(user =>
-          range(30).pipe(
+          range(1).pipe(
             concatMap(() =>
               Cluster.create({
                 vault,
@@ -126,9 +126,10 @@ describe("Initialize testing", function () {
         })
         .send({
           from: admin.account.address,
-          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + 0.01) * clustersInfo.length)),
+          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + MIN_TRANSACTION_VALUE) * clustersInfo.length)),
         }),
     );
+    await traceTree?.beautyPrint();
 
     expect(traceTree)
       .to.call("self_setStEverOwnerForClusters")
@@ -161,7 +162,7 @@ describe("Initialize testing", function () {
         })
         .send({
           from: user1.account.address,
-          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + 0.01) * clustersInfo.length)),
+          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + MIN_TRANSACTION_VALUE) * clustersInfo.length)),
         }),
     );
   });

@@ -93,5 +93,7 @@ export const createControllers = async ({
     })
     .map(el => el!.params!.strategy);
 
+  await traceTree.beautyPrint();
+
   return controllers.map(s => new Controller(s, validator));
 };

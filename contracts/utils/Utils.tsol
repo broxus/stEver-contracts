@@ -3,7 +3,7 @@ pragma AbiHeader expire;
 
 library Utils {
     function isValidAddress(address _address) public returns (bool) {
-        return _address != address(0);
+        return _address != address(0); //TODO
     }
 
     function isValidPubKey(uint256 _pubkey) public returns (bool) {
