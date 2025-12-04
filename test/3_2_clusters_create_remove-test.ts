@@ -124,6 +124,7 @@ describe("Cluster create and remove after one round", () => {
         toArray(),
       ),
     );
+    await results[0].beautyPrint();
     results.forEach(t => {
       expect(t)
         .to.emit("ControllerCredited")

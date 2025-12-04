@@ -39,7 +39,6 @@ interface IStEverCluster {
     struct Details {
         uint32 _nonce;
         address stEverVault;
-        address stEverOwner;
         address clusterOwner;
 
         uint128 assurance;
@@ -51,33 +50,31 @@ interface IStEverCluster {
         uint32 currentStrategiesCount;
         ClusterState clusterState;
 
-        bool isPunished;
+        PunishmentInfo punishmentInfo;
 
         address stEverTokenRoot;
         address stEverTokenWallet;
+    }
+
+    struct PunishmentInfo {
+        address assuranceTo;
+        bool isPunish;
     }
 
 
     event NewStrategyDeployed(address strategy);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
-
-    /**
-     * @dev Sets the StEver owner.
-     *
-     * This function is called by the {StEverVault-setStEverOwner}.
-     *
-     * @param _newClusterOwner The address of the new StEver owner.
-     */
-    function setStEverOwner(address _newClusterOwner) external;
+    event ClusterError(uint16 errorCode);
 
 
     /**
      * @dev Sets the assurance.
      * This function sets the required assurance to the specified value.
      * @param _newRequiredAssurance The new required assurance.
+     * @param remainingGasTo The address to send remaining gas to.
      */
-    function setAssurance(uint128 _newRequiredAssurance) external;
+    function setAssurance(uint128 _newRequiredAssurance, address remainingGasTo) external;
 
     /**
      * @dev Withdraws assurance.
@@ -94,6 +91,7 @@ interface IStEverCluster {
      * @param _validator The addresses of the Validator wallet.
      */
     function deployStrategies(address _validator, uint32 count) external;
+    function removeStrategies(address[] _strategies, address remainingGasTo) external;
     /**
      * @dev Handles the deployment of a new strategy.
      *
@@ -141,9 +139,10 @@ interface IStEverCluster {
      * This function checks if the cluster is not already in the REMOVING state, then sets the cluster state to REMOVING.
      * It then removes all strategies that are in the ACTIVE state.
      *
-     * @param _isPunish A boolean indicating whether the cluster is being punished.
+     * @param _punishmentInfo A PunishmentInfo indicating whether the cluster is being punished and who will receive assurance.
+     * @param remainingGasTo The address to send remaining gas to.
      */
-    function dropCluster(bool _isPunish) external;
+    function dropCluster(PunishmentInfo _punishmentInfo, address remainingGasTo) external;
 
     /**
      * @dev Upgrades the cluster code.

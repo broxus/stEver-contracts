@@ -33,7 +33,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     uint32 _nonce;
     address stEverVault;
     address clusterOwner;
-    address stEverOwner;
 
     uint128 requiredAssurance;
     uint32 maxStrategiesCount;
@@ -46,7 +45,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     address stEverTokenRoot;
     address stEverTokenWallet;
 
-    bool isPunished;
+    PunishmentInfo punishmentInfo;
 
     mapping(address => Strategy) public strategies;
     mapping(address => bool) public deployedStrategies;
@@ -64,7 +63,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      * @param _maxStrategiesCount The maximum number of strategies that can be added to the cluster.
      * @param _strategyFactory The address of the strategy factory contract.
      * @param _stEverTokenRoot The address of the StEver token root contract.
-     * @param _stEverOwner The address of the StEver owner.
      *
      * **Preconditions**:
      *
@@ -81,8 +79,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         uint128 _assurance,
         uint32 _maxStrategiesCount,
         address _strategyFactory,
-        address _stEverTokenRoot,
-        address _stEverOwner
+        address _stEverTokenRoot
     ) internal {
         requiredAssurance = _assurance;
         maxStrategiesCount = _maxStrategiesCount;
@@ -90,7 +87,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         strategyFactory = _strategyFactory;
         stEverTokenRoot = _stEverTokenRoot;
         clusterState = ClusterState.INITIAL;
-        stEverOwner = _stEverOwner;
 
         ITokenRoot(stEverTokenRoot).deployWallet{
                 value: GasUtils.getDeployWalletValue() * 2,
@@ -114,13 +110,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         require(msg.sender == stEverVault,ErrorCodesCluster.NOT_ST_EVER_VAULT);
         _;
     }
-    /**
-     * @dev Modifier to check if the caller is the StEverOwner.
-     */
-    modifier onlyStEverOwner() {
-        require(msg.sender == stEverOwner,ErrorCodesCluster.NOT_ST_EVER_OWNER);
-        _;
-    }
 
     /**
      * @dev Modifier to check if the caller is the clusterOwner.
@@ -132,8 +121,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
     /**
      * @dev Modifier to check if the caller is the StEverOwner or the clusterOwner.
      */
-    modifier stEverOwnerOrClusterOwner() {
-        require(msg.sender == stEverOwner || msg.sender == clusterOwner, ErrorCodesCluster.NOT_ST_EVER_OWNER_OR_CLUSTER_OWNER);
+    modifier stEverVaultOrClusterOwner() {
+        require(msg.sender == stEverVault || msg.sender == clusterOwner, ErrorCodesCluster.NOT_ST_EVER_OWNER_OR_CLUSTER_OWNER);
         _;
     }
 
@@ -165,23 +154,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         require (msg.sender == stEverTokenRoot, ErrorCodesCluster.NOT_ST_EVER_ROOT);
         tvm.rawReserve(_reserve(), 0);
         stEverTokenWallet = _tokenWallet;
-        clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
-
-    /**
-     * @dev Sets StEverOwner address.
-     * @param _newStEverOwner Address of new owner.
-     * **Preconditions**:
-     *
-     *  - The caller must be the `StEverVault`
-     *
-     * **Postconditions**:
-     *
-     *  - stEverOwner updated with new address.
-     */
-    function setStEverOwner(address _newStEverOwner) external override onlyStEverVault {
-        tvm.rawReserve(_reserve(), 0);
-        stEverOwner = _newStEverOwner;
         clusterOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -261,7 +233,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The strategies are added to the StEverVault.
      */
-    function addStrategy(address _strategy) internal {
+    function addStrategy(address _strategy) internal view {
 
         if (strategies.exists(_strategy)) {
                 revert(ErrorCodesCluster.STRATEGY_ALREADY_EXISTS);
@@ -312,12 +284,15 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The strategies are removed from the cluster.
      */
-    function removeStrategies(address[] _strategies) public stEverOwnerOrClusterOwner {
+    function removeStrategies(address[] _strategies, address remainingGasTo) external override stEverVaultOrClusterOwner {
 
-        require(
-            msg.value >= uint128(_strategies.length) * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.EXPERIMENTAL_FEE * 2),
-            ErrorCodesCluster.NOT_ENOUGH_VALUE
-        );
+        uint128 minValue = uint128(_strategies.length) * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE + StEverVaultGas.EXPERIMENTAL_FEE * 2);
+        if (msg.value < minValue) {
+            tvm.rawReserve(_reserve(), 0);
+            emit ClusterError(ErrorCodesCluster.NOT_ENOUGH_VALUE);
+            remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+            return;
+        }
 
         for (address strategy : _strategies) {
             require(strategies.exists(strategy), ErrorCodesCluster.STRATEGY_NOT_EXISTS);
@@ -348,7 +323,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategies[strategy].state = StrategyState.REMOVING;
         }
 
-        IStEverVault(stEverVault).removeStrategies{
+        IStEverVault(stEverVault).finish_removeStrategies{
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED,
             bounce: false
@@ -373,7 +348,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategies[strategy].state = StrategyState.PENDING_REMOVE;
         }
 
-        address remainingGasTo = isPunished ? stEverOwner : clusterOwner;
+        address remainingGasTo = punishmentInfo.isPunish ? punishmentInfo.assuranceTo : clusterOwner;
 
         remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
@@ -400,7 +375,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
             IStEverVault(stEverVault).onClusterRemoved{value: callBackMsgValue, bounce: false}(clusterOwner, _nonce);
             if (currentAssurance != 0) {
-                address assuranceTo = isPunished ? stEverOwner : clusterOwner;
+                address assuranceTo = punishmentInfo.isPunish ? punishmentInfo.assuranceTo : clusterOwner;
                 TvmCell empty;
                 // send remaining tokens
                 ITokenWallet(stEverTokenWallet).transfer{value: callBackMsgValue, bounce: false}(
@@ -440,12 +415,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *  - The cluster state is set to REMOVING.
      *  - All strategies in the ACTIVE state are removed.
      */
-    function dropCluster(bool _isPunish) override external onlyStEverOwner {
-
-        require(clusterState != ClusterState.REMOVING, ErrorCodesCluster.CLUSTER_IS_REMOVING);
-
-        isPunished = _isPunish;
-        clusterState = ClusterState.REMOVING;
+    function dropCluster(PunishmentInfo _punishmentInfo, address remainingGasTo) override external onlyStEverVault {
 
         address[] strategiesForRemove;
 
@@ -456,10 +426,23 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             strategiesForRemove.push(strategy);
         }
 
-        require(
-            msg.value >= strategiesForRemove.length * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE) + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE),
-            ErrorCodesCluster.NOT_ENOUGH_VALUE
-        );
+        if (clusterState == ClusterState.REMOVING) {
+            tvm.rawReserve(_reserve(), 0);
+            emit ClusterError(ErrorCodesCluster.CLUSTER_IS_REMOVING);
+            remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+            return;
+        }
+
+        uint128 minValue = uint128(strategiesForRemove.length) * GasUtils.convertEverGas(StEverVaultGas.REMOVE_STRATEGY_RESERVE) + GasUtils.convertEverGas(ClusterGas.MIN_CALL_VALUE);
+        if (msg.value < minValue) {
+            tvm.rawReserve(_reserve(), 0);
+            emit ClusterError(ErrorCodesCluster.NOT_ENOUGH_VALUE);
+            remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+            return;
+        }
+
+        punishmentInfo = _punishmentInfo;
+        clusterState = ClusterState.REMOVING;
 
         _removeStrategies(strategiesForRemove);
     }
@@ -471,7 +454,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         return {value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false} Details(
             _nonce,
             stEverVault,
-            stEverOwner,
             clusterOwner,
             requiredAssurance,
             maxStrategiesCount,
@@ -480,7 +462,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             currentAssurance,
             uint32(strategies.keys().length),//currentStrategiesCount
             clusterState,
-            isPunished,
+            punishmentInfo,
             stEverTokenRoot,
             stEverTokenWallet
         );
@@ -529,16 +511,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
      *
      *  - The required assurance is set to the specified value.
      */
-    function setAssurance(uint128 _newRequiredAssurance) override external onlyStEverOwner minCallValue {
+    function setAssurance(uint128 _newRequiredAssurance, address remainingGasTo) override external onlyStEverVault minCallValue {
         tvm.rawReserve(_reserve(), 0);
 
         requiredAssurance = _newRequiredAssurance;
 
         emit SetAssuranceAmount(requiredAssurance);
-        console.log(format("requiredAssurance {}",requiredAssurance));
-        console.log(format("currentAssurance {}",currentAssurance));
 
-        stEverOwner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+        remainingGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
     /**
@@ -634,8 +614,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             requiredAssurance,
             maxStrategiesCount,
             strategyFactory,
-            stEverTokenRoot,
-            stEverOwner
+            stEverTokenRoot
         );
 
         mainBuilder.storeRef(initialData);
@@ -644,7 +623,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
         TvmCell storageData = abi.encode(
             _nonce, //uint32
             stEverVault, //address
-            stEverOwner, //address
             clusterOwner, //address
 
             requiredAssurance, //uint128
@@ -659,7 +637,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             stEverTokenRoot, //address
             stEverTokenWallet, //address
 
-            isPunished, //bool
+            punishmentInfo, //PunishmentInfo
 
             strategies, //mapping(address => Strategy)
             deployedStrategies //mapping(address => bool)
@@ -712,8 +690,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             uint128 _assurance,
             uint32 _maxStrategiesCount,
             address _strategyFactory,
-            address _stEverTokenRoot,
-            address _stEverOwner
+            address _stEverTokenRoot
         ) = abi.decode(
             constructorParams,
             (
@@ -721,7 +698,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                 uint32,
                 uint128,
                 uint32,
-                address,
                 address,
                 address
             )
@@ -733,8 +709,7 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                 _assurance,
                 _maxStrategiesCount,
                 _strategyFactory,
-                _stEverTokenRoot,
-                _stEverOwner
+                _stEverTokenRoot
             );
         } else {
             TvmCell storageData = s.loadRef();
@@ -742,7 +717,6 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
             (
                 _nonce,
                 stEverVault,
-                stEverOwner,
                 clusterOwner,
 
                 requiredAssurance,
@@ -757,13 +731,14 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
                 stEverTokenRoot,
                 stEverTokenWallet,
 
+                punishmentInfo,
+
                 strategies,
                 deployedStrategies
             ) = abi.decode(
             storageData,
                 (
                 uint32,
-                address,
                 address,
                 address,
 
@@ -778,6 +753,8 @@ contract StEverCluster is IStEverCluster, IAcceptTokensTransferCallback {
 
                 address,
                 address,
+
+                PunishmentInfo,
 
                 mapping(address => Strategy),
                 mapping(address => bool)

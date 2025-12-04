@@ -125,7 +125,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
 
         owner = _newOwner;
 
-        this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, clusterPools);
+        _sendGasTo.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        });
+
     }
 
     function setMaxControllerInterest(uint24 _maxControllerInterest)  external onlyOwner {
@@ -140,38 +145,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
-    function self_setStEverOwnerForClusters(address _sendGasTo, mapping(address => ClustersPool) _clusterPools) public view onlySelf {
-        tvm.rawReserve(_reserve(), 0);
-        uint256 chunkSize = 25;
-        while (chunkSize != 0 && !_clusterPools.empty()) {
-            (address clusterOwner, ClustersPool clusterPool) = _clusterPools.min().get();
-            mapping(uint32 => address) clusters = clusterPool.clusters;
 
-            while (chunkSize != 0 && !clusters.empty()) {
-                chunkSize--;
-                (, address clusterAddress)  = clusters.delMin().get();
-                IStEverCluster(clusterAddress).setStEverOwner{
-                    value: GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE),
-                    bounce: false
-                }(owner);
-            }
-
-            if (clusters.empty()) {
-                _clusterPools.delMin();
-            } else {
-                _clusterPools[clusterOwner] = ClustersPool({
-                    clusters: clusters,
-                    currentClusterNonce: clusterPool.currentClusterNonce
-                });
-            }
-        }
-        if (!_clusterPools.empty()) {
-            this.self_setStEverOwnerForClusters{value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false}(_sendGasTo, _clusterPools);
-            return;
-        }
-
-        _sendGasTo.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
-    }
 
     // ownership
     /**

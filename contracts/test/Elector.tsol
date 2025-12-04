@@ -42,7 +42,7 @@ contract Elector {
         }
     }
 
-    function recoverStake(uint64 queryId) public functionID(0x47657424) {
+    function recoverStake(uint64 queryId) public view functionID(0x47657424) {
         if (state == State.SUCCESS) {
             IController(msg.sender).elector_recoverStakeOk{
                 value: stakes[msg.sender] + reward,

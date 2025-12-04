@@ -1,6 +1,6 @@
 import { Contract, toNano } from "locklift";
 import { Address } from "locklift/everscale-provider";
-import { StEverClusterAbi } from "../../build/factorySource";
+import { StEverClusterAbi, StEverVaultAbi } from "../../build/factorySource";
 import { Vault } from "./vault";
 import { Account } from "locklift/everscale-client";
 import { StrategyFactory } from "./strategyFactory";
@@ -16,23 +16,36 @@ export class Cluster {
   constructor(
     public readonly clusterContract: Contract<StEverClusterAbi>,
     private readonly clusterOwner: Account,
-    public readonly stEver: Address,
+    public readonly stEver: Contract<StEverVaultAbi>,
   ) {}
 
   removeCluster = async () => {
+    const stEverOwner = await this.stEver.methods
+      .getDetails({ answerId: 0 })
+      .call()
+      .then(res => res.value0.owner);
     const { currentStrategiesCount } = await this.clusterContract.methods
       .getDetails({ answerId: 0 })
       .call()
       .then(res => res.value0);
     return locklift.tracing.trace(
-      this.clusterContract.methods.dropCluster({ _isPunish: false }).send({
-        from: this.clusterOwner.address,
-        amount: toNanoBn(convertEverGas(0.5))
-          .multipliedBy(currentStrategiesCount)
+      this.stEver.methods
+        .dropCluster({
+          cluster: this.clusterContract.address,
+          punishmentInfo: {
+            isPunish: false,
+            assuranceTo: this.clusterOwner.address,
+          },
+          remainingGasTo: this.clusterOwner.address,
+        })
+        .send({
+          from: stEverOwner,
+          amount: toNanoBn(convertEverGas(0.5))
+            .multipliedBy(currentStrategiesCount)
 
-          .plus(toNanoBn(convertEverGas(0.1)))
-          .toString(),
-      }),
+            .plus(toNanoBn(convertEverGas(0.1)))
+            .toString(),
+        }),
       { raise: false },
     );
   };
@@ -42,6 +55,7 @@ export class Cluster {
       this.clusterContract.methods
         .removeStrategies({
           _strategies: strategies,
+          remainingGasTo: this.clusterOwner.address,
         })
         .send({
           from: this.clusterOwner.address,
@@ -100,6 +114,6 @@ export class Cluster {
       assurance,
       clusterOwner: clusterOwner.address,
     });
-    return new Cluster(clusterContract, clusterOwner, vault.vaultContract.address);
+    return new Cluster(clusterContract, clusterOwner, vault.vaultContract);
   };
 }

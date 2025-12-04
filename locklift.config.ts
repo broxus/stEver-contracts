@@ -54,6 +54,7 @@ const config: LockliftConfig = {
         // @ts-ignore
         data: {},
       },
+      blockchainConfig: "EVER",
       keys: {
         // Use everdev to generate your phrase
         // !!! Never commit it in your repos !!!

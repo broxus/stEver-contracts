@@ -103,6 +103,7 @@ describe("Cluster create and immediately remove", () => {
   });
   it("cluster should be removed", async () => {
     const { traceTree: removeClusterTraceTree } = await cluster.removeCluster();
+    await removeClusterTraceTree?.beautyPrint();
     expect(removeClusterTraceTree)
       .to.emit("ClusterRemoved")
       .withNamedArgs({

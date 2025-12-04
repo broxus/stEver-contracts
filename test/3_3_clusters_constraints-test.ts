@@ -82,13 +82,15 @@ describe("Clusters constraints", () => {
         amount: toNano(convertEverGas(0.5)),
       });
     const { traceTree } = await locklift.tracing.trace(
-      cluster.clusterContract.methods
+      vault.vaultContract.methods
         .setAssurance({
           _newRequiredAssurance: toNano(5),
+          remainingGasTo: admin.account.address,
+          cluster: cluster.clusterContract.address,
         })
         .send({
           from: admin.account.address,
-          amount: toNano(convertEverGas(0.1)),
+          amount: toNano(convertEverGas(0.2)),
         }),
     );
     expect(traceTree)

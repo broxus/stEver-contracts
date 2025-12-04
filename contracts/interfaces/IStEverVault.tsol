@@ -51,7 +51,7 @@ interface IStEverVault {
     );
     // Strategy deposit
     event StrategyHandledDeposit(address strategy, uint128 depositValue);
-    event StrategyDidntHandleDeposit(address strategy, uint32 errcode);
+    event StrategyDidntHandleDeposit(address strategy, uint32 errcode, uint64 queryId);
     event ProcessDepositToStrategyError(address strategy, uint16 errcode);
 
     event ControllerCredited(address controller, uint128 value, uint32 maxValidatorInterest, uint128 validatorBalance);
@@ -60,7 +60,7 @@ interface IStEverVault {
     event StrategyHandledWithdrawRequest(address strategy, uint128 amount);
     event StrategyWithdrawSuccess(address strategy, uint128 amount);
 
-    event StrategyRepayLoan(address strategy, uint128 reward, uint128 repay, uint128 repayValue);
+    event StrategyRepayLoan(address strategy, uint128 reward, uint128 repay, uint128 repayValue, uint64 queryId);
 
     event StrategyWithdrawError(address strategy, uint32 errcode);
     event ProcessWithdrawFromControllerError(address strategy, uint16 errcode);
@@ -232,7 +232,7 @@ interface IStEverVault {
      * @param _clusterOwner The owner of the cluster.
      * @param _clusterId The ID of the cluster.
      */
-    function removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
+    function finish_removeStrategies(address[] _strategies, address _clusterOwner, uint32 _clusterId) external;
 
 
 

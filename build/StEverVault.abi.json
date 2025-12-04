@@ -206,6 +206,16 @@
 			]
 		},
 		{
+			"name": "dropCluster",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"components":[{"name":"assuranceTo","type":"address"},{"name":"isPunish","type":"bool"}],"name":"punishmentInfo","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "onClusterRemoved",
 			"inputs": [
 				{"name":"_clusterOwner","type":"address"},
@@ -225,7 +235,37 @@
 			]
 		},
 		{
-			"name": "removeStrategies",
+			"name": "approveStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"queryId","type":"uint64"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "disapproveStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"queryId","type":"uint64"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "start_removeStrategies",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"name":"_strategies","type":"address[]"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "finish_removeStrategies",
 			"inputs": [
 				{"name":"_strategies","type":"address[]"},
 				{"name":"_clusterOwner","type":"address"},
@@ -238,6 +278,16 @@
 			"name": "_removeStrategy",
 			"inputs": [
 				{"name":"_strategy","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setAssurance",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"name":"_newRequiredAssurance","type":"uint128"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -337,15 +387,6 @@
 			"name": "setMinControllerBalance",
 			"inputs": [
 				{"name":"_minControllerBalance","type":"uint128"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "self_setStEverOwnerForClusters",
-			"inputs": [
-				{"name":"_sendGasTo","type":"address"},
-				{"components":[{"name":"currentClusterNonce","type":"uint32"},{"name":"clusters","type":"map(uint32,address)"}],"name":"_clusterPools","type":"map(address,tuple)"}
 			],
 			"outputs": [
 			]
@@ -786,7 +827,8 @@
 			"name": "StrategyDidntHandleDeposit",
 			"inputs": [
 				{"name":"strategy","type":"address"},
-				{"name":"errcode","type":"uint32"}
+				{"name":"errcode","type":"uint32"},
+				{"name":"queryId","type":"uint64"}
 			],
 			"outputs": [
 			]
@@ -835,7 +877,8 @@
 				{"name":"strategy","type":"address"},
 				{"name":"reward","type":"uint128"},
 				{"name":"repay","type":"uint128"},
-				{"name":"repayValue","type":"uint128"}
+				{"name":"repayValue","type":"uint128"},
+				{"name":"queryId","type":"uint64"}
 			],
 			"outputs": [
 			]

@@ -207,9 +207,8 @@ ENDS
 CALLREF {
 	CALL $recoverStake_dae01cda_internal_macro$
 }
-DROP
-CALLREF {
-	CALL $c7_to_c4$
+IFREF {
+	CALL $upd_only_time_in_c4$
 }
 THROW 0
 
@@ -481,7 +480,7 @@ THROW 0
 CALL $GasUtils_with_obj_convertEverGas_014e83ac_macro$
 
 .macro GasUtils_with_obj_convertEverGas_014e83ac_macro
-.loc ../contracts/utils/GasUtils.tsol, 24
+.loc ../contracts/utils/GasUtils.tsol, 17
 DUP
 PUSHINT 1000
 DIV
@@ -496,7 +495,7 @@ CALLREF {
 CALL $GasUtils_no_obj_convertEverGas_014e83ac_macro$
 
 .macro GasUtils_no_obj_convertEverGas_014e83ac_macro
-.loc ../contracts/utils/GasUtils.tsol, 24
+.loc ../contracts/utils/GasUtils.tsol, 17
 PUSHINT 1000
 DIV
 PUSHINT 0

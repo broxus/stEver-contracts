@@ -558,12 +558,14 @@ contract StEverVault is
 		if (functionId == tvm.functionId(StEverAccount.addPendingValue)) {
 			handleAddPendingValueError(_slice);
 		}
+        //controller::credit
         if (functionId == 0x1690c604) {
             uint64 queryId = _slice.decode(uint64);
             uint128 creditAmount = _slice.decode(uint128);
             // TODO add credit error handling
             availableAssets += creditAmount;
             strategies[msg.sender].totalAssets -= creditAmount;
+            emit StrategyDidntHandleDeposit(msg.sender, 0x1690c604, queryId);
         }
 	}
 

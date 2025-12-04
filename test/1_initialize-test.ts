@@ -111,61 +111,7 @@ describe("Initialize testing", function () {
     );
     expect(traceTree).to.have.error(1005);
   });
-  it("test transfer ownership", async () => {
-    const clustersInfo = await Promise.all(clusters.map(cluster => cluster.getDetails()));
 
-    clustersInfo.forEach(clusterInfo => {
-      expect(clusterInfo.stEverOwner.toString()).to.be.equal(admin.account.address.toString());
-    });
-
-    const { traceTree } = await locklift.tracing.trace(
-      vault.vaultContract.methods
-        .transferOwnership({
-          _sendGasTo: admin.account.address,
-          _newOwner: user1.account.address,
-        })
-        .send({
-          from: admin.account.address,
-          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + MIN_TRANSACTION_VALUE) * clustersInfo.length)),
-        }),
-    );
-    await traceTree?.beautyPrint();
-
-    expect(traceTree)
-      .to.call("self_setStEverOwnerForClusters")
-      .count(Math.ceil(clusters.length / 25))
-      .withNamedArgs({
-        _sendGasTo: admin.account.address,
-      });
-
-    clusters.reduce((assertion, cluster) => {
-      return assertion.and.call("setStEverOwner", cluster.clusterContract.address).withNamedArgs({
-        _newStEverOwner: user1.account.address,
-      });
-    }, expect(traceTree));
-
-    {
-      const clustersInfo = await Promise.all(clusters.map(cluster => cluster.getDetails()));
-
-      const vaultDetails = await vault.getDetails();
-      clustersInfo.forEach(clusterInfo => {
-        expect(clusterInfo.stEverOwner.toString()).to.be.equal(user1.account.address.toString());
-      });
-      expect(vaultDetails.owner.toString()).to.be.equal(user1.account.address.toString());
-    }
-    // move owner back
-    await locklift.tracing.trace(
-      vault.vaultContract.methods
-        .transferOwnership({
-          _sendGasTo: admin.account.address,
-          _newOwner: admin.account.address,
-        })
-        .send({
-          from: user1.account.address,
-          amount: convertEverGas(toNano((MIN_CALL_MSG_VALUE + MIN_TRANSACTION_VALUE) * clustersInfo.length)),
-        }),
-    );
-  });
   it("negative test set gainFee", async () => {
     const { traceTree } = await locklift.tracing.trace(
       vault.vaultContract.methods

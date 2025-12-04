@@ -161,7 +161,7 @@ contract ControllerStrategyFactory is IDepoolStrategyFactory {
      *
      */
 
-    function buildControllerAddress(uint32 controllerId, address validator) internal returns (address controllerAddress, TvmCell stateInit)  {
+    function buildControllerAddress(uint32 controllerId, address validator) internal view returns (address controllerAddress, TvmCell stateInit)  {
         TvmBuilder staticDataBuilder;
         staticDataBuilder.store(controllerId);
         staticDataBuilder.store(validator);
@@ -182,7 +182,7 @@ contract ControllerStrategyFactory is IDepoolStrategyFactory {
         bool halted = false;
         controllerInitData.store(halted);
 
-        bool approved = true; // todo make it false and add new method to steEver vault to approve
+        bool approved = true;
         controllerInitData.store(approved);
 
         uint128 stake_amount_sent = 0;

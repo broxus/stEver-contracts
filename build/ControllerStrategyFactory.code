@@ -1209,7 +1209,7 @@ THROW 0
 CALL $GasUtils_with_obj_convertEverGas_014e83ac_macro$
 
 .macro GasUtils_with_obj_convertEverGas_014e83ac_macro
-.loc ../contracts/utils/GasUtils.tsol, 24
+.loc ../contracts/utils/GasUtils.tsol, 17
 DUP
 PUSHINT 1000
 DIV
@@ -1224,7 +1224,7 @@ CALLREF {
 CALL $GasUtils_no_obj_convertEverGas_014e83ac_macro$
 
 .macro GasUtils_no_obj_convertEverGas_014e83ac_macro
-.loc ../contracts/utils/GasUtils.tsol, 24
+.loc ../contracts/utils/GasUtils.tsol, 17
 PUSHINT 1000
 DIV
 PUSHINT 0

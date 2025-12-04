@@ -19,14 +19,6 @@
 			]
 		},
 		{
-			"name": "setStEverOwner",
-			"inputs": [
-				{"name":"_newStEverOwner","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "deployStrategies",
 			"inputs": [
 				{"name":"_validator","type":"address"},
@@ -54,7 +46,8 @@
 		{
 			"name": "removeStrategies",
 			"inputs": [
-				{"name":"_strategies","type":"address[]"}
+				{"name":"_strategies","type":"address[]"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -78,7 +71,8 @@
 		{
 			"name": "dropCluster",
 			"inputs": [
-				{"name":"_isPunish","type":"bool"}
+				{"components":[{"name":"assuranceTo","type":"address"},{"name":"isPunish","type":"bool"}],"name":"_punishmentInfo","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -89,7 +83,7 @@
 				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"components":[{"name":"_nonce","type":"uint32"},{"name":"stEverVault","type":"address"},{"name":"stEverOwner","type":"address"},{"name":"clusterOwner","type":"address"},{"name":"assurance","type":"uint128"},{"name":"maxStrategiesCount","type":"uint32"},{"name":"currentVersion","type":"uint32"},{"name":"strategyFactory","type":"address"},{"name":"currentAssurance","type":"uint128"},{"name":"currentStrategiesCount","type":"uint32"},{"name":"clusterState","type":"uint8"},{"name":"isPunished","type":"bool"},{"name":"stEverTokenRoot","type":"address"},{"name":"stEverTokenWallet","type":"address"}],"name":"value0","type":"tuple"}
+				{"components":[{"name":"_nonce","type":"uint32"},{"name":"stEverVault","type":"address"},{"name":"clusterOwner","type":"address"},{"name":"assurance","type":"uint128"},{"name":"maxStrategiesCount","type":"uint32"},{"name":"currentVersion","type":"uint32"},{"name":"strategyFactory","type":"address"},{"name":"currentAssurance","type":"uint128"},{"name":"currentStrategiesCount","type":"uint32"},{"name":"clusterState","type":"uint8"},{"components":[{"name":"assuranceTo","type":"address"},{"name":"isPunish","type":"bool"}],"name":"punishmentInfo","type":"tuple"},{"name":"stEverTokenRoot","type":"address"},{"name":"stEverTokenWallet","type":"address"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -108,7 +102,8 @@
 		{
 			"name": "setAssurance",
 			"inputs": [
-				{"name":"_newRequiredAssurance","type":"uint128"}
+				{"name":"_newRequiredAssurance","type":"uint128"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -183,6 +178,14 @@
 			],
 			"outputs": [
 			]
+		},
+		{
+			"name": "ClusterError",
+			"inputs": [
+				{"name":"errorCode","type":"uint16"}
+			],
+			"outputs": [
+			]
 		}
 	],
 	"fields": [
@@ -192,7 +195,6 @@
 		{"name":"_nonce","type":"uint32"},
 		{"name":"stEverVault","type":"address"},
 		{"name":"clusterOwner","type":"address"},
-		{"name":"stEverOwner","type":"address"},
 		{"name":"requiredAssurance","type":"uint128"},
 		{"name":"maxStrategiesCount","type":"uint32"},
 		{"name":"currentVersion","type":"uint32"},
@@ -201,7 +203,7 @@
 		{"name":"clusterState","type":"uint8"},
 		{"name":"stEverTokenRoot","type":"address"},
 		{"name":"stEverTokenWallet","type":"address"},
-		{"name":"isPunished","type":"bool"},
+		{"components":[{"name":"assuranceTo","type":"address"},{"name":"isPunish","type":"bool"}],"name":"punishmentInfo","type":"tuple"},
 		{"components":[{"name":"state","type":"uint8"}],"name":"strategies","type":"map(address,tuple)"},
 		{"name":"deployedStrategies","type":"map(address,bool)"}
 	]

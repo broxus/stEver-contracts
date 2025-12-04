@@ -3,6 +3,7 @@ pragma ever-solidity >=0.62.0;
 import "../interfaces/IStEverCluster.tsol";
 import "./StEverVaultBase.tsol";
 import {GasUtils} from "../utils/GasUtils.tsol";
+import {IController} from "../interfaces/IController.tsol";
 
 /**
  * @dev This contract is used to manage the strategies for the StEver staking platform.
@@ -71,6 +72,14 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function dropCluster(address cluster, IStEverCluster.PunishmentInfo punishmentInfo, address remainingGasTo) external pure {
+        tvm.rawReserve(_reserve(), 0);
+        IStEverCluster(cluster).dropCluster{
+            value: GasUtils.convertEverGas(StEverVaultGas.DEPLOY_CLUSTER_VALUE),
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(punishmentInfo, remainingGasTo);
+    }
     /**
      * @dev See {IStEverVault-onClusterRemoved}
      *
@@ -140,6 +149,63 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategy);
     }
 
+    function approveStrategies(
+        address[] _strategies,
+        uint64 queryId,
+        address remainingGasTo
+    ) external onlyOwner {
+        require(msg.value >= GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE) * _strategies.length * 3, ErrorCodes.LOW_MSG_VALUE);
+        tvm.rawReserve(_reserve(), 0);
+
+        for (address _s : _strategies) {
+            if (!strategies.exists(_s)) {
+                continue;
+            }
+            IController(_s).approve{
+                value: GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 2 ),
+                flag: 1,
+                bounce: false
+            }(queryId);
+        }
+        remainingGasTo.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    function disapproveStrategies(
+        address[] _strategies,
+        uint64 queryId,
+        address remainingGasTo
+    ) external onlyOwner minCallValue {
+        require(msg.value >= GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE) * _strategies.length * 3, ErrorCodes.LOW_MSG_VALUE);
+        for (address _s : _strategies) {
+            if (!strategies.exists(_s)) {
+                continue;
+            }
+            IController(_s).disapprove{
+                value: GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 2),
+                flag: 1,
+                bounce: false
+            }(queryId);
+        }
+        tvm.rawReserve(_reserve(), 0);
+        remainingGasTo.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        });
+    }
+
+    function start_removeStrategies(address cluster ,address[] _strategies, address remainingGasTo) external pure {
+        tvm.rawReserve(_reserve(), 0);
+        IStEverCluster(cluster).removeStrategies{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_strategies, remainingGasTo);
+    }
     /**
      * @dev See {IStEverVault-removeStrategies}
      *
@@ -155,7 +221,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
      *
      * - The {IStEverCluster-onPendingStrategyRemove} is called.
      */
-    function removeStrategies(
+    function finish_removeStrategies(
         address[] _strategies,
         address _clusterOwner,
         uint32 _clusterId
@@ -243,6 +309,14 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         }(_strategy);
     }
 
+    function setAssurance(address cluster, uint128 _newRequiredAssurance, address remainingGasTo) external pure minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+        IStEverCluster(cluster).setAssurance{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_newRequiredAssurance, remainingGasTo);
+    }
     /**
      * @dev See {IStEverVault-onStrategiesDelegationHandled}
      *

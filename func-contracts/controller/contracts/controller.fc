@@ -421,24 +421,21 @@ int check_new_stake_msg(slice cs);
                 int min_loan = in_msg_body~load_coins();
                 int max_loan = in_msg_body~load_coins();
                 in_msg_body.end_parse();
-                ;; max_expected_interest = max_interest;
-                ;;
-                ;; throw_unless(error::controller_not_approved, approved?);
-                ;;
-                ;; ;; For simplicity forbid multiple borrowing
-                ;; throw_if(error::multiple_loans_are_prohibited, borrowed_amount);
-                ;;
-                ;; (int elections_start_before, _, int elections_end_before) = get_validator_config();
-                ;; (int utime_since, int utime_until, cell vset) = get_current_validator_set();
-                ;; throw_unless(error::too_early_loan_request, now() > utime_until - elections_start_before); ;; elections started
-                ;; throw_unless(error::too_late_loan_request, now() < utime_until - elections_end_before);   ;; elections not yet closed
-                ;;
-                ;;
-                ;; ;; lets check whether we can afford it
-                ;; int elector_fine = max_recommended_punishment_for_validator_misbehaviour(max_loan + balance); ;;
-                ;; int overdue_fine = (HASH_UPDATE_FINE * 3) + STAKE_RECOVER_FINE;
+                int max_interest = in_msg_body~load_share();
+                in_msg_body.end_parse();
+                max_expected_interest = max_interest;
+
+                throw_unless(error::controller_not_approved, approved?);
+
+                ;; For simplicity forbid multiple borrowing
+                throw_if(error::multiple_loans_are_prohibited, borrowed_amount);
+
+                (int elections_start_before, _, int elections_end_before) = get_validator_config();
+                (int utime_since, int utime_until, cell vset) = get_current_validator_set();
+                throw_unless(error::too_early_loan_request, now() > utime_until - elections_start_before); ;; elections started
+                throw_unless(error::too_late_loan_request, now() < utime_until - elections_end_before);   ;; elections not yet closed
+
                 int validator_amount = balance - borrowed_amount;
-                ;; throw_unless(error::too_high_loan_request_amount, validator_amount >= (MIN_TONS_FOR_STORAGE + overdue_fine) + elector_fine);
 
                 cell payload = begin_cell()
                     .store_body_header(pool::request_loan, query_id)
@@ -456,14 +453,13 @@ int check_new_stake_msg(slice cs);
                 assert_sender!(sender_address, validator);
                 throw_unless(error::too_low_request_loan_value, msg_value >= convert_gas(MIN_REQUEST_LOAN_VALUE, 0));
                 slice request = in_msg_body;
-                int min_loan = in_msg_body~load_coins();
-                int max_loan = in_msg_body~load_coins();
+                in_msg_body~load_coins(); ;; min_loan
+                in_msg_body~load_coins(); ;; max_loan
                 int max_interest = in_msg_body~load_share();
                 in_msg_body.end_parse();
                 max_expected_interest = max_interest;
 
-                ;; throw_unless(error::controller_not_approved, approved?); ;; TODO uncomment
-
+                throw_unless(error::controller_not_approved, approved?);
                 ;; For simplicity forbid multiple borrowing
                 throw_if(error::multiple_loans_are_prohibited, borrowed_amount);
 
@@ -472,14 +468,7 @@ int check_new_stake_msg(slice cs);
                 ;; throw_unless(error::too_early_loan_request, now() > utime_until - elections_start_before); ;; elections started
                 ;; throw_unless(error::too_late_loan_request, now() < utime_until - elections_end_before);   ;; elections not yet closed
 
-
-                ;; lets check whether we can afford it
-                int elector_fine = max_recommended_punishment_for_validator_misbehaviour(max_loan + balance);
-                int overdue_fine = (HASH_UPDATE_FINE * 3) + STAKE_RECOVER_FINE;
-
-                throw_if(1001, max_interest > 1000);
                 int validator_amount = balance - borrowed_amount;
-                throw_unless(error::too_high_loan_request_amount, validator_amount >= (MIN_TONS_FOR_STORAGE + overdue_fine) + elector_fine);
 
                 cell payload = begin_cell()
                     .store_body_header(pool::request_loan, query_id)
