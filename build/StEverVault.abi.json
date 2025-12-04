@@ -271,6 +271,36 @@
 			]
 		},
 		{
+			"name": "dropCluster",
+			"inputs": [
+				{"name":"_cluster","type":"address"},
+				{"name":"_isPunish","type":"bool"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "removeClusterStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"},
+				{"name":"cluster","type":"address"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setClusterAssurance",
+			"inputs": [
+				{"name":"cluster","type":"address"},
+				{"name":"_newRequiredAssurance","type":"uint128"},
+				{"name":"remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "onClusterRemoved",
 			"inputs": [
 				{"name":"_clusterOwner","type":"address"},

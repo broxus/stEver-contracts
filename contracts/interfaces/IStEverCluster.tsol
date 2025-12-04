@@ -50,7 +50,8 @@ interface IStEverCluster {
     event RemoveStrategyError(address[] strategies, ClusterLib.RemoveStrategyErrors errorCode);
     event AssuranceReceived(uint128 receivedAmount, uint128 totalAmount);
     event SetAssuranceAmount(uint128 newAssuranceAmount);
-    function setAssurance(uint128 _newRequiredAssurance) external;
+    event NotEnoughGasForExecution(uint128 requiredGas, uint128 availableGas);
+    function setAssurance(uint128 _newRequiredAssurance, address remainingGasTo) external;
     function withdrawAssurance(uint128 amount) external;
 
     function deployStrategies(address[] dePools) external;
@@ -65,7 +66,9 @@ interface IStEverCluster {
 
     function getDetails() external responsible returns (Details);
 
-    function dropCluster(bool _isPunish) external;
+    function dropCluster(bool _isPunish, address remainingGasTo) external;
+
+    function removeStrategies(address[] _strategies, address remainingGasTo) external;
     // upgrade
     function upgrade(TvmCell _newCode, uint32 _newVersion, address _sendGasTo) external;
 }

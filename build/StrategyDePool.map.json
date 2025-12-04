@@ -1,5 +1,23 @@
 {
   "map": {
+    "0286061619531dede458a9139701acdfe11b91eb31a909e51dd3bf42c1eec773": {
+      "38": {
+        "filename": "StrategyDePool.code",
+        "line": 1157
+      },
+      "46": {
+        "filename": "StrategyDePool.code",
+        "line": 1159
+      },
+      "62": {
+        "filename": "StrategyDePool.code",
+        "line": 1162
+      },
+      "78": {
+        "filename": "StrategyDePool.code",
+        "line": 1163
+      }
+    },
     "04fc5ce8a4d1a5095c79af0a4e008dbd3e1837a79b2e3f6a747dd6d5f28dec66": {
       "0": {
         "filename": "../contracts/StrategyDePool.tsol",
@@ -1331,7 +1349,7 @@
     "61ab4641fa30d9310391025086eec65d200d79268e1b7cd402565e01ba64be3c": {
       "0": {
         "filename": "StrategyDePool.code",
-        "line": 1381
+        "line": 1214
       }
     },
     "67953d087e80a216a0f8a6876f0d9547bf84b161e82d0c760eda547fc0f3a680": {
@@ -3116,24 +3134,6 @@
       "24": {
         "filename": "../contracts/StrategyDePool.tsol",
         "line": 153
-      }
-    },
-    "b1020b4b4a2aa372d79408abdb4bd994c6358f35122a6eacb5112f0730c8de94": {
-      "40": {
-        "filename": "StrategyDePool.code",
-        "line": 1157
-      },
-      "48": {
-        "filename": "StrategyDePool.code",
-        "line": 1159
-      },
-      "64": {
-        "filename": "StrategyDePool.code",
-        "line": 1162
-      },
-      "80": {
-        "filename": "StrategyDePool.code",
-        "line": 1163
       }
     },
     "b1e21c1da8cf5498f733fffab1e79b986cf3010082aea25dbd6b62dd60cc7ff9": {

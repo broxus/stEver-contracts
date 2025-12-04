@@ -282,6 +282,10 @@ interface IStEverVault {
     function upgradeStEverAccounts(address _sendGasTo, address[] _users) external;
     function _upgradeStEverAccounts(address _sendGasTo, address[] _users, uint128 _startIdx) external;
     function onAccountUpgraded(address user, address sendGasTo, uint32 newVersion) external;
+    // cluster
+    function dropCluster(address _cluster, bool _isPunish, address remainingGasTo) external;
+    function removeClusterStrategies(address[] _strategies, address cluster, address remainingGasTo) external;
+    function setClusterAssurance(address cluster, uint128 _newRequiredAssurance, address remainingGasTo) external;
     // upgrade cluster
     function setNewClusterCode(TvmCell _newClusterCode) external;
     function upgradeStEverCluster(uint32 _clusterNonce) external;

@@ -53,7 +53,8 @@
 		{
 			"name": "removeStrategies",
 			"inputs": [
-				{"name":"_strategies","type":"address[]"}
+				{"name":"_strategies","type":"address[]"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -85,7 +86,8 @@
 		{
 			"name": "dropCluster",
 			"inputs": [
-				{"name":"_isPunish","type":"bool"}
+				{"name":"_isPunish","type":"bool"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -115,7 +117,8 @@
 		{
 			"name": "setAssurance",
 			"inputs": [
-				{"name":"_newRequiredAssurance","type":"uint128"}
+				{"name":"_newRequiredAssurance","type":"uint128"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -196,6 +199,15 @@
 			"name": "SetAssuranceAmount",
 			"inputs": [
 				{"name":"newAssuranceAmount","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "NotEnoughGasForExecution",
+			"inputs": [
+				{"name":"requiredGas","type":"uint128"},
+				{"name":"availableGas","type":"uint128"}
 			],
 			"outputs": [
 			]

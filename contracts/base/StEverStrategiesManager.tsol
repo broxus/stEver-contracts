@@ -41,6 +41,51 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
+    function dropCluster(
+        address _cluster,
+        bool _isPunish,
+        address remainingGasTo
+    ) override external onlyOwner minCallValue {
+
+        tvm.rawReserve(_reserve(), 0);
+
+        IStEverCluster(_cluster).dropCluster{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_isPunish, remainingGasTo);
+    }
+
+    function removeClusterStrategies(
+        address[] _strategies,
+        address cluster,
+        address remainingGasTo
+    ) override external onlyOwner minCallValue {
+
+        tvm.rawReserve(_reserve(), 0);
+
+        IStEverCluster(cluster).removeStrategies{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_strategies, remainingGasTo);
+    }
+
+    function setClusterAssurance(
+        address cluster,
+        uint128 _newRequiredAssurance,
+        address remainingGasTo
+    ) override external onlyOwner minCallValue {
+        tvm.rawReserve(_reserve(), 0);
+
+        IStEverCluster(cluster).setAssurance{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            bounce: false
+        }(_newRequiredAssurance, remainingGasTo);
+    }
+
+
 
     function onClusterRemoved(
         address _clusterOwner,
