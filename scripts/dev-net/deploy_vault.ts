@@ -4,7 +4,7 @@ import { Address } from "locklift/everscale-provider";
 import { deployTokenRoot } from "../../test/preparation";
 import { Controller } from "../../utils/controller";
 import { convertEverGas, DEPLOY_WALLET_VALUE, toNanoBn } from "../../utils";
-import { CONTROLLER_DEPLOY_VALUE, MIN_CALL_MSG_VALUE } from "../../utils/constants";
+import { CONTROLLER_DEPLOY_ADDITIONAL_VALUE, CONTROLLER_DEPLOY_VALUE, MIN_CALL_MSG_VALUE } from "../../utils/constants";
 import { getPublicKey } from "everscale-crypto";
 import { start } from "./gas_price";
 
@@ -20,11 +20,28 @@ const FACTORY = locklift.factory.getDeployedContract(
 const main1 = async () => {
   const signer = (await locklift.keystore.getSigner("0"))!;
 
-  const adminAddress = new Address("0:6c816f2c4840bb6ad434c0ca25b4947d6159409ea5002c0066602c1c4125b83b");
-  const account = await locklift.factory.accounts.addExistingAccount({
-    address: adminAddress,
+  // const adminAddress = new Address("0:6c816f2c4840bb6ad434c0ca25b4947d6159409ea5002c0066602c1c4125b83b");
+  // const account = await locklift.factory.accounts.addNewAccount({
+  //   publicKey: await locklift.keystore.getSigner("0")!.then(res => res?.publicKey!),
+  //   type: WalletTypes.EverWallet,
+  //   value: toNano(100),
+  // });
+  // console.log(account.account.address.toString());
+  // await locklift.provider.sendMessage({
+  //   amount: toNano(100),
+  //   recipient: adminAddress,
+  //   bounce: false,
+  //   sender: adminAddress,
+  // });
+  const {
+    account: { address: adminAddress },
+  } = await locklift.factory.accounts.addNewAccount({
+    publicKey: await locklift.keystore.getSigner("0")!.then(res => res?.publicKey!),
     type: WalletTypes.EverWallet,
+    value: toNano(10),
   });
+
+  await locklift.provider.getBalance(adminAddress).then(res => console.log(res));
 
   locklift.keystore.addKeyPair({
     publicKey: getPublicKey("0x172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3"),
@@ -101,7 +118,8 @@ const main1 = async () => {
       initParams: {
         stEverVault: vaultContract.address,
         nonce: locklift.utils.getRandomNonce(),
-        controllerStrategyCode: Controller.code,
+        controllerStrategyInitialCode: Controller.code,
+        controllerStrategyCurrentCode: Controller.code,
         elector: new Address("-1:3333333333333333333333333333333333333333333333333333333333333333"),
       },
       constructorParams: {
@@ -147,7 +165,11 @@ const main1 = async () => {
           DEPLOY_WALLET_VALUE * 2
         ).toString(),
       }),
+    {
+      raise: false,
+    },
   );
+  await deployClusterTraceTree?.beautyPrint();
   const clusterAddress = deployClusterTraceTree?.findEventsForContract({
     contract: vaultContract,
     name: "ClusterCreated" as const,
@@ -156,7 +178,9 @@ const main1 = async () => {
 
   logger.startStep("Deploying controller...");
   const clusterContract = locklift.factory.getDeployedContract("StEverCluster", clusterAddress);
-  const gasForOneController = toNanoBn(CONTROLLER_DEPLOY_VALUE).plus(toNanoBn(convertEverGas(0.1)));
+  const gasForOneController = toNanoBn(CONTROLLER_DEPLOY_VALUE)
+    .plus(toNanoBn(convertEverGas(0.1)))
+    .plus(toNanoBn(convertEverGas(CONTROLLER_DEPLOY_ADDITIONAL_VALUE)));
 
   const { traceTree: createControllerTraceTree } = await locklift.tracing.trace(
     clusterContract.methods
@@ -171,6 +195,9 @@ const main1 = async () => {
           .plus(toNanoBn(convertEverGas(0.1)).multipliedBy(2))
           .toString(),
       }),
+    {
+      raise: false,
+    },
   );
 
   const controllerAddresses = createControllerTraceTree
@@ -179,6 +206,7 @@ const main1 = async () => {
       name: "NewStrategyDeployed" as const,
     })
     .map(el => el.strategy);
+
   logger.successStep(`Controller deployed: \n${controllerAddresses?.join("\n")}`);
 
   logger.startStep("User depositing...");

@@ -20,6 +20,7 @@ export const createControllers = async ({
     validator,
     count,
   });
+  await traceTree.beautyPrint();
   expect(traceTree).to.emit("NewStrategyDeployed", cluster.clusterContract).count(count);
   expect(traceTree).to.emit("StrategyAdded", cluster.stEver).count(count);
 

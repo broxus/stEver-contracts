@@ -16,7 +16,7 @@ pragma AbiHeader expire;
  */
 interface IDepoolStrategyFactory {
     event NewStrategyDeployed(address strategy,address validator, uint32 version);
-    event StrategyCodeUpdated(uint32 prevStrategyVersion, uint32 newStrategyVersion);
+    event ControllerCodeUpdated(uint32 prevStrategyVersion, uint32 newStrategyVersion);
 
     struct FactoryDetails {
         address stEverVault;
@@ -42,7 +42,7 @@ interface IDepoolStrategyFactory {
      * @param strategyCode The new strategy code.
      * @param sendGasTo The address to send gas to.
      */
-    function installNewStrategyCode(TvmCell strategyCode,address sendGasTo) external;
+    function installNewControllerCode(TvmCell strategyCode,address sendGasTo) external;
 
     /**
      * @dev Upgrades the strategies in a batch.

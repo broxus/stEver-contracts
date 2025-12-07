@@ -63,8 +63,7 @@ abstract contract StEverStrategiesManager is StEverVaultBase {
             _assurance,
             _maxStrategiesCount,
             strategyFactory,
-            stTokenRoot,
-            owner
+            stTokenRoot
         );
 
         clusterPools[_clusterOwner].clusters[clusterPools[_clusterOwner].currentClusterNonce] = cluster;

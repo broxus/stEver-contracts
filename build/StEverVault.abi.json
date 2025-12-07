@@ -154,6 +154,14 @@
 			]
 		},
 		{
+			"name": "forceWithdrawAvailableFundsFromStrategies",
+			"inputs": [
+				{"components":[{"name":"fee","type":"uint128"}],"name":"_withdrawConfig","type":"map(address,tuple)"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "loanRepayment",
 			"id": "0xDFDCA27B",
 			"inputs": [

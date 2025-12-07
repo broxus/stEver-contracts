@@ -596,6 +596,80 @@
         "line": 401
       }
     },
+    "360a559bc143347e5860da260ed4e87b29111af652b5d3109aebcd8e51b1b34a": {
+      "40": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "48": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "64": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "72": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "88": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "96": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "112": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "120": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "136": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "144": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "160": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "168": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "184": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "192": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "208": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "216": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "232": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      },
+      "240": {
+        "filename": "../contracts/StEverCluster.tsol",
+        "line": 669
+      }
+    },
     "3a0cbb168706457e182d7bf0b134bac899f88b033c65337428441a4fd0ad3b30": {
       "0": {
         "filename": "StEverCluster.code",
@@ -3845,80 +3919,6 @@
       "304": {
         "filename": "StEverCluster.code",
         "line": 2800
-      }
-    },
-    "9847957678567c8a3364cd544026b10b52dc68b84f0ea0a90f78c93f371781cc": {
-      "38": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "46": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "62": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "70": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "86": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "94": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "110": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "118": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "134": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "142": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "158": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "166": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "182": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "190": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "206": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "214": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "230": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
-      },
-      "238": {
-        "filename": "../contracts/StEverCluster.tsol",
-        "line": 669
       }
     },
     "99ab88ca9b277d0dfc8992e599c92a1811e18f62e01483d062d4d229c40fe0ed": {

@@ -6,7 +6,6 @@ import "./StEverVaultBase.tsol";
 
 import "./StEverVaultEmergency.tsol";
 import {IController} from "../interfaces/IController.tsol";
-import {State} from "../test/Elector.tsol";
 
 
 
@@ -41,7 +40,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         varUint16 maxLoan,
         uint32 maxInterest,
         varUint16 validatorBalance
-    ) functionID(0xe642c965) external onlyStrategy {
+    ) functionID(0xe642c965) external onlyStrategy(StrategyState.ACTIVE) {
         require(maxInterest <= maxControllerInterest, ErrorCodes.MAX_INTEREST_TOO_HIGH);
         require(validatorBalance >= minControllerBalance, ErrorCodes.VALIDATOR_BALANCE_TOO_LOW);
         require(strategies[msg.sender].state == StrategyState.ACTIVE, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
@@ -92,6 +91,24 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         }
     }
 
+    function forceWithdrawAvailableFundsFromStrategies(mapping (address => WithdrawConfig) _withdrawConfig) external {
+        uint256 chunkSize = 50;
+        tvm.rawReserve(_reserve(), 0);
+        require(_withdrawConfig.keys().length <= chunkSize, ErrorCodes.MAX_BATCH_SIZE_REACHED);
+        for (uint64 i = 0; !_withdrawConfig.empty(); i++) {
+            (address controller, WithdrawConfig config) = _withdrawConfig.delMin().get();
+            if (!strategies.exists(controller)) {
+                emit ProcessWithdrawFromControllerError(controller, ErrorCodes.STRATEGY_NOT_EXISTS);
+                continue;
+            }
+            IController(controller).returnAvailableFunds{
+                    value: config.fee,
+                    flag: MsgFlag.SENDER_PAYS_FEES,
+                    bounce: false
+                }(i);
+        }
+    }
+
     /**
      * @dev See {IStEverVault-receiveFromStrategy}.
      *
@@ -111,7 +128,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         uint64 queryId,
         varUint16 _reward,
         varUint16 _repay
-    ) external functionID(0xdfdca27b) onlyStrategy {
+    ) external functionID(0xdfdca27b) onlyStrategy(null) {
         // set init state for withdrawing
         uint128 reward = uint128(_reward);
         uint128 repay = uint128(_repay);
@@ -173,7 +190,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The strategy is removed if it is ready to be deleted.
      *  - The {ReceiveAdditionalTransferFromStrategy} event is emitted.
      */
-    function receiveAdditionalTransferFromStrategy() override external onlyStrategy {
+    function receiveAdditionalTransferFromStrategy() override external onlyStrategy(null) {
         uint128 receivedAmount = msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE;
 
         availableAssets += receivedAmount;
@@ -276,7 +293,7 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
      *  - The available assets are increased by the received value.
      *  - The ReceiveExtraMoneyFromStrategy event is emitted.
      */
-    function receiveExtraMoneyFromStrategy() override external onlyStrategy {
+    function receiveExtraMoneyFromStrategy() override external onlyStrategy(null) {
         uint128 receivedValue = msg.value > StEverVaultGas.HANDLING_STRATEGY_CB_FEE
             ? msg.value - StEverVaultGas.HANDLING_STRATEGY_CB_FEE
             : 0;

@@ -73,7 +73,9 @@ export const preparation = async ({
     initParams: {
       stEverVault: vault.address,
       nonce: locklift.utils.getRandomNonce(),
-      controllerStrategyCode: Controller.code,
+      controllerStrategyInitialCode: Controller.code,
+      controllerStrategyCurrentCode: Controller.code,
+
       elector: elector.electorContract.address,
     },
     constructorParams: {

@@ -76,8 +76,12 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     /**
      * @dev Modifier to make a function callable only by the strategy.
      */
-    modifier onlyStrategy() {
-        require (strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
+    modifier onlyStrategy(optional(StrategyState) strategyState) {
+        if (strategyState.hasValue()) {
+            require(strategies.exists(msg.sender) && strategies[msg.sender].state == strategyState.get(), ErrorCodes.STRATEGY_NOT_EXISTS);
+        } else {
+            require(strategies.exists(msg.sender), ErrorCodes.STRATEGY_NOT_EXISTS);
+        }
         _;
     }
 
@@ -898,7 +902,6 @@ abstract contract StEverVaultBase is StEverVaultStorage {
      * @param _maxStrategiesCount The maximum number of strategies for the new cluster.
      * @param _strategyFactory The strategy factory for the new cluster.
      * @param _stEverTokenRoot The StEver token root for the new cluster.
-     * @param _stEverOwner The StEver owner for the new cluster.
      * @return The address of the newly deployed cluster.
      *
      * **Preconditions**:
@@ -915,8 +918,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
         uint128 _assurance,
         uint32 _maxStrategiesCount,
         address _strategyFactory,
-        address _stEverTokenRoot,
-        address _stEverOwner
+        address _stEverTokenRoot
     )
         internal
         view
@@ -928,8 +930,7 @@ abstract contract StEverVaultBase is StEverVaultStorage {
             _assurance,
             _maxStrategiesCount,
             _strategyFactory,
-            _stEverTokenRoot,
-            _stEverOwner
+            _stEverTokenRoot
         );
 
         return new Platform{

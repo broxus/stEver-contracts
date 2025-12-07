@@ -69,6 +69,7 @@ global slice governor;
 global slice halter;
 global slice approver;
 global slice elector;
+global slice factory;
 
 
 
@@ -84,6 +85,7 @@ const int state::INSOLVENT = 5;
 
 () save_data() impure;
 () load_data() impure;
+() on_code_upgrade(int new_version) impure;
 
 slice elector_address();
 int is_elector_address(slice address);
@@ -199,16 +201,12 @@ int check_new_stake_msg(slice cs);
         ;; else just accept coins from elector
 
     } else {
-
-        if (op == controller::top_up) {
-
-            ;; if(state == state::INSOLVENT) {
-            ;;     ;; we add WITHDRAWAL_FEE below to ensure there is enough money to process
-            ;;     ;; and send bounty in return_unused_loan
-            ;;     if (balance > MIN_TONS_FOR_STORAGE + STAKE_RECOVER_FINE + borrowed_amount + WITHDRAWAL_FEE) {
-            ;;         state = state::REST;
-            ;;     }
-            ;; }
+        if (op == factory::upgrade) {
+            assert_sender!(sender_address, factory);
+            cell code = in_msg_body~load_ref();
+            int controller_version = in_msg_body~load_uint(32);
+            set_code(code);
+            on_code_upgrade(controller_version);
         } elseif (op == controller::credit) {
             assert_sender!(sender_address, pool);
             ifnot(borrowing_time) {
@@ -420,7 +418,6 @@ int check_new_stake_msg(slice cs);
                 slice request = in_msg_body;
                 int min_loan = in_msg_body~load_coins();
                 int max_loan = in_msg_body~load_coins();
-                in_msg_body.end_parse();
                 int max_interest = in_msg_body~load_share();
                 in_msg_body.end_parse();
                 max_expected_interest = max_interest;
@@ -432,8 +429,11 @@ int check_new_stake_msg(slice cs);
 
                 (int elections_start_before, _, int elections_end_before) = get_validator_config();
                 (int utime_since, int utime_until, cell vset) = get_current_validator_set();
-                throw_unless(error::too_early_loan_request, now() > utime_until - elections_start_before); ;; elections started
-                throw_unless(error::too_late_loan_request, now() < utime_until - elections_end_before);   ;; elections not yet closed
+
+                int start_ellections_time = utime_until - elections_start_before;
+                int end_ellections_time = utime_until - elections_end_before;
+                throw_unless(error::too_early_loan_request, now() > start_ellections_time); ;; elections started
+                throw_unless(error::too_late_loan_request, now() < end_ellections_time);   ;; elections not yet closed
 
                 int validator_amount = balance - borrowed_amount;
 
@@ -577,6 +577,9 @@ int check_new_stake_msg(slice cs);
     approver = ds~load_msg_addr();
     halter = ds~load_msg_addr();
     elector = ds~load_msg_addr();
+
+    var ds = ds~load_ref().begin_parse();
+    factory = ds~load_msg_addr();
 }
 
 
@@ -674,4 +677,8 @@ int get_max_stake_value() method_id {
     (int utime_since, int utime_until, _) = get_current_validator_set();
     return (utime_until - elections_start_before,
         utime_until - elections_end_before);
+}
+
+() on_code_upgrade(int new_version) impure {
+
 }

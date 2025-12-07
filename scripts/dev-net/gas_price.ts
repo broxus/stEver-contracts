@@ -85,8 +85,12 @@ export const start = async () => {
   console.log(`curValidatorConfig ${JSON.stringify(curValidatorConfig, null, 2)}`);
 
   // throw_unless(error::too_early_loan_request, now() > utime_until - elections_start_before); ;; elections started
-  const startElectionTime = moment.unix(
+  const startElectionTimeOrig = moment.unix(
     Number(curValidatorConfig.utime_until) - Number(validatorConfig.elections_start_before),
+  );
+
+  const startElectionTimeUpdated = moment.unix(
+    startElectionTimeOrig.unix() + Number(validatorConfig.stake_held_for) / 2,
   );
   // throw_unless(error::too_late_loan_request, now() < utime_until - elections_end_before);   ;; elections not yet closed
   const endElectionTime = moment.unix(
@@ -95,7 +99,9 @@ export const start = async () => {
 
   const now = moment();
 
-  console.log(`startElectionTime ${startElectionTime.format("YYYY-MM-DD HH:mm:ss")}`);
+  console.log(`startElectionTime ${startElectionTimeOrig.format("YYYY-MM-DD HH:mm:ss")}`);
+  console.log(`startElectionTimeUpdated ${startElectionTimeUpdated.format("YYYY-MM-DD HH:mm:ss")}`);
+
   console.log(`endElectionTime ${endElectionTime.format("YYYY-MM-DD HH:mm:ss")}`);
   console.log(`now ${now.format("YYYY-MM-DD HH:mm:ss")}`);
 };
@@ -156,7 +162,7 @@ const VALIDATOR_CONFIG_ABI_15 = [
       // elections_end_before.
       { name: "elections_end_before", type: "uint32" },
       // _stake_held_for
-      { name: "_stake_held_for", type: "uint32" },
+      { name: "stake_held_for", type: "uint32" },
     ],
   },
 ] as const;

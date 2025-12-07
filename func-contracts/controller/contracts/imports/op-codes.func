@@ -18,6 +18,8 @@ const int elector::recover_stake_error = 0xfffffffe;
 ;; https://github.com/ton-blockchain/ton/blob/b38d227a469666d83ac535ad2eea80cb49d911b8/crypto/smartcont/elector-code.fc#L426
 const int elector::recover_stake_ok = 0xf96f7324;
 
+const int factory::upgrade = 0xf96f7355;
+
 {- ========  Validator Controller OPCODES ======== -}
 ;; IN
 const int controller::top_up = 0xd372158c;

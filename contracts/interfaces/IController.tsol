@@ -20,6 +20,7 @@ interface IController {
 
     function controller_updateValidatorHashTest(uint64 queryId) external functionID(0xf0fd2210);
     function returnUnusedLoan(uint64 queryId) external functionID(0xed7378a6);
+    function returnAvailableFunds(uint64 queryId) external functionID(0x55c26cd5);
     function approve(uint64 queryId) external functionID(0x7b4b42e6);
     function disapprove(uint64 queryId) external functionID(0xe8a0abfe);
 }
