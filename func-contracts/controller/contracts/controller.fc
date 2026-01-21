@@ -30,7 +30,7 @@ const int MIN_REQUEST_LOAN_VALUE = ONE_TON ; ;; should cover controller and pool
 const int MIN_TONS_FOR_STORAGE = 2 * ONE_TON; ;; 2 TON
 const int DEPOSIT_FEE = ONE_TON / 4; ;; 0.25 TON
 const int WITHDRAWAL_FEE = ONE_TON / 4; ;; 0.25 TON
-const int MIN_STAKE_TO_SEND = 50000 * ONE_TON; ;; 50 000 TON
+const int MIN_STAKE_TO_SEND = 10000 * ONE_TON; ;; 50 000 TON
 
 ;; Time in seconds for validator to make mandatory actions, such as
 ;; recover stake or update hash
@@ -385,7 +385,7 @@ int check_new_stake_msg(slice cs);
 
                 stake_amount_sent = value - convert_gas(ELECTOR_OPERATION_VALUE,0);
 
-                throw_unless(error::incorrect_new_stake::value_lt_minimum, value >= MIN_STAKE_TO_SEND);
+                ;; throw_unless(error::incorrect_new_stake::value_lt_minimum, value >= MIN_STAKE_TO_SEND);
 
                 int overdue_fine_and_storage = (HASH_UPDATE_FINE * 3) + STAKE_RECOVER_FINE + MIN_TONS_FOR_STORAGE;
 
@@ -418,6 +418,8 @@ int check_new_stake_msg(slice cs);
                 slice request = in_msg_body;
                 int min_loan = in_msg_body~load_coins();
                 int max_loan = in_msg_body~load_coins();
+                ;; throw_unless(error::too_low_requested_loan, min_loan >= MIN_STAKE_TO_SEND);
+
                 int max_interest = in_msg_body~load_share();
                 in_msg_body.end_parse();
                 max_expected_interest = max_interest;

@@ -41,11 +41,20 @@ abstract contract StEverVaultStrategiesController is StEverVaultBase, StEverVaul
         uint32 maxInterest,
         varUint16 validatorBalance
     ) functionID(0xe642c965) external onlyStrategy(StrategyState.ACTIVE) {
+        if (lockAssetConfig.lockUntil <= now) {
+            LockAssetConfig e;
+            lockAssetConfig = e;
+        }
+        uint128 cutAvailableAssets = availableAssets - lockAssetConfig.amount;
+
         require(maxInterest <= maxControllerInterest, ErrorCodes.MAX_INTEREST_TOO_HIGH);
         require(validatorBalance >= minControllerBalance, ErrorCodes.VALIDATOR_BALANCE_TOO_LOW);
+        require(minLoan >= minValidatorRequestedStake, ErrorCodes.MIN_VALIDATOR_REQUEST_AMOUNT);
+        require(maxLoan <= maxValidatorRequestedStake, ErrorCodes.MAX_VALIDATOR_REQUEST_AMOUNT);
+
         require(strategies[msg.sender].state == StrategyState.ACTIVE, ErrorCodes.STRATEGY_NOT_IN_INITIAL_STATE);
-        require(availableAssets >= uint128(minLoan), ErrorCodes.NOT_ENOUGH_AVAILABLE_POOL_BALANCE);
-        uint128 creditAmount = math.min(uint128(maxLoan), availableAssets);
+        require(cutAvailableAssets >= uint128(minLoan), ErrorCodes.NOT_ENOUGH_AVAILABLE_POOL_BALANCE);
+        uint128 creditAmount = math.min(uint128(maxLoan), cutAvailableAssets);
         availableAssets -= creditAmount;
         strategies[msg.sender].totalAssets += creditAmount;
         tvm.rawReserve(_reserveWithValue(creditAmount), 0);

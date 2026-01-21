@@ -8,31 +8,12 @@ import { CONTROLLER_DEPLOY_ADDITIONAL_VALUE, CONTROLLER_DEPLOY_VALUE, MIN_CALL_M
 import { getPublicKey } from "everscale-crypto";
 import { start } from "./gas_price";
 
-const VAULT = locklift.factory.getDeployedContract(
-  "StEverVault",
-  new Address("0:cad7220557ce6da678930b83671970502135c602477c910357bc3017f58517a3"),
-);
-const FACTORY = locklift.factory.getDeployedContract(
-  "ControllerStrategyFactory",
-  new Address("0:3c92d2ea4ec5fe75bb5608d5533b0e78ce9997236c12a6ee57854f1f0b98b19e"),
-);
 // locklift.network.insertWallet(new Address("0:6c816f2c4840bb6ad434c0ca25b4947d6159409ea5002c0066602c1c4125b83b"));
 const main1 = async () => {
+  console.log(`0x${getPublicKey("0x172af540e43a524763dd53b26a066d472a97c4de37d5498170564510608250c3")}`);
+
   const signer = (await locklift.keystore.getSigner("0"))!;
 
-  // const adminAddress = new Address("0:6c816f2c4840bb6ad434c0ca25b4947d6159409ea5002c0066602c1c4125b83b");
-  // const account = await locklift.factory.accounts.addNewAccount({
-  //   publicKey: await locklift.keystore.getSigner("0")!.then(res => res?.publicKey!),
-  //   type: WalletTypes.EverWallet,
-  //   value: toNano(100),
-  // });
-  // console.log(account.account.address.toString());
-  // await locklift.provider.sendMessage({
-  //   amount: toNano(100),
-  //   recipient: adminAddress,
-  //   bounce: false,
-  //   sender: adminAddress,
-  // });
   const {
     account: { address: adminAddress },
   } = await locklift.factory.accounts.addNewAccount({
@@ -78,6 +59,7 @@ const main1 = async () => {
         _stTokenRoot: tokenRoot.address,
         _minControllerBalance: toNano(0),
         _maxControllerInterest: 1000,
+        _maxValidatorRequestedStake: toNano(1_000_000),
       },
     }),
     {

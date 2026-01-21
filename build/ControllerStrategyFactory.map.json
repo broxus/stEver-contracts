@@ -1124,24 +1124,6 @@
         "line": 298
       }
     },
-    "5504db3a33df2dcf1aa8e9dfe4a3301eed321121ab6a26a01175a8bf042768a6": {
-      "4": {
-        "filename": "ControllerStrategyFactory.code",
-        "line": 809
-      },
-      "12": {
-        "filename": "ControllerStrategyFactory.code",
-        "line": 811
-      },
-      "28": {
-        "filename": "ControllerStrategyFactory.code",
-        "line": 814
-      },
-      "44": {
-        "filename": "ControllerStrategyFactory.code",
-        "line": 815
-      }
-    },
     "59407e86b0f10a7d4f55878e6d0117c9520c5a82ac9133f59b7171ede69f05c4": {
       "0": {
         "filename": "ControllerStrategyFactory.code",
@@ -2841,6 +2823,24 @@
       "712": {
         "filename": "../contracts/ControllerStrategyFactory.tsol",
         "line": 147
+      }
+    },
+    "b28af0dceed4bdc0731ca1cae33d322c3a0402ea88484fdeb969b757efb9718e": {
+      "40": {
+        "filename": "ControllerStrategyFactory.code",
+        "line": 809
+      },
+      "48": {
+        "filename": "ControllerStrategyFactory.code",
+        "line": 811
+      },
+      "64": {
+        "filename": "ControllerStrategyFactory.code",
+        "line": 814
+      },
+      "80": {
+        "filename": "ControllerStrategyFactory.code",
+        "line": 815
       }
     },
     "ba4c91d709b97ece7d4046a53460453d58cac8bc55a7034e58b01ab1a0564442": {

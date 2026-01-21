@@ -225,6 +225,7 @@ const deployVault = async ({
         _stEverFeePercent: 100,
         _maxControllerInterest: 1000,
         _minControllerBalance: toNano(0),
+        _maxValidatorRequestedStake: toNano(1_000_000),
       },
       publicKey: deployArgs.publicKey!,
       initParams: deployArgs.initParams,

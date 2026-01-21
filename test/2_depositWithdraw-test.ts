@@ -1,7 +1,7 @@
 import { convertEverGas, DEPLOY_WALLET_VALUE, isT, ITERATION_FEE, toNanoBn, userWithdrawMsgValue } from "../utils";
 import { expect } from "chai";
 import { preparation } from "./preparation";
-import { Contract, fromNano, Signer, toNano, TraceType } from "locklift";
+import { Contract, fromNano, Signer, toNano, WalletTypes } from "locklift";
 import { User } from "../utils/entities/user";
 import { Governance } from "../utils/entities/governance";
 import { TokenRootUpgradeableAbi } from "../build/factorySource";
@@ -75,8 +75,9 @@ describe("Deposit withdraw test without lock time", function () {
           from: user1.account.address,
           amount: convertEverGas(toNano(0.2)),
         }),
-      { allowedCodes: { compute: [null] } },
+      { raise: false /*ВАЖНО чтобы ошибка не терминировала процесс*/ },
     );
+    await transaction.traceTree?.beautyPrint();
     expect(transaction.traceTree)
       .to.emit("BadWithdrawRequest")
       .and.to.call("acceptTransfer")
@@ -84,6 +85,7 @@ describe("Deposit withdraw test without lock time", function () {
       .withNamedArgs({})
       .and.to.call("onAcceptTokensTransfer")
       .and.to.call("transfer");
+    await transaction.traceTree?.beautyPrint();
     debugger;
     transaction.traceTree?.findEventsForContract({
       contract: vault.vaultContract,

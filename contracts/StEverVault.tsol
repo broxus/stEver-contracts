@@ -52,7 +52,8 @@ contract StEverVault is
         uint32 _stEverFeePercent,
         address _stTokenRoot,
         uint24 _maxControllerInterest,
-        uint128 _minControllerBalance
+        uint128 _minControllerBalance,
+        uint128 _maxValidatorRequestedStake
     ) public {
         require (tvm.pubkey() != 0, ErrorCodes.WRONG_PUB_KEY);
         require (tvm.pubkey() == msg.pubkey(), ErrorCodes.WRONG_PUB_KEY);
@@ -66,6 +67,7 @@ contract StEverVault is
         stEverFeePercent = _stEverFeePercent;
         maxControllerInterest = _maxControllerInterest;
         minControllerBalance = _minControllerBalance;
+        maxValidatorRequestedStake = _maxValidatorRequestedStake;
         ITokenRoot(stTokenRoot).deployWallet{
 			value: GasUtils.getDeployWalletValue() * 2,
 			callback: StEverVaultBase.receiveTokenWalletAddress,
@@ -89,7 +91,7 @@ contract StEverVault is
      */
     function deposit(uint128 _amount, uint64 _nonce) override external notPaused {
         require (
-            msg.value >= _amount + GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 2 ) + GasUtils.getDeployWalletValue(),
+            msg.value >= _amount + GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 3 ) + GasUtils.getDeployWalletValue(),
             ErrorCodes.NOT_ENOUGH_DEPOSIT_VALUE
         );
         tvm.rawReserve(address(this).balance - (msg.value - _amount), 0);
@@ -363,7 +365,7 @@ contract StEverVault is
      *
      */
     function removePendingWithdraw(uint64 _nonce) override external {
-        require(msg.value >= StEverVaultGas.MIN_CALL_MSG_VALUE * 2, ErrorCodes.NOT_ENOUGH_VALUE);
+        require(msg.value >= GasUtils.convertEverGas(StEverVaultGas.MIN_CALL_MSG_VALUE * 2), ErrorCodes.NOT_ENOUGH_VALUE);
         tvm.rawReserve(_reserve(), 0);
         address account = getAccountAddress(msg.sender);
         IStEverAccount(account).removePendingWithdraw{value:0, flag:MsgFlag.ALL_NOT_RESERVED, bounce: false}(_nonce);
@@ -675,8 +677,8 @@ contract StEverVault is
 
 
             lastUnlockTime, // uint64
-            fullUnlockSeconds, // uint64
-            remainingSeconds, // uint64
+            fullUnlockSeconds, // uint128
+            remainingSeconds, // uint128
 
 
             gainFee, // uint128
@@ -686,6 +688,12 @@ contract StEverVault is
             isPaused, // bool
             strategyFactory, // address,
             withdrawHoldTime, // uint64
+
+            maxControllerInterest, //uint32
+            minControllerBalance, //uint128
+            maxValidatorRequestedStake, //uint128
+            minValidatorRequestedStake, //uint128
+            lockAssetConfig, //LockAssetConfig
 
 
             owner, // address
@@ -712,5 +720,127 @@ contract StEverVault is
     }
 
     // upgrade to v5
-    function onCodeUpgrade(TvmCell _upgradeData) private {}
+    function onCodeUpgrade(TvmCell _upgradeData) private {
+        tvm.rawReserve(_reserve(), 0);
+        tvm.resetStorage();
+
+        address sendGasTo; // address
+        uint24 oldMaxControllerInterest; // uint24
+
+        (
+            stEverVaultVersion, // uint32
+            sendGasTo, // address
+            governance, // uint256
+            platformCode, // TvmCell
+            accountCode, // TvmCell
+            clusterCode, // TvmCell
+
+
+            stEverSupply, // uint128
+            totalAssets, // uint128
+            availableAssets, // uint128
+            totalStEverFee, // uint128
+            effectiveEverAssets, //uint128,
+            remainingLockedAssets, // uint128
+            unlockPerSecond, // uint128
+
+
+            stEverWallet, // address
+            stTokenRoot, // address
+
+
+            lastUnlockTime, // uint64
+            fullUnlockSeconds, // uint64
+            remainingSeconds, // uint64
+
+
+            gainFee, // uint128
+            stEverFeePercent, // uint32
+            minStrategyDepositValue, // uint128
+            minStrategyWithdrawValue, // uint128
+            isPaused, // bool
+            strategyFactory, // address,
+            withdrawHoldTime, // uint64
+
+            // TODO will be available in the next version
+            maxControllerInterest, //uint32
+            minControllerBalance, //uint128
+            maxValidatorRequestedStake, //uint128
+            minValidatorRequestedStake, //uint128
+            lockAssetConfig, //LockAssetConfig
+
+
+            owner, // address
+            accountVersion, // uint32
+            , // oldStEverVersion uint32
+            clusterVersion, // uint32
+
+
+            strategies, // mapping(address => StrategyParams)
+            clusterPools, // mapping(address => ClustersPool)
+            pendingWithdrawals, // mapping(uint64 => PendingWithdraw)
+
+
+            emergencyState, // EmergencyState,
+            timeAfterEmergencyCanBeActivated
+        ) = abi.decode(
+            _upgradeData,
+            (
+                uint32,
+                address,
+                uint256,
+                TvmCell,
+                TvmCell,
+                TvmCell,
+
+
+                uint128,
+                uint128,
+                uint128,
+                uint128,
+                uint128,
+                uint128,
+                uint128,
+
+
+                address,
+                address,
+
+
+                uint64,
+                uint128,
+                uint128,
+
+
+                uint128,
+                uint32,
+                uint128,
+                uint128,
+                bool,
+                address,
+                uint64,
+
+
+                uint32,
+                uint128,
+                uint128,
+                uint128,
+                LockAssetConfig,
+
+
+                address,
+                uint32,
+                uint32,
+                uint32,
+
+
+                mapping(address => StrategyParams),
+                mapping(address => ClustersPool),
+                mapping(uint64 => PendingWithdraw),
+
+                EmergencyState,
+                uint64
+            )
+        );
+    }
 }

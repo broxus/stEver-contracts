@@ -26,7 +26,8 @@
     "main-flow-deployed-broxus-testnet": "cross-env npx locklift run --disable-build --network broxusTestnet -s scripts/1_deploy-and-setup-stEverVault.ts",
     "testnet-send-ever-to-account": "npx locklift run --network testnet -s scripts/0_giver_send_to_account.ts",
     "main-flow-deployed-testnet": "npx locklift run --network testnet -s scripts/1_deploy-and-setup-stEverVault.ts",
-    "create-and-register-strategy": "npx locklift run --disable-build --network broxusTestnet -s scripts/validator/1_create_and_add_strategy_to_dePool.ts"
+    "create-and-register-strategy": "npx locklift run --disable-build --network broxusTestnet -s scripts/validator/1_create_and_add_strategy_to_dePool.ts",
+    "verify": "npx locklift verify"
   },
   "author": "",
   "license": "ISC",
@@ -60,7 +61,6 @@
     "rxjs": "^7.5.6"
   },
   "overrides": {
-    "nekoton-wasm": "npm:nekoton-wasm-locklift@1.26.0-beta.0",
-    "@broxus/locklift-network": "2.0.0-beta-rc3"
+    "nekoton-wasm": "npm:nekoton-wasm-locklift@1.26.0-beta.0"
   }
 }

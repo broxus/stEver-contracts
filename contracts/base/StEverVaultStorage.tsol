@@ -43,8 +43,12 @@ abstract contract StEverVaultStorage is IStEverVault {
     bool isPaused; // Pause status
     address strategyFactory; // Strategy factory address
     uint64 withdrawHoldTime; // Withdraw hold time in seconds
-    uint24 maxControllerInterest; // Maximum controller interest
+    uint32 maxControllerInterest; // Maximum controller interest
     uint128 minControllerBalance; // Minimum validator balance
+    uint128 maxValidatorRequestedStake;
+    uint128 minValidatorRequestedStake;
+    LockAssetConfig lockAssetConfig;
+
 
     // Owner and version variables
     address owner; // Owner address

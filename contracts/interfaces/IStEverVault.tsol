@@ -130,6 +130,12 @@ interface IStEverVault {
         uint32 clusterVersion;
         uint64 timeAfterEmergencyCanBeActivated;
         EmergencyState emergencyState;
+
+        uint32 maxControllerInterest;
+        uint128 minControllerBalance;
+        uint128 maxValidatorRequestedStake;
+        uint128 minValidatorRequestedStake;
+        LockAssetConfig lockAssetConfig;
     }
     struct StrategyReport {
         uint128 gain;
@@ -203,6 +209,11 @@ interface IStEverVault {
     struct SetStrategyTotalAssetsConfig {
         address strategy;
         uint128 totalAssets;
+    }
+
+    struct LockAssetConfig {
+        uint128 amount;
+        uint32 lockUntil; // unix
     }
 
     /**

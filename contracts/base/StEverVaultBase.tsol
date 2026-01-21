@@ -25,6 +25,8 @@ import {console} from "../../node_modules/locklift/src/console.tsol";
  * {StEverVaultValidators}, {StEverVaultStrategiesController}, {StEverVaultEmergency},
  * and {StEverStrategiesManager}, which includes the main functionalities of the StEver staking platform.
  */
+
+
 abstract contract StEverVaultBase is StEverVaultStorage {
     /**
      * @dev Modifier to make a function callable only by the governance or the contract itself.
@@ -146,6 +148,24 @@ abstract contract StEverVaultBase is StEverVaultStorage {
     function setMinControllerBalance(uint128 _minControllerBalance)  external onlyOwner {
         tvm.rawReserve(_reserve(), 0);
         minControllerBalance = _minControllerBalance;
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+    function setMinMaxValidatorRequestedStake(uint128 _minValidatorRequestedStake, uint128 _maxValidatorRequestedStake) external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+        _setMinMaxValidatorRequestedStake(_minValidatorRequestedStake, _maxValidatorRequestedStake);
+        owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
+    }
+    function setMinMaxValidatorRequestedStakeGovernance(uint128 _minValidatorRequestedStake, uint128 _maxValidatorRequestedStake) external onlyGovernanceOrSelfAndAccept {
+        _setMinMaxValidatorRequestedStake(_minValidatorRequestedStake, _maxValidatorRequestedStake);
+    }
+    function _setMinMaxValidatorRequestedStake(uint128 _minValidatorRequestedStake, uint128 _maxValidatorRequestedStake)  internal {
+        maxValidatorRequestedStake = _maxValidatorRequestedStake;
+        minValidatorRequestedStake = _minValidatorRequestedStake;
+    }
+
+    function setLockAssetConfig(LockAssetConfig _lockAssetConfig) external onlyOwner {
+        tvm.rawReserve(_reserve(), 0);
+        lockAssetConfig = _lockAssetConfig;
         owner.transfer({value: 0, flag: MsgFlag.ALL_NOT_RESERVED, bounce: false});
     }
 
@@ -1125,7 +1145,13 @@ abstract contract StEverVaultBase is StEverVaultStorage {
                 stEverVaultVersion,
                 clusterVersion,
                 timeAfterEmergencyCanBeActivated, //new
-                emergencyState
+                emergencyState,
+
+                maxControllerInterest,
+                minControllerBalance,
+                maxValidatorRequestedStake,
+                minValidatorRequestedStake,
+                lockAssetConfig
             );
     }
 }

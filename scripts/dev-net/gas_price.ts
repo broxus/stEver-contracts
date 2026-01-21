@@ -97,6 +97,8 @@ export const start = async () => {
     Number(curValidatorConfig.utime_until) - Number(validatorConfig.elections_end_before),
   );
 
+  const distributionTime = endElectionTime + validatorConfig.stake_held_for;
+
   const now = moment();
 
   console.log(`startElectionTime ${startElectionTimeOrig.format("YYYY-MM-DD HH:mm:ss")}`);
